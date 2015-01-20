@@ -35,7 +35,7 @@ class ReadStagyyData:
         self.byte_offset=self.byte_offset+4
 
         if (self.nmagic<100 and self.nval>1) or (self.nmagic>300 and self.nval==1):  # check nb components
-                   print 'not done yet'#error('wrong number of components in field')
+                   error('wrong number of components in field')
 
         nnmagic = mod(self.nmagic,100) 
         if nnmagic>=9 and self.nval==4:
@@ -103,7 +103,7 @@ class ReadStagyyData:
         nb  =self.nblocks/self.nnb
         npi =(nth+self.xyp)*(nph+self.xyp)*nr*nb*self.nval #the number of values per 'read' block
 
-        field_3D = zeros((self.nrtot,self.nphtot,self.nthtot,self.nblocks));
+        field_3D = zeros((self.nblocks,self.nrtot,self.nphtot,self.nthtot));
 
         # loop over parallel subdomains
         for ibc in arange(self.nnb):
@@ -115,7 +115,8 @@ class ReadStagyyData:
                         data_CPU = array(fileContent)
                         # Create a 3D matrix from these data
                         #data_CPU_3D = data_CPU.reshape((nth,nph,nr,nb))
-                        data_CPU_3D = data_CPU.reshape((nr,nph,nth,nb))
+                        #data_CPU_3D = data_CPU.reshape((nr,nph,nth,nb))
+                        data_CPU_3D = data_CPU.reshape((nb,nr,nph,nth))
                         # Add local 3D matrix to global matrix
                         sth=ithc*nth
                         eth=ithc*nth+nth
@@ -125,14 +126,61 @@ class ReadStagyyData:
                         er=irc*nr+nr
                         snb=ibc*nb
                         enb=ibc*nb+nb
-                        field_3D[sr:er,sph:eph,sth:eth,snb:enb] = data_CPU_3D
+                        field_3D[snb:enb,sr:er,sph:eph,sth:eth] = data_CPU_3D
 
-        self.field=field_3D[:,:,:,0]
+        self.field=field_3D[0,:,:,:]
         fid.close()
         
-        #==========================================================================
-        # READ VECTOR FILE
-        #==========================================================================
-        def read_vector_file(self):
-            print 'not done yet'
+    #==========================================================================
+    # READ VECTOR FILE
+    #==========================================================================
+    def read_vector_file(self):
+        fid=open(self.fullname,'rb') # open file
+        fid.seek(self.byte_offset)
+ 
+        # compute nth, nph, nr and nb PER CPU
+        nth  =self.nthtot/self.nnth
+        nph  =self.nphtot/self.nnph
+        nr  =self.nrtot/self.nnr
+        nb  =self.nblocks/self.nnb
+        npi =(nth+self.xyp)*(nph+self.xyp)*nr*nb*self.nval #the number of values per 'read' block
 
+        self.scalefac= struct.unpack('f',fid.read(4))[0]
+
+        vx_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+        vy_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+        vz_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+        p_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+
+                # loop over parallel subdomains
+        for ibc in arange(self.nnb):
+            for irc in arange(self.nnr):
+                for iphc in arange(self.nnph):
+                    for ithc in arange(self.nnth):
+                        # read the data for this CPU
+                        fileContent = struct.unpack('f'*npi,fid.read(4*npi))
+                        data_CPU = array(fileContent)
+                        data_CPU = data_CPU*self.scalefac
+                        # Create a 3D matrix from these data
+                        data_CPU_3D = data_CPU.reshape((nb,nr,nph+self.xyp,nth+self.xyp,self.nval))
+                        # Add local 3D matrix to global matrix
+                        sth=ithc*nth
+                        eth=ithc*nth+nth+self.xyp
+                        sph=iphc*nph
+                        eph=iphc*nph+nph+self.xyp
+                        sr=irc*nr
+                        er=irc*nr+nr
+                        snb=ibc*nb
+                        enb=ibc*nb+nb
+                        vx_3D[snb:enb,sr:er,sph:eph,sth:eth]=data_CPU_3D[:,:,:,:,0]
+                        vy_3D[snb:enb,sr:er,sph:eph,sth:eth]=data_CPU_3D[:,:,:,:,1]
+                        vz_3D[snb:enb,sr:er,sph:eph,sth:eth]=data_CPU_3D[:,:,:,:,2]
+                        p_3D[snb:enb,sr:er,sph:eph,sth:eth]=data_CPU_3D[:,:,:,:,3]
+
+        self.vx=vx_3D[0,:,:,:]
+        self.vy=vy_3D[0,:,:,:]
+        self.vz=vz_3D[0,:,:,:]
+        self.p=p_3D[0,:,:,:]
+        fid.close()
+
+        
