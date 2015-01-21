@@ -1,4 +1,5 @@
-+ Read vector field
++ Read vector field - Done but could be improved to have only one
+function for both scalar and vector fields.
 + Cartesian geometry
 + Ying-Yang geometry
 + Read Tracers
