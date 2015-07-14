@@ -24,7 +24,7 @@ geometry='Annulus'
 
 # section w/input
 # These should be input parameters to this program.
-ipath='./'
+ipath='./datas/'
 iname='test'
 iti_fn=100 # timestep 
 
