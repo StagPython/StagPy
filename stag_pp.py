@@ -4,5 +4,6 @@ import scipy
 import numpy
 import pylab
 
+
 class StagyyPostProcessing:
     pass
