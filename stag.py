@@ -1,8 +1,6 @@
 #!/bin/python
 import struct
-from scipy import *
-from numpy import *
-from pylab import *
+import numpy as np
 
 class ReadStagyyData:
     def __init__(self,fpath,fname,par_type,ti_fn):
@@ -37,7 +35,7 @@ class ReadStagyyData:
         if (self.nmagic<100 and self.nval>1) or (self.nmagic>300 and self.nval==1):  # check nb components
                    error('wrong number of components in field')
 
-        nnmagic = mod(self.nmagic,100) 
+        nnmagic = self.nmagic % 100
         if nnmagic>=9 and self.nval==4:
              self.xyp = 1         # extra ghost point in horizontal direction
         else:
@@ -51,7 +49,7 @@ class ReadStagyyData:
         self.byte_offset=self.byte_offset+4
         self.nblocks     = struct.unpack('i',fid.read(4))[0] # of blocks, 2 for yinyan
         self.byte_offset=self.byte_offset+4
-        self.aspect=zeros(2)
+        self.aspect=np.zeros(2)
         self.aspect[0]      = struct.unpack('f',fid.read(4))[0] #Aspect ratio
         self.aspect[1]      = struct.unpack('f',fid.read(4))[0] #Aspect ratio
         self.byte_offset=self.byte_offset+4*2;
@@ -103,16 +101,16 @@ class ReadStagyyData:
         nb  =self.nblocks/self.nnb
         npi =(nth+self.xyp)*(nph+self.xyp)*nr*nb*self.nval #the number of values per 'read' block
 
-        field_3D = zeros((self.nblocks,self.nrtot,self.nphtot,self.nthtot));
+        field_3D = np.zeros((self.nblocks,self.nrtot,self.nphtot,self.nthtot));
 
         # loop over parallel subdomains
-        for ibc in arange(self.nnb):
-            for irc in arange(self.nnr):
-                for iphc in arange(self.nnph):
-                    for ithc in arange(self.nnth):
+        for ibc in np.arange(self.nnb):
+            for irc in np.arange(self.nnr):
+                for iphc in np.arange(self.nnph):
+                    for ithc in np.arange(self.nnth):
                         # read the data for this CPU
                         fileContent = struct.unpack('f'*npi,fid.read(4*npi))
-                        data_CPU = array(fileContent)
+                        data_CPU = np.array(fileContent)
                         # Create a 3D matrix from these data
                         #data_CPU_3D = data_CPU.reshape((nth,nph,nr,nb))
                         #data_CPU_3D = data_CPU.reshape((nr,nph,nth,nb))
@@ -147,19 +145,19 @@ class ReadStagyyData:
 
         self.scalefac= struct.unpack('f',fid.read(4))[0]
 
-        vx_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
-        vy_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
-        vz_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
-        p_3D = zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+        vx_3D = np.zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+        vy_3D = np.zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+        vz_3D = np.zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
+        p_3D = np.zeros((self.nblocks,self.nrtot,self.nphtot+self.xyp,self.nthtot+self.xyp));
 
                 # loop over parallel subdomains
-        for ibc in arange(self.nnb):
-            for irc in arange(self.nnr):
-                for iphc in arange(self.nnph):
-                    for ithc in arange(self.nnth):
+        for ibc in np.arange(self.nnb):
+            for irc in np.arange(self.nnr):
+                for iphc in np.arange(self.nnph):
+                    for ithc in np.arange(self.nnth):
                         # read the data for this CPU
                         fileContent = struct.unpack('f'*npi,fid.read(4*npi))
-                        data_CPU = array(fileContent)
+                        data_CPU = np.array(fileContent)
                         data_CPU = data_CPU*self.scalefac
                         # Create a 3D matrix from these data
                         data_CPU_3D = data_CPU.reshape((nb,nr,nph+self.xyp,nth+self.xyp,self.nval))

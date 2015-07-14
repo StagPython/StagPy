@@ -1,18 +1,18 @@
-#!/bin/python
+#!/usr/bin/env python2
 """
   Read and plot stagyy binary data
   Author: Martina Ulvrova
   Date: 2014/12/02
 """
 
-from numpy import *
-from scipy import *
-from pylab import *
+import numpy as np
 from scipy import integrate
+import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+
 from stag import ReadStagyyData
 
-close('all')
+plt.close('all')
 
 #==========================================================================
 # GENERAL SWITCHES AND DEFINITIONS
@@ -24,12 +24,12 @@ geometry='Annulus'
 
 # section w/input
 # These should be input parameters to this program.
-ipath='/Users/stephane/Documents/Python/StagPy/'
+ipath='./'
 iname='test'
 iti_fn=100 # timestep 
 
-plot_temperature=False
-plot_pressure=False
+plot_temperature=True
+plot_pressure=True
 plot_streamfunction=True
 
 #==========================================================================
@@ -43,8 +43,8 @@ if plot_temperature:
 
     if geometry=='Annulus': # adding a row at the end to have continuous field
         newline=temp.field[:,0,0]
-        temp.field=vstack([temp.field[:,:,0].T,newline]).T
-        temp.ph_coord=append(temp.ph_coord,temp.ph_coord[1]-temp.ph_coord[0])
+        temp.field=np.vstack([temp.field[:,:,0].T,newline]).T
+        temp.ph_coord=np.append(temp.ph_coord,temp.ph_coord[1]-temp.ph_coord[0])
 
 # read concentration field
 #par_type='c'
@@ -52,18 +52,18 @@ if plot_temperature:
 #conc.catch_header()
 #conc.read_scalar_file()
 
-    XX,YY=meshgrid(array(temp.ph_coord),array(temp.r_coord)+temp.rcmb)
+    XX,YY=np.meshgrid(np.array(temp.ph_coord),np.array(temp.r_coord)+temp.rcmb)
 
     if verbose_figures:
-        fig, ax=subplots(ncols=1,subplot_kw=dict(projection='polar'))
+        fig, ax=plt.subplots(ncols=1,subplot_kw=dict(projection='polar'))
         if geometry=='Annulus':
             surf=ax.pcolormesh(XX,YY,temp.field)
-            cbar=colorbar(surf,orientation='horizontal',shrink=shrinkcb,label='Temperature')
-            axis([temp.rcmb,amax(XX),0,amax(YY)])
+            cbar=plt.colorbar(surf,orientation='horizontal',shrink=shrinkcb,label='Temperature')
+            plt.axis([temp.rcmb,np.amax(XX),0,np.amax(YY)])
 
-        savefig(iname + "_T.pdf",format='PDF')
+        plt.savefig(iname + "_T.pdf",format='PDF')
    
-        show(block=False)
+        plt.show(block=False)
 
 #==========================================================================
 # read velocity-pressure field
@@ -77,45 +77,45 @@ if plot_pressure or plot_streamfunction:
     if plot_pressure:
         if geometry=='Annulus': # adding a row at the end to have continuous field
             newline=vp.p[:,0,0]
-            vp.ph_coord=append(vp.ph_coord,vp.ph_coord[1]-vp.ph_coord[0])
+            vp.ph_coord_new=np.append(vp.ph_coord,vp.ph_coord[1]-vp.ph_coord[0])
 
-        XX,YY=meshgrid(array(vp.ph_coord),array(vp.r_coord)+vp.rcmb)
+        XX,YY=np.meshgrid(np.array(vp.ph_coord_new),np.array(vp.r_coord)+vp.rcmb)
 
     
         if verbose_figures:
-                fig, ax=subplots(ncols=1,subplot_kw=dict(projection='polar'))
+                fig, ax=plt.subplots(ncols=1,subplot_kw=dict(projection='polar'))
                 if geometry=='Annulus':
                         surf=ax.pcolormesh(XX,YY,vp.p[:,:,0])
-                        cbar=colorbar(surf,orientation='horizontal',shrink=shrinkcb,label='Pressure')
-                        axis([vp.rcmb,amax(XX),0,amax(YY)])
+                        cbar=plt.colorbar(surf,orientation='horizontal',shrink=shrinkcb,label='Pressure')
+                        plt.axis([vp.rcmb,np.amax(XX),0,np.amax(YY)])
 
-                savefig(iname + "_p.pdf",format='PDF')
+                plt.savefig(iname + "_p.pdf",format='PDF')
 
 if plot_streamfunction:
     vphi=vp.vy[:,:,0]
-    vph2=-0.5*(vphi+roll(vphi,1,1)) # interpolate to the same phi
+    vph2=-0.5*(vphi+np.roll(vphi,1,1)) # interpolate to the same phi
     vr=vp.vz[:,:,0]
-    nr,nph=shape(vr)
-    stream=zeros(shape(vphi))
+    nr,nph=np.shape(vr)
+    stream=np.zeros(np.shape(vphi))
     stream[0,1:nph-1]=vp.rcmb*integrate.cumtrapz(vr[0,0:nph-1],vp.ph_coord) # integrate first on phi
     stream[0,0] = 0
-    rcoord = vp.rcmb+np.array(vp.rg[0:shape(vp.rg)[0]-1:2]) # use r coordinates where vphi is defined
-    for iph in range(0,shape(vph2)[1]-1):
+    rcoord = vp.rcmb+np.array(vp.rg[0:np.shape(vp.rg)[0]-1:2]) # use r coordinates where vphi is defined
+    for iph in range(0,np.shape(vph2)[1]-1):
         stream[1:nr,iph]=stream[0,iph]+integrate.cumtrapz(vph2[:,iph],rcoord) # integrate on r
     stream=stream-np.mean(stream[nr/2,:])
     # remove some typical value. Would be better to compute the golbal average taking into account variable grid spacing
 
 
-    vp.ph_coord=append(vp.ph_coord,vp.ph_coord[1]-vp.ph_coord[0])
-    XX,YY=meshgrid(array(vp.ph_coord),array(vp.r_coord)+vp.rcmb)
+    vp.ph_coord=np.append(vp.ph_coord,vp.ph_coord[1]-vp.ph_coord[0])
+    XX,YY=np.meshgrid(np.array(vp.ph_coord),np.array(vp.r_coord)+vp.rcmb)
 
     if verbose_figures:
-        fig, ax=subplots(ncols=1,subplot_kw=dict(projection='polar'))
+        fig, ax=plt.subplots(ncols=1,subplot_kw=dict(projection='polar'))
         if geometry=='Annulus':
             surf=ax.pcolormesh(XX,YY,stream)
-            cbar=colorbar(surf,orientation='horizontal',shrink=shrinkcb,label='Stream function')
-            axis([vp.rcmb,amax(XX),0,amax(YY)])
+            cbar=plt.colorbar(surf,orientation='horizontal',shrink=shrinkcb,label='Stream function')
+            plt.axis([vp.rcmb,np.amax(XX),0,np.amax(YY)])
 
-        savefig(iname + "_SF.pdf",format='PDF')
+        plt.savefig(iname + "_SF.pdf",format='PDF')
    
-        show(block=False)
+        plt.show(block=False)

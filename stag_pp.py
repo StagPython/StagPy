@@ -1,7 +1,8 @@
 #!/bin/python
 import struct
-from scipy import *
-from numpy import *
-from pylab import *
+import scipy
+import numpy
+import pylab
 
 class StagyyPostProcessing:
+    pass
