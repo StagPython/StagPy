@@ -38,19 +38,18 @@ plot_streamfunction = True
 if plot_temperature:
     par_type = 't'
     temp = ReadStagyyData(ipath, iname, par_type, iti_fn)
-    temp.read_scalar_file()
+    temp_field = temp.fields[0]
 
     # adding a row at the end to have continuous field
     if geometry == 'Annulus':
-        newline = temp.field[:, 0, 0]
-        temp.field = np.vstack([temp.field[:, :, 0].T, newline]).T
+        newline = temp_field[:, 0, 0]
+        temp_field = np.vstack([temp_field[:, :, 0].T, newline]).T
         temp.ph_coord = np.append(
             temp.ph_coord, temp.ph_coord[1] - temp.ph_coord[0])
 
 # read concentration field
 # par_type='c'
 # conc=ReadStagyyData(ipath,iname,par_type,iti_fn)
-# conc.read_scalar_file()
 
     XX, YY = np.meshgrid(
         np.array(temp.ph_coord), np.array(temp.r_coord) + temp.rcmb)
@@ -58,7 +57,7 @@ if plot_temperature:
     if verbose_figures:
         fig, ax = plt.subplots(ncols=1, subplot_kw=dict(projection='polar'))
         if geometry == 'Annulus':
-            surf = ax.pcolormesh(XX, YY, temp.field)
+            surf = ax.pcolormesh(XX, YY, temp_field)
             cbar = plt.colorbar(
                 surf, orientation='horizontal', shrink=shrinkcb, label='Temperature')
             plt.axis([temp.rcmb, np.amax(XX), 0, np.amax(YY)])
@@ -73,12 +72,15 @@ if plot_temperature:
 if plot_pressure or plot_streamfunction:
     par_type = 'vp'
     vp = ReadStagyyData(ipath, iname, par_type, iti_fn)
-    vp.read_vector_file()
+    vx_field = vp.fields[0]
+    vy_field = vp.fields[1]
+    vz_field = vp.fields[2]
+    p_field = vp.fields[3]
 
     if plot_pressure:
         # adding a row at the end to have continuous field
         if geometry == 'Annulus':
-            newline = vp.p[:, 0, 0]
+            newline = p_field[:, 0, 0]
             vp.ph_coord_new = np.append(
                 vp.ph_coord, vp.ph_coord[1] - vp.ph_coord[0])
 
@@ -89,7 +91,7 @@ if plot_pressure or plot_streamfunction:
             fig, ax = plt.subplots(
                 ncols=1, subplot_kw=dict(projection='polar'))
             if geometry == 'Annulus':
-                surf = ax.pcolormesh(XX, YY, vp.p[:, :, 0])
+                surf = ax.pcolormesh(XX, YY, p_field[:, :, 0])
                 cbar = plt.colorbar(
                     surf, orientation='horizontal', shrink=shrinkcb, label='Pressure')
                 plt.axis([vp.rcmb, np.amax(XX), 0, np.amax(YY)])
@@ -97,9 +99,9 @@ if plot_pressure or plot_streamfunction:
             plt.savefig(iname + "_p.pdf", format='PDF')
 
 if plot_streamfunction:
-    vphi = vp.vy[:, :, 0]
+    vphi = vy_field[:, :, 0]
     vph2 = -0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
-    vr = vp.vz[:, :, 0]
+    vr = vz_field[:, :, 0]
     nr, nph = np.shape(vr)
     stream = np.zeros(np.shape(vphi))
     # integrate first on phi
