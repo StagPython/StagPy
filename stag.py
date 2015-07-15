@@ -37,30 +37,26 @@ class ReadStagyyData:
         self._byte_offset += nwords * nbytes
         return elts
 
-    #==========================================================================
-    # READ HEADER
-    #==========================================================================
     def _catch_header(self):
+        """read header of binary file"""
+
         fid = open(self.fullname, 'rb')  # open file
         self.nmagic = self._readbin(fid, 'i')  # Version
 
         # check nb components
-        if (self.nmagic < 100 and self.nval > 1) or (self.nmagic > 300 and self.nval == 1):
+        if (self.nmagic < 100 and self.nval > 1) \
+            or (self.nmagic > 300 and self.nval == 1):
             raise ValueError('wrong number of components in field')
 
-        nnmagic = self.nmagic % 100
-        if nnmagic >= 9 and self.nval == 4:
-            self.xyp = 1         # extra ghost point in horizontal direction
-        else:
-            self.xyp = 0
+        # extra ghost point in horizontal direction
+        self.xyp = int((self.nmagic % 100) >= 9 and self.nval == 4)
 
-        # total number of values in the latitude direction
-        self.nthtot = self._readbin(fid, 'i')
-        # total number of values in the longitude direction
-        self.nphtot = self._readbin(fid, 'i')
-        # total number of values in the radius direction
-        self.nrtot = self._readbin(fid, 'i')
-        # of blocks, 2 for yinyan
+        # total number of values in the...
+        self.nthtot = self._readbin(fid, 'i')  # latitude direction
+        self.nphtot = self._readbin(fid, 'i')  # longitude direction
+        self.nrtot = self._readbin(fid, 'i')   # radius direction
+
+        # number of blocks, 2 for yinyang
         self.nblocks = self._readbin(fid, 'i')
 
         # Aspect ratio
