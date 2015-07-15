@@ -38,7 +38,6 @@ plot_streamfunction = True
 if plot_temperature:
     par_type = 't'
     temp = ReadStagyyData(ipath, iname, par_type, iti_fn)
-    temp.catch_header()
     temp.read_scalar_file()
 
     # adding a row at the end to have continuous field
@@ -51,7 +50,6 @@ if plot_temperature:
 # read concentration field
 # par_type='c'
 # conc=ReadStagyyData(ipath,iname,par_type,iti_fn)
-# conc.catch_header()
 # conc.read_scalar_file()
 
     XX, YY = np.meshgrid(
@@ -75,7 +73,6 @@ if plot_temperature:
 if plot_pressure or plot_streamfunction:
     par_type = 'vp'
     vp = ReadStagyyData(ipath, iname, par_type, iti_fn)
-    vp.catch_header()
     vp.read_vector_file()
 
     if plot_pressure:

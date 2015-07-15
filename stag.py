@@ -22,24 +22,26 @@ class ReadStagyyData:
         elif par_type == 'vp':
             self.nval = 4
 
+        self._byte_offset = 0
+        self._catch_header()
+
     def _readbin(self, fid, fmt, nwords=1, nbytes=4):
         """Read n words of n bytes with fmt format
-        from the fid file, update self.byte_offset.
+        from the fid file, update self._byte_offset.
         Return a tuple of elements if more
         than one element."""
 
         elts = struct.unpack(fmt*nwords, fid.read(nwords*nbytes))
         if len(elts) == 1:
             elts = elts[0]
-        self.byte_offset += nwords * nbytes
+        self._byte_offset += nwords * nbytes
         return elts
 
     #==========================================================================
     # READ HEADER
     #==========================================================================
-    def catch_header(self):
+    def _catch_header(self):
         fid = open(self.fullname, 'rb')  # open file
-        self.byte_offset = 0
         self.nmagic = self._readbin(fid, 'i')  # Version
 
         # check nb components
@@ -92,7 +94,7 @@ class ReadStagyyData:
     #==========================================================================
     def read_scalar_file(self):
         fid = open(self.fullname, 'rb')  # open file
-        fid.seek(self.byte_offset)
+        fid.seek(self._byte_offset)
 
         # compute nth, nph, nr and nb PER CPU
         nth = self.nthtot / self.nnth
@@ -137,7 +139,7 @@ class ReadStagyyData:
     #==========================================================================
     def read_vector_file(self):
         fid = open(self.fullname, 'rb')  # open file
-        fid.seek(self.byte_offset)
+        fid.seek(self._byte_offset)
 
         # compute nth, nph, nr and nb PER CPU
         nth = self.nthtot / self.nnth
