@@ -12,26 +12,26 @@ class ReadStagyyData:
         self.ti_fn = ti_fn
         self.file_format = 'l'
 
-        number_string = '{:05d}'.format(ti_fn)
-
         # name of the file to read
-        self.fullname = fpath + fname + '_' + par_type + number_string
+        self.fullname = fpath + fname + '_' + \
+            par_type + '{:05d}'.format(ti_fn)
 
         if par_type in ('t', 'eta', 'rho', 'str', 'age'):
             self.nval = 1
         elif par_type == 'vp':
             self.nval = 4
 
-        with open(self.fullname, 'rb') as self.fid:
+        with open(self.fullname, 'rb') as self._fid:
             self._catch_header()
             self._readfile()
 
-    def _readbin(self, fmt, nwords=1, nbytes=4):
+    def _readbin(self, fmt='i', nwords=1, nbytes=4):
         """Read n words of n bytes with fmt format.
-        Return a tuple of elements if more
-        than one element."""
+        Return a tuple of elements if more than one element.
+        Default: read 1 word of 4 bytes formatted as an integer.
+        """
 
-        elts = struct.unpack(fmt*nwords, self.fid.read(nwords*nbytes))
+        elts = struct.unpack(fmt*nwords, self._fid.read(nwords*nbytes))
         if len(elts) == 1:
             elts = elts[0]
         return elts
@@ -39,7 +39,7 @@ class ReadStagyyData:
     def _catch_header(self):
         """read header of binary file"""
 
-        self.nmagic = self._readbin('i')  # Version
+        self.nmagic = self._readbin()  # Version
 
         # check nb components
         if (self.nmagic < 100 and self.nval > 1) \
@@ -49,30 +49,26 @@ class ReadStagyyData:
         # extra ghost point in horizontal direction
         self.xyp = int((self.nmagic % 100) >= 9 and self.nval == 4)
 
-        # total number of values in the...
-        self.nthtot = self._readbin('i')  # latitude direction
-        self.nphtot = self._readbin('i')  # longitude direction
-        self.nrtot = self._readbin('i')   # radius direction
+        # total number of values in
+        # latitude, longitude and radius directions
+        self.nthtot, self.nphtot, self.nrtot = self._readbin(nwords=3)
 
         # number of blocks, 2 for yinyang
-        self.nblocks = self._readbin('i')
+        self.nblocks = self._readbin()
 
         # Aspect ratio
         self.aspect = self._readbin('f', 2)
         self.aspect = np.array(self.aspect)
 
-        # Number of parallel subdomains
-        # in the th,ph,r and b directions
-        self.nnth = self._readbin('i')
-        self.nnph = self._readbin('i')
-        self.nnr = self._readbin('i')
-        self.nnb = self._readbin('i')
+        # Number of parallel subdomains in the th,ph,r and b directions
+        self.nnth, self.nnph, self.nnr = self._readbin(nwords=3)
+        self.nnb = self._readbin()
 
         self.nr2 = self.nrtot * 2 + 1
         self.rg = self._readbin('f', self.nr2)  # r-coordinates
 
         self.rcmb = self._readbin('f')  # radius of the cmb
-        self.ti_step = self._readbin('i')
+        self.ti_step = self._readbin()
         self.ti_ad = self._readbin('f')
         self.erupta_total = self._readbin('f')
         self.botT_val = self._readbin('f')
