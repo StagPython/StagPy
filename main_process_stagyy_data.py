@@ -7,12 +7,27 @@
 
 from __future__ import print_function
 import argparse
+from collections import OrderedDict, namedtuple
 import numpy as np
 from scipy import integrate
 import matplotlib.pyplot as plt
 import sys
 
 from stag import ReadStagyyData
+
+def takefield(idx):
+    return lambda flds: flds[idx]
+
+def calc_stream(flds):
+    pass
+
+Var = namedtuple('Var', ['name', 'func'])
+
+variables = OrderedDict((
+    ('t', Var('temperature', takefield(0))),
+    ('p', Var('pressure', takefield(3))),
+    ('s', Var('stream function', calc_stream))
+    ))
 
 parser = argparse.ArgumentParser(
     description='read and process StagYY binary data')
@@ -34,7 +49,8 @@ parser.add_argument('--var', action='store_true',
 args = parser.parse_args()
 
 if args.var:
-    print('Not implemented yet.')
+    print(*('{}: {}'.format(k, v.name) for k, v in variables.items()),
+          sep='\n')
     sys.exit()
 
 dsa = 0.1  # thickness of the sticky air
