@@ -7,55 +7,43 @@
 
 from __future__ import print_function
 import argparse
-from collections import OrderedDict, namedtuple
 import numpy as np
 from scipy import integrate
 import matplotlib.pyplot as plt
 import sys
 
 from stag import ReadStagyyData
-
-def takefield(idx):
-    return lambda flds: flds[idx]
-
-def calc_stream(flds):
-    pass
-
-Var = namedtuple('Var', ['name', 'func'])
-
-variables = OrderedDict((
-    ('t', Var('temperature', takefield(0))),
-    ('p', Var('pressure', takefield(3))),
-    ('s', Var('stream function', calc_stream))
-    ))
+import constants
 
 parser = argparse.ArgumentParser(
     description='read and process StagYY binary data')
-parser.add_argument('-g', '--geometry', default='annulus',
-                    choices=['annulus'],
+parser.add_argument('-g', '--geometry', choices=['annulus'],
                     help='geometry of the domain')
-parser.add_argument('-p', '--path', default='./',
+parser.add_argument('-p', '--path',
                     help='StagYY output directory')
-parser.add_argument('-n', '--name', default='test',
+parser.add_argument('-n', '--name',
                     help='StagYY generic output file name')
-parser.add_argument('-s', '--timestep', default=100, type=int,
+parser.add_argument('-s', '--timestep', type=int,
                     help='timestep')
-parser.add_argument('-o', '--plot', nargs='?', const='', default='tps',
+parser.add_argument('-o', '--plot', nargs='?', const='',
                     help='specify which variables to plot, use --var \
                     option for a list of available variables')
+parser.add_argument('--dsa', type=float,
+                    help='thickness of the sticky air')
+parser.add_argument('--shrinkcb', type=float,
+                    help='color bar shrink')
 parser.add_argument('--var', action='store_true',
                     help='display a list of available variables')
 
+parser.set_defaults(**constants.default_config)
 args = parser.parse_args()
 
 if args.var:
-    print(*('{}: {}'.format(k, v.name) for k, v in variables.items()),
+    print(*('{}: {}'.format(k, v.name) for k, v in constants.varlist.items()),
           sep='\n')
     sys.exit()
 
-dsa = 0.1  # thickness of the sticky air
 verbose_figures = True  # Not clear to me what this is for
-shrinkcb = 0.5
 
 plot_temperature = 't' in args.plot
 plot_pressure = 'p' in args.plot
@@ -88,7 +76,7 @@ if plot_temperature:
         if args.geometry == 'annulus':
             surf = ax.pcolormesh(XX, YY, temp_field)
             cbar = plt.colorbar(
-                surf, orientation='horizontal', shrink=shrinkcb, label='Temperature')
+                surf, orientation='horizontal', shrink=args.shrinkcb, label='Temperature')
             plt.axis([temp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
         plt.savefig(args.name + "_T.pdf", format='PDF')
@@ -122,7 +110,7 @@ if plot_pressure or plot_streamfunction:
             if args.geometry == 'annulus':
                 surf = ax.pcolormesh(XX, YY, p_field[:, :, 0])
                 cbar = plt.colorbar(
-                    surf, orientation='horizontal', shrink=shrinkcb, label='Pressure')
+                    surf, orientation='horizontal', shrink=args.shrinkcb, label='Pressure')
                 plt.axis([vp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
             plt.savefig(args.name + "_p.pdf", format='PDF')
@@ -154,7 +142,8 @@ if plot_streamfunction:
         if args.geometry == 'annulus':
             surf = ax.pcolormesh(XX, YY, stream)
             cbar = plt.colorbar(
-                surf, orientation='horizontal', shrink=shrinkcb, label='Stream function')
+                surf, orientation='horizontal', shrink=args.shrinkcb,
+                label='Stream function')
             plt.axis([vp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
         plt.savefig(args.name + "_SF.pdf", format='PDF')
