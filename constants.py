@@ -1,14 +1,14 @@
 """defines some constants"""
 
 from collections import OrderedDict, namedtuple
-from misc import takefield, calc_stream
+import misc
 
 Var = namedtuple('Var', ['name', 'func'])
 
 varlist = OrderedDict((
-    ('t', Var('temperature', takefield(0))),
-    ('p', Var('pressure', takefield(3))),
-    ('s', Var('stream function', calc_stream))
+    ('t', Var('temperature', misc.takefield(0))),
+    ('p', Var('pressure', misc.takefield(3))),
+    ('s', Var('stream function', misc.calc_stream))
     ))
 
 default_config = OrderedDict((
