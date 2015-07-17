@@ -5,43 +5,56 @@
   Date: 2014/12/02
 """
 
+from __future__ import print_function
+import argparse
 import numpy as np
 from scipy import integrate
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
+import sys
 
 from stag import ReadStagyyData
 
-plt.close('all')
+parser = argparse.ArgumentParser(
+    description='read and process StagYY binary data')
+parser.add_argument('-g', '--geometry', default='annulus',
+                    choices=['annulus'],
+                    help='geometry of the domain')
+parser.add_argument('-p', '--path', default='./',
+                    help='StagYY output directory')
+parser.add_argument('-n', '--name', default='test',
+                    help='StagYY generic output file name')
+parser.add_argument('-s', '--timestep', default=100, type=int,
+                    help='timestep')
+parser.add_argument('-o', '--plot', nargs='?', const='', default='tps',
+                    help='specify which variables to plot, use --var \
+                    option for a list of available variables')
+parser.add_argument('--var', action='store_true',
+                    help='display a list of available variables')
 
-#==========================================================================
-# GENERAL SWITCHES AND DEFINITIONS
-#==========================================================================
+args = parser.parse_args()
+
+if args.var:
+    print('Not implemented yet.')
+    sys.exit()
+
 dsa = 0.1  # thickness of the sticky air
 verbose_figures = True  # Not clear to me what this is for
 shrinkcb = 0.5
-geometry = 'Annulus'
 
-# section w/input
-# These should be input parameters to this program.
-ipath = './data/'
-iname = 'test'
-iti_fn = 100  # timestep
-
-plot_temperature = True
-plot_pressure = True
-plot_streamfunction = True
+plot_temperature = 't' in args.plot
+plot_pressure = 'p' in args.plot
+plot_streamfunction = 's' in args.plot
 
 #==========================================================================
 # read temperature field
 #==========================================================================
 if plot_temperature:
     par_type = 't'
-    temp = ReadStagyyData(ipath, iname, par_type, iti_fn)
+    temp = ReadStagyyData(args.path, args.name, par_type, args.timestep)
     temp_field = temp.fields[0]
 
     # adding a row at the end to have continuous field
-    if geometry == 'Annulus':
+    if args.geometry == 'annulus':
         newline = temp_field[:, 0, 0]
         temp_field = np.vstack([temp_field[:, :, 0].T, newline]).T
         temp.ph_coord = np.append(
@@ -49,20 +62,20 @@ if plot_temperature:
 
 # read concentration field
 # par_type='c'
-# conc=ReadStagyyData(ipath,iname,par_type,iti_fn)
+# conc=ReadStagyyData(args.path,args.name,par_type,args.timestep)
 
     XX, YY = np.meshgrid(
         np.array(temp.ph_coord), np.array(temp.r_coord) + temp.rcmb)
 
     if verbose_figures:
         fig, ax = plt.subplots(ncols=1, subplot_kw=dict(projection='polar'))
-        if geometry == 'Annulus':
+        if args.geometry == 'annulus':
             surf = ax.pcolormesh(XX, YY, temp_field)
             cbar = plt.colorbar(
                 surf, orientation='horizontal', shrink=shrinkcb, label='Temperature')
             plt.axis([temp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
-        plt.savefig(iname + "_T.pdf", format='PDF')
+        plt.savefig(args.name + "_T.pdf", format='PDF')
 
         plt.show(block=False)
 
@@ -71,7 +84,7 @@ if plot_temperature:
 #==========================================================================
 if plot_pressure or plot_streamfunction:
     par_type = 'vp'
-    vp = ReadStagyyData(ipath, iname, par_type, iti_fn)
+    vp = ReadStagyyData(args.path, args.name, par_type, args.timestep)
     vx_field = vp.fields[0]
     vy_field = vp.fields[1]
     vz_field = vp.fields[2]
@@ -79,7 +92,7 @@ if plot_pressure or plot_streamfunction:
 
     if plot_pressure:
         # adding a row at the end to have continuous field
-        if geometry == 'Annulus':
+        if args.geometry == 'annulus':
             newline = p_field[:, 0, 0]
             vp.ph_coord_new = np.append(
                 vp.ph_coord, vp.ph_coord[1] - vp.ph_coord[0])
@@ -90,13 +103,13 @@ if plot_pressure or plot_streamfunction:
         if verbose_figures:
             fig, ax = plt.subplots(
                 ncols=1, subplot_kw=dict(projection='polar'))
-            if geometry == 'Annulus':
+            if args.geometry == 'annulus':
                 surf = ax.pcolormesh(XX, YY, p_field[:, :, 0])
                 cbar = plt.colorbar(
                     surf, orientation='horizontal', shrink=shrinkcb, label='Pressure')
                 plt.axis([vp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
-            plt.savefig(iname + "_p.pdf", format='PDF')
+            plt.savefig(args.name + "_p.pdf", format='PDF')
 
 if plot_streamfunction:
     vphi = vy_field[:, :, 0]
@@ -122,12 +135,12 @@ if plot_streamfunction:
 
     if verbose_figures:
         fig, ax = plt.subplots(ncols=1, subplot_kw=dict(projection='polar'))
-        if geometry == 'Annulus':
+        if args.geometry == 'annulus':
             surf = ax.pcolormesh(XX, YY, stream)
             cbar = plt.colorbar(
                 surf, orientation='horizontal', shrink=shrinkcb, label='Stream function')
             plt.axis([vp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
-        plt.savefig(iname + "_SF.pdf", format='PDF')
+        plt.savefig(args.name + "_SF.pdf", format='PDF')
 
         plt.show(block=False)
