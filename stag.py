@@ -1,20 +1,26 @@
-#!/bin/python
+"""define StagyyData"""
+
 import struct
 import numpy as np
+import matplotlib.pyplot as plt
+import os.path
+
+import constants
 
 
-class ReadStagyyData:
+class StagyyData:
+    """reads StagYY binary data and processes them"""
 
-    def __init__(self, fpath, fname, par_type, ti_fn):
-        self.fpath = fpath
-        self.fname = fname
+    def __init__(self, args, par_type):
+        self.args = args
         self.par_type = par_type
-        self.ti_fn = ti_fn
+        self.geom = args.geometry
         self.file_format = 'l'
 
         # name of the file to read
-        self.fullname = fpath + fname + '_' + \
-            par_type + '{:05d}'.format(ti_fn)
+        self.fullname = args.name + '_' + \
+            par_type + '{:05d}'.format(args.timestep)
+        self.fullname = os.path.join(args.path, self.fullname)
 
         if par_type in ('t', 'eta', 'rho', 'str', 'age'):
             self.nval = 1
@@ -26,7 +32,7 @@ class ReadStagyyData:
             self._readfile()
 
     def _readbin(self, fmt='i', nwords=1, nbytes=4):
-        """Read n words of n bytes with fmt format.
+        """reads n words of n bytes with fmt format.
         Return a tuple of elements if more than one element.
         Default: read 1 word of 4 bytes formatted as an integer.
         """
@@ -37,13 +43,13 @@ class ReadStagyyData:
         return elts
 
     def _catch_header(self):
-        """read header of binary file"""
+        """reads header of binary file"""
 
         self.nmagic = self._readbin()  # Version
 
         # check nb components
         if (self.nmagic < 100 and self.nval > 1) \
-            or (self.nmagic > 300 and self.nval == 1):
+                or (self.nmagic > 300 and self.nval == 1):
             raise ValueError('wrong number of components in field')
 
         # extra ghost point in horizontal direction
@@ -97,7 +103,7 @@ class ReadStagyyData:
                       self.nphtot + self.xyp, self.nthtot + self.xyp)
 
         flds = []
-        for i in range(self.nval):
+        for _ in range(self.nval):
             flds.append(np.zeros(dim_fields))
 
         # loop over parallel subdomains
@@ -110,8 +116,9 @@ class ReadStagyyData:
                         data_CPU = np.array(fileContent) * self.scalefac
 
                         # Create a 3D matrix from these data
-                        data_CPU_3D = data_CPU.reshape((nb, nr,
-                            nph + self.xyp, nth + self.xyp, self.nval))
+                        data_CPU_3D = data_CPU.reshape(
+                            (nb, nr, nph + self.xyp,
+                             nth + self.xyp, self.nval))
 
                         # Add local 3D matrix to global matrix
                         sth = ithc * nth
@@ -130,3 +137,32 @@ class ReadStagyyData:
         self.fields = []
         for fld in flds:
             self.fields.append(fld[0, :, :, :])
+
+    def plot_scalar(self, var):
+        """var: one of the key of constants.varlist"""
+
+        fld = constants.varlist[var].func(self)
+
+        # adding a row at the end to have continuous field
+        if self.geom == 'annulus':
+            if var in ('t', ):  # eta (variables in cell center)?
+                newline = fld[:, 0, 0]
+                fld = np.vstack([fld[:, :, 0].T, newline]).T
+            elif var == 'p':
+                fld = fld[:, :, 0]
+            self.ph_coord = np.append(
+                self.ph_coord, self.ph_coord[1] - self.ph_coord[0])
+
+        xmesh, ymesh = np.meshgrid(
+            np.array(self.ph_coord), np.array(self.r_coord) + self.rcmb)
+
+        fig, ax = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
+        if self.geom == 'annulus':
+            surf = ax.pcolormesh(xmesh, ymesh, fld)
+            cbar = plt.colorbar(
+                surf, orientation='horizontal',
+                shrink=self.args.shrinkcb,
+                label=constants.varlist[var].name)
+            plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
+
+        plt.savefig(self.args.name + '_' + var + '.pdf', format='PDF')

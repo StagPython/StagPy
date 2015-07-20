@@ -1,6 +1,0 @@
-Read binary output files of STAGYY
-General definitions are in the file main_process_stagyy_data.py that calls functions from stag.py
-The aim is to have different cases in one file (Cartesian, Spherical Annulus, etc)
-
-The code to read the binary output files has been adapted from a matlab version initially developed by Boris Kaus.
-
