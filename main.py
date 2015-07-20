@@ -8,12 +8,12 @@
 from __future__ import print_function
 import argparse
 import numpy as np
-from scipy import integrate
 import matplotlib.pyplot as plt
 import sys
 
 from stag import ReadStagyyData
 import constants
+import misc
 
 parser = argparse.ArgumentParser(
     description='read and process StagYY binary data')
@@ -76,7 +76,8 @@ if plot_temperature:
         if args.geometry == 'annulus':
             surf = ax.pcolormesh(XX, YY, temp_field)
             cbar = plt.colorbar(
-                surf, orientation='horizontal', shrink=args.shrinkcb, label='Temperature')
+                surf, orientation='horizontal',
+                shrink=args.shrinkcb, label='Temperature')
             plt.axis([temp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
         plt.savefig(args.name + "_T.pdf", format='PDF')
@@ -110,30 +111,14 @@ if plot_pressure or plot_streamfunction:
             if args.geometry == 'annulus':
                 surf = ax.pcolormesh(XX, YY, p_field[:, :, 0])
                 cbar = plt.colorbar(
-                    surf, orientation='horizontal', shrink=args.shrinkcb, label='Pressure')
+                    surf, orientation='horizontal',
+                    shrink=args.shrinkcb, label='Pressure')
                 plt.axis([vp.rcmb, np.amax(XX), 0, np.amax(YY)])
 
             plt.savefig(args.name + "_p.pdf", format='PDF')
 
 if plot_streamfunction:
-    vphi = vy_field[:, :, 0]
-    vph2 = -0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
-    vr = vz_field[:, :, 0]
-    nr, nph = np.shape(vr)
-    stream = np.zeros(np.shape(vphi))
-    # integrate first on phi
-    stream[0, 1:nph - 1] = vp.rcmb * \
-        integrate.cumtrapz(vr[0, 0:nph - 1], vp.ph_coord)
-    stream[0, 0] = 0
-    # use r coordinates where vphi is defined
-    rcoord = vp.rcmb + np.array(vp.rg[0:np.shape(vp.rg)[0] - 1:2])
-    for iph in range(0, np.shape(vph2)[1] - 1):
-        stream[1:nr, iph] = stream[0, iph] + \
-            integrate.cumtrapz(vph2[:, iph], rcoord)  # integrate on r
-    stream = stream - np.mean(stream[nr / 2, :])
-    # remove some typical value. Would be better to compute the golbal average
-    # taking into account variable grid spacing
-
+    stream = misc.calc_stream(vp)
     vp.ph_coord = np.append(vp.ph_coord, vp.ph_coord[1] - vp.ph_coord[0])
     XX, YY = np.meshgrid(np.array(vp.ph_coord), np.array(vp.r_coord) + vp.rcmb)
 

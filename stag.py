@@ -43,7 +43,7 @@ class ReadStagyyData:
 
         # check nb components
         if (self.nmagic < 100 and self.nval > 1) \
-            or (self.nmagic > 300 and self.nval == 1):
+                or (self.nmagic > 300 and self.nval == 1):
             raise ValueError('wrong number of components in field')
 
         # extra ghost point in horizontal direction
@@ -97,7 +97,7 @@ class ReadStagyyData:
                       self.nphtot + self.xyp, self.nthtot + self.xyp)
 
         flds = []
-        for i in range(self.nval):
+        for _ in range(self.nval):
             flds.append(np.zeros(dim_fields))
 
         # loop over parallel subdomains
@@ -110,8 +110,9 @@ class ReadStagyyData:
                         data_CPU = np.array(fileContent) * self.scalefac
 
                         # Create a 3D matrix from these data
-                        data_CPU_3D = data_CPU.reshape((nb, nr,
-                            nph + self.xyp, nth + self.xyp, self.nval))
+                        data_CPU_3D = data_CPU.reshape(
+                            (nb, nr, nph + self.xyp,
+                             nth + self.xyp, self.nval))
 
                         # Add local 3D matrix to global matrix
                         sth = ithc * nth
