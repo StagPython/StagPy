@@ -1,6 +1,7 @@
 #!/bin/python
 import struct
 import numpy as np
+import os.path
 
 
 class StagyyData:
@@ -12,8 +13,9 @@ class StagyyData:
         self.file_format = 'l'
 
         # name of the file to read
-        self.fullname = args.path + args.name + '_' + \
+        self.fullname = args.name + '_' + \
             par_type + '{:05d}'.format(args.timestep)
+        self.fullname = os.path.join(args.path, self.fullname)
 
         if par_type in ('t', 'eta', 'rho', 'str', 'age'):
             self.nval = 1
