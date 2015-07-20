@@ -3,18 +3,17 @@ import struct
 import numpy as np
 
 
-class ReadStagyyData:
+class StagyyData:
 
-    def __init__(self, fpath, fname, par_type, ti_fn):
-        self.fpath = fpath
-        self.fname = fname
+    def __init__(self, args, par_type):
+        self.args = args
         self.par_type = par_type
-        self.ti_fn = ti_fn
+        self.geom = args.geometry
         self.file_format = 'l'
 
         # name of the file to read
-        self.fullname = fpath + fname + '_' + \
-            par_type + '{:05d}'.format(ti_fn)
+        self.fullname = args.path + args.name + '_' + \
+            par_type + '{:05d}'.format(args.timestep)
 
         if par_type in ('t', 'eta', 'rho', 'str', 'age'):
             self.nval = 1

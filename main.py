@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-from stag import ReadStagyyData
+from stag import StagyyData
 import constants
 import misc
 
@@ -54,7 +54,7 @@ plot_streamfunction = 's' in args.plot
 #==========================================================================
 if plot_temperature:
     par_type = 't'
-    temp = ReadStagyyData(args.path, args.name, par_type, args.timestep)
+    temp = StagyyData(args, par_type)
     temp_field = temp.fields[0]
 
     # adding a row at the end to have continuous field
@@ -66,7 +66,7 @@ if plot_temperature:
 
 # read concentration field
 # par_type='c'
-# conc=ReadStagyyData(args.path,args.name,par_type,args.timestep)
+# conc=StagyyData(args, par_type)
 
     XX, YY = np.meshgrid(
         np.array(temp.ph_coord), np.array(temp.r_coord) + temp.rcmb)
@@ -89,7 +89,7 @@ if plot_temperature:
 #==========================================================================
 if plot_pressure or plot_streamfunction:
     par_type = 'vp'
-    vp = ReadStagyyData(args.path, args.name, par_type, args.timestep)
+    vp = StagyyData(args, par_type)
     vx_field = vp.fields[0]
     vy_field = vp.fields[1]
     vz_field = vp.fields[2]
