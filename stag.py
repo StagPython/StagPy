@@ -1,10 +1,15 @@
-#!/bin/python
+"""define StagyyData"""
+
 import struct
 import numpy as np
+import matplotlib.pyplot as plt
 import os.path
+
+import constants
 
 
 class StagyyData:
+    """reads StagYY binary data and processes them"""
 
     def __init__(self, args, par_type):
         self.args = args
@@ -27,7 +32,7 @@ class StagyyData:
             self._readfile()
 
     def _readbin(self, fmt='i', nwords=1, nbytes=4):
-        """Read n words of n bytes with fmt format.
+        """reads n words of n bytes with fmt format.
         Return a tuple of elements if more than one element.
         Default: read 1 word of 4 bytes formatted as an integer.
         """
@@ -38,7 +43,7 @@ class StagyyData:
         return elts
 
     def _catch_header(self):
-        """read header of binary file"""
+        """reads header of binary file"""
 
         self.nmagic = self._readbin()  # Version
 
@@ -132,3 +137,32 @@ class StagyyData:
         self.fields = []
         for fld in flds:
             self.fields.append(fld[0, :, :, :])
+
+    def plot_scalar(self, var):
+        """var: one of the key of constants.varlist"""
+
+        fld = constants.varlist[var].func(self)
+
+        # adding a row at the end to have continuous field
+        if self.geom == 'annulus':
+            if var in ('t', ):  # eta (variables in cell center)?
+                newline = fld[:, 0, 0]
+                fld = np.vstack([fld[:, :, 0].T, newline]).T
+            elif var == 'p':
+                fld = fld[:, :, 0]
+            self.ph_coord = np.append(
+                self.ph_coord, self.ph_coord[1] - self.ph_coord[0])
+
+        xmesh, ymesh = np.meshgrid(
+            np.array(self.ph_coord), np.array(self.r_coord) + self.rcmb)
+
+        fig, ax = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
+        if self.geom == 'annulus':
+            surf = ax.pcolormesh(xmesh, ymesh, fld)
+            cbar = plt.colorbar(
+                surf, orientation='horizontal',
+                shrink=self.args.shrinkcb,
+                label=constants.varlist[var].name)
+            plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
+
+        plt.savefig(self.args.name + '_' + var + '.pdf', format='PDF')
