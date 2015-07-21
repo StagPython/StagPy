@@ -2,6 +2,8 @@
 
 import struct
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import os.path
 
@@ -161,8 +163,8 @@ class StagyyData:
             surf = ax.pcolormesh(xmesh, ymesh, fld)
             cbar = plt.colorbar(
                 surf, orientation='horizontal',
-                shrink=self.args.shrinkcb,
-                label=constants.varlist[var].name)
+                shrink=self.args.shrinkcb)
+            cbar.set_label(constants.varlist[var].name)
             plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
 
         plt.savefig(self.args.name + '_' + var + '.pdf', format='PDF')
