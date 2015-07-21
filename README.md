@@ -3,6 +3,11 @@ Read binary output files of STAGYY
 `main.py` is the "master" file which uses definitions from the other scripts to
 read and process the data files.
 
+StagPy uses the external modules `matplotlib` and `numpy`, please install them
+if needed. To check that everything work fine, go to the `data` directory of
+the repository and run `../main.py`. Three PDF files with a plot of the
+temperature, pressure and stream function fields should appear.
+
 To make StagPy available from everywhere in your system, you can make a soft
 link toward `main.py` in a directory which is in your PATH environment variable
 (e.g. `ln -s $PWD/main.py ~/bin/stagpy`).
@@ -17,12 +22,26 @@ from the command line. For example, if your data file is `output/bin_x05600`,
 you can access it with `./main.py -p output -n bin -s 5600` (see `./main.py -h`
 for a complete list of options).
 
+The time step option `-s` allows you to specify a range of time steps in a way
+which mimic the slicing syntax: `begin:end:gap` (both ends included). If the
+first step is not specified, it is set to `0`. If the final step is not
+specified, all available time steps are processed. Here are some examples:
+
+- `-s 100:350` will process every time steps between 100 and 350;
+- `-s 201:206:2` will process time steps 201, 203 and 205;
+- `-s 201:205:2` same as previous;
+- `-s 5682:` will process every time steps from the 5682nd to the last one;
+- `-s :453` will process every time steps from the 0th to the 453rd one;
+- `-s ::2` will process every even time steps.
+
+
 By default, the temperature, pressure and stream function fields are plotted.
 You can change this with the `-o` option (e.g. `./main.py -o ps` to plot only
 the pressure and stream function fields). See `./main.py --var` for a complete
 list of available variables.
 
-The aim is to have different cases in one file (Cartesian, Spherical Annulus, etc)
+The aim is to have different cases in one file (Cartesian, Spherical Annulus,
+etc).
 
-The code to read the binary output files has been adapted from a matlab version initially developed by Boris Kaus.
-
+The code to read the binary output files has been adapted from a matlab version
+initially developed by Boris Kaus.

@@ -9,8 +9,9 @@ from __future__ import print_function
 import argparse
 import sys
 
-from stag import StagyyData
 import constants
+import misc
+from stag import StagyyData
 
 parser = argparse.ArgumentParser(
     description='read and process StagYY binary data')
@@ -20,8 +21,7 @@ parser.add_argument('-p', '--path',
                     help='StagYY output directory')
 parser.add_argument('-n', '--name',
                     help='StagYY generic output file name')
-parser.add_argument('-s', '--timestep', type=int,
-                    help='timestep')
+parser.add_argument('-s', '--timestep', help='timestep')
 parser.add_argument('-o', '--plot', nargs='?', const='',
                     help='specify which variables to plot, use --var \
                     option for a list of available variables')
@@ -40,6 +40,18 @@ if args.var:
           sep='\n')
     sys.exit()
 
-for var in set(args.plot).intersection(constants.varlist):
-    stgdat = StagyyData(args, constants.varlist[var].par)
-    stgdat.plot_scalar(var)
+tstp = args.timestep.split(':')
+if not tstp[0]:
+    tstp[0] = '0'
+if len(tstp) == 1:
+    tstp.extend(tstp)
+if not tstp[1]:
+    tstp[1] = misc.lastfile(args, int(tstp[0]))
+tstp[1] = int(tstp[1]) + 1
+if len(tstp) == 3 and not tstp[2]:
+    tstp[2] = 1
+
+for timestep in xrange(*map(int, tstp)):
+    for var in set(args.plot).intersection(constants.varlist):
+        stgdat = StagyyData(args, constants.varlist[var].par, timestep)
+        stgdat.plot_scalar(var)
