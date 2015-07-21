@@ -17,7 +17,7 @@ default_config = OrderedDict((
     ('geometry', 'annulus'),
     ('path', './'),
     ('name', 'test'),
-    ('timestep', 100),
+    ('timestep', '100'),
     ('plot', 'tps'),
     ('dsa', 0.1),
     ('shrinkcb', 0.5)

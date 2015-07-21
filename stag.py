@@ -5,24 +5,23 @@ import numpy as np
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-import os.path
 
 import constants
+import misc
 
 
 class StagyyData:
     """reads StagYY binary data and processes them"""
 
-    def __init__(self, args, par_type):
+    def __init__(self, args, par_type, timestep):
         self.args = args
         self.par_type = par_type
         self.geom = args.geometry
         self.file_format = 'l'
+        self.step = timestep
 
         # name of the file to read
-        self.fullname = args.name + '_' + \
-            par_type + '{:05d}'.format(args.timestep)
-        self.fullname = os.path.join(args.path, self.fullname)
+        self.fullname = misc.path_fmt(args, par_type).format(timestep)
 
         if par_type in ('t', 'eta', 'rho', 'str', 'age'):
             self.nval = 1
@@ -167,4 +166,5 @@ class StagyyData:
             cbar.set_label(constants.varlist[var].name)
             plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
 
-        plt.savefig(self.args.name + '_' + var + '.pdf', format='PDF')
+        plt.savefig(misc.file_name(self.args, var).format(self.step) + '.pdf',
+                    format='PDF')

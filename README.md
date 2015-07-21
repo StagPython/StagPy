@@ -22,6 +22,19 @@ from the command line. For example, if your data file is `output/bin_x05600`,
 you can access it with `./main.py -p output -n bin -s 5600` (see `./main.py -h`
 for a complete list of options).
 
+The time step option `-s` allows you to specify a range of time steps in a way
+which mimic the slicing syntax: `begin:end:gap` (both ends included). If the
+first step is not specified, it is set to `0`. If the final step is not
+specified, all available time steps are processed. Here are some examples:
+
+- `-s 100:350` will process every time steps between 100 and 350;
+- `-s 201:206:2` will process time steps 201, 203 and 205;
+- `-s 201:205:2` same as previous;
+- `-s 5682:` will process every time steps from the 5682nd to the last one;
+- `-s :453` will process every time steps from the 0th to the 453rd one;
+- `-s ::2` will process every even time steps.
+
+
 By default, the temperature, pressure and stream function fields are plotted.
 You can change this with the `-o` option (e.g. `./main.py -o ps` to plot only
 the pressure and stream function fields). See `./main.py --var` for a complete
