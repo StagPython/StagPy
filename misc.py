@@ -9,6 +9,7 @@ def file_name(args, par_type):
 
     return args.name + '_' + par_type + '{:05d}'
 
+
 def path_fmt(args, par_type):
     """returns full path format for any time step"""
 
@@ -28,7 +29,7 @@ def lastfile(args, begstep):
 
     fmt = path_fmt(args, 't')
 
-    endstep = 99999
+    endstep = 100000
     while begstep + 1 < endstep:
         guess = int(ceil((endstep + begstep) / 2))
         if os.path.isfile(fmt.format(guess)):
