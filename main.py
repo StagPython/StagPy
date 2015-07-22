@@ -29,6 +29,9 @@ parser.add_argument('--dsa', type=float,
                     help='thickness of the sticky air')
 parser.add_argument('--shrinkcb', type=float,
                     help='color bar shrink')
+parser.add_argument('--pdf', action='store_true',
+                    help='produces non-rasterized, high quality \
+                    pdf (slow!)')
 parser.add_argument('--var', action='store_true',
                     help='display a list of available variables')
 
