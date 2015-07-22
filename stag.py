@@ -159,7 +159,7 @@ class StagyyData:
 
         fig, ax = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
         if self.geom == 'annulus':
-            surf = ax.pcolormesh(xmesh, ymesh, fld)
+            surf = ax.pcolormesh(xmesh, ymesh, fld, rasterized=True)
             cbar = plt.colorbar(surf, shrink=self.args.shrinkcb)
             cbar.set_label(constants.varlist[var].name)
             plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
