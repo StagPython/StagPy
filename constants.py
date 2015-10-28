@@ -9,6 +9,7 @@ Var = namedtuple('Var', ['par', 'name', 'func'])
 
 varlist = OrderedDict((
     ('t', Var('t', 'temperature', misc.takefield(0))),
+    ('c', Var('c', 'composition', misc.takefield(0))),
     ('p', Var('vp', 'pressure', misc.takefield(3))),
     ('s', Var('vp', 'stream function', processing.calc_stream))
     ))

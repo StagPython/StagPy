@@ -23,7 +23,7 @@ class StagyyData:
         # name of the file to read
         self.fullname = misc.path_fmt(args, par_type).format(timestep)
 
-        if par_type in ('t', 'eta', 'rho', 'str', 'age'):
+        if par_type in ('t','c', 'eta', 'rho', 'str', 'age'):
             self.nval = 1
         elif par_type == 'vp':
             self.nval = 4
