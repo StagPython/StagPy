@@ -145,7 +145,7 @@ class StagyyData:
 
         # adding a row at the end to have continuous field
         if self.geom == 'annulus':
-            if var in ('t', ):  # eta (variables in cell center)?
+            if var in ('t','c', 'eta', ):  # eta (variables in cell center)?
                 newline = fld[:, 0, 0]
                 fld = np.vstack([fld[:, :, 0].T, newline]).T
             elif var == 'p':
