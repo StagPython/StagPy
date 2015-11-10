@@ -168,3 +168,5 @@ class StagyyData:
         plt.tight_layout()
         plt.savefig(misc.file_name(self.args, var).format(self.step) + '.pdf',
                     format='PDF')
+        plt.close(fig)
+        
