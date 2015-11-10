@@ -21,17 +21,17 @@ from prettyplotlib import brewer2mpl
 #plt.xkcd()
 
 parser = argparse.ArgumentParser(
-    description='Read and process StagYY profile data')
-parser.add_argument('-s', '--timestep', help='timestep')
-parser.add_argument('--var', action='store_true',
-                    help='display a list of available variables')
+    description = 'Read and process StagYY profile data')
+parser.add_argument('-s', '--timestep', help = 'timestep')
+parser.add_argument('--var', action = 'store_true',
+                    help = 'display a list of available variables')
 
 #parser.set_defaults(**constants.default_config)
 args = parser.parse_args()
 
 
 if args.timestep=='last':
-    tstp=[-1,-1,1]
+    tstp=[-1, -1, 1]
 else:
     tstp = args.timestep.split(':')
 
@@ -46,12 +46,12 @@ if not tstp[1]:
 if len(tstp) == 3 and not tstp[2]:
     tstp[2] = 1
 
-istart, ilast, istep = map(int,tstp)
+istart, ilast, istep = map(int, tstp)
 
     
 ############### INPUT PARAMETERS ################
 # should rather be default parameters to be replaced by command line options
-savefigures=True
+SAVEFIGURES = True
 
 cmap = plt.cm.gist_ncar
 #cmap = plt.cm.Accent
@@ -60,20 +60,21 @@ cmap = plt.cm.gist_ncar
 #plt.style.use('ggplot')
 #cmap=green_purple = brewer2mpl.get_map('PRGn', 'diverging', 11).mpl_colormap
 
-plot_grid=False
-plot_temperature=True
-plot_minmaxtemp = False
-plot_velocity=True
+plot_grid = False
+PLOT_TEMPERATURE = True
+PLOT_MINMAXTEMP = False
+plot_velocity = True
 plot_minmaxvelo = False
 plot_viscosity = False
 plot_minmaxvisco = False
-plot_advection=True
-plot_energy=True
+plot_advection = True
+plot_energy = True
 plot_concentration = True
 plot_minmaxcon = False
-plot_conctheo=False
+plot_conctheo = False
 
 lwdth = 2
+FTSZ = 16
 # parameters for the theoretical composition profiles
 Rmin = 1.19
 Rmax = Rmin + 1.
@@ -85,38 +86,37 @@ xieut = 0.8
 #################################################
 
 """Read par file in the parent or present directory. Should be optional or tested"""
-read_par_file=True
+read_par_file = True
 if os.path.exists('../par'):
     par_file = '../par'
 elif os.path.exists('par'):
     par_file = 'par'
 else:
     print 'No par file found. Input pars by hand'
-    read_par_file=False
+    read_par_file = False
     nz = int(raw_input('nz = '))
-    rcmb=1
+    rcmb = 1
     geom=str(raw_input('spherical (s) or cartesian (c)? '))
-    Spherical=geom=='s'
+    Spherical = geom == 's'
 
 if read_par_file:
     nml = f90nml.read(par_file)
-    Spherical=nml['geometry']['shape']=='spherical'
+    Spherical = nml['geometry']['shape'] == 'spherical'
     if Spherical:
-        rcmb=nml['geometry']['r_cmb']
-    nz=nml['geometry']['nztot']
+        rcmb = nml['geometry']['r_cmb']
+    nz = nml['geometry']['nztot']
     stem = nml['ioin']['output_file_stem']
     s =  stem.split('/')[-1]
     proffile = s+'_rprof.dat'
-    Rmin=rcmb
-    Rmax=rcmb+1
-    xieut=nml['tracersin']['fe_eut']
-    D=nml['tracersin']['k_fe']
-    xi0l=nml['tracersin']['fe_cont']
+    Rmin = rcmb
+    Rmax = rcmb+1
+    xieut = nml['tracersin']['fe_eut']
+    D = nml['tracersin']['k_fe']
+    xi0l = nml['tracersin']['fe_cont']
     
 xi0s = D*xi0l
 xired = xi0l/xieut
 Rsup = (Rmax**3-xired**(1/(1-D))*(Rmax**3-Rmin**3))**(1./3.)
-#Rsup = (xired**(1/(1-D))*Rmin**3+(1-xired**(1/(1-D)))*Rmax**3)**(1./3.)
 
 def initprof (r):
     if r < Rsup:
@@ -126,24 +126,24 @@ def initprof (r):
     
 pi = np.pi
 if Spherical:
-    rb=rcmb
-    rs=rb+1
+    rb = rcmb
+    rs = rb+1
     coefb = rb**2*4*pi
     coefs = rs**2*4*pi
 else:
-    coefb=1
-    coefs=1
+    coefb = 1
+    coefs = 1
         
 
 timesteps = []
 data0 = []
-lnum=-1
+lnum = -1
 f = open(proffile)
 for line in f:
     if line != '\n':
-        lnum=lnum+1
+        lnum = lnum+1
         ll = ' '.join(line.split())
-        if line[0]=='*':
+        if line[0] == '*':
             timesteps.append([lnum, int(ll.split(' ')[1]), float(ll.split(' ')[5])])
         else:
             llf =  np.array(ll.split(' '))
@@ -152,59 +152,59 @@ for line in f:
 tsteps = np.array(timesteps)
 nsteps = tsteps.shape[0]
 data = np.array(data0)
-if ilast==-1:
-    ilast=nsteps-1
-if istart==-1:
-    istart=nsteps-1
+if ilast == -1:
+    ilast = nsteps-1
+if istart == -1:
+    istart = nsteps-1
 
-nzp=[]
-for it in range(0,nsteps-1):
-    nzp=np.append(nzp,tsteps[it+1,0]-tsteps[it,0]-1)
+nzp = []
+for it in range(0, nsteps-1):
+    nzp=np.append(nzp, tsteps[it+1, 0]-tsteps[it, 0]-1)
 
-nzp=np.append(nzp,lnum-tsteps[nsteps-1,0])
+nzp = np.append(nzp, lnum-tsteps[nsteps-1, 0])
 
-nzs=[[0,0,0]]
-nzc=0
-for it in range(1,nsteps):
+nzs = [[0,0,0]]
+nzc = 0
+for it in range(1, nsteps):
     if nzp[it] != nzp[it-1]:
-        nzs.append([it,it-nzc,int(nzp[it-1])])
-        nzc=it
+        nzs.append([it, it-nzc, int(nzp[it-1])])
+        nzc = it
 if nzp[nsteps-1] != nzs[-1][1]:
-    nzs.append([nsteps,nsteps-nzc,int(nzp[nsteps-1])])
+    nzs.append([nsteps, nsteps-nzc, int(nzp[nsteps-1])])
 
 nzi = np.array(nzs)
 
-num_plots=np.floor((nsteps-istart)/istep)+1
+num_plots = np.floor((nsteps-istart)/istep)+1
 icol = np.linspace(0, 1, num_plots)
 
 def plotprofiles (quant, *vartuple):
     '''Plot the chosen profiles for the chosen timesteps'''
     '''vartuple contains the numbers of the column to be plotted'''
     plt.figure()
-    ii=0
-    for step in range(istart,ilast,istep):
+    ii = 0
+    for step in range(istart, ilast, istep):
         step = step +1# starts at 0=> 15 is the 16th
 #        print step
-        an = sorted(np.append(nzi[:,0],step))
+        an = sorted(np.append(nzi[:,0], step))
         inn = an.index(step)
 
-        nnz = np.multiply(nzi[:,1],nzi[:,2])
+        nnz = np.multiply(nzi[:, 1], nzi[:, 2])
 
-        i0 = np.sum([nnz[0:inn]])+(step-nzi[inn-1,0]-1)*nzi[inn,2]
-        i1 = i0+nzi[inn,2]-1
+        i0 = np.sum([nnz[0:inn]])+(step-nzi[inn-1, 0]-1)*nzi[inn, 2]
+        i1 = i0+nzi[inn, 2]-1
         '''Plot the chosen profiles'''
-        jj=0
+        jj = 0
         for j in vartuple:
-            if jj==0:
-                ppl.plot(data[i0:i1,j],data[i0:i1,0], linewidth=lwdth,label=r'$t=%.2e$' % (tsteps[step-1,2])) # needs a shorter format !
-                if (quant=='Concentration' or quant=='Temperature') and plot_conctheo and step==istart+1 :
-                    ri=np.array(data[i0:i1,0], np.float)+Rmin
-                    rf=(Rmax**3.+Rmin**3.-ri**3.)**(1./3.)-Rmin
-                    ppl.plot(data[i0:i1,j],rf,'b--',linewidth=lwdth,label='Overturned')
-                jj=1
+            if jj == 0:
+                ppl.plot(data[i0:i1, j],data[i0:i1, 0], linewidth = lwdth, label = r'$t=%.2e$' % (tsteps[step-1, 2])) # needs a shorter format !
+                if (quant == 'Concentration' or quant == 'Temperature') and plot_conctheo and step == istart+1 :
+                    ri = np.array(data[i0:i1, 0], np.float)+Rmin
+                    rf = (Rmax**3.+Rmin**3.-ri**3.)**(1./3.)-Rmin
+                    ppl.plot(data[i0:i1, j], rf, 'b--', linewidth = lwdth, label='Overturned')
+                jj = 1
             else:
-                ppl.plot(data[i0:i1,j],data[i0:i1,0],linewidth=lwdth)#,c=cmap(icol[ii]))
-        plt.ylim([-0.1,1.1])
+                ppl.plot(data[i0:i1, j], data[i0:i1, 0], linewidth = lwdth)
+        plt.ylim([-0.1, 1.1])
 #        r = np.linspace(Rmin,Rmax,1000)
 #        xi = map(initprof,r)
 #        ri = map(lambda x: (Rmax**3+Rmin**3-x**3)**(1./3.),r)
@@ -213,46 +213,46 @@ def plotprofiles (quant, *vartuple):
 #        ppl.plot(xi,z,'r--',label='Initial')
 #        ppl.plot(xif,z,'b--',label='Overturned')
 
-        plt.xlabel(quant,fontsize=16)
-        plt.ylabel('z',fontsize=16)
-        plt.xticks(fontsize=16)    
-        plt.yticks(fontsize=16)    
-        ii=ii+1
-    lgd=plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+        plt.xlabel(quant, fontsize = FTSZ)
+        plt.ylabel('z', fontsize = FTSZ)
+        plt.xticks(fontsize = FTSZ)
+        plt.yticks(fontsize = FTSZ)
+        ii = ii+1
+    lgd = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
                 borderaxespad=0., mode="expand",
-                ncol=3,fontsize=16,
-                columnspacing=1.0, labelspacing=0.0,
-                handletextpad=0.0, handlelength=1.5,
-                fancybox=True, shadow=False)
+                ncol=3, fontsize = FTSZ,
+                columnspacing = 1.0, labelspacing = 0.0,
+                handletextpad = 0.0, handlelength = 1.5,
+                fancybox = True, shadow = False)
 
-    plt.savefig(quant.replace(' ','_')+".pdf",format='PDF',bbox_extra_artists=(lgd,), bbox_inches='tight')
+    plt.savefig(quant.replace(' ', '_')+".pdf", format = 'PDF', bbox_extra_artists = (lgd, ), bbox_inches = 'tight')
     return;
     
 '''Now use it for the different types of profiles'''
 
-if plot_temperature:
-    if plot_minmaxtemp:
-        plotprofiles('Temperature',1,2,3)
+if PLOT_TEMPERATURE:
+    if PLOT_MINMAXTEMP:
+        plotprofiles('Temperature', 1, 2, 3)
     else:
-        plotprofiles('Temperature',1)
+        plotprofiles('Temperature', 1)
     
 if plot_velocity:
     if plot_minmaxvelo:
-        plotprofiles('Vertical Velocity',7,8,9)
+        plotprofiles('Vertical Velocity', 7, 8, 9)
     else:
-        plotprofiles('Vertical Velocity',7)
+        plotprofiles('Vertical Velocity', 7)
 
 if plot_viscosity:
     if plot_minmaxvisco:
-        plotprofiles('Viscosity',13,14,15)
+        plotprofiles('Viscosity', 13, 14, 15)
     else:
-        plotprofiles('Viscosity',13)
+        plotprofiles('Viscosity', 13)
         
 if plot_concentration:
     if plot_minmaxcon:
-        plotprofiles('Concentration',36,37,38)
+        plotprofiles('Concentration', 36, 37, 38)
     else:
-        plotprofiles('Concentration',36)
+        plotprofiles('Concentration', 36)
 
 
 sys.exit()
