@@ -145,7 +145,7 @@ class StagyyData:
 
         # adding a row at the end to have continuous field
         if self.geom == 'annulus':
-            if var in ('t','c', 'eta', ):  # eta (variables in cell center)?
+            if var in ('t','c','v','d'):  # temp,composition,viscosity,density
                 newline = fld[:, 0, 0]
                 fld = np.vstack([fld[:, :, 0].T, newline]).T
             elif var == 'p':
@@ -158,7 +158,14 @@ class StagyyData:
 
         fig, ax = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
         if self.geom == 'annulus':
-            surf = ax.pcolormesh(xmesh, ymesh, fld,
+            if var == 'v':
+               surf = ax.pcolormesh(xmesh, ymesh, fld, norm=matplotlib.colors.LogNorm(),
+                                 rasterized=not self.args.pdf, shading='gouraud')
+            elif var == 'd':
+               surf = ax.pcolormesh(xmesh, ymesh, fld, vmin=0.96,vmax=1.04,
+                                 rasterized=not self.args.pdf, shading='gouraud')
+            else:
+               surf = ax.pcolormesh(xmesh, ymesh, fld,
                                  rasterized=not self.args.pdf, shading='gouraud')
             cbar = plt.colorbar(surf, shrink=self.args.shrinkcb)
             cbar.set_label(constants.varlist[var].name)
@@ -169,4 +176,4 @@ class StagyyData:
         plt.savefig(misc.file_name(self.args, var).format(self.step) + '.pdf',
                     format='PDF')
         plt.close(fig)
-        
+
