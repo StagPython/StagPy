@@ -55,6 +55,7 @@ if len(tstp) == 3 and not tstp[2]:
     tstp[2] = 1
 
 for timestep in xrange(*map(int, tstp)):
+    print("Processing timestep",timestep)
     for var in set(args.plot).intersection(constants.varlist):
         stgdat = StagyyData(args, constants.varlist[var].par, timestep)
         stgdat.plot_scalar(var)
