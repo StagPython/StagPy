@@ -1,4 +1,4 @@
-|landscape|
+[![Code Health](https://landscape.io/github/mulvrova/StagPy/master/landscape.svg?style=flat-square)](https://landscape.io/github/mulvrova/StagPy/master)
 
 Read binary output files of STAGYY
 
