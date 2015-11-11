@@ -1,8 +1,9 @@
 #!/usr/bin/env python2
 """
-  Read and plot stagyy binary data
-  Author: Martina Ulvrova
-  Date: 2014/12/02
+Read and plot stagyy binary data
+
+Author: Martina Ulvrova
+Date: 2014/12/02
 """
 
 from __future__ import print_function
@@ -55,7 +56,7 @@ if len(tstp) == 3 and not tstp[2]:
     tstp[2] = 1
 
 for timestep in xrange(*map(int, tstp)):
-    print("Processing timestep",timestep)
+    print("Processing timestep", timestep)
     for var in set(args.plot).intersection(constants.varlist):
         stgdat = StagyyData(args, constants.varlist[var].par, timestep)
         stgdat.plot_scalar(var)

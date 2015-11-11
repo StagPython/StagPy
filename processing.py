@@ -4,9 +4,10 @@ from scipy import integrate
 
 
 def calc_stream(stagdata):
-    """computes and returns the stream function for
-    a StagData object containing vp fields"""
+    """computes and returns the stream function
 
+    need a StagData object containing vp fields
+    """
     vphi = stagdata.fields[1][:, :, 0]
     vph2 = -0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
     vr = stagdata.fields[2][:, :, 0]

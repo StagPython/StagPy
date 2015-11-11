@@ -10,10 +10,16 @@ import constants
 import misc
 
 
-class StagyyData:
+class StagyyData(object):
+
     """reads StagYY binary data and processes them"""
 
     def __init__(self, args, par_type, timestep):
+        """read the necessary binary file
+
+        after init, the StagyyData object is ready
+        for processing
+        """
         self.args = args
         self.par_type = par_type
         self.geom = args.geometry
@@ -22,7 +28,7 @@ class StagyyData:
 
         # name of the file to read
         self.fullname = misc.path_fmt(args, par_type).format(timestep)
-        if par_type in ('t','c', 'eta', 'rho', 'str', 'age'):
+        if par_type in ('t', 'c', 'eta', 'rho', 'str', 'age'):
             self.nval = 1
         elif par_type == 'vp':
             self.nval = 4
@@ -32,11 +38,11 @@ class StagyyData:
             self._readfile()
 
     def _readbin(self, fmt='i', nwords=1, nbytes=4):
-        """reads n words of n bytes with fmt format.
+        """read n words of n bytes with fmt format
+
         Return a tuple of elements if more than one element.
         Default: read 1 word of 4 bytes formatted as an integer.
         """
-
         elts = struct.unpack(fmt*nwords, self._fid.read(nwords*nbytes))
         if len(elts) == 1:
             elts = elts[0]
@@ -44,7 +50,6 @@ class StagyyData:
 
     def _catch_header(self):
         """reads header of binary file"""
-
         self.nmagic = self._readbin()  # Version
 
         # check nb components
@@ -85,7 +90,6 @@ class StagyyData:
 
     def _readfile(self):
         """read scalar/vector fields"""
-
         # compute nth, nph, nr and nb PER CPU
         nth = self.nthtot / self.nnth
         nph = self.nphtot / self.nnph
@@ -112,11 +116,11 @@ class StagyyData:
                 for iphc in np.arange(self.nnph):
                     for ithc in np.arange(self.nnth):
                         # read the data for this CPU
-                        fileContent = self._readbin('f', npi)
-                        data_CPU = np.array(fileContent) * self.scalefac
+                        file_content = self._readbin('f', npi)
+                        data_cpu = np.array(file_content) * self.scalefac
 
                         # Create a 3D matrix from these data
-                        data_CPU_3D = data_CPU.reshape(
+                        data_cpu_3d = data_cpu.reshape(
                             (nb, nr, nph + self.xyp,
                              nth + self.xyp, self.nval))
 
@@ -132,7 +136,7 @@ class StagyyData:
 
                         for idx, fld in enumerate(flds):
                             fld[snb:enb, sr:er, sph:eph, sth:eth] = \
-                                    data_CPU_3D[:, :, :, :, idx]
+                                    data_cpu_3d[:, :, :, :, idx]
 
         self.fields = []
         for fld in flds:
@@ -140,12 +144,11 @@ class StagyyData:
 
     def plot_scalar(self, var):
         """var: one of the key of constants.varlist"""
-
         fld = constants.varlist[var].func(self)
 
         # adding a row at the end to have continuous field
         if self.geom == 'annulus':
-            if var in ('t','c','v','d'):  # temp,composition,viscosity,density
+            if var in ('t', 'c', 'v', 'd'):  # temp,composition,viscosity,density
                 newline = fld[:, 0, 0]
                 fld = np.vstack([fld[:, :, 0].T, newline]).T
             elif var == 'p':
@@ -159,14 +162,18 @@ class StagyyData:
         fig, ax = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
         if self.geom == 'annulus':
             if var == 'v':
-               surf = ax.pcolormesh(xmesh, ymesh, fld, norm=matplotlib.colors.LogNorm(),
-                                 rasterized=not self.args.pdf, shading='gouraud')
+               surf = ax.pcolormesh(xmesh, ymesh, fld,
+                                    norm=matplotlib.colors.LogNorm(),
+                                    rasterized=not self.args.pdf,
+                                    shading='gouraud')
             elif var == 'd':
-               surf = ax.pcolormesh(xmesh, ymesh, fld, vmin=0.96,vmax=1.04,
-                                 rasterized=not self.args.pdf, shading='gouraud')
+               surf = ax.pcolormesh(xmesh, ymesh, fld, vmin=0.96, vmax=1.04,
+                                    rasterized=not self.args.pdf,
+                                    shading='gouraud')
             else:
                surf = ax.pcolormesh(xmesh, ymesh, fld,
-                                 rasterized=not self.args.pdf, shading='gouraud')
+                                    rasterized=not self.args.pdf,
+                                    shading='gouraud')
             cbar = plt.colorbar(surf, shrink=self.args.shrinkcb)
             cbar.set_label(constants.varlist[var].name)
             plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
