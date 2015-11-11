@@ -1,3 +1,5 @@
+|landscape|
+
 Read binary output files of STAGYY
 
 `main.py` is the "master" file which uses definitions from the other scripts to
