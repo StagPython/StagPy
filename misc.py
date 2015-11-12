@@ -34,3 +34,18 @@ def lastfile(args, begstep):
         else:
             endstep = guess
     return begstep
+
+def parse_timesteps(args):
+    """parse timestep argument"""
+    tstp = args.timestep.split(':')
+    if not tstp[0]:
+        tstp[0] = '0'
+    if len(tstp) == 1:
+        tstp.extend(tstp)
+    if not tstp[1]:
+        tstp[1] = misc.lastfile(args, int(tstp[0]))
+    tstp[1] = int(tstp[1]) + 1
+    if len(tstp) == 3 and not tstp[2]:
+        tstp[2] = 1
+    args.timestep = tstp
+    return args

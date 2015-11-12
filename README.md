@@ -3,11 +3,19 @@
 Read binary output files of STAGYY
 
 `main.py` is the "master" file which uses definitions from the other scripts to
-read and process the data files.
+call the right subcommand which in turn processes StagYY data.
+
+The available subcommands are the following:
+
+- `field`: computes and/or plots scalar fields such as temperature or stream
+  function;
+- `rprof`: computes and/or plots radial profiles;
+- `time`: computes and/or plots time series;
+- `var`: displays a list of available variables.
 
 StagPy uses the external modules `matplotlib` and `numpy`, please install them
 if needed. To check that everything work fine, go to the `data` directory of
-the repository and run `../main.py`. Three PDF files with a plot of the
+the repository and run `../main.py field`. Three PDF files with a plot of the
 temperature, pressure and stream function fields should appear.
 
 To make StagPy available from everywhere in your system, you can make a soft
@@ -38,9 +46,8 @@ specified, all available time steps are processed. Here are some examples:
 
 
 By default, the temperature, pressure and stream function fields are plotted.
-You can change this with the `-o` option (e.g. `./main.py -o ps` to plot only
-the pressure and stream function fields). See `./main.py --var` for a complete
-list of available variables.
+You can change this with the `-o` option (e.g. `./main.py field -o ps` to plot
+only the pressure and stream function fields).
 
 The aim is to have different cases in one file (Cartesian, Spherical Annulus,
 etc).

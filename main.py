@@ -6,16 +6,17 @@ Author: Martina Ulvrova
 Date: 2014/12/02
 """
 
-from __future__ import print_function
 import argparse
-import sys
 
+import commands
 import constants
 import misc
-from stag import StagyyData
 
+# top level parser
 parser = argparse.ArgumentParser(
     description='read and process StagYY binary data')
+
+# options common to every sub-commands
 parser.add_argument('-g', '--geometry', choices=['annulus'],
                     help='geometry of the domain')
 parser.add_argument('-p', '--path',
@@ -33,30 +34,27 @@ parser.add_argument('--shrinkcb', type=float,
 parser.add_argument('--pdf', action='store_true',
                     help='produces non-rasterized, high quality \
                     pdf (slow!)')
-parser.add_argument('--var', action='store_true',
-                    help='display a list of available variables')
 
 parser.set_defaults(**constants.default_config)
+
+subparsers = parser.add_subparsers()
+
+# parser for the "field" command
+parser_fd = subparsers.add_parser('field')
+parser_fd.set_defaults(func=commands.field)
+
+# parser for the "rprof" command
+parser_rp = subparsers.add_parser('rprof')
+parser_rp.set_defaults(func=commands.rprof)
+
+# parser for the "time" command
+parser_tm = subparsers.add_parser('time')
+parser_tm.set_defaults(func=commands.time)
+
+# parser for the "var" command
+parser_var = subparsers.add_parser('var')
+parser_var.set_defaults(func=commands.var)
+
 args = parser.parse_args()
-
-if args.var:
-    print(*('{}: {}'.format(k, v.name) for k, v in constants.varlist.items()),
-          sep='\n')
-    sys.exit()
-
-tstp = args.timestep.split(':')
-if not tstp[0]:
-    tstp[0] = '0'
-if len(tstp) == 1:
-    tstp.extend(tstp)
-if not tstp[1]:
-    tstp[1] = misc.lastfile(args, int(tstp[0]))
-tstp[1] = int(tstp[1]) + 1
-if len(tstp) == 3 and not tstp[2]:
-    tstp[2] = 1
-
-for timestep in xrange(*map(int, tstp)):
-    print("Processing timestep", timestep)
-    for var in set(args.plot).intersection(constants.varlist):
-        stgdat = StagyyData(args, constants.varlist[var].par, timestep)
-        stgdat.plot_scalar(var)
+args = misc.parse_timesteps(args)
+args.func(args)
