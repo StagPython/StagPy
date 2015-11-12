@@ -29,8 +29,8 @@ with a name `test_x00100`. `x` is replaced by the needed parameter name (e.g.
 You can change the default behaviour by editing the `defaut_config` variable
 definition in the `constants.py` module. You can also ask for a specific file
 from the command line. For example, if your data file is `output/bin_x05600`,
-you can access it with `./main.py -p output -n bin -s 5600` (see `./main.py -h`
-for a complete list of options).
+you can access it with `./main.py -p output -n bin -s 5600 field` (see
+`./main.py -h` for a complete list of options).
 
 The time step option `-s` allows you to specify a range of time steps in a way
 which mimic the slicing syntax: `begin:end:gap` (both ends included). If the
@@ -46,7 +46,7 @@ specified, all available time steps are processed. Here are some examples:
 
 
 By default, the temperature, pressure and stream function fields are plotted.
-You can change this with the `-o` option (e.g. `./main.py field -o ps` to plot
+You can change this with the `-o` option (e.g. `./main.py -o ps field` to plot
 only the pressure and stream function fields).
 
 The aim is to have different cases in one file (Cartesian, Spherical Annulus,

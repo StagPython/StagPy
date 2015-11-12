@@ -5,7 +5,7 @@ from __future__ import print_function
 import constants
 from stag import StagyyData
 
-def field(args):
+def field_cmd(args):
     """plot snapshots of scalar fields"""
     for timestep in xrange(*map(int, args.timestep)):
         print("Processing timestep", timestep)
@@ -13,15 +13,15 @@ def field(args):
             stgdat = StagyyData(args, constants.varlist[var].par, timestep)
             stgdat.plot_scalar(var)
 
-def rprof(args):
+def rprof_cmd(args):
     """plot radial profiles"""
     import rprof
 
-def time(args):
+def time_cmd(args):
     """plot time series"""
     import time_series
 
-def var(_):
+def var_cmd(_):
     """display a list of available variables"""
     print(*('{}: {}'.format(k, v.name) for k, v in constants.varlist.items()),
           sep='\n')

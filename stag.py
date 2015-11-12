@@ -76,13 +76,13 @@ class StagyyData(object):
         self.nnb = self._readbin()
 
         self.nr2 = self.nrtot * 2 + 1
-        self.rg = self._readbin('f', self.nr2)  # r-coordinates
+        self.rgeom = self._readbin('f', self.nr2)  # r-coordinates
 
         self.rcmb = self._readbin('f')  # radius of the cmb
         self.ti_step = self._readbin()
         self.ti_ad = self._readbin('f')
         self.erupta_total = self._readbin('f')
-        self.botT_val = self._readbin('f')
+        self.bot_temp = self._readbin('f')
 
         self.th_coord = self._readbin('f', self.nthtot)  # th-coordinates
         self.ph_coord = self._readbin('f', self.nphtot)  # ph-coordinates
@@ -93,10 +93,10 @@ class StagyyData(object):
         # compute nth, nph, nr and nb PER CPU
         nth = self.nthtot / self.nnth
         nph = self.nphtot / self.nnph
-        nr = self.nrtot / self.nnr
-        nb = self.nblocks / self.nnb
+        nrd = self.nrtot / self.nnr
+        nbk = self.nblocks / self.nnb
         # the number of values per 'read' block
-        npi = (nth + self.xyp) * (nph + self.xyp) * nr * nb * self.nval
+        npi = (nth + self.xyp) * (nph + self.xyp) * nrd * nbk * self.nval
 
         if self.nval > 1:
             self.scalefac = self._readbin('f')
@@ -121,7 +121,7 @@ class StagyyData(object):
 
                         # Create a 3D matrix from these data
                         data_cpu_3d = data_cpu.reshape(
-                            (nb, nr, nph + self.xyp,
+                            (nbk, nrd, nph + self.xyp,
                              nth + self.xyp, self.nval))
 
                         # Add local 3D matrix to global matrix
@@ -129,13 +129,13 @@ class StagyyData(object):
                         eth = ithc * nth + nth + self.xyp
                         sph = iphc * nph
                         eph = iphc * nph + nph + self.xyp
-                        sr = irc * nr
-                        er = irc * nr + nr
-                        snb = ibc * nb
-                        enb = ibc * nb + nb
+                        srd = irc * nrd
+                        erd = irc * nrd + nrd
+                        snb = ibc * nbk
+                        enb = ibc * nbk + nbk
 
                         for idx, fld in enumerate(flds):
-                            fld[snb:enb, sr:er, sph:eph, sth:eth] = \
+                            fld[snb:enb, srd:erd, sph:eph, sth:eth] = \
                                     data_cpu_3d[:, :, :, :, idx]
 
         self.fields = []
@@ -148,7 +148,8 @@ class StagyyData(object):
 
         # adding a row at the end to have continuous field
         if self.geom == 'annulus':
-            if var in ('t', 'c', 'v', 'd'):  # temp,composition,viscosity,density
+            # temp,composition,viscosity,density
+            if var in ('t', 'c', 'v', 'd'):
                 newline = fld[:, 0, 0]
                 fld = np.vstack([fld[:, :, 0].T, newline]).T
             elif var == 'p':
@@ -159,19 +160,19 @@ class StagyyData(object):
         xmesh, ymesh = np.meshgrid(
             np.array(self.ph_coord), np.array(self.r_coord) + self.rcmb)
 
-        fig, ax = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
+        fig, axis = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
         if self.geom == 'annulus':
             if var == 'v':
-               surf = ax.pcolormesh(xmesh, ymesh, fld,
+                surf = axis.pcolormesh(xmesh, ymesh, fld,
                                     norm=matplotlib.colors.LogNorm(),
                                     rasterized=not self.args.pdf,
                                     shading='gouraud')
             elif var == 'd':
-               surf = ax.pcolormesh(xmesh, ymesh, fld, vmin=0.96, vmax=1.04,
+                surf = axis.pcolormesh(xmesh, ymesh, fld, vmin=0.96, vmax=1.04,
                                     rasterized=not self.args.pdf,
                                     shading='gouraud')
             else:
-               surf = ax.pcolormesh(xmesh, ymesh, fld,
+                surf = axis.pcolormesh(xmesh, ymesh, fld,
                                     rasterized=not self.args.pdf,
                                     shading='gouraud')
             cbar = plt.colorbar(surf, shrink=self.args.shrinkcb)

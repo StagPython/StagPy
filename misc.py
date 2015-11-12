@@ -43,7 +43,7 @@ def parse_timesteps(args):
     if len(tstp) == 1:
         tstp.extend(tstp)
     if not tstp[1]:
-        tstp[1] = misc.lastfile(args, int(tstp[0]))
+        tstp[1] = lastfile(args, int(tstp[0]))
     tstp[1] = int(tstp[1]) + 1
     if len(tstp) == 3 and not tstp[2]:
         tstp[2] = 1
