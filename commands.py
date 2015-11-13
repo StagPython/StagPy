@@ -3,11 +3,12 @@
 from __future__ import print_function
 
 import constants
+import rprof
 from stag import StagyyData
 
 def field_cmd(args):
     """plot snapshots of scalar fields"""
-    for timestep in xrange(*map(int, args.timestep)):
+    for timestep in xrange(*args.timestep):
         print("Processing timestep", timestep)
         for var in set(args.plot).intersection(constants.VAR_LIST):
             stgdat = StagyyData(args, constants.VAR_LIST[var].par, timestep)
@@ -15,7 +16,7 @@ def field_cmd(args):
 
 def rprof_cmd(args):
     """plot radial profiles"""
-    import rprof
+    rprof.rprof_cmd(args)
 
 def time_cmd(args):
     """plot time series"""
