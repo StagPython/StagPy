@@ -26,7 +26,7 @@ parser.add_argument('-s', '--timestep', help = 'timestep')
 parser.add_argument('--var', action = 'store_true',
                     help = 'display a list of available variables')
 
-#parser.set_defaults(**constants.default_config)
+#parser.set_defaults(**constants.DEFAULT_CONFIG)
 args = parser.parse_args()
 
 

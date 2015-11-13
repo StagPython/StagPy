@@ -143,8 +143,8 @@ class StagyyData(object):
             self.fields.append(fld[0, :, :, :])
 
     def plot_scalar(self, var):
-        """var: one of the key of constants.varlist"""
-        fld = constants.varlist[var].func(self)
+        """var: one of the key of constants.VAR_LIST"""
+        fld = constants.VAR_LIST[var].func(self)
 
         # adding a row at the end to have continuous field
         if self.geom == 'annulus':
@@ -176,7 +176,7 @@ class StagyyData(object):
                                     rasterized=not self.args.pdf,
                                     shading='gouraud')
             cbar = plt.colorbar(surf, shrink=self.args.shrinkcb)
-            cbar.set_label(constants.varlist[var].name)
+            cbar.set_label(constants.VAR_LIST[var].name)
             plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
             plt.axis('off')
 

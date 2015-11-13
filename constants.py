@@ -7,7 +7,7 @@ import processing
 
 Var = namedtuple('Var', ['par', 'name', 'func'])
 
-varlist = OrderedDict((
+VAR_LIST = OrderedDict((
     ('t', Var('t', 'Temperature', misc.takefield(0))),
     ('c', Var('c', 'Composition', misc.takefield(0))),
     ('v', Var('eta', 'Viscosity', misc.takefield(0))),
@@ -16,7 +16,7 @@ varlist = OrderedDict((
     ('s', Var('vp', 'Stream function', processing.calc_stream))
     ))
 
-default_config = OrderedDict((
+DEFAULT_CONFIG = OrderedDict((
     ('geometry', 'annulus'),
     ('path', './'),
     ('name', 'test'),

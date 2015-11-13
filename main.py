@@ -38,7 +38,7 @@ def main_func():
     parent_parser.add_argument('--pdf', action='store_true',
                         help='produces non-rasterized, high quality \
                         pdf (slow!)')
-    parent_parser.set_defaults(**constants.default_config)
+    parent_parser.set_defaults(**constants.DEFAULT_CONFIG)
 
     # parser for the "field" command
     parser_fd = subparsers.add_parser('field', parents=[parent_parser],
