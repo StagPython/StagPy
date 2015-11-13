@@ -165,7 +165,7 @@ class StagyyData(object):
             if var == 'v':
                 surf = axis.pcolormesh(xmesh, ymesh, fld,
                                     norm=matplotlib.colors.LogNorm(),
-                                    rcmap='jet_r',rasterized=not self.args.pdf,
+                                    cmap='jet_r',rasterized=not self.args.pdf,
                                     shading='gouraud')
             elif var == 'd':
                 surf = axis.pcolormesh(xmesh, ymesh, fld,cmap='bwr_r', vmin=0.96, vmax=1.04,
