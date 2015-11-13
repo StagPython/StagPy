@@ -5,6 +5,7 @@ from __future__ import print_function
 import constants
 import rprof
 from stag import StagyyData
+import time_series
 
 def field_cmd(args):
     """plot snapshots of scalar fields"""
@@ -20,7 +21,7 @@ def rprof_cmd(args):
 
 def time_cmd(args):
     """plot time series"""
-    import time_series
+    time_series.time_cmd(args)
 
 def var_cmd(_):
     """display a list of available variables"""
