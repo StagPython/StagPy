@@ -13,50 +13,54 @@ import constants
 import misc
 
 def main_func():
+    """deals with command line arguments"""
     # top level parser
-    parser = argparse.ArgumentParser(
+    main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
+    subparsers = main_parser.add_subparsers()
 
     # options common to every sub-commands
-    parser.add_argument('-g', '--geometry', choices=['annulus'],
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument('-g', '--geometry', choices=['annulus'],
                         help='geometry of the domain')
-    parser.add_argument('-p', '--path',
+    parent_parser.add_argument('-p', '--path',
                         help='StagYY output directory')
-    parser.add_argument('-n', '--name',
+    parent_parser.add_argument('-n', '--name',
                         help='StagYY generic output file name')
-    parser.add_argument('-s', '--timestep', help='timestep')
-    parser.add_argument('-o', '--plot', nargs='?', const='',
-                        help='specify which variables to plot, use --var \
-                        option for a list of available variables')
-    parser.add_argument('--dsa', type=float,
+    parent_parser.add_argument('-s', '--timestep', help='timestep')
+    parent_parser.add_argument('-o', '--plot', nargs='?', const='',
+                        help='specify which variables to plot, use var \
+                        subcommand for a list of available variables')
+    parent_parser.add_argument('--dsa', type=float,
                         help='thickness of the sticky air')
-    parser.add_argument('--shrinkcb', type=float,
+    parent_parser.add_argument('--shrinkcb', type=float,
                         help='color bar shrink')
-    parser.add_argument('--pdf', action='store_true',
+    parent_parser.add_argument('--pdf', action='store_true',
                         help='produces non-rasterized, high quality \
                         pdf (slow!)')
-
-    parser.set_defaults(**constants.default_config)
-
-    subparsers = parser.add_subparsers()
+    parent_parser.set_defaults(**constants.default_config)
 
     # parser for the "field" command
-    parser_fd = subparsers.add_parser('field')
+    parser_fd = subparsers.add_parser('field', parents=[parent_parser],
+                        help='plot scalar fields')
     parser_fd.set_defaults(func=commands.field_cmd)
 
     # parser for the "rprof" command
-    parser_rp = subparsers.add_parser('rprof')
+    parser_rp = subparsers.add_parser('rprof', parents=[parent_parser],
+                        help='plot radial profiles')
     parser_rp.set_defaults(func=commands.rprof_cmd)
 
     # parser for the "time" command
-    parser_tm = subparsers.add_parser('time')
+    parser_tm = subparsers.add_parser('time', parents=[parent_parser],
+                        help='plot temporal series')
     parser_tm.set_defaults(func=commands.time_cmd)
 
     # parser for the "var" command
-    parser_var = subparsers.add_parser('var')
+    parser_var = subparsers.add_parser('var',
+                        help='print the list of variables')
     parser_var.set_defaults(func=commands.var_cmd)
 
-    args = parser.parse_args()
+    args = main_parser.parse_args()
     args = misc.parse_timesteps(args)
     args.func(args)
 
