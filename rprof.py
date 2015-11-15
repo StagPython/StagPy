@@ -77,17 +77,20 @@ def rprof_cmd(args):
         proffile = s+'_rprof.dat'
         Rmin = rcmb
         Rmax = rcmb+1
-        xieut = nml['tracersin']['fe_eut']
-        D = nml['tracersin']['k_fe']
-        xi0l = nml['tracersin']['fe_cont']
+        if 'fe_eut' in nml['tracersin']:
+            xieut = nml['tracersin']['fe_eut']
+        if 'k_fe' in nml['tracersin']:
+            DFe = nml['tracersin']['k_fe']
+        if 'fe_cont' in nml['tracersin']:
+            xi0l = nml['tracersin']['fe_cont']
 
-    xi0s = D*xi0l
+    xi0s = DFe*xi0l
     xired = xi0l/xieut
-    Rsup = (Rmax**3-xired**(1/(1-D))*(Rmax**3-Rmin**3))**(1./3.)
+    Rsup = (Rmax**3-xired**(1/(1-DFe))*(Rmax**3-Rmin**3))**(1./3.)
 
     def initprof(r):
         if r < Rsup:
-            return xi0s*((Rmax**3-Rmin**3)/(Rmax**3-r**3))**(1-D)
+            return xi0s*((Rmax**3-Rmin**3)/(Rmax**3-r**3))**(1-DFe)
         else:
             return xieut
 
