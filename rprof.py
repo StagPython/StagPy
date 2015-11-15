@@ -47,11 +47,11 @@ def rprof_cmd(args):
     Rmin = 1.19
     Rmax = Rmin + 1.
     xi0l = 0.1
-    D = 0.85
-    xi0s = D*xi0l
+    DFe = 0.85
+    xi0s = DFe*xi0l
     xieut = 0.8
 
-    """Read par file in the parent or present directory. Should be optional or tested"""
+    #"""Read par file in the parent or present directory. Should be optional or tested"""
     # should be a separated func in misc module
     read_par_file = True
     if os.path.exists('../par'):
@@ -73,8 +73,8 @@ def rprof_cmd(args):
             rcmb = nml['geometry']['r_cmb']
         nz = nml['geometry']['nztot']
         stem = nml['ioin']['output_file_stem']
-        s = stem.split('/')[-1]
-        proffile = s+'_rprof.dat'
+        ste = stem.split('/')[-1]
+        proffile = ste+'_rprof.dat'
         Rmin = rcmb
         Rmax = rcmb+1
         if 'fe_eut' in nml['tracersin']:
@@ -88,9 +88,10 @@ def rprof_cmd(args):
     xired = xi0l/xieut
     Rsup = (Rmax**3-xired**(1/(1-DFe))*(Rmax**3-Rmin**3))**(1./3.)
 
-    def initprof(r):
-        if r < Rsup:
-            return xi0s*((Rmax**3-Rmin**3)/(Rmax**3-r**3))**(1-DFe)
+    def initprof(rpos):
+        '''Theoretical profile at the end of magma ocean crystallization'''
+        if rpos < Rsup:
+            return xi0s*((Rmax**3-Rmin**3)/(Rmax**3-rpos**3))**(1-DFe)
         else:
             return xieut
 
@@ -107,15 +108,15 @@ def rprof_cmd(args):
     timesteps = []
     data0 = []
     lnum = -1
-    f = open(proffile)
-    for line in f:
+    fich = open(proffile)
+    for line in fich:
         if line != '\n':
             lnum = lnum+1
-            ll = ' '.join(line.split())
+            lll = ' '.join(line.split())
             if line[0] == '*':
-                timesteps.append([lnum, int(ll.split(' ')[1]), float(ll.split(' ')[5])])
+                timesteps.append([lnum, int(lll.split(' ')[1]), float(lll.split(' ')[5])])
             else:
-                llf = np.array(ll.split(' '))
+                llf = np.array(lll.split(' '))
                 data0.append(llf)
 
     tsteps = np.array(timesteps)
@@ -191,12 +192,12 @@ def rprof_cmd(args):
                         jj = 1
                     else:
                         if jj == 1:
-                            LSTYLE = '--'
+                            lstyle = '--'
                         elif jj == 2:
-                            LSTYLE = ':'
+                            lstyle = ':'
                         else:
-                            LSTYLE = '-.'
-                        ppl.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=LSTYLE, linewidth=lwdth)
+                            lstyle = '-.'
+                        ppl.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
                         jj = jj+1
                 plt.ylim([-0.1, 1.1])
 
