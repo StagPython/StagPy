@@ -69,7 +69,7 @@ def rprof_cmd(args):
 
     if read_par_file:
         nml = f90nml.read(par_file)
-        Spherical = nml['geometry']['shape'] == 'spherical'
+        Spherical = nml['geometry']['shape'] == 'Spherical'
         if Spherical:
             rcmb = nml['geometry']['r_cmb']
         nz = nml['geometry']['nztot']
@@ -189,12 +189,12 @@ def rprof_cmd(args):
 
                 for j in vartuple:
                     if jj == 0:
-                        snsplot = sns.plot(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
+                        snsplot = sns.plt(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
                         col = snsplot[0].get_color()
                         if (quant == 'Concentration' or quant == 'Temperature') and plot_conctheo and step == istart+1:
                             ri = np.array(data[i0:i1, 0], np.float)+Rmin
                             rf = (Rmax**3.+Rmin**3.-ri**3.)**(1./3.)-Rmin
-                            sns.plot(data[i0:i1, j], rf, 'b--', linewidth=lwdth, label='Overturned')
+                            sns.plt(data[i0:i1, j], rf, 'b--', linewidth=lwdth, label='Overturned')
                         jj = 1
                     else:
                         if jj == 1:
@@ -203,7 +203,7 @@ def rprof_cmd(args):
                             lstyle = ':'
                         else:
                             lstyle = '-.'
-                        sns.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
+                        sns.plt(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
                         jj = jj+1
                 plt.ylim([-0.1, 1.1])
 
