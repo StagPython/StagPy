@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import f90nml
 import os
 import sys
-import prettyplotlib as ppl
+import misc
+import seaborn as sns
 
 def rprof_cmd(args):
     '''
@@ -74,7 +75,12 @@ def rprof_cmd(args):
         nz = nml['geometry']['nztot']
         stem = nml['ioin']['output_file_stem']
         ste = stem.split('/')[-1]
-        proffile = ste+'_rprof.dat'
+        if os.path.exists('../'+ste+'_rprof.dat'):
+            proffile = '../'+ste+'_rprof.dat'
+        elif os.path.exists(ste+'_rprof.dat'):
+            proffile = ste+'_rprof.dat'
+        else:
+            print 'No profile file found.'
         Rmin = rcmb
         Rmax = rcmb+1
         if 'fe_eut' in nml['tracersin']:
@@ -161,7 +167,7 @@ def rprof_cmd(args):
             fig = plt.figure()
         for step in range(istart, ilast, istep):
             step = step +1# starts at 0=> 15 is the 16th
-    #        print step
+    #       print step
             an = sorted(np.append(nzi[:, 0], step))
             inn = an.index(step)
 
@@ -183,12 +189,12 @@ def rprof_cmd(args):
 
                 for j in vartuple:
                     if jj == 0:
-                        pplot = ppl.plot(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
-                        col = pplot[0].get_color()
+                        snsplot = sns.plot(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
+                        col = snsplot[0].get_color()
                         if (quant == 'Concentration' or quant == 'Temperature') and plot_conctheo and step == istart+1:
                             ri = np.array(data[i0:i1, 0], np.float)+Rmin
                             rf = (Rmax**3.+Rmin**3.-ri**3.)**(1./3.)-Rmin
-                            ppl.plot(data[i0:i1, j], rf, 'b--', linewidth=lwdth, label='Overturned')
+                            sns.plot(data[i0:i1, j], rf, 'b--', linewidth=lwdth, label='Overturned')
                         jj = 1
                     else:
                         if jj == 1:
@@ -197,7 +203,7 @@ def rprof_cmd(args):
                             lstyle = ':'
                         else:
                             lstyle = '-.'
-                        ppl.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
+                        sns.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
                         jj = jj+1
                 plt.ylim([-0.1, 1.1])
 
