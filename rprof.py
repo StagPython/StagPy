@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 import f90nml
 import os
 import sys
-import misc
-import seaborn as sns
+#import prettyplotlib as ppl
 
 def rprof_cmd(args):
     '''
@@ -69,18 +68,15 @@ def rprof_cmd(args):
 
     if read_par_file:
         nml = f90nml.read(par_file)
-        Spherical = nml['geometry']['shape'] == 'Spherical'
+        Spherical = nml['geometry']['shape'] == 'spherical' or nml['geometry']['shape'] == 'Spherical' 
         if Spherical:
             rcmb = nml['geometry']['r_cmb']
+        else:
+            rcmb=0.
         nz = nml['geometry']['nztot']
         stem = nml['ioin']['output_file_stem']
         ste = stem.split('/')[-1]
-        if os.path.exists('../'+ste+'_rprof.dat'):
-            proffile = '../'+ste+'_rprof.dat'
-        elif os.path.exists(ste+'_rprof.dat'):
-            proffile = ste+'_rprof.dat'
-        else:
-            print 'No profile file found.'
+        proffile = ste+'_rprof.dat'
         Rmin = rcmb
         Rmax = rcmb+1
         if 'fe_eut' in nml['tracersin']:
@@ -103,10 +99,10 @@ def rprof_cmd(args):
 
     pi = np.pi
     if Spherical:
-        rb = rcmb
-        rs = rb+1
-        coefb = rb**2*4*pi
-        coefs = rs**2*4*pi
+        rbot = rcmb
+        rtop = rbot+1
+        coefb = rbot**2*4*pi
+        coefs = rtop**2*4*pi
     else:
         coefb = 1
         coefs = 1
@@ -153,7 +149,7 @@ def rprof_cmd(args):
     num_plots = np.floor((nsteps-istart)/istep)+1
     icol = np.linspace(0, 1, num_plots)
 
-    def plotprofiles(quant, *vartuple):
+    def plotprofiles(quant, *vartuple, **kwargs):
         """Plot the chosen profiles for the chosen timesteps
 
         vartuple contains the numbers of the column to be plotted
@@ -161,13 +157,25 @@ def rprof_cmd(args):
         A kwarg should be used for different options, e.g. whether
         densities of total values are plotted
         """
+        if kwargs != {}:
+            for key, value in kwargs.iteritems():
+                if key == 'integrated':
+                    integrate = value
+                else:
+                    print "kwarg value in plotprofile not understood %s == %s" %(key,value)
+                    print "ignored"
+        else:
+            integrate = False
+
+        if integrate:
+            integ = lambda f, r: 4. * pi * f * r**2
         if quant == 'Grid':
             fig, ax = plt.subplots(2, sharex=True)
         else:
             fig = plt.figure()
         for step in range(istart, ilast, istep):
             step = step +1# starts at 0=> 15 is the 16th
-    #       print step
+    #        print step
             an = sorted(np.append(nzi[:, 0], step))
             inn = an.index(step)
 
@@ -175,6 +183,10 @@ def rprof_cmd(args):
 
             i0 = np.sum([nnz[0:inn]])+(step-nzi[inn-1, 0]-1)*nzi[inn, 2]
             i1 = i0+nzi[inn, 2]-1
+            
+            if integrate:
+                radius = np.array(data[i0:i1,0],float) + rcmb
+
             '''Plot the chosen profiles'''
             jj = 0
             if quant == 'Grid':
@@ -186,15 +198,18 @@ def rprof_cmd(args):
                 ax[1].set_xlabel('cell number', fontsize=ftsz)
                 ax[1].set_ylabel('dz', fontsize=ftsz)
             else:
-
                 for j in vartuple:
                     if jj == 0:
-                        snsplot = sns.plt(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
-                        col = snsplot[0].get_color()
+                        if integrate:
+                            donnee = map(integ, np.array(data[i0:i1, j], float), radius)
+                            pplot = plt.plot(donnee, data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
+                        else:
+                            pplot = plt.plot(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
+                        col = pplot[0].get_color()
                         if (quant == 'Concentration' or quant == 'Temperature') and plot_conctheo and step == istart+1:
                             ri = np.array(data[i0:i1, 0], np.float)+Rmin
                             rf = (Rmax**3.+Rmin**3.-ri**3.)**(1./3.)-Rmin
-                            sns.plt(data[i0:i1, j], rf, 'b--', linewidth=lwdth, label='Overturned')
+                            plt.plot(data[i0:i1, j], rf, 'b--', linewidth=lwdth, label='Overturned')
                         jj = 1
                     else:
                         if jj == 1:
@@ -203,14 +218,18 @@ def rprof_cmd(args):
                             lstyle = ':'
                         else:
                             lstyle = '-.'
-                        sns.plt(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
+                        if integrate:
+                            donnee = map(integ, np.array(data[i0:i1, j], float), radius)
+                            plt.plot(donnee, data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
+                        else:
+                            plt.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
                         jj = jj+1
-                plt.ylim([-0.1, 1.1])
+                    plt.ylim([-0.1, 1.1])
 
-                plt.xlabel(quant, fontsize=ftsz)
-                plt.ylabel('z', fontsize=ftsz)
-                plt.xticks(fontsize=ftsz)
-                plt.yticks(fontsize=ftsz)
+                    plt.xlabel(quant, fontsize=ftsz)
+                    plt.ylabel('z', fontsize=ftsz)
+                    plt.xticks(fontsize=ftsz)
+                    plt.yticks(fontsize=ftsz)
         if quant == 'Grid':
             plt.savefig("Grid.pdf", format='PDF')
         else:
@@ -222,14 +241,14 @@ def rprof_cmd(args):
                     fancybox=True, shadow=False)
 
             plt.savefig(quant.replace(' ', '_')+".pdf", format='PDF', bbox_extra_artists=(lgd, ), bbox_inches='tight')
-
+        plt.close(fig)
         return
 
     '''Now use it for the different types of profiles'''
 
     if plot_temperature:
         if plot_minmaxtemp:
-            plotprofiles('Temperature', 1, 2, 3)
+            plotprofiles('Temperature', 1, 2, 3,integrated=False)
         else:
             plotprofiles('Temperature', 1)
 
@@ -256,14 +275,12 @@ def rprof_cmd(args):
         plotprofiles('Grid')
 
     '''Plot advection profiles'''
-    if plot_advection:
-        plotprofiles('Advection', 57, 58, 59)
-
-    sys.exit()
-
-
     # Plot the profiles of vertical advection: total and contributions from up-
     # and down-welling currents
+    if plot_advection:
+        plotprofiles('Advection per unit surface', 57, 58, 59)
+        if Spherical:
+            plotprofiles('Total advection', 57, 58, 59,integrated=True)
 
     # if plot_advection:
     #     figure()
