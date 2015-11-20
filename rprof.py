@@ -282,46 +282,6 @@ def rprof_cmd(args):
         if Spherical:
             plotprofiles('Total advection', 57, 58, 59,integrated=True)
 
-    # if plot_advection:
-    #     figure()
-    #     if Spherical:
-    #         f, (ax1, ax2) = subplots(1, 2, sharey=True)
-    #         ax1.plot(data[:,57],data[:,0], '-ko', label='Total')
-    #         ax1.plot(data[:,58],data[:,0], '-bo', label='Down')
-    #         ax1.plot(data[:,59],data[:,0], '-ro', label='Up')
-    #         if data.shape[1]>63:
-    #             ax1.plot(data[:,60],data[:,63], 'kx')
-    #             ax1.plot(data[:,61],data[:,63], 'bx')
-    #             ax1.plot(data[:,62],data[:,63], 'rx')
-    #         ylim([-0.1,1.1])
-    #         ax1.set_xlabel("Advection per unit surface",fontsize=12)
-    #         ax1.set_ylabel("z",fontsize=12)
-    #         ax1.legend(loc='upper right', shadow=False, fontsize='x-large')
-    # #    ax1.legend.set_facecolor('white')
-
-    #         ax2.plot(data[:,57]*(data[:,0]+rcmb)**2,data[:,0], '-ko', label='Total')
-    #         ax2.plot(data[:,58]*(data[:,0]+rcmb)**2,data[:,0], '-bo', label='Down')
-    #         ax2.plot(data[:,59]*(data[:,0]+rcmb)**2,data[:,0], '-ro', label='Up')
-    #         if data.shape[1]>63:
-    #             ax2.plot(data[:,60]*(data[:,63]+rcmb)**2,data[:,63], 'kx',label='Total, vz points')
-    #             ax2.plot(data[:,61]*(data[:,63]+rcmb)**2,data[:,63], 'bx')
-    #             ax2.plot(data[:,62]*(data[:,63]+rcmb)**2,data[:,63], 'rx')
-    #         ax2.set_xlabel("Total advection",fontsize=12)
-    #     else:
-    #         plot(data[:,57],data[:,0], 'ko', label='Total')
-    #         plot(data[:,58],data[:,0], '-bo', label='Down')
-    #         plot(data[:,59],data[:,0], '-ro', label='Up')
-    #         if data.shape[1]>63:
-    #             plot(data[:,60],data[:,63], '-kx',label='Total, vz points')
-    #             plot(data[:,61],data[:,63], 'bx')
-    #             plot(data[:,62],data[:,63], 'rx')
-    #         ylim([-0.1,1.1])
-    #         xlabel("Advection per unit surface",fontsize=12)
-    #         ylabel("z",fontsize=12)
-    #         legend = plt.legend(loc='upper right', shadow=False, fontsize='x-large')
-    #         legend.get_frame().set_facecolor('white')
-
-    #     savefig("Adv_prof.pdf",format='PDF')
 
     # # Plot the energy balance as a function of depth
     # if plot_energy:
