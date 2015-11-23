@@ -278,9 +278,9 @@ def rprof_cmd(args):
     # Plot the profiles of vertical advection: total and contributions from up-
     # and down-welling currents
     if plot_advection:
-        plotprofiles('Advection per unit surface', 57, 58, 59)
+        plotprofiles(['Advection per unit surface'], 57, 58, 59)
         if Spherical:
-            plotprofiles('Total advection', 57, 58, 59,integrated=True)
+            plotprofiles(['Total scaled advection'], 57, 58, 59,integrated=True)
 
     # # Plot the energy balance as a function of depth
     # if plot_energy:
