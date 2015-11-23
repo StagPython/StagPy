@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import f90nml
 import os
+import sys
 
 def rprof_cmd(args):
     '''
@@ -64,7 +65,15 @@ def rprof_cmd(args):
         nz = nml['geometry']['nztot']
         stem = nml['ioin']['output_file_stem']
         ste = stem.split('/')[-1]
-        proffile = ste+'_rprof.dat'
+#        proffile = ste+'_rprof.dat'
+        if os.path.exists('../'+ste+'_rprof.dat'):
+            proffile = '../'+ste+'_rprof.dat'
+        elif os.path.exists(ste+'_rprof.dat'):
+            proffile = ste+'_rprof.dat'
+        else:
+            print 'No profile file found.'
+            sys.exit()
+
         Rmin = rcmb
         Rmax = rcmb+1
         if 'fe_eut' in nml['tracersin']:
