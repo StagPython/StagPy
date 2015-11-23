@@ -61,8 +61,7 @@ def rprof_cmd(args):
         if Spherical:
             rcmb = nml['geometry']['r_cmb']
         else:
-            rcmb=0.
-        nz = nml['geometry']['nztot']
+            rcmb = 0.
         stem = nml['ioin']['output_file_stem']
         ste = stem.split('/')[-1]
 #        proffile = ste+'_rprof.dat'
@@ -87,14 +86,12 @@ def rprof_cmd(args):
     xired = xi0l/xieut
     Rsup = (Rmax**3-xired**(1/(1-DFe))*(Rmax**3-Rmin**3))**(1./3.)
 
-    def initprof(rpos):
-        """Theoretical profile at the end of magma ocean crystallization"""
-        if rpos < Rsup:
-            return xi0s*((Rmax**3-Rmin**3)/(Rmax**3-rpos**3))**(1-DFe)
-        else:
-            return xieut
-
-    pi = np.pi
+    # def initprof(rpos):
+    #     """Theoretical profile at the end of magma ocean crystallization"""
+    #     if rpos < Rsup:
+    #         return xi0s*((Rmax**3-Rmin**3)/(Rmax**3-rpos**3))**(1-DFe)
+    #     else:
+    #         return xieut
 
     timesteps = []
     data0 = []
@@ -135,14 +132,12 @@ def rprof_cmd(args):
 
     nzi = np.array(nzs)
 
-    num_plots = np.floor((nsteps-istart)/istep)+1
-
     def plotprofiles(quant, *vartuple, **kwargs):
         """Plot the chosen profiles for the chosen timesteps
 
         quant holds the strings for the x axis annotation and
         the legends for the additional profiles
-        
+
         vartuple contains the numbers of the column to be plotted
 
         A kwarg should be used for different options, e.g. whether
@@ -163,7 +158,8 @@ def rprof_cmd(args):
         if quant[0] == 'Grid':
             fig, ax = plt.subplots(2, sharex=True)
         else:
-            fig = plt.figure()
+            fig, ax = plt.subplots()
+#            fig = plt.figure()
         for step in range(istart, ilast, istep):
             step = step +1# starts at 0=> 15 is the 16th
             an = sorted(np.append(nzi[:, 0], step))
@@ -173,9 +169,9 @@ def rprof_cmd(args):
 
             i0 = np.sum([nnz[0:inn]])+(step-nzi[inn-1, 0]-1)*nzi[inn, 2]
             i1 = i0+nzi[inn, 2]-1
-            
+
             if integrate:
-                radius = np.array(data[i0:i1,0],float) + rcmb
+                radius = np.array(data[i0:i1, 0], float) + rcmb
 
             """Plot the chosen profiles"""
             jjj = 0
@@ -188,23 +184,26 @@ def rprof_cmd(args):
                 ax[1].set_xlabel('cell number', fontsize=ftsz)
                 ax[1].set_ylabel('dz', fontsize=ftsz)
             else:
-                for j in vartuple:
-                    if jjj == 0:
+                for i, j in enumerate(vartuple):
+                    if i == 0:
                         if integrate:
                             donnee = map(integ, np.array(data[i0:i1, j], float), radius)
                             pplot = plt.plot(donnee, data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
                         else:
                             pplot = plt.plot(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
                         col = pplot[0].get_color()
+                        lstyle = pplot[0].get_linestyle()
+                        axes = plt.gca()
+                        rangex = axes.get_xlim()
+                        rangey = axes.get_ylim()
                         if (quant[0] == 'Concentration' or quant[0] == 'Temperature') and plot_conctheo and step == istart+1:
                             rin = np.array(data[i0:i1, 0], np.float)+Rmin
                             rfin = (Rmax**3.+Rmin**3.-rin**3.)**(1./3.)-Rmin
                             plt.plot(data[i0:i1, j], rfin, 'b--', linewidth=lwdth, label='Overturned')
-                        jjj = 1
                     else:
-                        if jjj == 1:
+                        if i == 1:
                             lstyle = '--'
-                        elif jjj == 2:
+                        elif i == 2:
                             lstyle = '-.'
                         else:
                             lstyle = ':'
@@ -213,8 +212,14 @@ def rprof_cmd(args):
                             plt.plot(donnee, data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
                         else:
                             plt.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
-                        jjj = jjj+1
-                    plt.ylim([-0.1, 1.1])
+                    if len(vartuple) > 1:
+                        ylgd = rangey[1]-0.05*i*(rangey[1]-rangey[0])
+                        xlgd1 = rangex[1]-0.12*(rangex[1]-rangex[0])
+                        xlgd2 = rangex[1]-0.05*(rangex[1]-rangex[0])
+                        plt.plot([xlgd1, xlgd2], [ylgd, ylgd], c='black', linestyle=lstyle, linewidth=lwdth)
+                        plt.text(xlgd1-0.02*(rangex[1]-rangex[0]), ylgd, quant[i+1], ha='right')
+
+                    plt.ylim([-0.05, 1.05])
 
                     plt.xlabel(quant[0], fontsize=ftsz)
                     plt.ylabel('z', fontsize=ftsz)
@@ -238,25 +243,25 @@ def rprof_cmd(args):
 
     if plot_temperature:
         if plot_minmaxtemp:
-            plotprofiles(['Temperature'], 1, 2, 3, integrated=False)
+            plotprofiles(['Temperature', 'Mean', 'Minimum', 'Maximum'], 1, 2, 3, integrated=False)
         else:
             plotprofiles(['Temperature'], 1)
 
     if plot_velocity:
         if plot_minmaxvelo:
-            plotprofiles(['Vertical Velocity'], 7, 8, 9)
+            plotprofiles(['Vertical Velocity', 'Mean', 'Minimum', 'Maximum'], 7, 8, 9)
         else:
             plotprofiles(['Vertical Velocity'], 7)
 
     if plot_viscosity:
         if plot_minmaxvisco:
-            plotprofiles(['Viscosity'], 13, 14, 15)
+            plotprofiles(['Viscosity', 'Mean', 'Minimum', 'Maximum'], 13, 14, 15)
         else:
             plotprofiles(['Viscosity'], 13)
 
     if plot_concentration:
         if plot_minmaxcon:
-            plotprofiles(['Concentration'], 36, 37, 38)
+            plotprofiles(['Concentration', 'Mean', 'Minimum', 'Maximum'], 36, 37, 38)
         else:
             plotprofiles(['Concentration'], 36)
 
@@ -264,13 +269,12 @@ def rprof_cmd(args):
     if plot_grid:
         plotprofiles(['Grid'])
 
-    '''Plot advection profiles'''
     # Plot the profiles of vertical advection: total and contributions from up-
     # and down-welling currents
     if plot_advection:
-        plotprofiles(['Advection per unit surface'], 57, 58, 59)
+        plotprofiles(['Advection per unit surface', 'Total', 'down-welling', 'Up-welling'], 57, 58, 59)
         if Spherical:
-            plotprofiles(['Total scaled advection'], 57, 58, 59, integrated=True)
+            plotprofiles(['Total scaled advection', 'Total', 'down-welling', 'Up-welling'], 57, 58, 59, integrated=True)
 
     # # Plot the energy balance as a function of depth
     # if plot_energy:
@@ -293,7 +297,7 @@ def rprof_cmd(args):
     #     if Spherical:
     #         plot(qadv*(z+rcmb)**2,z,'-ko',label='Advection')
     #         plot(qcond*(z+rcmb)**2,z,'-bo',label='Conduction')
-    #         plot(qtot*(z+rcmb)**2,z,'-ro',label='Total')       
+    #         plot(qtot*(z+rcmb)**2,z,'-ro',label='Total')
     #         xlabel("Integrated heat flow",fontsize=12)
     #     else:
     #         plot(qadv,z,'-ko',label='Advection')
