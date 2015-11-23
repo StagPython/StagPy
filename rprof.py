@@ -1,5 +1,5 @@
 """
-  plots radial profiles coming out of stagyy
+ow  plots radial profiles coming out of stagyy
   Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
   Date: 2015/09/11
 """
@@ -7,7 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import f90nml
 import os
-import sys
 
 def rprof_cmd(args):
     '''
@@ -17,13 +16,6 @@ def rprof_cmd(args):
 
     ############### INPUT PARAMETERS ################
     # should rather be default parameters to be replaced by command line options
-
-    cmap = plt.cm.gist_ncar
-    #cmap = plt.cm.Accent
-    #cmap = plt.cm.gist_earth
-    #cmap = plt.colors.Colormap
-    #plt.style.use('ggplot')
-    #cmap=green_purple = brewer2mpl.get_map('PRGn', 'diverging', 11).mpl_colormap
 
     plot_grid = True
     plot_temperature = True
@@ -58,7 +50,6 @@ def rprof_cmd(args):
     else:
         print 'No par file found. Input pars by hand'
         read_par_file = False
-        nz = int(raw_input('nz = '))
         rcmb = 1
         geom = str(raw_input('spherical (s) or cartesian (c)? '))
         Spherical = geom == 's'
@@ -88,21 +79,13 @@ def rprof_cmd(args):
     Rsup = (Rmax**3-xired**(1/(1-DFe))*(Rmax**3-Rmin**3))**(1./3.)
 
     def initprof(rpos):
-        '''Theoretical profile at the end of magma ocean crystallization'''
+        """Theoretical profile at the end of magma ocean crystallization"""
         if rpos < Rsup:
             return xi0s*((Rmax**3-Rmin**3)/(Rmax**3-rpos**3))**(1-DFe)
         else:
             return xieut
 
     pi = np.pi
-    if Spherical:
-        rbot = rcmb
-        rtop = rbot+1
-        coefb = rbot**2*4*pi
-        coefs = rtop**2*4*pi
-    else:
-        coefb = 1
-        coefs = 1
 
     timesteps = []
     data0 = []
@@ -127,24 +110,23 @@ def rprof_cmd(args):
         istart = nsteps-1
 
     nzp = []
-    for it in range(0, nsteps-1):
-        nzp = np.append(nzp, tsteps[it+1, 0]-tsteps[it, 0]-1)
+    for iti in range(0, nsteps-1):
+        nzp = np.append(nzp, tsteps[iti+1, 0]-tsteps[iti, 0]-1)
 
     nzp = np.append(nzp, lnum-tsteps[nsteps-1, 0])
 
     nzs = [[0, 0, 0]]
     nzc = 0
-    for it in range(1, nsteps):
-        if nzp[it] != nzp[it-1]:
-            nzs.append([it, it-nzc, int(nzp[it-1])])
-            nzc = it
+    for iti in range(1, nsteps):
+        if nzp[iti] != nzp[iti-1]:
+            nzs.append([iti, iti-nzc, int(nzp[iti-1])])
+            nzc = iti
     if nzp[nsteps-1] != nzs[-1][1]:
         nzs.append([nsteps, nsteps-nzc, int(nzp[nsteps-1])])
 
     nzi = np.array(nzs)
 
     num_plots = np.floor((nsteps-istart)/istep)+1
-    icol = np.linspace(0, 1, num_plots)
 
     def plotprofiles(quant, *vartuple, **kwargs):
         """Plot the chosen profiles for the chosen timesteps
@@ -162,7 +144,7 @@ def rprof_cmd(args):
                 if key == 'integrated':
                     integrate = value
                 else:
-                    print "kwarg value in plotprofile not understood %s == %s" %(key,value)
+                    print "kwarg value in plotprofile not understood %s == %s" %(key, value)
                     print "ignored"
         else:
             integrate = False
@@ -175,7 +157,6 @@ def rprof_cmd(args):
             fig = plt.figure()
         for step in range(istart, ilast, istep):
             step = step +1# starts at 0=> 15 is the 16th
-    #        print step
             an = sorted(np.append(nzi[:, 0], step))
             inn = an.index(step)
 
@@ -187,8 +168,8 @@ def rprof_cmd(args):
             if integrate:
                 radius = np.array(data[i0:i1,0],float) + rcmb
 
-            '''Plot the chosen profiles'''
-            jj = 0
+            """Plot the chosen profiles"""
+            jjj = 0
             if quant[0] == 'Grid':
                 ax[0].plot(data[i0:i1, 0], '-ko', label='z')
                 ax[0].set_ylabel('z', fontsize=ftsz)
@@ -199,7 +180,7 @@ def rprof_cmd(args):
                 ax[1].set_ylabel('dz', fontsize=ftsz)
             else:
                 for j in vartuple:
-                    if jj == 0:
+                    if jjj == 0:
                         if integrate:
                             donnee = map(integ, np.array(data[i0:i1, j], float), radius)
                             pplot = plt.plot(donnee, data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
@@ -207,14 +188,14 @@ def rprof_cmd(args):
                             pplot = plt.plot(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth, label=r'$t=%.2e$' % (tsteps[step-1, 2]))
                         col = pplot[0].get_color()
                         if (quant[0] == 'Concentration' or quant[0] == 'Temperature') and plot_conctheo and step == istart+1:
-                            ri = np.array(data[i0:i1, 0], np.float)+Rmin
-                            rf = (Rmax**3.+Rmin**3.-ri**3.)**(1./3.)-Rmin
-                            plt.plot(data[i0:i1, j], rf, 'b--', linewidth=lwdth, label='Overturned')
-                        jj = 1
+                            rin = np.array(data[i0:i1, 0], np.float)+Rmin
+                            rfin = (Rmax**3.+Rmin**3.-rin**3.)**(1./3.)-Rmin
+                            plt.plot(data[i0:i1, j], rfin, 'b--', linewidth=lwdth, label='Overturned')
+                        jjj = 1
                     else:
-                        if jj == 1:
+                        if jjj == 1:
                             lstyle = '--'
-                        elif jj == 2:
+                        elif jjj == 2:
                             lstyle = '-.'
                         else:
                             lstyle = ':'
@@ -223,7 +204,7 @@ def rprof_cmd(args):
                             plt.plot(donnee, data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
                         else:
                             plt.plot(data[i0:i1, j], data[i0:i1, 0], c=col, linestyle=lstyle, linewidth=lwdth)
-                        jj = jj+1
+                        jjj = jjj+1
                     plt.ylim([-0.1, 1.1])
 
                     plt.xlabel(quant[0], fontsize=ftsz)
@@ -244,11 +225,11 @@ def rprof_cmd(args):
         plt.close(fig)
         return
 
-    '''Now use it for the different types of profiles'''
+    # Now use it for the different types of profiles
 
     if plot_temperature:
         if plot_minmaxtemp:
-            plotprofiles(['Temperature'], 1, 2, 3,integrated=False)
+            plotprofiles(['Temperature'], 1, 2, 3, integrated=False)
         else:
             plotprofiles(['Temperature'], 1)
 
@@ -270,7 +251,7 @@ def rprof_cmd(args):
         else:
             plotprofiles(['Concentration'], 36)
 
-    '''Plot grid spacing'''
+    # Plot grid spacing
     if plot_grid:
         plotprofiles(['Grid'])
 
@@ -280,7 +261,7 @@ def rprof_cmd(args):
     if plot_advection:
         plotprofiles(['Advection per unit surface'], 57, 58, 59)
         if Spherical:
-            plotprofiles(['Total scaled advection'], 57, 58, 59,integrated=True)
+            plotprofiles(['Total scaled advection'], 57, 58, 59, integrated=True)
 
     # # Plot the energy balance as a function of depth
     # if plot_energy:
