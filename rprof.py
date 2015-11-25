@@ -32,6 +32,7 @@ def rprof_cmd(args):
     plot_minmaxcon = True
     plot_conctheo = False
 
+    linestyles = ('-', '--', '-.', ':')
     lwdth = 2
     ftsz = 16
     # parameters for the theoretical composition profiles
@@ -42,7 +43,7 @@ def rprof_cmd(args):
 #    xi0s = DFe*xi0l
 #    xieut = 0.8
 
-    #Read par file in the parent or present directory. Should be optional or tested
+    #Read par file in the parent or present directory.
     # should be a separated func in misc module
     read_par_file = True
     if os.path.exists('../par'):
@@ -71,8 +72,10 @@ def rprof_cmd(args):
             proffile = '../'+ste+'_rprof.dat'
         elif os.path.exists(ste+'_rprof.dat'):
             proffile = ste+'_rprof.dat'
+        elif os.path.exists(stem+'_rprof.dat'):
+            proffile = stem+'_rprof.dat'
         else:
-            print 'No profile file found.'
+            print 'No profile file found. stem = ', ste
             sys.exit()
 
         rmin = rcmb
@@ -134,6 +137,26 @@ def rprof_cmd(args):
 
     nzi = np.array(nzs)
 
+    def calc_energy(ir0, ir1):
+        """
+        Computes the energy balance as function of radial distance
+        """
+        zgrid = np.array(data[ir0:ir1, 63], float)
+        zgrid = np.append(zgrid, 1.)
+        dzg = np.array(data[ir0+1:ir1, 0], float) - np.array(data[ir0:ir1-1, 0], float)
+        qadv = np.array(data[ir0:ir1-1, 60], float)
+        qadv = np.insert(qadv, 0, 0.)
+        qadv = np.append(qadv, 0.)
+        qcond = (np.array(data[ir0:ir1-1, 1], float) -
+                 np.array(data[ir0+1:ir1, 1], float))/dzg
+        qcond0 = (1.-float(data[ir0, 1]))/float(data[ir0, 0])
+        qtop = float(data[ir1, 1])/(1.-float(data[ir1, 0]))
+        qcond = np.insert(qcond, 0, qcond0)
+        qcond = np.append(qcond, qtop)
+        qtot = qadv+qcond
+        return qtot, qadv, qcond, zgrid
+
+
     def plotprofiles(quant, *vartuple, **kwargs):
         """Plot the chosen profiles for the chosen timesteps
 
@@ -157,80 +180,81 @@ def rprof_cmd(args):
 
         if integrate:
             integ = lambda f, r: f * (r/rmax)**2
+
         if quant[0] == 'Grid':
-#            fig, ax = plt.subplots(2, sharex=True)
             fig, axe = plt.subplots(2, sharex=True)
         else:
             fig, axe = plt.subplots()
-#            fig, ax = plt.subplots()
+
         for step in range(istart, ilast, istep):
             step = step +1# starts at 0=> 15 is the 16th
             # find the indices
             ann = sorted(np.append(nzi[:, 0], step))
             inn = ann.index(step)
-
             nnz = np.multiply(nzi[:, 1], nzi[:, 2])
 
-            i0 = np.sum([nnz[0:inn]])+(step-nzi[inn-1, 0]-1)*nzi[inn, 2]
-            i1 = i0+nzi[inn, 2]-1
+            ir0 = np.sum([nnz[0:inn]])+(step-nzi[inn-1, 0]-1)*nzi[inn, 2]
+            ir1 = ir0+nzi[inn, 2]-1
 
-            if integrate:
-                radius = np.array(data[i0:i1, 0], float) + rcmb
+            if quant[0] == 'Energy':
+                energy = calc_energy(ir0, ir1)
 
             #Plot the profiles
             if quant[0] == 'Grid':
-                axe[0].plot(data[i0:i1, 0], '-ko', label='z')
+                axe[0].plot(data[ir0:ir1, 0], '-ko', label='z')
                 axe[0].set_ylabel('z', fontsize=ftsz)
 
-                dz = np.array(data[i0+1:i1, 0], np.float) - np.array(data[i0:i1-1, 0], np.float)
-                axe[1].plot(dz, '-ko', label='dz')
+                dzgrid = (np.array(data[ir0+1:ir1, 0], np.float) -
+                          np.array(data[ir0:ir1-1, 0], np.float))
+                axe[1].plot(dzgrid, '-ko', label='dz')
                 axe[1].set_xlabel('cell number', fontsize=ftsz)
                 axe[1].set_ylabel('dz', fontsize=ftsz)
             else:
-                for i, j in enumerate(vartuple):
+                if quant[0] == 'Energy':
+                    profiles = np.array(np.transpose(energy)[:, [0, 1, 2]], float)
+                    radius = np.array(np.transpose(energy)[:, 3], float) + rcmb
+                else:
+                    profiles = np.array(data[ir0:ir1, vartuple], float)
+                    radius = np.array(data[ir0:ir1, 0], float) + rcmb
+                for i in range(profiles.shape[1]):
+                    if integrate:
+                        donnee = map(integ, profiles[:, i], radius)
+                    else:
+                        donnee = profiles[:, i]
                     if i == 0:
-                        if integrate:
-                            donnee = map(integ, np.array(data[i0:i1, j], float), radius)
-                            pplot = plt.plot(donnee, data[i0:i1, 0], linewidth=lwdth,
-                                             label=r'$t=%.2e$' % (tsteps[step-1, 2]))
-                        else:
-                            pplot = plt.plot(data[i0:i1, j], data[i0:i1, 0], linewidth=lwdth,
-                                             label=r'$t=%.2e$' % (tsteps[step-1, 2]))
+                        pplot = plt.plot(donnee, radius, linewidth=lwdth,
+                                         label=r'$t=%.2e$' % (tsteps[step-1, 2]))
+
+                        # get color and size characteristics
                         col = pplot[0].get_color()
-                        lstyle = pplot[0].get_linestyle()
-                        axes = plt.gca()
-                        rangex = axes.get_xlim()
-                        rangey = axes.get_ylim()
+
+                        # plot the overturned version of the initial profiles
                         if ((quant[0] == 'Concentration' or
                              quant[0] == 'Temperature') and
                                 plot_conctheo and step == istart+1):
-                            rin = np.array(data[i0:i1, 0], np.float)+rmin
-                            rfin = (rmax**3.+rmin**3.-rin**3.)**(1./3.)-rmin
-                            plt.plot(data[i0:i1, j], rfin, 'b--', linewidth=lwdth,
-                                     label='Overturned')
-                    else:
-                        if i == 1:
-                            lstyle = '--'
-                        elif i == 2:
-                            lstyle = '-.'
-                        else:
-                            lstyle = ':'
-                        if integrate:
-                            donnee = map(integ, np.array(data[i0:i1, j], float), radius)
-                            plt.plot(donnee, data[i0:i1, 0], c=col,
-                                     linestyle=lstyle, linewidth=lwdth)
-                        else:
-                            plt.plot(data[i0:i1, j], data[i0:i1, 0], c=col,
-                                     linestyle=lstyle, linewidth=lwdth)
-                    if len(vartuple) > 1:
-                        ylgd = rangey[1]-0.05*i*(rangey[1]-rangey[0])
-                        xlgd1 = rangex[1]-0.12*(rangex[1]-rangex[0])
-                        xlgd2 = rangex[1]-0.05*(rangex[1]-rangex[0])
-                        plt.plot([xlgd1, xlgd2], [ylgd, ylgd], c='black',
-                                 linestyle=lstyle, linewidth=lwdth)
-                        plt.text(xlgd1-0.02*(rangex[1]-rangex[0]), ylgd, quant[i+1], ha='right')
+                            rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)-rmin
+                            plt.plot(donnee, rfin, 'b--',
+                                     linewidth=lwdth, label='Overturned')
 
-                    plt.ylim([-0.05, 1.05])
+                    else:
+                        # additional plots (e. g. min, max)
+                        plt.plot(donnee, radius, c=col, dash_capstyle='round',
+                                 linestyle=linestyles[i], linewidth=lwdth)
+                    # change the vertical limits
+                    plt.ylim([rmin-0.05, rmax+0.05])
+                if len(vartuple) > 1 and step == ilast:
+                        # legends for the additionnal profiles
+                    axes = plt.gca()
+                    rangex = axes.get_xlim()
+                    rangey = axes.get_ylim()
+                    xlgd1 = rangex[1]-0.12*(rangex[1]-rangex[0])
+                    xlgd2 = rangex[1]-0.05*(rangex[1]-rangex[0])
+                    for i in range(profiles.shape[1]):
+                        ylgd = rangey[1]-0.05*(i+1)*(rangey[1]-rangey[0])
+                        plt.plot([xlgd1, xlgd2], [ylgd, ylgd], c='black',
+                                 linestyle=linestyles[i], linewidth=lwdth, dash_capstyle='round',)
+                        plt.text(xlgd1-0.02*(rangex[1]-rangex[0]), ylgd,
+                                 quant[i+1], ha='right')
 
                     plt.xlabel(quant[0], fontsize=ftsz)
                     plt.ylabel('z', fontsize=ftsz)
@@ -239,11 +263,12 @@ def rprof_cmd(args):
         if quant[0] == 'Grid':
             plt.savefig("Grid.pdf", format='PDF')
         else:
+            # legend
             lgd = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
                              borderaxespad=0., mode="expand",
                              ncol=3, fontsize=ftsz,
                              columnspacing=1.0, labelspacing=0.0,
-                             handletextpad=0.0, handlelength=1.5,
+                             handletextpad=0.1, handlelength=1.5,
                              fancybox=True, shadow=False)
 
             plt.savefig(quant[0].replace(' ', '_')+".pdf", format='PDF',
@@ -292,51 +317,6 @@ def rprof_cmd(args):
         if spherical:
             plotprofiles(['Total scaled advection', 'Total', 'down-welling',
                           'Up-welling'], 57, 58, 59, integrated=True)
-
-    # # Plot the energy balance as a function of depth
-    # if plot_energy:
-    #     z=data[:,63]
-    #     dz = data[1:nz,0]-data[0:nz-1,0]
-    #     qcond = (data[0:nz-1,1]-data[1:nz,1])/dz
-    #     qadv=data[:,60]
-    #     qcond0=(1-data[0,1])/data[0,0]
-    #     qtop=data[nz-1,1]/(1-data[nz-1,0])
-    #     qcond=insert(qcond,0,qcond0)
-    #     qcond=append(qcond,qtop)
-    #     z=append(z,1)
-    #     qadv=append(qadv,0)
-    #     qtot=qadv+qcond
-    #     dz=z[1:nz+1]-z[0:nz]
-    #     dqadv=(qadv[1:nz+1]-qadv[0:nz])/dz
-    #     dqcond=(qcond[1:nz+1]-qcond[0:nz])/dz
-
-    #     figure()
-    #     if spherical:
-    #         plot(qadv*(z+rcmb)**2,z,'-ko',label='Advection')
-    #         plot(qcond*(z+rcmb)**2,z,'-bo',label='Conduction')
-    #         plot(qtot*(z+rcmb)**2,z,'-ro',label='Total')
-    #         xlabel("Integrated heat flow",fontsize=12)
-    #     else:
-    #         plot(qadv,z,'-ko',label='Advection')
-    #         plot(qcond,z,'-bo',label='Conduction')
-    #         plot(qtot,z,'-ro',label='Total')
-    #         xlabel("Heat flux",fontsize=12)
-    #     ylim([-0.1,1.1])
-    #     ylabel("z",fontsize=12)
-    #     legend = plt.legend(loc='best', shadow=False, fontsize='x-large')
-    #     legend.get_frame().set_facecolor('white')
-    #     savefig("Energy_prof.pdf",format='PDF')
-    #     dzopt=(1-data[0,1])/data[0,57]
-    #     print 'dz for energy balance in steady state : ',dzopt
-    #     print 'actual dz = ',data[0,0]
-    #  #   print qcond.shape,qadv.shape,z.shape
-    # print dqcond.shape, data[:,0].shape
-    # figure()
-    # plot(data[:,31],data[:,0],'-ko',label='advection')
-    # plot(-dqadv,data[:,0],'kx')
-    # plot(data[:,32],data[:,0],'-bo',label='conduction')
-    # plot(-dqcond,data[:,0],'bx')
-    # plot(data[:,31]+data[:,32]+data[:,33],data[:,0],'-rx',label='total')
-
-    # legend = plt.legend(loc='best', shadow=False, fontsize='x-large')
-    # savefig("Adv_prof2.pdf",format='PDF')
+    if plot_energy:
+        plotprofiles(['Energy', 'Total', 'Advection',
+                      'conduction'], 57, 58, 59, integrated=True)
