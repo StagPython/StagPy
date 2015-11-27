@@ -24,6 +24,6 @@ DEFAULT_CONFIG = OrderedDict((
     ('plot', 'tps'),
     ('dsa', 0.05),
     ('shrinkcb', 0.5),
-    ('linewidth',2),
+    ('linewidth', 2),
     ('fontsize', 16)
     ))

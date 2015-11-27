@@ -1,7 +1,7 @@
-"""
-  plots time series of temperature and heat fluxes outputs from stagyy
-  Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
-  Date: 2015/11/27
+"""Plots time series of temperature and heat fluxes outputs from stagyy.
+
+Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
+Date: 2015/11/27
 """
 
 import numpy as np
@@ -103,7 +103,8 @@ def time_cmd(args):
     plt.subplot(2, 1, 1)
     plt.plot(time, data[:, 2]*coefs, 'b', label='Surface', linewidth=lwdth)
     plt.plot(time, data[:, 3]*coefb, 'r', label='Bottom', linewidth=lwdth)
-    plt.plot(time[1:ntot-2:], ebalance, 'g', label='Energy balance', linewidth=lwdth)
+    plt.plot(time[1:ntot-2:], ebalance, 'g', label='Energy balance',
+             linewidth=lwdth)
     plt.ylabel('Heat flow', fontsize=ftsz)
     plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
     plt.legend.get_frame().set_facecolor('white')
@@ -150,15 +151,18 @@ def time_cmd(args):
         print 'Statistics computed from t ='+str(time[ch1[0][0]])
         for num in range(2, len(colnames)):
             moy.append(py.trapz(data[ch1[0][0]:ntot-1, num],
-                                x=time[ch1[0][0]:ntot-1])/(time[ntot-1]-time[ch1[0][0]]))
+                                x=time[ch1[0][0]:ntot-1])/
+                       (time[ntot-1]-time[ch1[0][0]]))
             rms.append(py.sqrt(py.trapz((data[ch1[0][0]:ntot-1, num] -
-                                         moy[num-2])**2, x=time[ch1[0][0]:ntot-1])/
+                                         moy[num-2])**2,
+                                        x=time[ch1[0][0]:ntot-1])/
                                (time[ntot-1]-time[ch1[0][0]])))
             print colnames[num]+' = '+str(moy[num-2])+' pm '+str(rms[num-2])
         ebal.append(py.trapz(ebalance[ch1[0][0]-1:ntot-3],
                              x=time[ch1[0][0]:ntot-2])/(time[ntot-2]-time[ch1[0][0]]))
         rms_ebal.append(py.sqrt(py.trapz((ebalance[ch1[0][0]-1:ntot-3]-ebal)**2,
-                                         x=time[ch1[0][0]:ntot-2])/(time[ntot-2]-time[ch1[0][0]])))
+                                         x=time[ch1[0][0]:ntot-2])/
+                                (time[ntot-2]-time[ch1[0][0]])))
         print 'Energy balance '+str(ebal)+' pm '+str(rms_ebal)
         results = moy+ebal+rms+rms_ebal
         fich = open('Stats.dat', 'w')

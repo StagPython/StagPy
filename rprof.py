@@ -1,7 +1,7 @@
-"""
-  plots radial profiles coming out of stagyy
-  Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
-  Date: 2015/09/11
+"""Plots radial profiles coming out of stagyy.
+
+Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
+Date: 2015/09/11
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,6 +14,9 @@ def rprof_cmd(args):
     '''
     Function to plot radial profiles
     '''
+    if args.xkcd:
+        plt.xkcd()
+
     istart, ilast, istep = args.timestep
 
     ############### INPUT PARAMETERS ################
@@ -108,7 +111,8 @@ def rprof_cmd(args):
             lnum = lnum+1
             lll = ' '.join(line.split())
             if line[0] == '*':
-                timesteps.append([lnum, int(lll.split(' ')[1]), float(lll.split(' ')[5])])
+                timesteps.append([lnum, int(lll.split(' ')[1]),
+                                  float(lll.split(' ')[5])])
             else:
                 llf = np.array(lll.split(' '))
                 data0.append(llf)
@@ -144,7 +148,8 @@ def rprof_cmd(args):
         """
         zgrid = np.array(data[ir0:ir1, 63], float)
         zgrid = np.append(zgrid, 1.)
-        dzg = np.array(data[ir0+1:ir1, 0], float) - np.array(data[ir0:ir1-1, 0], float)
+        dzg = np.array(data[ir0+1:ir1, 0], float) - np.array(data[ir0:ir1-1, 0],
+                                                             float)
         qadv = np.array(data[ir0:ir1-1, 60], float)
         qadv = np.insert(qadv, 0, 0.)
         qadv = np.append(qadv, 0.)
@@ -174,7 +179,7 @@ def rprof_cmd(args):
                 if key == 'integrated':
                     integrate = value
                 else:
-                    print "kwarg value in plotprofile not understood %s == %s" %(key, value)
+                    print "kwarg value not understood %s == %s" %(key, value)
                     print "ignored"
         else:
             integrate = False
@@ -212,7 +217,8 @@ def rprof_cmd(args):
                 axe[1].set_ylabel('dz', fontsize=ftsz)
             else:
                 if quant[0] == 'Energy':
-                    profiles = np.array(np.transpose(energy)[:, [0, 1, 2]], float)
+                    profiles = np.array(np.transpose(energy)[:, [0, 1, 2]],
+                                        float)
                     radius = np.array(np.transpose(energy)[:, 3], float) + rcmb
                 else:
                     profiles = np.array(data[ir0:ir1, vartuple], float)
@@ -253,7 +259,8 @@ def rprof_cmd(args):
                     for i in range(profiles.shape[1]):
                         ylgd = rangey[1]-0.05*(i+1)*(rangey[1]-rangey[0])
                         plt.plot([xlgd1, xlgd2], [ylgd, ylgd], c='black',
-                                 linestyle=linestyles[i], linewidth=lwdth, dash_capstyle='round',)
+                                 linestyle=linestyles[i], linewidth=lwdth,
+                                 dash_capstyle='round',)
                         plt.text(xlgd1-0.02*(rangex[1]-rangex[0]), ylgd,
                                  quant[i+1], ha='right')
 
@@ -295,7 +302,8 @@ def rprof_cmd(args):
 
     if plot_viscosity:
         if plot_minmaxvisco:
-            plotprofiles(['Viscosity', 'Mean', 'Minimum', 'Maximum'], 13, 14, 15)
+            plotprofiles(['Viscosity', 'Mean', 'Minimum', 'Maximum'],
+                         13, 14, 15)
         else:
             plotprofiles(['Viscosity'], 13)
 
