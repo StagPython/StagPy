@@ -3,11 +3,9 @@
   Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
   Date: 2015/11/27
 """
-#!/usr/local/bin/python
 
 import numpy as np
 import pylab as py
-#from math import pi
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
@@ -20,28 +18,17 @@ def find_nearest(array, value):
     idx = (np.abs(array-value)).argmin()
     return array[idx]
 
-# Simple mouse click function to store coordinates
-def onclick(event):
-    """get position and button from mouse click"""
-    global ixc, iyc
-    ixc, iyc = event.xdata, event.ydata
-    button = event.button
-    # assign global variable to access outside of function
-    global coords
-    if button == 3:
-        coords.append((ixc, iyc))
-    # Disconnect after 1 clicks
-    if len(coords) == 1:
-        fig.canvas.mpl_disconnect(cid)
-        plt.close(1)
-    return
 
 def time_cmd(args):
     """plot temporal series"""
     test = raw_input('Compute statistics? [Y/n] ')
     compstat = test == 'y' or not test
+    if args.xkcd:
+        plt.xkcd()
 
-    plt.style.use('ggplot')
+
+    lwdth = args.linewidth
+    ftsz = args.fontsize
 
     #Read par file in the parent or present directory.
     read_par_file = True
@@ -78,8 +65,6 @@ def time_cmd(args):
         else:
             print 'No profile file found. stem = ', ste
             sys.exit()
-        # rep, sep, s =  stem.partition('/')
-        # timefile = s+'_time.dat'
         rab = nml['refstate']['Ra0']
         rah = nml['refstate']['Rh']
         botpphase = nml['boundaries']['BotPphase']
@@ -116,24 +101,41 @@ def time_cmd(args):
     fig = plt.figure(figsize=(30, 10))
 
     plt.subplot(2, 1, 1)
-    plt.plot(time, data[:, 2]*coefs, 'b', label='Surface')
-    plt.plot(time, data[:, 3]*coefb, 'r', label='Bottom')
-    plt.plot(time[1:ntot-2:], ebalance, 'g', label='Energy balance')
-    plt.ylabel('Heat flow')
-    plt.legend = plt.legend(loc='upper right', shadow=False, fontsize='x-large')
+    plt.plot(time, data[:, 2]*coefs, 'b', label='Surface', linewidth=lwdth)
+    plt.plot(time, data[:, 3]*coefb, 'r', label='Bottom', linewidth=lwdth)
+    plt.plot(time[1:ntot-2:], ebalance, 'g', label='Energy balance', linewidth=lwdth)
+    plt.ylabel('Heat flow', fontsize=ftsz)
+    plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
     plt.legend.get_frame().set_facecolor('white')
+    plt.xticks(fontsize=ftsz)
+    plt.yticks(fontsize=ftsz)
 
     plt.subplot(2, 1, 2)
-    plt.plot(time, data[:, 5], 'k')
-    plt.xlabel('Time')
-    plt.ylabel('Mean temperature')
+    plt.plot(time, data[:, 5], 'k', linewidth=lwdth)
+    plt.xlabel('Time', fontsize=ftsz)
+    plt.ylabel('Mean temperature', fontsize=ftsz)
+    plt.xticks(fontsize=ftsz)
+    plt.yticks(fontsize=ftsz)
 
     plt.savefig("flux_time.pdf", format='PDF')
 
     if compstat:
         coords = []
         print 'right click to select starting time of statistics computations'
-    # Call click func
+        # Simple mouse click function to store coordinates
+        def onclick(event):
+            """get position and button from mouse click"""
+            ixc, iyc = event.xdata, event.ydata
+            button = event.button
+            # assign global variable to access outside of function
+            if button == 3:
+                coords.append((ixc, iyc))
+                # Disconnect after 1 clicks
+            if len(coords) == 1:
+                fig.canvas.mpl_disconnect(cid)
+                plt.close(1)
+            return
+        # Call click func
         cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
     plt.show()

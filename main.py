@@ -7,7 +7,6 @@ Date: 2014/12/02
 """
 
 import argparse
-
 import commands
 import constants
 import misc
@@ -33,6 +32,12 @@ def main_func():
                         subcommand for a list of available variables')
     parent_parser.add_argument('--dsa', type=float,
                         help='thickness of the sticky air')
+    parent_parser.add_argument('--linewidth', type=int,
+                        help='line width')
+    parent_parser.add_argument('--fontsize', type=int,
+                        help='fontsize for annotations')
+    parent_parser.add_argument('--xkcd', action='store_true',
+                        help='to use the xkcd style')
     parent_parser.add_argument('--shrinkcb', type=float,
                         help='color bar shrink')
     parent_parser.add_argument('--pdf', action='store_true',

@@ -23,5 +23,7 @@ DEFAULT_CONFIG = OrderedDict((
     ('timestep', '100'),
     ('plot', 'tps'),
     ('dsa', 0.05),
-    ('shrinkcb', 0.5)
+    ('shrinkcb', 0.5),
+    ('linewidth',2),
+    ('fontsize', 16)
     ))

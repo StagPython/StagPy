@@ -33,8 +33,9 @@ def rprof_cmd(args):
     plot_conctheo = False
 
     linestyles = ('-', '--', '-.', ':')
-    lwdth = 2
-    ftsz = 16
+    lwdth = args.linewidth
+    ftsz = args.fontsize
+
     # parameters for the theoretical composition profiles
     rmin = 1.19
     rmax = rmin + 1.
