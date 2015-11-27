@@ -1,5 +1,5 @@
 """
-ow  plots radial profiles coming out of stagyy
+  plots radial profiles coming out of stagyy
   Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
   Date: 2015/09/11
 """
