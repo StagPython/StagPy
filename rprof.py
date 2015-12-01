@@ -24,7 +24,7 @@ def rprof_cmd(args):
 
     plot_grid = True
     plot_temperature = True
-    plot_minmaxtemp = True
+    plot_minmaxtemp = False
     plot_velocity = True
     plot_minmaxvelo = False
     plot_viscosity = False
@@ -32,8 +32,9 @@ def rprof_cmd(args):
     plot_advection = True
     plot_energy = True
     plot_concentration = True
-    plot_minmaxcon = True
-    plot_conctheo = False
+    plot_minmaxcon = False
+    plot_conctheo = True
+    plot_overturn_init = True
 
     linestyles = ('-', '--', '-.', ':')
     lwdth = args.linewidth
@@ -42,10 +43,6 @@ def rprof_cmd(args):
     # parameters for the theoretical composition profiles
     rmin = 1.19
     rmax = rmin + 1.
-#    xi0l = 0.1
-#    DFe = 0.85
-#    xi0s = DFe*xi0l
-#    xieut = 0.8
 
     #Read par file in the parent or present directory.
     # should be a separated func in misc module
@@ -84,23 +81,29 @@ def rprof_cmd(args):
 
         rmin = rcmb
         rmax = rcmb+1
-        # if 'fe_eut' in nml['tracersin']:
-        #     xieut = nml['tracersin']['fe_eut']
-        # if 'k_fe' in nml['tracersin']:
-        #     DFe = nml['tracersin']['k_fe']
-        # if 'fe_cont' in nml['tracersin']:
-        #     xi0l = nml['tracersin']['fe_cont']
+        if plot_conctheo:
+            if 'fe_eut' in nml['tracersin']:
+                xieut = nml['tracersin']['fe_eut']
+            else:
+                xieut = 0.8
+            if 'k_fe' in nml['tracersin']:
+                k_fe = nml['tracersin']['k_fe']
+            else:
+                k_fe = 0.85
+            if 'fe_cont' in nml['tracersin']:
+                xi0l = nml['tracersin']['fe_cont']
+            else:
+                xi0l = 0.1
+            xi0s = k_fe*xi0l
+            xired = xi0l/xieut
+            rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
 
-#    xi0s = DFe*xi0l
-#    xired = xi0l/xieut
-#    Rsup = (rmax**3-xired**(1/(1-DFe))*(rmax**3-rmin**3))**(1./3.)
-
-    # def initprof(rpos):
-    #     """Theoretical profile at the end of magma ocean crystallization"""
-    #     if rpos < Rsup:
-    #         return xi0s*((rmax**3-rmin**3)/(rmax**3-rpos**3))**(1-DFe)
-    #     else:
-    #         return xieut
+            def initprof(rpos):
+                """Theoretical profile at the end of magma ocean crystallization"""
+                if rpos < rsup:
+                    return xi0s*((rmax**3-rmin**3)/(rmax**3-rpos**3))**(1-k_fe)
+                else:
+                    return xieut
 
     timesteps = []
     data0 = []
@@ -192,6 +195,8 @@ def rprof_cmd(args):
         else:
             fig, axe = plt.subplots()
 
+        timename = str(istart) + "_" + str(ilast) + "_" + str(istep)
+
         for step in range(istart, ilast, istep):
             step = step +1# starts at 0=> 15 is the 16th
             # find the indices
@@ -238,9 +243,20 @@ def rprof_cmd(args):
                         # plot the overturned version of the initial profiles
                         if ((quant[0] == 'Concentration' or
                              quant[0] == 'Temperature') and
+                                plot_overturn_init and step == istart+1):
+                            rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
+                            plt.plot(donnee, rfin, '--', c=col,
+                                     linewidth=lwdth, label='Overturned')
+
+                        # plot the theoretical initial profile and its overturned
+                        # version
+                        if (quant[0] == 'Concentration' and
                                 plot_conctheo and step == istart+1):
-                            rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)-rmin
-                            plt.plot(donnee, rfin, 'b--',
+                            cinit = map(initprof, radius)
+                            rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
+                            plt.plot(cinit, radius, 'r--',
+                                     linewidth=lwdth, label='Theoretical')
+                            plt.plot(cinit, rfin, 'r-.',
                                      linewidth=lwdth, label='Overturned')
 
                     else:
@@ -269,7 +285,7 @@ def rprof_cmd(args):
                     plt.xticks(fontsize=ftsz)
                     plt.yticks(fontsize=ftsz)
         if quant[0] == 'Grid':
-            plt.savefig("Grid.pdf", format='PDF')
+            plt.savefig("Grid" + timename + ".pdf", format='PDF')
         else:
             # legend
             lgd = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
@@ -279,7 +295,7 @@ def rprof_cmd(args):
                              handletextpad=0.1, handlelength=1.5,
                              fancybox=True, shadow=False)
 
-            plt.savefig(quant[0].replace(' ', '_')+".pdf", format='PDF',
+            plt.savefig(quant[0].replace(' ', '_')+timename+".pdf", format='PDF',
                         bbox_extra_artists=(lgd, ), bbox_inches='tight')
         plt.close(fig)
         return
