@@ -99,7 +99,8 @@ def rprof_cmd(args):
             rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
 
             def initprof(rpos):
-                """Theoretical profile at the end of magma ocean crystallization"""
+                """Theoretical profile at the end of magma ocean crystallization
+                """
                 if rpos < rsup:
                     return xi0s*((rmax**3-rmin**3)/(rmax**3-rpos**3))**(1-k_fe)
                 else:
@@ -235,7 +236,8 @@ def rprof_cmd(args):
                         donnee = profiles[:, i]
                     if i == 0:
                         pplot = plt.plot(donnee, radius, linewidth=lwdth,
-                                         label=r'$t=%.2e$' % (tsteps[step-1, 2]))
+                                         label=r'$t=%.2e$' %
+                                         (tsteps[step-1, 2]))
 
                         # get color and size characteristics
                         col = pplot[0].get_color()
@@ -248,8 +250,8 @@ def rprof_cmd(args):
                             plt.plot(donnee, rfin, '--', c=col,
                                      linewidth=lwdth, label='Overturned')
 
-                        # plot the theoretical initial profile and its overturned
-                        # version
+                        # plot the theoretical initial profile and its
+                        # overturned version
                         if (quant[0] == 'Concentration' and
                                 plot_conctheo and step == istart+1):
                             cinit = map(initprof, radius)
@@ -295,7 +297,8 @@ def rprof_cmd(args):
                              handletextpad=0.1, handlelength=1.5,
                              fancybox=True, shadow=False)
 
-            plt.savefig(quant[0].replace(' ', '_')+timename+".pdf", format='PDF',
+            plt.savefig(quant[0].replace(' ', '_')+timename+".pdf",
+                        format='PDF',
                         bbox_extra_artists=(lgd, ), bbox_inches='tight')
         plt.close(fig)
         return
