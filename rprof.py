@@ -99,11 +99,7 @@ def rprof_cmd(args):
             rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
 
             def initprof(rpos):
-                """Theoretical profile at the end of magma ocean
-                crystallization.
-
-                Expression assuming a constant partition coefficient k_fe
-                """
+                """Theoretical initial profile."""
                 if rpos < rsup:
                     return xi0s*((rmax**3-rmin**3)/(rmax**3-rpos**3))**(1-k_fe)
                 else:
