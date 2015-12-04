@@ -95,7 +95,8 @@ def time_cmd(args):
 
     time = data[:, 1]
 
-    dtdt = (data[2:ntot-1, 5]-data[0:ntot-3, 5])/(data[2:ntot-1, 1]-data[0:ntot-3, 1])
+    dtdt = (data[2:ntot-1, 5]-data[0:ntot-3, 5]) / (data[2:ntot-1, 1]-
+                                                    data[0:ntot-3, 1])
     ebalance = data[1:ntot-2, 2]*coefs - data[1:ntot-2, 3]*coefb - volume*dtdt
 
     fig = plt.figure(figsize=(30, 10))
@@ -159,7 +160,8 @@ def time_cmd(args):
                                (time[ntot-1]-time[ch1[0][0]])))
             print colnames[num]+' = '+str(moy[num-2])+' pm '+str(rms[num-2])
         ebal.append(np.trapz(ebalance[ch1[0][0]-1:ntot-3],
-                             x=time[ch1[0][0]:ntot-2])/(time[ntot-2]-time[ch1[0][0]]))
+                             x=time[ch1[0][0]:ntot-2])/(time[ntot-2]-
+                                                        time[ch1[0][0]]))
         rms_ebal.append(sqrt(np.trapz((ebalance[ch1[0][0]-1:ntot-3]-ebal)**2,
                                          x=time[ch1[0][0]:ntot-2])/
                                 (time[ntot-2]-time[ch1[0][0]])))
