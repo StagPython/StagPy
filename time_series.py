@@ -5,7 +5,7 @@ Date: 2015/11/27
 """
 
 import numpy as np
-import pylab as py
+from math import sqrt
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
@@ -150,17 +150,17 @@ def time_cmd(args):
 
         print 'Statistics computed from t ='+str(time[ch1[0][0]])
         for num in range(2, len(colnames)):
-            moy.append(py.trapz(data[ch1[0][0]:ntot-1, num],
+            moy.append(np.trapz(data[ch1[0][0]:ntot-1, num],
                                 x=time[ch1[0][0]:ntot-1])/
                        (time[ntot-1]-time[ch1[0][0]]))
-            rms.append(py.sqrt(py.trapz((data[ch1[0][0]:ntot-1, num] -
+            rms.append(sqrt(np.trapz((data[ch1[0][0]:ntot-1, num] -
                                          moy[num-2])**2,
                                         x=time[ch1[0][0]:ntot-1])/
                                (time[ntot-1]-time[ch1[0][0]])))
             print colnames[num]+' = '+str(moy[num-2])+' pm '+str(rms[num-2])
-        ebal.append(py.trapz(ebalance[ch1[0][0]-1:ntot-3],
+        ebal.append(np.trapz(ebalance[ch1[0][0]-1:ntot-3],
                              x=time[ch1[0][0]:ntot-2])/(time[ntot-2]-time[ch1[0][0]]))
-        rms_ebal.append(py.sqrt(py.trapz((ebalance[ch1[0][0]-1:ntot-3]-ebal)**2,
+        rms_ebal.append(sqrt(np.trapz((ebalance[ch1[0][0]-1:ntot-3]-ebal)**2,
                                          x=time[ch1[0][0]:ntot-2])/
                                 (time[ntot-2]-time[ch1[0][0]])))
         print 'Energy balance '+str(ebal)+' pm '+str(rms_ebal)
