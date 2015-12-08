@@ -97,6 +97,7 @@ def rprof_cmd(args):
             xi0s = k_fe*xi0l
             xired = xi0l/xieut
             rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
+            print 'rmin, rmax, rsup=', rmin, rmax, rsup
 
             def initprof(rpos):
                 """Theoretical initial profile."""
@@ -253,13 +254,19 @@ def rprof_cmd(args):
                         # overturned version
                         if (quant[0] == 'Concentration' and
                                 plot_conctheo and step == istart+1):
-                            cinit = map(initprof, radius)
-                            rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
-                            plt.plot(cinit, radius, 'r--',
+                            # plot the full profile between rmin and rmax
+                            radius2 = np.linspace(rmin, rmax, 1000)
+                            cinit = map(initprof, radius2)
+                            rfin = (rmax**3.+rmin**3.-radius2**3.)**(1./3.)
+                            plt.plot(cinit, radius2, 'r--',
                                      linewidth=lwdth, label='Theoretical')
                             plt.plot(cinit, rfin, 'r-.',
                                      linewidth=lwdth, label='Overturned')
-
+                            # add the begining and end points of the stagyy
+                            # profile
+                            plt.plot([donnee[0], donnee[-1]],
+                                     [radius[0], radius[-1]],"o",
+                                     label='StagYY profile ends')
                     else:
                         # additional plots (e. g. min, max)
                         plt.plot(donnee, radius, c=col, dash_capstyle='round',
