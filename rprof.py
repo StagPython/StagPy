@@ -265,7 +265,7 @@ def rprof_cmd(args):
                             # add the begining and end points of the stagyy
                             # profile
                             plt.plot([donnee[0], donnee[-1]],
-                                     [radius[0], radius[-1]],"o",
+                                     [radius[0], radius[-1]], "o",
                                      label='StagYY profile ends')
                     else:
                         # additional plots (e. g. min, max)
