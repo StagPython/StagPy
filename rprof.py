@@ -5,10 +5,12 @@ Date: 2015/09/11
 """
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import integrate as itg
 import f90nml
 import os
 import sys
 import seaborn as sns
+import math
 
 def rprof_cmd(args):
     '''
@@ -35,6 +37,16 @@ def rprof_cmd(args):
     plot_minmaxcon = False
     plot_conctheo = True
     plot_overturn_init = True
+    # Plot difference between T and C profiles and the overturned version of
+    # their initial values
+    plot_difference = True
+    if not plot_conctheo or not plot_temperature or not plot_concentration:
+        plot_difference = False
+
+    if plot_difference:
+        # plot time series of difference profiles
+        # initialize the plot here
+        figd, axax = plt.subplots(3, sharex=True)
 
     linestyles = ('-', '--', '-.', ':')
     lwdth = args.linewidth
@@ -99,12 +111,32 @@ def rprof_cmd(args):
             rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
             print 'rmin, rmax, rsup=', rmin, rmax, rsup
 
-            def initprof(rpos):
-                """Theoretical initial profile."""
-                if rpos < rsup:
-                    return xi0s*((rmax**3-rmin**3)/(rmax**3-rpos**3))**(1-k_fe)
-                else:
-                    return xieut
+    if plot_conctheo:
+        def initprof(rpos):
+            """Theoretical initial profile."""
+            if rpos < rsup:
+                return xi0s*((rmax**3-rmin**3)/(rmax**3-rpos**3))**(1-k_fe)
+            else:
+                return xieut
+
+    if plot_difference:
+        def normprof(rrr, func):
+            '''
+            Volumetric norm of a profile
+            Two arrays: rrr is the radius position and f the function.
+            '''
+            norm = 3./(rrr[-1]**3.-rrr[0]**3.)*itg.trapz(func**2*rrr**2., rrr)
+            return norm
+
+        def extrap(xpos, xpoints, ypoints):
+            """
+            np.interp function with linear extrapolation.
+            Would be best to use degree 3 extrapolation
+            """
+            ypos = np.interp(xpos, xpoints, ypoints)
+            ypos[xpos < xpoints[0]] = ypoints[0] + (xpos[xpos < xpoints[0]]-xpoints[0]) * (ypoints[0]-ypoints[1]) / (xpoints[0]-xpoints[1])
+            ypos[xpos > xpoints[-1]] = ypoints[-1] + (xpos[xpos > xpoints[-1]]-xpoints[-1])*(ypoints[-1]-ypoints[-2])/(xpoints[-1]-xpoints[-2])
+            return ypos
 
     timesteps = []
     data0 = []
@@ -197,6 +229,10 @@ def rprof_cmd(args):
             fig, axe = plt.subplots()
 
         timename = str(istart) + "_" + str(ilast) + "_" + str(istep)
+        if plot_difference:
+            concdif = []
+            tempdif = []
+            wmax = []
 
         for step in range(istart, ilast, istep):
             step = step +1# starts at 0=> 15 is the 16th
@@ -242,13 +278,34 @@ def rprof_cmd(args):
                         # get color and size characteristics
                         col = pplot[0].get_color()
 
-                        # plot the overturned version of the initial profiles
+                        # determines the  overturned version of the initial profiles
                         if ((quant[0] == 'Concentration' or
                              quant[0] == 'Temperature') and
-                                plot_overturn_init and step == istart+1):
+                                (plot_overturn_init or plot_difference) and
+                                step == istart+1):
                             rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
+                            if quant[0] == 'Concentration':
+                                conc0 = extrap(rfin, radius, profiles[:, 0])
+                            if quant[0] == 'Temperature':
+                                temp0 = extrap(rfin, radius, profiles[:, 0])
                             plt.plot(donnee, rfin, '--', c=col,
                                      linewidth=lwdth, label='Overturned')
+
+                        if  quant[0] == 'Concentration' and plot_difference:
+                            concd1 = normprof(radius, profiles[:, 0]-conc0)
+                            concdif.append(concd1)
+                        if  quant[0] == 'Temperature' and plot_difference:
+                            tempd1 = normprof(radius, profiles[:, 0]-temp0)
+                            tempdif.append(tempd1)
+                            wmax.append(max(np.array(data[ir0:ir1, 7],
+                                                     np.float)))
+                        # plot the overturned version of the initial profiles
+                        # if ((quant[0] == 'Concentration' or
+                        #      quant[0] == 'Temperature') and
+                        #         plot_overturn_init and step == istart+1):
+                        #     rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
+                        #     plt.plot(donnee, rfin, '--', c=col,
+                        #              linewidth=lwdth, label='Overturned')
 
                         # plot the theoretical initial profile and its
                         # overturned version
@@ -307,6 +364,35 @@ def rprof_cmd(args):
                         format='PDF',
                         bbox_extra_artists=(lgd, ), bbox_inches='tight')
         plt.close(fig)
+        if plot_difference:
+            # plot time series of difference profiles
+            if quant[0] == 'Concentration':
+                imin = concdif.index(min(concdif))
+                axax[0].semilogy(tsteps[0:ilast, 2], concdif/concdif[0])
+                axax[0].semilogy(tsteps[imin, 2], concdif[imin]/concdif[0],
+                                 'o', label=r'$t=%.2e$' % (tsteps[imin, 2]))
+                axax[0].set_ylabel('Composition diff.')
+                plt.legend(loc='upper right')
+                return tsteps[imin, 2], concdif[imin]/concdif[0]
+            if quant[0] == 'Temperature':
+                axax[1].semilogy(tsteps[0:ilast, 2], tempdif/tempdif[0])
+                imin = tempdif.index(min(tempdif))
+                axax[1].semilogy(tsteps[imin, 2], tempdif[imin]/tempdif[0],
+                                 'o', label=r'$t=%.2e$' % (tsteps[imin, 2]))
+                axax[1].set_ylabel('Temperature diff.')
+                plt.legend(loc='lower right')
+                # maximum velocity as function of time
+                axax[2].semilogy(tsteps[0:ilast, 2], wmax)
+                axax[2].set_ylabel('Max. rms vert. velocity')
+                axax[2].set_xlabel('Time')
+                wma = max(wmax)
+                iwm = wmax.index(wma)
+                sigma = math.log(wma/wmax[0])/tsteps[iwm, 2]
+                expw = map(math.exp, sigma*np.array(tsteps[0:iwm, 2], float))
+                axax[2].semilogy(tsteps[0:iwm, 2], expw, linestyle='--',
+                                 label=r'$sigma=%.2e$' % sigma)
+                plt.legend(loc='upper right')
+                return tsteps[imin, 2], tempdif[imin]/tempdif[0], iwm, wma
         return
 
     # Now use it for the different types of profiles
@@ -338,6 +424,11 @@ def rprof_cmd(args):
                          36, 37, 38)
         else:
             plotprofiles(['Concentration'], 36)
+
+    if plot_difference:
+        plt.ticklabel_format(style='sci', axis='x')
+        plt.savefig("Difference_to_overturned.pdf", format='PDF')
+        plt.close(figd)
 
     # Plot grid spacing
     if plot_grid:
