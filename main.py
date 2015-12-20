@@ -67,6 +67,7 @@ def main_func():
 
     args = main_parser.parse_args()
     args = misc.parse_timesteps(args)
+    args = misc.plot_backend(args)
     args.func(args)
 
 if __name__ == '__main__':

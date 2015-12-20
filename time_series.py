@@ -6,10 +6,7 @@ Date: 2015/11/27
 
 import numpy as np
 from math import sqrt
-import matplotlib.pyplot as plt
-import seaborn as sns
 import sys
-
 import f90nml
 import os
 
@@ -23,9 +20,8 @@ def time_cmd(args):
     """plot temporal series"""
     test = raw_input('Compute statistics? [Y/n] ')
     compstat = test == 'y' or not test
-    if args.xkcd:
-        plt.xkcd()
 
+    plt = args.plt
 
     lwdth = args.linewidth
     ftsz = args.fontsize

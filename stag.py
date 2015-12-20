@@ -2,9 +2,6 @@
 
 import struct
 import numpy as np
-import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
 
 import constants
 import misc
@@ -144,6 +141,7 @@ class StagyyData(object):
 
     def plot_scalar(self, var):
         """var: one of the key of constants.VAR_LIST"""
+        plt = self.args.plt
         fld = constants.VAR_LIST[var].func(self)
 
         # adding a row at the end to have continuous field

@@ -4,20 +4,16 @@ Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/09/11
 """
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import integrate as itg
 import f90nml
 import os
 import sys
-import seaborn as sns
 import math
 
 def rprof_cmd(args):
-    '''
-    Function to plot radial profiles
-    '''
-    if args.xkcd:
-        plt.xkcd()
+    """Plot radial profiles"""
+
+    plt = args.plt
 
     istart, ilast, istep = args.timestep
 

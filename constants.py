@@ -25,5 +25,7 @@ DEFAULT_CONFIG = OrderedDict((
     ('dsa', 0.05),
     ('shrinkcb', 0.5),
     ('linewidth', 2),
-    ('fontsize', 16)
+    ('fontsize', 16),
+    ('matplotback', 'agg'),
+    ('useseaborn', True)
     ))

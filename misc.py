@@ -1,5 +1,6 @@
 """miscellaneous definitions"""
 
+import importlib
 from math import ceil
 import os.path
 
@@ -50,4 +51,17 @@ def parse_timesteps(args):
     if not tstp[2]:
         tstp[2] = 1
     args.timestep = map(int, tstp)
+    return args
+
+def plot_backend(args):
+    """import matplotlib and seaborn"""
+    mpl = importlib.import_module('matplotlib')
+    if args.matplotback:
+        mpl.use(args.matplotback)
+    plt = importlib.import_module('matplotlib.pyplot')
+    if args.useseaborn:
+        importlib.import_module('seaborn')
+    if args.xkcd:
+        plt.xkcd()
+    args.plt = plt
     return args

@@ -21,6 +21,7 @@ def rprof_cmd(args):
 
 def time_cmd(args):
     """plot time series"""
+    args.matplotback = None
     time_series.time_cmd(args)
 
 def var_cmd(_):
