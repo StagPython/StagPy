@@ -60,8 +60,10 @@ def plot_backend(args):
         mpl.use(args.matplotback)
     plt = importlib.import_module('matplotlib.pyplot')
     if args.useseaborn:
-        importlib.import_module('seaborn')
+        sns = importlib.import_module('seaborn')
+        args.sns = sns
     if args.xkcd:
         plt.xkcd()
+    args.mpl = mpl
     args.plt = plt
     return args

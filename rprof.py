@@ -12,7 +12,6 @@ import math
 
 def rprof_cmd(args):
     """Plot radial profiles"""
-
     plt = args.plt
 
     istart, ilast, istep = args.timestep
