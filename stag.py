@@ -162,7 +162,7 @@ class StagyyData(object):
         if self.geom == 'annulus':
             if var == 'v':
                 surf = axis.pcolormesh(xmesh, ymesh, fld,
-                                    norm=args.mpl.colors.LogNorm(),
+                                    norm=self.args.mpl.colors.LogNorm(),
                                     cmap='jet_r',
                                     rasterized=not self.args.pdf,
                                     shading='gouraud')

@@ -4,7 +4,7 @@ strictness: high
 pep8:
     full: true
 max-line-length: 80
-uses:
+requirements:
     - matplotlib
     - seaborn
 autodetect: true
