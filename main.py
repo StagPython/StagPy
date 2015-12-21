@@ -12,8 +12,10 @@ import constants
 import misc
 
 class Toggle(argparse.Action):
-    def __call__(self, parser, namespace, values, option):
-        setattr(namespace, self.dest, bool('-+'.index(option[0])))
+    """argparse Action to store True/False to a +/-arg"""
+    def __call__(self, parser, namespace, values, option_string=None):
+        """set args attribute with True/False"""
+        setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
 
 def main_func():
     """deals with command line arguments"""

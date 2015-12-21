@@ -116,21 +116,25 @@ def rprof_cmd(args):
 
     if plot_difference:
         def normprof(rrr, func):
-            '''
-            Volumetric norm of a profile
+            """Volumetric norm of a profile
+
             Two arrays: rrr is the radius position and f the function.
-            '''
+            """
             norm = 3./(rrr[-1]**3.-rrr[0]**3.)*itg.trapz(func**2*rrr**2., rrr)
             return norm
 
         def extrap(xpos, xpoints, ypoints):
-            """
-            np.interp function with linear extrapolation.
+            """np.interp function with linear extrapolation.
+
             Would be best to use degree 3 extrapolation
             """
             ypos = np.interp(xpos, xpoints, ypoints)
-            ypos[xpos < xpoints[0]] = ypoints[0] + (xpos[xpos < xpoints[0]]-xpoints[0]) * (ypoints[0]-ypoints[1]) / (xpoints[0]-xpoints[1])
-            ypos[xpos > xpoints[-1]] = ypoints[-1] + (xpos[xpos > xpoints[-1]]-xpoints[-1])*(ypoints[-1]-ypoints[-2])/(xpoints[-1]-xpoints[-2])
+            ypos[xpos < xpoints[0]] = ypoints[0]\
+                    + (xpos[xpos < xpoints[0]]-xpoints[0])\
+                    * (ypoints[0]-ypoints[1])/(xpoints[0]-xpoints[1])
+            ypos[xpos > xpoints[-1]] = ypoints[-1]\
+                    + (xpos[xpos > xpoints[-1]]-xpoints[-1])\
+                    * (ypoints[-1]-ypoints[-2])/(xpoints[-1]-xpoints[-2])
             return ypos
 
     timesteps = []
@@ -174,9 +178,7 @@ def rprof_cmd(args):
     nzi = np.array(nzs)
 
     def calc_energy(ir0, ir1):
-        """
-        Computes the energy balance as function of radial distance
-        """
+        """Compute energy balance(r)"""
         zgrid = np.array(data[ir0:ir1, 63], float)
         zgrid = np.append(zgrid, 1.)
         dzg = np.array(data[ir0+1:ir1, 0], float) - np.array(data[ir0:ir1-1, 0],
@@ -273,7 +275,7 @@ def rprof_cmd(args):
                         # get color and size characteristics
                         col = pplot[0].get_color()
 
-                        # determines the  overturned version of the initial profiles
+                        # overturned version of the initial profiles
                         if ((quant[0] == 'Concentration' or
                              quant[0] == 'Temperature') and
                                 (plot_overturn_init or plot_difference) and
