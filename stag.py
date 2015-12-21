@@ -172,7 +172,7 @@ class StagyyData(object):
                                     rasterized=not self.args.pdf,
                                     shading='gouraud')
             else:
-                surf = axis.pcolormesh(xmesh, ymesh, fld,
+                surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
                                     rasterized=not self.args.pdf,
                                     shading='gouraud')
             cbar = plt.colorbar(surf, shrink=self.args.shrinkcb)
