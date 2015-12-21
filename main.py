@@ -66,8 +66,9 @@ def main_func():
     parser_var.set_defaults(func=commands.var_cmd)
 
     args = main_parser.parse_args()
-    args = misc.parse_timesteps(args)
-    args = misc.plot_backend(args)
+    if not args.func is commands.var_cmd:
+        args = misc.parse_timesteps(args)
+        args = misc.plot_backend(args)
     args.func(args)
 
 if __name__ == '__main__':
