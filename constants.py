@@ -27,5 +27,7 @@ DEFAULT_CONFIG = OrderedDict((
     ('linewidth', 2),
     ('fontsize', 16),
     ('matplotback', 'agg'),
+    ('xkcd', False),
+    ('pdf', False),
     ('useseaborn', True)
     ))
