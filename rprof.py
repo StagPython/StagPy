@@ -321,6 +321,7 @@ def rprof_cmd(args):
                             plt.plot([donnee[0], donnee[-1]],
                                      [radius[0], radius[-1]], "o",
                                      label='StagYY profile ends')
+                            plt.xlim([0.9*donnee[0], 1.2*donnee[-1]])
                     else:
                         # additional plots (e. g. min, max)
                         plt.plot(donnee, radius, c=col, dash_capstyle='round',
