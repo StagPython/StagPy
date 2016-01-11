@@ -366,31 +366,31 @@ def rprof_cmd(args):
             # plot time series of difference profiles
             if quant[0] == 'Concentration':
                 imin = concdif.index(min(concdif))
-                axax[0].semilogy(tsteps[0:ilast, 2], concdif/concdif[0])
-                axax[0].semilogy(tsteps[imin, 2], concdif[imin]/concdif[0],
+                axax[0].semilogy(tsteps[0:ilast:istep, 2], concdif/concdif[0])
+                axax[0].semilogy(tsteps[imin*istep, 2], concdif[imin]/concdif[0],
                                  'o', label=r'$t=%.2e$' % (tsteps[imin, 2]))
                 axax[0].set_ylabel('Composition diff.')
                 plt.legend(loc='upper right')
-                return tsteps[imin, 2], concdif[imin]/concdif[0]
+                return tsteps[imin*istep, 2], concdif[imin]/concdif[0]
             if quant[0] == 'Temperature':
-                axax[1].semilogy(tsteps[0:ilast, 2], tempdif/tempdif[0])
+                axax[1].semilogy(tsteps[0:ilast:istep, 2], tempdif/tempdif[0])
                 imin = tempdif.index(min(tempdif))
-                axax[1].semilogy(tsteps[imin, 2], tempdif[imin]/tempdif[0],
+                axax[1].semilogy(tsteps[imin*istep, 2], tempdif[imin]/tempdif[0],
                                  'o', label=r'$t=%.2e$' % (tsteps[imin, 2]))
                 axax[1].set_ylabel('Temperature diff.')
                 plt.legend(loc='lower right')
                 # maximum velocity as function of time
-                axax[2].semilogy(tsteps[0:ilast, 2], wmax)
+                axax[2].semilogy(tsteps[0:ilast:istep, 2], wmax)
                 axax[2].set_ylabel('Max. rms vert. velocity')
                 axax[2].set_xlabel('Time')
                 wma = max(wmax)
                 iwm = wmax.index(wma)
                 sigma = math.log(wma/wmax[0])/tsteps[iwm, 2]
-                expw = map(math.exp, sigma*np.array(tsteps[0:iwm, 2], float))
-                axax[2].semilogy(tsteps[0:iwm, 2], expw, linestyle='--',
+                expw = map(math.exp, sigma*np.array(tsteps[0:iwm:istep, 2], float))
+                axax[2].semilogy(tsteps[0:iwm:istep, 2], expw, linestyle='--',
                                  label=r'$sigma=%.2e$' % sigma)
                 plt.legend(loc='upper right')
-                return tsteps[imin, 2], tempdif[imin]/tempdif[0], iwm, wma
+                return tsteps[imin*istep, 2], tempdif[imin]/tempdif[0], iwm, wma
         return
 
     # Now use it for the different types of profiles
