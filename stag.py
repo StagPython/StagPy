@@ -147,7 +147,7 @@ class StagyyData(object):
         # adding a row at the end to have continuous field
         if self.geom == 'annulus':
             # temp,composition,viscosity,density
-            if var in ('t', 'c', 'v', 'd'):
+            if var in ('t', 'c', 'n', 'd'):
                 newline = fld[:, 0, 0]
                 fld = np.vstack([fld[:, :, 0].T, newline]).T
             elif var == 'p':
@@ -160,7 +160,7 @@ class StagyyData(object):
 
         fig, axis = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
         if self.geom == 'annulus':
-            if var == 'v':
+            if var == 'n':
                 surf = axis.pcolormesh(xmesh, ymesh, fld,
                                     norm=self.args.mpl.colors.LogNorm(),
                                     cmap='jet_r',
