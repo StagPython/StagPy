@@ -16,29 +16,11 @@ def rprof_cmd(args):
 
     istart, ilast, istep = args.timestep
 
-    ############### INPUT PARAMETERS ################
-    # should rather be default parameters to be replaced by command line options
+    if not (args.plot_conctheo and args.plot_temperature
+            and args.plot_concentration):
+        args.plot_difference = False
 
-    plot_grid = True
-    plot_temperature = True
-    plot_minmaxtemp = False
-    plot_velocity = True
-    plot_minmaxvelo = False
-    plot_viscosity = False
-    plot_minmaxvisco = False
-    plot_advection = True
-    plot_energy = True
-    plot_concentration = True
-    plot_minmaxcon = False
-    plot_conctheo = True
-    plot_overturn_init = True
-    # Plot difference between T and C profiles and the overturned version of
-    # their initial values
-    plot_difference = True
-    if not plot_conctheo or not plot_temperature or not plot_concentration:
-        plot_difference = False
-
-    if plot_difference:
+    if args.plot_difference:
         # plot time series of difference profiles
         # initialize the plot here
         figd, axax = plt.subplots(3, sharex=True)
@@ -88,7 +70,7 @@ def rprof_cmd(args):
 
         rmin = rcmb
         rmax = rcmb+1
-        if plot_conctheo:
+        if args.plot_conctheo:
             if 'fe_eut' in nml['tracersin']:
                 xieut = nml['tracersin']['fe_eut']
             else:
@@ -106,7 +88,7 @@ def rprof_cmd(args):
             rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
             print 'rmin, rmax, rsup=', rmin, rmax, rsup
 
-    if plot_conctheo:
+    if args.plot_conctheo:
         def initprof(rpos):
             """Theoretical initial profile."""
             if rpos < rsup:
@@ -114,7 +96,7 @@ def rprof_cmd(args):
             else:
                 return xieut
 
-    if plot_difference:
+    if args.plot_difference:
         def normprof(rrr, func):
             """Volumetric norm of a profile
 
@@ -226,7 +208,7 @@ def rprof_cmd(args):
             fig, axe = plt.subplots()
 
         timename = str(istart) + "_" + str(ilast) + "_" + str(istep)
-        if plot_difference:
+        if args.plot_difference:
             concdif = []
             tempdif = []
             wmax = []
@@ -278,7 +260,7 @@ def rprof_cmd(args):
                         # overturned version of the initial profiles
                         if ((quant[0] == 'Concentration' or
                              quant[0] == 'Temperature') and
-                                (plot_overturn_init or plot_difference) and
+                                (args.plot_overturn_init or args.plot_difference) and
                                 step == istart+1):
                             rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
                             if quant[0] == 'Concentration':
@@ -288,10 +270,10 @@ def rprof_cmd(args):
                             plt.plot(donnee, rfin, '--', c=col,
                                      linewidth=lwdth, label='Overturned')
 
-                        if  quant[0] == 'Concentration' and plot_difference:
+                        if  quant[0] == 'Concentration' and args.plot_difference:
                             concd1 = normprof(radius, profiles[:, 0]-conc0)
                             concdif.append(concd1)
-                        if  quant[0] == 'Temperature' and plot_difference:
+                        if  quant[0] == 'Temperature' and args.plot_difference:
                             tempd1 = normprof(radius, profiles[:, 0]-temp0)
                             tempdif.append(tempd1)
                             wmax.append(max(np.array(data[ir0:ir1, 7],
@@ -299,7 +281,7 @@ def rprof_cmd(args):
                         # plot the overturned version of the initial profiles
                         # if ((quant[0] == 'Concentration' or
                         #      quant[0] == 'Temperature') and
-                        #         plot_overturn_init and step == istart+1):
+                        #         args.plot_overturn_init and step == istart+1):
                         #     rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
                         #     plt.plot(donnee, rfin, '--', c=col,
                         #              linewidth=lwdth, label='Overturned')
@@ -307,7 +289,7 @@ def rprof_cmd(args):
                         # plot the theoretical initial profile and its
                         # overturned version
                         if (quant[0] == 'Concentration' and
-                                plot_conctheo and step == istart+1):
+                                args.plot_conctheo and step == istart+1):
                             # plot the full profile between rmin and rmax
                             radius2 = np.linspace(rmin, rmax, 1000)
                             cinit = map(initprof, radius2)
@@ -362,7 +344,7 @@ def rprof_cmd(args):
                         format='PDF',
                         bbox_extra_artists=(lgd, ), bbox_inches='tight')
         plt.close(fig)
-        if plot_difference:
+        if args.plot_difference:
             # plot time series of difference profiles
             if quant[0] == 'Concentration':
                 imin = concdif.index(min(concdif))
@@ -395,51 +377,51 @@ def rprof_cmd(args):
 
     # Now use it for the different types of profiles
 
-    if plot_temperature:
-        if plot_minmaxtemp:
+    if args.plot_temperature:
+        if args.plot_minmaxtemp:
             plotprofiles(['Temperature', 'Mean', 'Minimum', 'Maximum'], 1, 2, 3,
                          integrated=False)
         else:
             plotprofiles(['Temperature'], 1)
 
-    if plot_velocity:
-        if plot_minmaxvelo:
+    if args.plot_velocity:
+        if args.plot_minmaxvelo:
             plotprofiles(['Vertical Velocity', 'Mean', 'Minimum', 'Maximum'],
                          7, 8, 9)
         else:
             plotprofiles(['Vertical Velocity'], 7)
 
-    if plot_viscosity:
-        if plot_minmaxvisco:
+    if args.plot_viscosity:
+        if args.plot_minmaxvisco:
             plotprofiles(['Viscosity', 'Mean', 'Minimum', 'Maximum'],
                          13, 14, 15)
         else:
             plotprofiles(['Viscosity'], 13)
 
-    if plot_concentration:
-        if plot_minmaxcon:
+    if args.plot_concentration:
+        if args.plot_minmaxcon:
             plotprofiles(['Concentration', 'Mean', 'Minimum', 'Maximum'],
                          36, 37, 38)
         else:
             plotprofiles(['Concentration'], 36)
 
-    if plot_difference:
+    if args.plot_difference:
         plt.ticklabel_format(style='sci', axis='x')
         plt.savefig("Difference_to_overturned.pdf", format='PDF')
         plt.close(figd)
 
     # Plot grid spacing
-    if plot_grid:
+    if args.plot_grid:
         plotprofiles(['Grid'])
 
     # Plot the profiles of vertical advection: total and contributions from up-
     # and down-welling currents
-    if plot_advection:
+    if args.plot_advection:
         plotprofiles(['Advection per unit surface', 'Total', 'down-welling',
                       'Up-welling'], 57, 58, 59)
         if spherical:
             plotprofiles(['Total scaled advection', 'Total', 'down-welling',
                           'Up-welling'], 57, 58, 59, integrated=True)
-    if plot_energy:
+    if args.plot_energy:
         plotprofiles(['Energy', 'Total', 'Advection',
                       'conduction'], 57, 58, 59, integrated=True)

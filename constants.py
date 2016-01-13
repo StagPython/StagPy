@@ -15,19 +15,3 @@ VAR_LIST = OrderedDict((
     ('p', Var('vp', 'Pressure', misc.takefield(3))),
     ('s', Var('vp', 'Stream function', processing.calc_stream))
     ))
-
-DEFAULT_CONFIG = OrderedDict((
-    ('geometry', 'annulus'),
-    ('path', './'),
-    ('name', 'test'),
-    ('timestep', '100'),
-    ('plot', 'tps'),
-    ('dsa', 0.05),
-    ('shrinkcb', 0.5),
-    ('linewidth', 2),
-    ('fontsize', 16),
-    ('matplotback', 'agg'),
-    ('xkcd', False),
-    ('pdf', False),
-    ('useseaborn', True)
-    ))
