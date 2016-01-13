@@ -373,21 +373,21 @@ def rprof_cmd(args):
                 plt.legend(loc='upper right')
                 return tsteps[imin*istep, 2], concdif[imin]/concdif[0]
             if quant[0] == 'Temperature':
-                axax[1].semilogy(tsteps[0:ilast:istep, 2], tempdif/tempdif[0])
+                axax[1].semilogy(tsteps[istart:ilast:istep, 2], tempdif/tempdif[0])
                 imin = tempdif.index(min(tempdif))
                 axax[1].semilogy(tsteps[imin*istep, 2], tempdif[imin]/tempdif[0],
                                  'o', label=r'$t=%.2e$' % (tsteps[imin, 2]))
                 axax[1].set_ylabel('Temperature diff.')
                 plt.legend(loc='lower right')
                 # maximum velocity as function of time
-                axax[2].semilogy(tsteps[0:ilast:istep, 2], wmax)
+                axax[2].semilogy(tsteps[istart:ilast:istep, 2], wmax)
                 axax[2].set_ylabel('Max. rms vert. velocity')
                 axax[2].set_xlabel('Time')
                 wma = max(wmax)
                 iwm = wmax.index(wma)
-                sigma = math.log(wma/wmax[0])/tsteps[iwm, 2]
-                expw = map(math.exp, sigma*np.array(tsteps[0:iwm:istep, 2], float))
-                axax[2].semilogy(tsteps[0:iwm:istep, 2], expw, linestyle='--',
+                sigma = math.log(wmax[iwm-3]/wmax[0])/tsteps[iwm-3, 2]
+                expw = [wmax[0]*math.exp(sigma*t) for t in tsteps[0:iwm+2:istep, 2]]
+                axax[2].semilogy(tsteps[0:iwm+2:istep, 2], expw, linestyle='--',
                                  label=r'$sigma=%.2e$' % sigma)
                 plt.legend(loc='upper right')
                 return tsteps[imin*istep, 2], tempdif[imin]/tempdif[0], iwm, wma
