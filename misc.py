@@ -51,7 +51,6 @@ def parse_timesteps(args):
     if not tstp[2]:
         tstp[2] = 1
     args.timestep = map(int, tstp)
-    return args
 
 def plot_backend(args):
     """import matplotlib and seaborn"""
@@ -66,4 +65,3 @@ def plot_backend(args):
         plt.xkcd()
     args.mpl = mpl
     args.plt = plt
-    return args

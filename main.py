@@ -15,8 +15,8 @@ def main_func():
     parser = config.create_parser()
     args = parser.parse_args()
     if not args.func is commands.var_cmd:
-        args = misc.parse_timesteps(args)
-        args = misc.plot_backend(args)
+        misc.parse_timesteps(args)
+        misc.plot_backend(args)
     args.func(args)
     
 
