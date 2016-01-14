@@ -363,20 +363,28 @@ def rprof_cmd(args):
                         bbox_extra_artists=(lgd, ), bbox_inches='tight')
         plt.close(fig)
         if plot_difference:
+            ra = nml['refstate']['ra0']
             # plot time series of difference profiles
             if quant[0] == 'Concentration':
-                imin = concdif.index(min(concdif))
+                iminc = concdif.index(min(concdif))
                 axax[0].semilogy(tsteps[0:ilast:istep, 2], concdif/concdif[0])
-                axax[0].semilogy(tsteps[imin*istep, 2], concdif[imin]/concdif[0],
-                                 'o', label=r'$t=%.2e$' % (tsteps[imin, 2]))
+                axax[0].semilogy(tsteps[iminc*istep, 2], concdif[iminc]/concdif[0],
+                                 'o', label=r'$t=%.2e$' % (tsteps[iminc, 2]))
                 axax[0].set_ylabel('Composition diff.')
                 plt.legend(loc='upper right')
-                return tsteps[imin*istep, 2], concdif[imin]/concdif[0]
+                with open('statmin.dat', 'a') as fich:
+                    fich.write("%10.5e \n " % tsteps[iminc, 2])
+
+                    #fich.write('rcmb k_fe ra tminT tminC sigma\n')
+                    #fich.write("%10.5e " % rcmb)
+                    #fich.write("%10.5e " % k_fe)
+                    #fich.write("%10.5e " % ra)
+                return tsteps[iminc*istep, 2], concdif[iminc]/concdif[0]
             if quant[0] == 'Temperature':
                 axax[1].semilogy(tsteps[istart:ilast:istep, 2], tempdif/tempdif[0])
-                imin = tempdif.index(min(tempdif))
-                axax[1].semilogy(tsteps[imin*istep, 2], tempdif[imin]/tempdif[0],
-                                 'o', label=r'$t=%.2e$' % (tsteps[imin, 2]))
+                imint = tempdif.index(min(tempdif))
+                axax[1].semilogy(tsteps[imint*istep, 2], tempdif[imint]/tempdif[0],
+                                 'o', label=r'$t=%.2e$' % (tsteps[imint, 2]))
                 axax[1].set_ylabel('Temperature diff.')
                 plt.legend(loc='lower right')
                 # maximum velocity as function of time
@@ -390,7 +398,16 @@ def rprof_cmd(args):
                 axax[2].semilogy(tsteps[0:iwm+2:istep, 2], expw, linestyle='--',
                                  label=r'$sigma=%.2e$' % sigma)
                 plt.legend(loc='upper right')
-                return tsteps[imin*istep, 2], tempdif[imin]/tempdif[0], iwm, wma
+                with open('statmin.dat', 'w') as fich:
+                    fich.write('rcmb k_fe ra tminT sigma tminC\n')
+                    fich.write("%10.5e " % rcmb)
+                    fich.write("%10.5e " % k_fe)
+                    fich.write("%10.5e " % ra)
+                    fich.write("%10.5e " % tsteps[imint, 2])
+                    fich.write("%10.5e " % sigma)
+                return tsteps[imint*istep, 2], tempdif[imint]/tempdif[0], iwm, wma
+                
+            
         return
 
     # Now use it for the different types of profiles
