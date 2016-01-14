@@ -20,6 +20,16 @@ def takefield(idx):
     return lambda stagdata: stagdata.fields[idx]
 
 
+def set_arg(args, arg, val):
+    """set a cmd line with arg string name"""
+    vars(args)[arg] = val
+
+
+def get_arg(args, arg):
+    """set a cmd line with arg string name"""
+    return vars(args)[arg]
+
+
 def lastfile(args, begstep):
     """look for the last binary file
 

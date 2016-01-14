@@ -33,11 +33,8 @@ CORE = OrderedDict((
         'use or not seaborn')),
     ))
 FIELD = OrderedDict((
-    # will have to change the default value to None
-    # in order to not interfer with plot_* vars
-    # when not specified
-    ('plot', Conf('tps', True, 'o',
-        {'nargs':'?', 'const':'', 'default':None},
+    ('plot', Conf(None, True, 'o',
+        {'nargs':'?', 'const':'', 'type':str},
         'specify which variable to plot')),
     ('plot_temperature', Conf(True, False, None, {},
         'temperature scalar field')),
@@ -45,18 +42,18 @@ FIELD = OrderedDict((
         'pressure scalar field')),
     ('plot_stream', Conf(True, False, None, {},
         'stream function scalar field')),
-    ('plot_composition', Conf(True, False, None, {},
+    ('plot_composition', Conf(False, False, None, {},
         'composition scalar field')),
-    ('plot_viscosity', Conf(True, False, None, {},
+    ('plot_viscosity', Conf(False, False, None, {},
         'viscosity scalar field')),
-    ('plot_density', Conf(True, False, None, {},
+    ('plot_density', Conf(False, False, None, {},
         'density scalar field')),
     ('shrinkcb', Conf(0.5, False, None, {},
         'color bar shrink factor')),
     ))
 RPROF = OrderedDict((
     ('plot', Conf(None, True, 'o',
-        {'nargs':'?', 'const':'', 'default':None},
+        {'nargs':'?', 'const':'', 'type':str},
         'specify which variable to plot')),
     ('plot_grid', Conf(True, False, None, {},
         'plot grid')),
@@ -130,7 +127,7 @@ def add_args(parser, conf_dict):
                 names.append('-{}'.format(conf.shortname))
                 names.append('+{}'.format(conf.shortname))
         else:
-            conf.kwargs.update(type=type(conf.default))
+            conf.kwargs.setdefault('type', type(conf.default))
             names = ['--{}'.format(arg)]
             if conf.shortname is not None:
                 names.append('-{}'.format(conf.shortname))
