@@ -3,12 +3,54 @@
 Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/09/11
 """
+from __future__ import print_function
+
 import numpy as np
 from scipy import integrate as itg
 import f90nml
 import os
 import sys
 import math
+
+def _normprof(rrr, func): # for args.plot_difference
+    """Volumetric norm of a profile
+
+    Two arrays: rrr is the radius position and f the function.
+    """
+    norm = 3./(rrr[-1]**3.-rrr[0]**3.)*itg.trapz(func**2*rrr**2., rrr)
+    return norm
+
+def _extrap(xpos, xpoints, ypoints): # for args.plot_difference
+    """np.interp function with linear extrapolation.
+
+    Would be best to use degree 3 extrapolation
+    """
+    ypos = np.interp(xpos, xpoints, ypoints)
+    ypos[xpos < xpoints[0]] = ypoints[0]\
+            + (xpos[xpos < xpoints[0]]-xpoints[0])\
+            * (ypoints[0]-ypoints[1])/(xpoints[0]-xpoints[1])
+    ypos[xpos > xpoints[-1]] = ypoints[-1]\
+            + (xpos[xpos > xpoints[-1]]-xpoints[-1])\
+            * (ypoints[-1]-ypoints[-2])/(xpoints[-1]-xpoints[-2])
+    return ypos
+
+def _calc_energy(data, ir0, ir1): # for args.plot_energy
+    """Compute energy balance(r)"""
+    zgrid = np.array(data[ir0:ir1, 63], float)
+    zgrid = np.append(zgrid, 1.)
+    dzg = np.array(data[ir0+1:ir1, 0], float) - np.array(data[ir0:ir1-1, 0],
+                                                         float)
+    qadv = np.array(data[ir0:ir1-1, 60], float)
+    qadv = np.insert(qadv, 0, 0.)
+    qadv = np.append(qadv, 0.)
+    qcond = (np.array(data[ir0:ir1-1, 1], float) -
+             np.array(data[ir0+1:ir1, 1], float))/dzg
+    qcond0 = (1.-float(data[ir0, 1]))/float(data[ir0, 0])
+    qtop = float(data[ir1, 1])/(1.-float(data[ir1, 0]))
+    qcond = np.insert(qcond, 0, qcond0)
+    qcond = np.append(qcond, qtop)
+    qtot = qadv+qcond
+    return qtot, qadv, qcond, zgrid
 
 def rprof_cmd(args):
     """Plot radial profiles"""
@@ -30,75 +72,47 @@ def rprof_cmd(args):
     ftsz = args.fontsize
 
     # parameters for the theoretical composition profiles
-    rmin = 1.19
-    rmax = rmin + 1.
 
-    if not args.par_nml:
-        print 'No par file found. Input pars by hand'
-        rcmb = 1
-        geom = str(raw_input('spherical (s) or cartesian (c)? '))
-        spherical = geom == 's'
+    if not args.par_nml: # too much parameter to define arbitrarily
+        print('No par file found. Abort')
+        sys.exit()
+
+    spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+    if spherical:
+        rcmb = args.par_nml['geometry']['r_cmb']
     else:
-        spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
-        if spherical:
-            rcmb = args.par_nml['geometry']['r_cmb']
-        else:
-            rcmb = 0.
-        proffile = os.path.join(args.path, args.name+'_rprof.dat')
-        if not os.path.isfile(proffile):
-            print 'No profile file found at', proffile
-            sys.exit()
+        rcmb = 0.
+    proffile = os.path.join(args.path, args.name+'_rprof.dat')
+    if not os.path.isfile(proffile):
+        print('No profile file found at', proffile)
+        sys.exit()
 
-        rmin = rcmb
-        rmax = rcmb+1
-        if args.plot_conctheo:
-            if 'fe_eut' in args.par_nml['tracersin']:
-                xieut = args.par_nml['tracersin']['fe_eut']
-            else:
-                xieut = 0.8
-            if 'k_fe' in args.par_nml['tracersin']:
-                k_fe = args.par_nml['tracersin']['k_fe']
-            else:
-                k_fe = 0.85
-            if 'fe_cont' in args.par_nml['tracersin']:
-                xi0l = args.par_nml['tracersin']['fe_cont']
-            else:
-                xi0l = 0.1
-            xi0s = k_fe*xi0l
-            xired = xi0l/xieut
-            rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
-            print 'rmin, rmax, rsup=', rmin, rmax, rsup
-
+    rmin = rcmb
+    rmax = rcmb + 1.
     if args.plot_conctheo:
+        if 'fe_eut' in args.par_nml['tracersin']:
+            xieut = args.par_nml['tracersin']['fe_eut']
+        else:
+            xieut = 0.8
+        if 'k_fe' in args.par_nml['tracersin']:
+            k_fe = args.par_nml['tracersin']['k_fe']
+        else:
+            k_fe = 0.85
+        if 'fe_cont' in args.par_nml['tracersin']:
+            xi0l = args.par_nml['tracersin']['fe_cont']
+        else:
+            xi0l = 0.1
+        xi0s = k_fe*xi0l
+        xired = xi0l/xieut
+        rsup = (rmax**3-xired**(1/(1-k_fe))*(rmax**3-rmin**3))**(1./3.)
+        print('rmin, rmax, rsup=', rmin, rmax, rsup)
+
         def initprof(rpos):
             """Theoretical initial profile."""
             if rpos < rsup:
                 return xi0s*((rmax**3-rmin**3)/(rmax**3-rpos**3))**(1-k_fe)
             else:
                 return xieut
-
-    if args.plot_difference:
-        def normprof(rrr, func):
-            """Volumetric norm of a profile
-
-            Two arrays: rrr is the radius position and f the function.
-            """
-            norm = 3./(rrr[-1]**3.-rrr[0]**3.)*itg.trapz(func**2*rrr**2., rrr)
-            return norm
-
-        def extrap(xpos, xpoints, ypoints):
-            """np.interp function with linear extrapolation.
-
-            Would be best to use degree 3 extrapolation
-            """
-            ypos = np.interp(xpos, xpoints, ypoints)
-            ypos[xpos < xpoints[0]] = ypoints[0]\
-                    + (xpos[xpos < xpoints[0]]-xpoints[0])\
-                    * (ypoints[0]-ypoints[1])/(xpoints[0]-xpoints[1])
-            ypos[xpos > xpoints[-1]] = ypoints[-1]\
-                    + (xpos[xpos > xpoints[-1]]-xpoints[-1])\
-                    * (ypoints[-1]-ypoints[-2])/(xpoints[-1]-xpoints[-2])
-            return ypos
 
     timesteps = []
     data0 = []
@@ -140,26 +154,7 @@ def rprof_cmd(args):
 
     nzi = np.array(nzs)
 
-    def calc_energy(ir0, ir1):
-        """Compute energy balance(r)"""
-        zgrid = np.array(data[ir0:ir1, 63], float)
-        zgrid = np.append(zgrid, 1.)
-        dzg = np.array(data[ir0+1:ir1, 0], float) - np.array(data[ir0:ir1-1, 0],
-                                                             float)
-        qadv = np.array(data[ir0:ir1-1, 60], float)
-        qadv = np.insert(qadv, 0, 0.)
-        qadv = np.append(qadv, 0.)
-        qcond = (np.array(data[ir0:ir1-1, 1], float) -
-                 np.array(data[ir0+1:ir1, 1], float))/dzg
-        qcond0 = (1.-float(data[ir0, 1]))/float(data[ir0, 0])
-        qtop = float(data[ir1, 1])/(1.-float(data[ir1, 0]))
-        qcond = np.insert(qcond, 0, qcond0)
-        qcond = np.append(qcond, qtop)
-        qtot = qadv+qcond
-        return qtot, qadv, qcond, zgrid
-
-
-    def plotprofiles(quant, *vartuple, **kwargs):
+    def plotprofiles(quant, *vartuple, integrate=False):
         """Plot the chosen profiles for the chosen timesteps
 
         quant holds the strings for the x axis annotation and
@@ -170,15 +165,6 @@ def rprof_cmd(args):
         A kwarg should be used for different options, e.g. whether
         densities of total values are plotted
         """
-        if kwargs != {}:
-            for key, value in kwargs.iteritems():
-                if key == 'integrated':
-                    integrate = value
-                else:
-                    print "kwarg value not understood %s == %s" %(key, value)
-                    print "ignored"
-        else:
-            integrate = False
 
         if integrate:
             integ = lambda f, r: f * (r/rmax)**2
@@ -205,7 +191,7 @@ def rprof_cmd(args):
             ir1 = ir0+nzi[inn, 2]-1
 
             if quant[0] == 'Energy':
-                energy = calc_energy(ir0, ir1)
+                energy = _calc_energy(data, ir0, ir1)
 
             #Plot the profiles
             if quant[0] == 'Grid':
@@ -245,17 +231,17 @@ def rprof_cmd(args):
                                 step == istart+1):
                             rfin = (rmax**3.+rmin**3.-radius**3.)**(1./3.)
                             if quant[0] == 'Concentration':
-                                conc0 = extrap(rfin, radius, profiles[:, 0])
+                                conc0 = _extrap(rfin, radius, profiles[:, 0])
                             if quant[0] == 'Temperature':
-                                temp0 = extrap(rfin, radius, profiles[:, 0])
+                                temp0 = _extrap(rfin, radius, profiles[:, 0])
                             plt.plot(donnee, rfin, '--', c=col,
                                      linewidth=lwdth, label='Overturned')
 
                         if  quant[0] == 'Concentration' and args.plot_difference:
-                            concd1 = normprof(radius, profiles[:, 0]-conc0)
+                            concd1 = _normprof(radius, profiles[:, 0]-conc0)
                             concdif.append(concd1)
                         if  quant[0] == 'Temperature' and args.plot_difference:
-                            tempd1 = normprof(radius, profiles[:, 0]-temp0)
+                            tempd1 = _normprof(radius, profiles[:, 0]-temp0)
                             tempdif.append(tempd1)
                             wmax.append(max(np.array(data[ir0:ir1, 7],
                                                      np.float)))
@@ -373,33 +359,16 @@ def rprof_cmd(args):
 
     # Now use it for the different types of profiles
 
-    if args.plot_temperature:
-        if args.plot_minmaxtemp:
-            plotprofiles(['Temperature', 'Mean', 'Minimum', 'Maximum'], 1, 2, 3,
-                         integrated=False)
-        else:
-            plotprofiles(['Temperature'], 1)
-
-    if args.plot_velocity:
-        if args.plot_minmaxvelo:
-            plotprofiles(['Vertical Velocity', 'Mean', 'Minimum', 'Maximum'],
-                         7, 8, 9)
-        else:
-            plotprofiles(['Vertical Velocity'], 7)
-
-    if args.plot_viscosity:
-        if args.plot_minmaxvisco:
-            plotprofiles(['Viscosity', 'Mean', 'Minimum', 'Maximum'],
-                         13, 14, 15)
-        else:
-            plotprofiles(['Viscosity'], 13)
-
-    if args.plot_concentration:
-        if args.plot_minmaxcon:
-            plotprofiles(['Concentration', 'Mean', 'Minimum', 'Maximum'],
-                         36, 37, 38)
-        else:
-            plotprofiles(['Concentration'], 36)
+    for var in 'tvnc': #temperature, velo, visco, concentration
+        meta = constants.RPROF_VAR_LIST[var]
+        if not misc.get_arg(args, meta.arg):
+            continue
+        labels = [meta.name]
+        cols = [meta.prof_idx]
+        if misc.get_arg(args, meta.min_max):
+            labels.extend(['Mean', 'Minimum', 'Maximum'])
+            cols.extend([meta.prof_idx+1, meta.prof_idx+2])
+        plotprofiles(labels, *cols)
 
     if args.plot_difference:
         plt.ticklabel_format(style='sci', axis='x')
@@ -417,7 +386,7 @@ def rprof_cmd(args):
                       'Up-welling'], 57, 58, 59)
         if spherical:
             plotprofiles(['Total scaled advection', 'Total', 'down-welling',
-                          'Up-welling'], 57, 58, 59, integrated=True)
+                          'Up-welling'], 57, 58, 59, integrate=True)
     if args.plot_energy:
         plotprofiles(['Energy', 'Total', 'Advection',
-                      'conduction'], 57, 58, 59, integrated=True)
+                      'conduction'], 57, 58, 59, integrate=True)
