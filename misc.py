@@ -1,5 +1,6 @@
 """miscellaneous definitions"""
 
+import f90nml
 import importlib
 from math import ceil
 import os.path
@@ -19,7 +20,6 @@ def takefield(idx):
     """return a function taking a stagdata field"""
     return lambda stagdata: stagdata.fields[idx]
 
-
 def set_arg(args, arg, val):
     """set a cmd line with arg string name"""
     vars(args)[arg] = val
@@ -29,6 +29,15 @@ def get_arg(args, arg):
     """set a cmd line with arg string name"""
     return vars(args)[arg]
 
+def readpar(path):
+    """read StagYY par file"""
+    par_file = os.path.join(path, 'par')
+    if os.path.isfile(par_file):
+        par_nml = f90nml.read(par_file)
+    else:
+        print('no par file found, check path')
+        par_nml = None
+    return par_nml
 
 def lastfile(args, begstep):
     """look for the last binary file

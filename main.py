@@ -12,8 +12,7 @@ import misc
 
 def main_func():
     """Launch appropriate subcmd"""
-    parser = config.create_parser()
-    args = parser.parse_args()
+    args = config.parse_args()
     if not args.func is commands.var_cmd:
         misc.parse_timesteps(args)
         misc.plot_backend(args)

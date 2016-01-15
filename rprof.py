@@ -33,54 +33,35 @@ def rprof_cmd(args):
     rmin = 1.19
     rmax = rmin + 1.
 
-    #Read par file in the parent or present directory.
-    # should be a separated func in misc module
-    read_par_file = True
-    if os.path.exists('../par'):
-        par_file = '../par'
-    elif os.path.exists('par'):
-        par_file = 'par'
-    else:
+    if not args.par_nml:
         print 'No par file found. Input pars by hand'
-        read_par_file = False
         rcmb = 1
         geom = str(raw_input('spherical (s) or cartesian (c)? '))
         spherical = geom == 's'
-
-    if read_par_file:
-        nml = f90nml.read(par_file)
-        spherical = (nml['geometry']['shape'] == 'spherical' or
-                     nml['geometry']['shape'] == 'Spherical')
+    else:
+        spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
         if spherical:
             rcmb = nml['geometry']['r_cmb']
         else:
             rcmb = 0.
-        stem = nml['ioin']['output_file_stem']
-        ste = stem.split('/')[-1]
-#        proffile = ste+'_rprof.dat'
-        if os.path.exists('../'+ste+'_rprof.dat'):
-            proffile = '../'+ste+'_rprof.dat'
-        elif os.path.exists(ste+'_rprof.dat'):
-            proffile = ste+'_rprof.dat'
-        elif os.path.exists(stem+'_rprof.dat'):
-            proffile = stem+'_rprof.dat'
-        else:
-            print 'No profile file found. stem = ', ste
+        proffile = os.path.join(args.path, args.name+'_rprof.dat')
+        if not os.path.isfile(proffile):
+            print 'No profile file found at', proffile
             sys.exit()
 
         rmin = rcmb
         rmax = rcmb+1
         if args.plot_conctheo:
-            if 'fe_eut' in nml['tracersin']:
-                xieut = nml['tracersin']['fe_eut']
+            if 'fe_eut' in args.par_nml['tracersin']:
+                xieut = args.par_nml['tracersin']['fe_eut']
             else:
                 xieut = 0.8
-            if 'k_fe' in nml['tracersin']:
-                k_fe = nml['tracersin']['k_fe']
+            if 'k_fe' in args.par_nml['tracersin']:
+                k_fe = args.par_nml['tracersin']['k_fe']
             else:
                 k_fe = 0.85
-            if 'fe_cont' in nml['tracersin']:
-                xi0l = nml['tracersin']['fe_cont']
+            if 'fe_cont' in args.par_nml['tracersin']:
+                xi0l = args.par_nml['tracersin']['fe_cont']
             else:
                 xi0l = 0.1
             xi0s = k_fe*xi0l
@@ -345,7 +326,7 @@ def rprof_cmd(args):
                         bbox_extra_artists=(lgd, ), bbox_inches='tight')
         plt.close(fig)
         if args.plot_difference:
-            ra = nml['refstate']['ra0']
+            ra0 = args.par_nml['refstate']['ra0']
             # plot time series of difference profiles
             if quant[0] == 'Concentration':
                 iminc = concdif.index(min(concdif))
@@ -360,7 +341,7 @@ def rprof_cmd(args):
                     #fich.write('rcmb k_fe ra tminT tminC sigma\n')
                     #fich.write("%10.5e " % rcmb)
                     #fich.write("%10.5e " % k_fe)
-                    #fich.write("%10.5e " % ra)
+                    #fich.write("%10.5e " % ra0)
                 return tsteps[iminc*istep, 2], concdif[iminc]/concdif[0]
             if quant[0] == 'Temperature':
                 axax[1].semilogy(tsteps[istart:ilast:istep, 2], tempdif/tempdif[0])
@@ -384,12 +365,10 @@ def rprof_cmd(args):
                     fich.write('rcmb k_fe ra tminT sigma tminC\n')
                     fich.write("%10.5e " % rcmb)
                     fich.write("%10.5e " % k_fe)
-                    fich.write("%10.5e " % ra)
+                    fich.write("%10.5e " % ra0)
                     fich.write("%10.5e " % tsteps[imint, 2])
                     fich.write("%10.5e " % sigma)
                 return tsteps[imint*istep, 2], tempdif[imint]/tempdif[0], iwm, wma
-                
-            
         return
 
     # Now use it for the different types of profiles

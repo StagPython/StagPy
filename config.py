@@ -7,12 +7,11 @@ and deal with the config file
 from collections import OrderedDict, namedtuple
 import argparse
 import commands
+import misc
 
 Conf = namedtuple('ConfigEntry',
         ['default', 'cmd_arg', 'shortname', 'kwargs', 'help_string'])
 CORE = OrderedDict((
-    ('path', Conf('./', True, 'p', {},
-        'StagYY output directory')),
     ('name', Conf('test', True, 'n', {},
         'StagYY generic output file name')),
     ('geometry', Conf('annulus', True, 'g', {'choices':['annulus']},
@@ -136,14 +135,24 @@ def add_args(parser, conf_dict):
     parser.set_defaults(**{a: c.default for a, c in conf_dict.items()})
     return parser
 
-def create_parser():
-    """Create cmd line args parser"""
+def parse_args():
+    """Parse cmd line arguments"""
+    dummy_parser = argparse.ArgumentParser(add_help=False)
+    dummy_parser.add_argument('-p', '--path', default='./')
+    args, _ = dummy_parser.parse_known_args()
+    par_nml = misc.readpar(args.path)
+
     main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
+    main_parser.add_argument('-p', '--path', default='./',
+            help='StagYY run directory')
     subparsers = main_parser.add_subparsers()
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
     core_parser = add_args(core_parser, CORE)
+    if par_nml:
+        core_parser.set_defaults(name=par_nml['ioin']['output_file_stem'])
+
     for sub_cmd, meta in SUB_CMDS.items():
         kwargs = {'prefix_chars':'+-', 'help':meta.help_string}
         if meta.use_core:
@@ -153,4 +162,7 @@ def create_parser():
         # have to collect the right default from config file!
         # remove --plot from config at creation!
         dummy_parser.set_defaults(func=meta.func)
-    return main_parser
+
+    args = main_parser.parse_args()
+    args.par_nml = par_nml
+    return args

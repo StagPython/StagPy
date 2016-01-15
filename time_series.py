@@ -26,44 +26,26 @@ def time_cmd(args):
     lwdth = args.linewidth
     ftsz = args.fontsize
 
-    #Read par file in the parent or present directory.
-    read_par_file = True
-    if os.path.exists('../par'):
-        par_file = '../par'
-    elif os.path.exists('par'):
-        par_file = 'par'
-    else:
+    if not args.par_nml:
         print 'No par file found. Input pars by hand'
         read_par_file = False
         rcmb = 1
         geom = str(raw_input('spherical (s) or cartesian (c)? '))
         spherical = geom == 's'
-
-    print 'par file used = ', par_file
-
-    if read_par_file:
-        nml = f90nml.read(par_file)
-        spherical = (nml['geometry']['shape'] == 'spherical' or
-                     nml['geometry']['shape'] == 'Spherical')
+    else:
+        spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
         if spherical:
-            rcmb = nml['geometry']['r_cmb']
+            rcmb = args.par_nml['geometry']['r_cmb']
         else:
             rcmb = 0.
-        stem = nml['ioin']['output_file_stem']
-        ste = stem.split('/')[-1]
-        filetype = 'time'
-        if os.path.exists('../'+ste+'_'+filetype+'.dat'):
-            timefile = '../'+ste+'_'+filetype+'.dat'
-        elif os.path.exists(ste+'_'+filetype+'.dat'):
-            timefile = ste+'_'+filetype+'.dat'
-        elif os.path.exists(stem+'_'+filetype+'.dat'):
-            timefile = stem+'_'+filetype+'.dat'
-        else:
-            print 'No profile file found. stem = ', ste
+        timefile = os.path.join(args.path, args.name+'_time.dat')
+        if not os.path.isfile(timefile)
+            print 'No profile file found at', timefile
             sys.exit()
-        rab = nml['refstate']['Ra0']
-        rah = nml['refstate']['Rh']
-        botpphase = nml['boundaries']['BotPphase']
+
+        rab = args.par_nml['refstate']['Ra0']
+        rah = args.par_nml['refstate']['Rh']
+        botpphase = args.par_nml['boundaries']['BotPphase']
 
     with open(timefile, 'r') as infile:
         first = infile.readline()
