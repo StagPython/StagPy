@@ -39,7 +39,7 @@ def time_cmd(args):
         else:
             rcmb = 0.
         timefile = os.path.join(args.path, args.name+'_time.dat')
-        if not os.path.isfile(timefile)
+        if not os.path.isfile(timefile):
             print 'No profile file found at', timefile
             sys.exit()
 

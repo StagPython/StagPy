@@ -41,7 +41,7 @@ def rprof_cmd(args):
     else:
         spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
         if spherical:
-            rcmb = nml['geometry']['r_cmb']
+            rcmb = args.par_nml['geometry']['r_cmb']
         else:
             rcmb = 0.
         proffile = os.path.join(args.path, args.name+'_rprof.dat')
