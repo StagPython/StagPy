@@ -11,6 +11,8 @@ import f90nml
 import os
 import sys
 import math
+import constants
+import misc
 
 def _normprof(rrr, func): # for args.plot_difference
     """Volumetric norm of a profile
@@ -154,7 +156,7 @@ def rprof_cmd(args):
 
     nzi = np.array(nzs)
 
-    def plotprofiles(quant, *vartuple, integrate=False):
+    def plotprofiles(quant, vartuple, integrate=False):
         """Plot the chosen profiles for the chosen timesteps
 
         quant holds the strings for the x axis annotation and
@@ -368,7 +370,7 @@ def rprof_cmd(args):
         if misc.get_arg(args, meta.min_max):
             labels.extend(['Mean', 'Minimum', 'Maximum'])
             cols.extend([meta.prof_idx+1, meta.prof_idx+2])
-        plotprofiles(labels, *cols)
+        plotprofiles(labels, cols)
 
     if args.plot_difference:
         plt.ticklabel_format(style='sci', axis='x')
@@ -377,16 +379,16 @@ def rprof_cmd(args):
 
     # Plot grid spacing
     if args.plot_grid:
-        plotprofiles(['Grid'])
+        plotprofiles(['Grid'], None)
 
     # Plot the profiles of vertical advection: total and contributions from up-
     # and down-welling currents
     if args.plot_advection:
         plotprofiles(['Advection per unit surface', 'Total', 'down-welling',
-                      'Up-welling'], 57, 58, 59)
+                      'Up-welling'], (57, 58, 59))
         if spherical:
             plotprofiles(['Total scaled advection', 'Total', 'down-welling',
-                          'Up-welling'], 57, 58, 59, integrate=True)
+                          'Up-welling'], (57, 58, 59), integrate=True)
     if args.plot_energy:
         plotprofiles(['Energy', 'Total', 'Advection',
-                      'conduction'], 57, 58, 59, integrate=True)
+                      'conduction'], (57, 58, 59), integrate=True)
