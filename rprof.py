@@ -14,6 +14,41 @@ import math
 import constants
 import misc
 
+def _readproffile(args):
+    proffile = os.path.join(args.path, args.name+'_rprof.dat')
+    if not os.path.isfile(proffile):
+        print('No profile file found at', proffile)
+        sys.exit()
+    timesteps = []
+    data0 = []
+    lnum = -1
+    with open(proffile) as stream:
+        for line in stream:
+            if line != '\n':
+                lnum += 1
+                lll = ' '.join(line.split())
+                if line[0] == '*':
+                    timesteps.append([lnum, int(lll.split(' ')[1]),
+                                      float(lll.split(' ')[5])])
+                else:
+                    llf = np.array(lll.split(' '))
+                    data0.append(llf)
+    tsteps = np.array(timesteps)
+    nsteps = tsteps.shape[0]
+    data = np.array(data0)
+    # all the processings of timesteps
+    # should be in commands.*_cmd
+    # instead of main.py
+    # since it could be different between
+    # the different modules
+    istart, ilast, istep = args.timestep
+    if ilast == -1:
+        ilast = nsteps-1
+    if istart == -1:
+        istart = nsteps-1
+    args.timestep = istart, ilast, istep
+    return data, nsteps, tsteps, lnum
+
 def _normprof(rrr, func): # for args.plot_difference
     """Volumetric norm of a profile
 
@@ -58,7 +93,6 @@ def rprof_cmd(args):
     """Plot radial profiles"""
     plt = args.plt
 
-    istart, ilast, istep = args.timestep
 
     if not (args.plot_conctheo and args.plot_temperature
             and args.plot_concentration):
@@ -76,7 +110,7 @@ def rprof_cmd(args):
     # parameters for the theoretical composition profiles
 
     if not args.par_nml: # too much parameter to define arbitrarily
-        print('No par file found. Abort')
+        print('No par file found. Abort.')
         sys.exit()
 
     spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
@@ -84,10 +118,6 @@ def rprof_cmd(args):
         rcmb = args.par_nml['geometry']['r_cmb']
     else:
         rcmb = 0.
-    proffile = os.path.join(args.path, args.name+'_rprof.dat')
-    if not os.path.isfile(proffile):
-        print('No profile file found at', proffile)
-        sys.exit()
 
     rmin = rcmb
     rmax = rcmb + 1.
@@ -116,28 +146,9 @@ def rprof_cmd(args):
             else:
                 return xieut
 
-    timesteps = []
-    data0 = []
-    lnum = -1
-    fich = open(proffile)
-    for line in fich:
-        if line != '\n':
-            lnum = lnum+1
-            lll = ' '.join(line.split())
-            if line[0] == '*':
-                timesteps.append([lnum, int(lll.split(' ')[1]),
-                                  float(lll.split(' ')[5])])
-            else:
-                llf = np.array(lll.split(' '))
-                data0.append(llf)
+    data, nsteps, tsteps, lnum = _readproffile(args)
 
-    tsteps = np.array(timesteps)
-    nsteps = tsteps.shape[0]
-    data = np.array(data0)
-    if ilast == -1:
-        ilast = nsteps-1
-    if istart == -1:
-        istart = nsteps-1
+    istart, ilast, istep = args.timestep
 
     nzp = []
     for iti in range(0, nsteps-1):
@@ -163,9 +174,6 @@ def rprof_cmd(args):
         the legends for the additional profiles
 
         vartuple contains the numbers of the column to be plotted
-
-        A kwarg should be used for different options, e.g. whether
-        densities of total values are plotted
         """
 
         if integrate:
