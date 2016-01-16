@@ -47,7 +47,22 @@ def _readproffile(args):
     if istart == -1:
         istart = nsteps-1
     args.timestep = istart, ilast, istep
-    return data, nsteps, tsteps, lnum
+
+    nzp = []
+    for iti in range(0, nsteps-1):
+        nzp = np.append(nzp, tsteps[iti+1, 0]-tsteps[iti, 0]-1)
+
+    nzp = np.append(nzp, lnum-tsteps[nsteps-1, 0])
+    nzs = [[0, 0, 0]]
+    nzc = 0
+    for iti in range(1, nsteps):
+        if nzp[iti] != nzp[iti-1]:
+            nzs.append([iti, iti-nzc, int(nzp[iti-1])])
+            nzc = iti
+    if nzp[nsteps-1] != nzs[-1][1]:
+        nzs.append([nsteps, nsteps-nzc, int(nzp[nsteps-1])])
+    nzi = np.array(nzs)
+    return data, tsteps, nzi
 
 def _normprof(rrr, func): # for args.plot_difference
     """Volumetric norm of a profile
@@ -146,26 +161,9 @@ def rprof_cmd(args):
             else:
                 return xieut
 
-    data, nsteps, tsteps, lnum = _readproffile(args)
+    data, tsteps, nzi = _readproffile(args)
 
     istart, ilast, istep = args.timestep
-
-    nzp = []
-    for iti in range(0, nsteps-1):
-        nzp = np.append(nzp, tsteps[iti+1, 0]-tsteps[iti, 0]-1)
-
-    nzp = np.append(nzp, lnum-tsteps[nsteps-1, 0])
-
-    nzs = [[0, 0, 0]]
-    nzc = 0
-    for iti in range(1, nsteps):
-        if nzp[iti] != nzp[iti-1]:
-            nzs.append([iti, iti-nzc, int(nzp[iti-1])])
-            nzc = iti
-    if nzp[nsteps-1] != nzs[-1][1]:
-        nzs.append([nsteps, nsteps-nzc, int(nzp[nsteps-1])])
-
-    nzi = np.array(nzs)
 
     def plotprofiles(quant, vartuple, integrate=False):
         """Plot the chosen profiles for the chosen timesteps
