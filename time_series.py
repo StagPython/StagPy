@@ -18,9 +18,6 @@ def find_nearest(array, value):
 
 def time_cmd(args):
     """plot temporal series"""
-    test = raw_input('Compute statistics? [Y/n] ')
-    compstat = test == 'y' or not test
-
     plt = args.plt
 
     lwdth = args.linewidth
@@ -99,7 +96,7 @@ def time_cmd(args):
 
     plt.savefig("flux_time.pdf", format='PDF')
 
-    if compstat:
+    if args.compstat:
         coords = []
         print 'right click to select starting time of statistics computations'
         # Simple mouse click function to store coordinates
@@ -124,7 +121,7 @@ def time_cmd(args):
     rms = []
     ebal = []
     rms_ebal = []
-    if compstat:
+    if args.compstat:
         ch1 = np.where(time == (find_nearest(time, coords[0][0])))
 
         print 'Statistics computed from t ='+str(time[ch1[0][0]])
