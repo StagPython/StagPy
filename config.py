@@ -12,6 +12,8 @@ import misc
 Conf = namedtuple('ConfigEntry',
         ['default', 'cmd_arg', 'shortname', 'kwargs', 'help_string'])
 CORE = OrderedDict((
+    ('path', Conf('./', True, 'p', {},
+                'StagYY run directory')),
     ('name', Conf('test', True, 'n', {},
         'StagYY generic output file name')),
     ('geometry', Conf('annulus', True, 'g', {'choices':['annulus']},
@@ -138,14 +140,14 @@ def add_args(parser, conf_dict):
 def parse_args():
     """Parse cmd line arguments"""
     dummy_parser = argparse.ArgumentParser(add_help=False)
-    dummy_parser.add_argument('-p', '--path', default='./')
+    dummy_parser = add_args(dummy_parser, {'path':CORE['path']})
     args, _ = dummy_parser.parse_known_args()
+    path = args.path
     par_nml = misc.readpar(args.path)
 
     main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
-    main_parser.add_argument('-p', '--path', default='./',
-            help='StagYY run directory')
+    main_parser = add_args(main_parser, {'path':CORE['path']})
     subparsers = main_parser.add_subparsers()
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
@@ -164,5 +166,6 @@ def parse_args():
         dummy_parser.set_defaults(func=meta.func)
 
     args = main_parser.parse_args()
+    args.path = path
     args.par_nml = par_nml
     return args
