@@ -24,8 +24,12 @@ def rprof_cmd(args):
     """plot radial profiles"""
     if args.plot is not None:
         for var, meta in constants.RPROF_VAR_LIST.items():
-            misc.set_arg(args, meta.arg, var in args.plot)
-            if meta.min_max and var in args.plot.lower():
+            if var in args.plot:
+                misc.set_arg(args, meta.arg, True)
+                misc.set_arg(args, meta.min_max, False)
+            else:
+                misc.set_arg(args, meta.arg, False)
+            if meta.min_max and var.upper() in args.plot:
                 misc.set_arg(args, meta.arg, True)
                 misc.set_arg(args, meta.min_max, True)
     rprof.rprof_cmd(args)
