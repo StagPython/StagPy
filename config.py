@@ -4,96 +4,114 @@ Create the cmd line argument parser
 and deal with the config file
 """
 
+from __future__ import print_function
+
 from collections import OrderedDict, namedtuple
+from os import mkdir
 import argparse
+import ConfigParser
+import os.path
 import commands
 import misc
 
+CONFIG_DIR = os.path.expanduser('~/.config/stagpy')
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'config')
+
 Conf = namedtuple('ConfigEntry',
-        ['default', 'cmd_arg', 'shortname', 'kwargs', 'help_string'])
+        ['default', 'cmd_arg', 'shortname', 'kwargs',
+            'conf_arg', 'help_string'])
 CORE = OrderedDict((
     ('path', Conf('./', True, 'p', {},
-                'StagYY run directory')),
+        True, 'StagYY run directory')),
     ('name', Conf('test', True, 'n', {},
-        'StagYY generic output file name')),
+        True, 'StagYY generic output file name')),
     ('geometry', Conf('annulus', True, 'g', {'choices':['annulus']},
-        'geometry of the domain')),
+        True, 'geometry of the domain')),
     ('timestep', Conf('100', True, 's', {},
-        'timestep slice')),
+        True, 'timestep slice')),
     ('xkcd', Conf(False, True, None, {},
-        'use the xkcd style')),
+        True, 'use the xkcd style')),
     ('pdf', Conf(False, True, None, {},
-        'produce non-rasterized pdf (slow!)')),
+        True, 'produce non-rasterized pdf (slow!)')),
     ('dsa', Conf(0.05, False, None, {},
-        'thickness of sticky air')),
+        True, 'thickness of sticky air')),
     ('fontsize', Conf(16, False, None, {},
-        'font size')),
+        True, 'font size')),
     ('matplotback', Conf('agg', False, None, {},
-        'graphical backend')),
+        True, 'graphical backend')),
     ('useseaborn', Conf(True, False, None, {},
-        'use or not seaborn')),
+        True, 'use or not seaborn')),
     ))
 FIELD = OrderedDict((
     ('plot', Conf(None, True, 'o',
         {'nargs':'?', 'const':'', 'type':str},
-        'specify which variable to plot')),
+        False, 'specify which variable to plot')),
     ('plot_temperature', Conf(True, False, None, {},
-        'temperature scalar field')),
+        True, 'temperature scalar field')),
     ('plot_pressure', Conf(True, False, None, {},
-        'pressure scalar field')),
+        True, 'pressure scalar field')),
     ('plot_stream', Conf(True, False, None, {},
-        'stream function scalar field')),
+        True, 'stream function scalar field')),
     ('plot_composition', Conf(False, False, None, {},
-        'composition scalar field')),
+        True, 'composition scalar field')),
     ('plot_viscosity', Conf(False, False, None, {},
-        'viscosity scalar field')),
+        True, 'viscosity scalar field')),
     ('plot_density', Conf(False, False, None, {},
-        'density scalar field')),
+        True, 'density scalar field')),
     ('shrinkcb', Conf(0.5, False, None, {},
-        'color bar shrink factor')),
+        True, 'color bar shrink factor')),
     ))
 RPROF = OrderedDict((
     ('plot', Conf(None, True, 'o',
         {'nargs':'?', 'const':'', 'type':str},
-        'specify which variable to plot')),
+        False, 'specify which variable to plot')),
     ('plot_grid', Conf(True, False, None, {},
-        'plot grid')),
+        True, 'plot grid')),
     ('plot_temperature', Conf(True, False, None, {},
-        'plot temperature')),
+        True, 'plot temperature')),
     ('plot_minmaxtemp', Conf(False, False, None, {},
-        'plot min and max temperature')),
+        True, 'plot min and max temperature')),
     ('plot_velocity', Conf(True, False, None, {},
-        'plot velocity')),
+        True, 'plot velocity')),
     ('plot_minmaxvelo', Conf(False, False, None, {},
-        'plot min and max velocity')),
+        True, 'plot min and max velocity')),
     ('plot_viscosity', Conf(False, False, None, {},
-        'plot viscosity')),
+        True, 'plot viscosity')),
     ('plot_minmaxvisco', Conf(False, False, None, {},
-        'plot min and max viscosity')),
+        True, 'plot min and max viscosity')),
     ('plot_advection', Conf(True, False, None, {},
-        'plot heat advction')),
+        True, 'plot heat advction')),
     ('plot_energy', Conf(True, False, None, {},
-        'plot energy')),
+        True, 'plot energy')),
     ('plot_concentration', Conf(True, False, None, {},
-        'plot concentration')),
+        True, 'plot concentration')),
     ('plot_minmaxcon', Conf(False, False, None, {},
-        'plot min and max concentration')),
+        True, 'plot min and max concentration')),
     ('plot_conctheo', Conf(True, False, None, {},
-        'plot concentration theo')),
+        True, 'plot concentration theo')),
     ('plot_overturn_init', Conf(True, False, None, {},
-        'plot overturn init')),
+        True, 'plot overturn init')),
     ('plot_difference', Conf(True, False, None, {},
-        'plot difference between T and C profs and overturned \
+        True, 'plot difference between T and C profs and overturned \
                 version of their initial values')),
     ('linewidth', Conf(2, False, None, {},
-        'line width')),
+        True, 'line width')),
     ))
 TIME = OrderedDict((
     ('compstat', Conf(True, True, None, {},
-        'compute steady state statistics')),
+        True, 'compute steady state statistics')),
     ))
-# one could use compstat to determine whether agg can be used or not
 VAR = OrderedDict((
+    ))
+CONFIG = OrderedDict((
+    ('create', Conf(None, True, None, {'action':'store_true'},
+        False, 'create new config file')),
+    ('update', Conf(None, True, None, {'action':'store_true'},
+        False, 'add missing entries to existing config file')),
+    ('edit', Conf(None, True, None, {'action':'store_true'},
+        False, 'open config file in a text editor')),
+    ('editor', Conf('vim', False, None, {},
+        True, 'text editor')),
     ))
 
 Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func', 'help_string'])
@@ -106,7 +124,72 @@ SUB_CMDS = OrderedDict((
         'plot temporal series')),
     ('var', Sub(VAR, False, commands.var_cmd,
         'print the list of variables')),
+    ('config', Sub(CONFIG, False, commands.config_cmd,
+        'configuration handling')),
     ))
+DummySub = namedtuple('DummySub', ['conf_dict'])
+DUMMY_CORE = OrderedDict((
+    ('core', DummySub(CORE)),
+    ))
+
+def _set_conf_default(conf_dict, opt, dflt):
+    """set default value of option in conf_dict"""
+    conf_dict[opt] = conf_dict[opt]._replace(default=dflt)
+
+def create_config():
+    """Create config file"""
+    if not os.path.isdir(CONFIG_DIR):
+        mkdir(CONFIG_DIR)
+    config_parser = ConfigParser.ConfigParser()
+    for sub_cmd, meta in DUMMY_CORE.items() + SUB_CMDS.items():
+        config_parser.add_section(sub_cmd)
+        for opt, opt_meta in meta.conf_dict.items():
+            if opt_meta.conf_arg:
+                config_parser.set(sub_cmd, opt, str(opt_meta.default))
+    with open(CONFIG_FILE, 'w') as out_stream:
+        config_parser.write(out_stream)
+
+def read_config(args):
+    """Read config file and set conf_dict as needed"""
+    if not os.path.isfile(CONFIG_FILE):
+        if not args.update:
+            print('Config file {} not found.'.format(CONFIG_FILE))
+            print('Run stagpy config --create')
+        return
+    config_parser = ConfigParser.ConfigParser()
+    config_parser.read(CONFIG_FILE)
+    missing_sections = []
+    for sub_cmd, meta in DUMMY_CORE.items() + SUB_CMDS.items():
+        if not config_parser.has_section(sub_cmd):
+            missing_sections.append(sub_cmd)
+            continue
+        missing_opts = []
+        for opt, meta_opt in meta.conf_dict.items():
+            if not config_parser.has_option(sub_cmd, opt):
+                if meta_opt.conf_arg:
+                    missing_opts.append(opt)
+                continue
+            if isinstance(meta_opt.default, bool):
+                dflt = config_parser.getboolean(sub_cmd, opt)
+            elif isinstance(meta_opt.default, float):
+                dflt = config_parser.getfloat(sub_cmd, opt)
+            elif isinstance(meta_opt.default, int):
+                dflt = config_parser.getint(sub_cmd, opt)
+            else:
+                dflt = config_parser.get(sub_cmd, opt)
+            _set_conf_default(meta.conf_dict, opt, dflt)
+        if missing_opts and not args.update:
+            print('WARNING! Missing options in {} section of config file:'.
+                    format(sub_cmd))
+            print(*missing_opts)
+            print()
+    if missing_sections and not args.update:
+        print('WARNING! Missing sections in config file:')
+        print(*missing_sections)
+        print()
+    if (missing_sections or missing_opts) and not args.update:
+        print('Run stagpy config --update to update config file')
+        print()
 
 class Toggle(argparse.Action):
 
@@ -128,7 +211,8 @@ def add_args(parser, conf_dict):
                 names.append('-{}'.format(conf.shortname))
                 names.append('+{}'.format(conf.shortname))
         else:
-            conf.kwargs.setdefault('type', type(conf.default))
+            if conf.default is not None:
+                conf.kwargs.setdefault('type', type(conf.default))
             names = ['--{}'.format(arg)]
             if conf.shortname is not None:
                 names.append('-{}'.format(conf.shortname))
@@ -139,11 +223,35 @@ def add_args(parser, conf_dict):
 
 def parse_args():
     """Parse cmd line arguments"""
+    #get path from config file before
     dummy_parser = argparse.ArgumentParser(add_help=False)
+    _, remainder = dummy_parser.parse_known_args()
+    keep_cmd_path = '-p' in remainder or '--path' in remainder
     dummy_parser = add_args(dummy_parser, {'path':CORE['path']})
-    args, _ = dummy_parser.parse_known_args()
-    path = args.path
-    par_nml = misc.readpar(args.path)
+    args, remainder = dummy_parser.parse_known_args()
+    cmd_path = args.path
+    _set_conf_default(CORE, 'path', args.path)
+    if 'config' in remainder:
+        dummy_sub = dummy_parser.add_subparsers()
+        dummy_conf = dummy_sub.add_parser('config', add_help=False)
+        dummy_conf = add_args(dummy_conf, CONFIG)
+        args, _ = dummy_parser.parse_known_args()
+    else:
+        args.create = False
+        args.edit = False
+        args.update = False
+    if not (args.create or args.edit):
+        try:
+            read_config(args)
+        except:
+            print('ERROR while reading config file')
+            print('Run stagpy config --create to obtain a new config file')
+            print('='*26)
+            raise
+    if keep_cmd_path:
+        args.path = cmd_path
+        _set_conf_default(CORE, 'path', args.path)
+    par_nml = misc.readpar(args)
 
     main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
@@ -161,11 +269,8 @@ def parse_args():
             kwargs.update(parents=[core_parser])
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
         dummy_parser = add_args(dummy_parser, meta.conf_dict)
-        # have to collect the right default from config file!
-        # remove --plot from config at creation!
         dummy_parser.set_defaults(func=meta.func)
 
     args = main_parser.parse_args()
-    args.path = path
     args.par_nml = par_nml
     return args

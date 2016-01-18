@@ -6,16 +6,11 @@ Author: Martina Ulvrova
 Date: 2014/12/02
 """
 
-import commands
 import config
-import misc
 
 def main_func():
     """Launch appropriate subcmd"""
     args = config.parse_args()
-    if not args.func is commands.var_cmd:
-        misc.parse_timesteps(args)
-        misc.plot_backend(args)
     args.func(args)
     
 
