@@ -274,7 +274,8 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                              'o', label=r'$t=%.2e$' % (tsteps[iminc, 2]))
             axax[0].set_ylabel('Composition diff.')
             plt.legend(loc='upper right')
-            return tsteps[iminc*istep, 2], concdif[iminc]/concdif[0], iminc
+            return tsteps[iminc*istep, 2], concdif[iminc]/concdif[0], iminc,\
+                    timename
         if quant[0] == 'Temperature':
             axax[1].semilogy(tsteps[istart:ilast:istep, 2], tempdif/tempdif[0])
             imint = tempdif.index(min(tempdif))
@@ -294,7 +295,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                              label=r'$sigma=%.2e$' % sigma)
             plt.legend(loc='upper right')
             return tsteps[imint*istep, 2], tempdif[imint]/tempdif[0], iwm,\
-                    wma, imint, sigma
+                    wma, imint, sigma, timename
     return None
 
 def rprof_cmd(args):
@@ -367,13 +368,14 @@ def rprof_cmd(args):
         out = plotprofiles(labels, cols, data, tsteps, nzi, rbounds,
                 args, ctheoarg)
         if var == 't' and args.plot_difference:
-            _, _, _, _, imint, sigma = out
+            _, _, _, _, imint, sigma, timename = out
         if var == 'c' and args.plot_difference:
-            _, _, iminc = out
+            _, _, iminc, timename = out
 
     if args.plot_difference:
         args.plt.ticklabel_format(style='sci', axis='x')
-        args.plt.savefig("Difference_to_overturned.pdf", format='PDF')
+        args.plt.savefig("Difference_to_overturned{}.pdf".format(timename),
+                format='PDF')
         args.plt.close(figd)
         with open('statmin.dat', 'w') as fich:
             fmt = '{:12}'*6 + '\n'
