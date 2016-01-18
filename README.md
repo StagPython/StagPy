@@ -1,9 +1,47 @@
 [![Code Health](https://landscape.io/github/mulvrova/StagPy/master/landscape.svg?style=flat-square)](https://landscape.io/github/mulvrova/StagPy/master)
 
-Read binary output files of STAGYY
+# StagPy
 
-`main.py` is the "master" file which uses definitions from the other scripts to
-call the right subcommand which in turn processes StagYY data.
+StagPy is a command line tool to read and process StagYY output files to
+produce high-quality figures.
+
+The aim is to have different cases in one file (Cartesian, Spherical Annulus,
+etc).
+
+The code to read the binary output files has been adapted from a matlab version
+initially developed by Boris Kaus.
+
+## Installation
+
+StagPy uses the following non-standard modules: numpy, scipy, f90nml,
+matplotlib, and seaborn (the latter is optional and can be turned off with the
+`core.useseaborn` option). Please make sure these modules are available on your
+system.
+
+The installation process is simple:
+
+    git clone https://github.com/mulvrova/StagPy.git
+    cd StagPy
+    ./install.sh
+
+The `install.sh` script execution is not compulsory as it actually does only
+two things that are not necessary for StagPy to work properly:
+
+- create a soft link named `stagpy` in your `~/bin` directory towards the
+  `main.py` file of StagPy;
+- execute `./main.py config --create` to create a global config file
+  `~/.config/stagpy/config`.
+
+In the following documentation, the existence of a link (accessible in your
+`PATH` environment variable) named `stagpy` is assumed. To check that
+everything work fine, go to the `data` directory of the repository and run
+
+    stagpy field
+
+Three PDF files with a plot of the temperature, pressure and
+stream function fields should appear.
+
+## Available commands
 
 The available subcommands are the following:
 
@@ -11,26 +49,22 @@ The available subcommands are the following:
   function;
 - `rprof`: computes and/or plots radial profiles;
 - `time`: computes and/or plots time series;
-- `var`: displays a list of available variables.
+- `var`: displays a list of available variables;
+- `config`: configuration handling.
 
-StagPy uses the external modules `matplotlib` and `numpy`, please install them
-if needed. To check that everything work fine, go to the `data` directory of
-the repository and run `../main.py field`. Three PDF files with a plot of the
-temperature, pressure and stream function fields should appear.
+You can run `stagpy --help` (or `stagpy -h`) to display a help message describing
+those subcommands. You can also run `stagpy <subcommand> --help` to have some
+help on the available options for one particular sub command.
 
-To make StagPy available from everywhere in your system, you can make a soft
-link toward `main.py` in a directory which is in your PATH environment variable
-(e.g. `ln -s $PWD/main.py ~/bin/stagpy`).
+StagPy looks for a StagYY `par` file in the current directory. It then reads
+the value of the `output_file_stem` option to determine the location and name
+of the StagYY output files (set to `test` if no `par` file can be found).
+You can change the directory in which StagYY looks for a `par` file by two
+different ways:
 
-By default, StagPy looks for the binary data files in the current directory,
-with a name `test_x00100`. `x` is replaced by the needed parameter name (e.g.
-`t` if you want to read the temperature data file).
-
-You can change the default behaviour by editing the `defaut_config` variable
-definition in the `constants.py` module. You can also ask for a specific file
-from the command line. For example, if your data file is `output/bin_x05600`,
-you can access it with `./main.py field -p output -n bin -s 5600` (see
-`./main.py -h` for a complete list of options).
+- you can change the default behavior in a global way by editing the config
+  file (`stagpy config --edit`) and change the `core.path` variable;
+- or you can change the path only for the current run with the `-p` option.
 
 The time step option `-s` allows you to specify a range of time steps in a way
 which mimic the slicing syntax: `begin:end:gap` (both ends included). If the
@@ -44,13 +78,7 @@ specified, all available time steps are processed. Here are some examples:
 - `-s :453` will process every time steps from the 0th to the 453rd one;
 - `-s ::2` will process every even time steps.
 
-
 By default, the temperature, pressure and stream function fields are plotted.
 You can change this with the `-o` option (e.g. `./main.py field -o ps` to plot
 only the pressure and stream function fields).
 
-The aim is to have different cases in one file (Cartesian, Spherical Annulus,
-etc).
-
-The code to read the binary output files has been adapted from a matlab version
-initially developed by Boris Kaus.
