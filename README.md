@@ -37,6 +37,10 @@ the following line (right before the dependencies related outputs):
 This directory will have to be in your `PATH` environment variable for the
 `stagpy` command to be available.
 
+To create the global config file used by `stagpy`, run:
+
+    stagpy config --create
+
 To check that everything work fine, go to the `data` directory of the
 repository and run:
 
