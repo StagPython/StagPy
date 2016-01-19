@@ -22,10 +22,7 @@ The installation process is hence fairly simple:
 
     git clone https://github.com/mulvrova/StagPy.git
     cd StagPy
-    python2 setup.py install --user
-
-You might want to drop the `--user` option if you install StagPy in a
-virtualenv or as root.
+    make
 
 `setuptools` should create a script named `stagpy` that allows you to run
 StagPy directly by running `stagpy` in a terminal. The installation location of
@@ -36,10 +33,6 @@ the following line (right before the dependencies related outputs):
 
 This directory will have to be in your `PATH` environment variable for the
 `stagpy` command to be available.
-
-To create the global config file used by `stagpy`, run:
-
-    stagpy config --create
 
 To check that everything work fine, go to the `data` directory of the
 repository and run:
