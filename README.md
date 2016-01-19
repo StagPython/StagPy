@@ -18,6 +18,12 @@ matplotlib, and seaborn (the latter is optional and can be turned off with the
 `core.useseaborn` option). These dependencies will be checked and needed
 installation performed by `setuptools` in a `virtualenv`.
 
+`virtualenv` is probably already installed on your computer, if this is not the
+case `python2` will raise an error along the lines of `No module named
+virtualenv`.  You can then install it by running `python -m pip install
+virtualenv --user`. If this raise an error, see [this documentation to install
+pip](http://python-packaging-user-guide.readthedocs.org/en/latest/installing/#install-pip-setuptools-and-wheel).
+
 The installation process is hence fairly simple:
 
     git clone https://github.com/mulvrova/StagPy.git
