@@ -9,6 +9,7 @@ from __future__ import print_function
 from collections import OrderedDict, namedtuple
 from os import mkdir
 from subprocess import call
+import argcomplete
 import argparse
 import ConfigParser
 import os.path
@@ -279,6 +280,7 @@ def parse_args():
         dummy_parser = add_args(dummy_parser, meta.conf_dict)
         dummy_parser.set_defaults(func=meta.func)
 
+    argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
     args.par_nml = par_nml
     return args

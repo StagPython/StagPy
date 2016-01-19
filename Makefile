@@ -5,29 +5,64 @@ LINK=$(LINK_DIR)/$(LINK_NAME)
 VENV=venv
 STAGPY=$(VENV)/bin/stagpy
 
-.PHONY: all install config clean uninstall
+.PHONY: all install config clean uninstall autocomplete
+.PHONY: info infopath infozsh infobash
 
 OBJS=setup.py stagpy/*.py
 
-all: install config
+all: install config infopath autocomplete
 
 config: $(STAGPY)
-	$(STAGPY) config --create
+	@$(STAGPY) config --create
+	@echo 'Config file created!'
 
-install: $(STAGPY)
+install: $(LINK)
+	@echo
+	@echo 'Installation completed!'
+
+autocomplete: .comp.zsh .comp.sh infozsh infobash
+
+.comp.zsh:
+	@echo 'autoload bashcompinit' > $@
+	@echo 'bashcompinit' >> $@
+	@echo 'eval "$$($(VENV)/bin/register-python-argcomplete $(LINK_NAME))"' >> $@
+
+.comp.sh:
+	@echo 'eval "$$($(VENV)/bin/register-python-argcomplete $(LINK_NAME))"' > $@
+
+$(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
-	ln -fs $(PWD)/$(STAGPY) $(LINK)
+	ln -s $(PWD)/$(STAGPY) $(LINK)
 
 $(STAGPY): $(VENV) $(OBJS)
 	$(VENV)/bin/python setup.py install
 
 $(VENV):
 	python2 -m virtualenv --system-site-packages $@
+	$@/bin/pip install -I argcomplete
+
+info: infopath infozsh infobash
+
+infopath:
+	@echo
+	@echo 'Add $(LINK_DIR) to your path to be able to call StagPy from anywhere'
+
+infozsh:
+	@echo
+	@echo 'Add'
+	@echo ' source $(PWD)/.comp.zsh'
+	@echo 'to your ~/.zshrc to enjoy command line completion with zsh!'
+
+infobash:
+	@echo
+	@echo 'Add'
+	@echo ' source $(PWD)/.comp.sh'
+	@echo 'to your ~/.bashrc to enjoy command line completion with bash!'
 
 clean: uninstall
 	@echo 'Removing build and virtualenv files'
 	rm -rf build/ dist/ StagPy.egg-info/ $(VENV)
-	rm -f *.pyc stagpy/*.pyc
+	rm -f *.pyc stagpy/*.pyc .comp.zsh .comp.sh
 
 uninstall:
 	@echo 'Removing config file...'

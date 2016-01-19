@@ -1,6 +1,8 @@
 *.pyc
 *.pdf
 *.swp
+.comp.zsh
+.comp.sh
 StagPy.egg-info/
 build/
 dist/

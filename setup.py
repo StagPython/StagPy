@@ -15,5 +15,6 @@ setup(
         'f90nml',
         'matplotlib',
         'seaborn',
+        'argcomplete',
         ],
     )

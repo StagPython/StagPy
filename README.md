@@ -34,6 +34,10 @@ A soft link named `stagpy` is created in your `~/bin` directory allows you to
 launch StagPy directly by running `stagpy` in a terminal (provided that `~/bin`
 is in your `PATH` environment variable).
 
+Two files `.comp.zsh` and `.comp.sh` are created. Source them respectively in
+`~/.zshrc` and `~/.bashrc` to enjoy command line completion with zsh and bash.
+Run `make info` to obtain the right sourcing commands.
+
 To check that everything work fine, go to the `data` directory of the
 repository and run:
 
