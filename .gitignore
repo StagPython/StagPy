@@ -4,3 +4,4 @@
 StagPy.egg-info/
 build/
 dist/
+venv/
