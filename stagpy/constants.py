@@ -1,8 +1,7 @@
 """defines some constants"""
 
 from collections import OrderedDict, namedtuple
-import misc
-import processing
+from . import misc, processing
 
 Varf = namedtuple('Varf', ['par', 'name', 'arg', 'func'])
 FIELD_VAR_LIST = OrderedDict((

@@ -2,9 +2,7 @@
 
 import struct
 import numpy as np
-
-import constants
-import misc
+from . import constants, misc
 
 
 class StagyyData(object):

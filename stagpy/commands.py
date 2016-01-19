@@ -4,12 +4,8 @@ from __future__ import print_function
 
 import shlex
 from subprocess import call
-import config
-import constants
-import misc
-import rprof
-from stag import StagyyData
-import time_series
+from . import constants, misc, rprof, time_series
+from .stag import StagyyData
 
 def field_cmd(args):
     """plot snapshots of scalar fields"""
@@ -58,11 +54,4 @@ def var_cmd(_):
     print('rprof:')
     print(*('{}: {}'.format(v, m.name)
         for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
-
-def config_cmd(args):
-    """handling of configuration"""
-    if args.create or args.update:
-        config.create_config()
-    if args.edit:
-        call(shlex.split(args.editor + ' ' + config.CONFIG_FILE))
 

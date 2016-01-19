@@ -11,8 +11,7 @@ import f90nml
 import os
 import sys
 import math
-import constants
-import misc
+from . import constants, misc
 
 def _readproffile(args):
     proffile = os.path.join(args.path, args.name+'_rprof.dat')

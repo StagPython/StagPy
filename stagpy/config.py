@@ -11,8 +11,7 @@ from os import mkdir
 import argparse
 import ConfigParser
 import os.path
-import commands
-import misc
+from . import commands, misc
 
 CONFIG_DIR = os.path.expanduser('~/.config/stagpy')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config')
@@ -114,6 +113,13 @@ CONFIG = OrderedDict((
         True, 'text editor')),
     ))
 
+def config_cmd(args):
+    """sub command config"""
+    if args.create or args.update:
+        config.create_config()
+    if args.edit:
+        call(shlex.split(args.editor + ' ' + config.CONFIG_FILE))
+
 Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func', 'help_string'])
 SUB_CMDS = OrderedDict((
     ('field', Sub(FIELD, True, commands.field_cmd,
@@ -124,7 +130,7 @@ SUB_CMDS = OrderedDict((
         'plot temporal series')),
     ('var', Sub(VAR, False, commands.var_cmd,
         'print the list of variables')),
-    ('config', Sub(CONFIG, False, commands.config_cmd,
+    ('config', Sub(CONFIG, False, config_cmd,
         'configuration handling')),
     ))
 DummySub = namedtuple('DummySub', ['conf_dict'])

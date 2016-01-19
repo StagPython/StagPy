@@ -15,26 +15,30 @@ initially developed by Boris Kaus.
 
 StagPy uses the following non-standard modules: numpy, scipy, f90nml,
 matplotlib, and seaborn (the latter is optional and can be turned off with the
-`core.useseaborn` option). Please make sure these modules are available on your
-system.
+`core.useseaborn` option). These dependencies will be checked and needed
+installation performed by `setuptools`.
 
-The installation process is simple:
+The installation process is hence fairly simple:
 
     git clone https://github.com/mulvrova/StagPy.git
     cd StagPy
-    ./install.sh
+    python2 setup.py install --user
 
-The `install.sh` script execution is not compulsory as it actually does only
-two things that are not necessary for StagPy to work properly:
+You might want to drop the `--user` option if you install StagPy in a
+virtualenv or as root.
 
-- create a soft link named `stagpy` in your `~/bin` directory towards the
-  `main.py` file of StagPy;
-- execute `./main.py config --create` to create a global config file
-  `~/.config/stagpy/config`.
+`setuptools` should create a script named `stagpy` that allows you to run
+StagPy directly by running `stagpy` in a terminal. The installation location of
+this script is shown in the output of the last command, which should contain
+the following line (right before the dependencies related outputs):
 
-In the following documentation, the existence of a link (accessible in your
-`PATH` environment variable) named `stagpy` is assumed. To check that
-everything work fine, go to the `data` directory of the repository and run
+    Installing stagpy script to /home/username/.local/bin
+
+This directory will have to be in your `PATH` environment variable for the
+`stagpy` command to be available.
+
+To check that everything work fine, go to the `data` directory of the
+repository and run:
 
     stagpy field
 
