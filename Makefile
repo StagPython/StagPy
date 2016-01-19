@@ -15,6 +15,7 @@ config: ${STAGPY}
 	${STAGPY} config --create
 
 install: ${STAGPY}
+	@mkdir -p ${LINK_DIR}
 	ln -fs ${PWD}/${STAGPY} ${LINK}
 
 ${STAGPY}: ${VENV}
