@@ -12,6 +12,7 @@ from subprocess import call
 import argparse
 import ConfigParser
 import os.path
+import shlex
 from . import commands, misc
 
 CONFIG_DIR = os.path.expanduser('~/.config/stagpy')

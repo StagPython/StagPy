@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import shlex
 from . import constants, misc, rprof, time_series
 from .stag import StagyyData
 
