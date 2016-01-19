@@ -36,6 +36,8 @@ CORE = OrderedDict((
         True, 'thickness of sticky air')),
     ('fontsize', Conf(16, False, None, {},
         True, 'font size')),
+    ('linewidth', Conf(2, False, None, {},
+        True, 'line width')),
     ('matplotback', Conf('agg', False, None, {},
         True, 'graphical backend')),
     ('useseaborn', Conf(True, False, None, {},
@@ -93,8 +95,6 @@ RPROF = OrderedDict((
     ('plot_difference', Conf(True, False, None, {},
         True, 'plot difference between T and C profs and overturned \
                 version of their initial values')),
-    ('linewidth', Conf(2, False, None, {},
-        True, 'line width')),
     ))
 TIME = OrderedDict((
     ('compstat', Conf(True, True, None, {},
