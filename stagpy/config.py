@@ -102,6 +102,12 @@ RPROF = OrderedDict((
 TIME = OrderedDict((
     ('compstat', Conf(True, True, None, {},
         True, 'compute steady state statistics')),
+    ('annottmin', Conf(False, True, None, {},
+        True, 'put an arrow at tminc and tmint')),
+    ('tmint', Conf(0., True, None, {},
+        False, 'specify tmint')),
+    ('tminc', Conf(0., True, None, {},
+        False, 'specify tminc')),
     ))
 VAR = OrderedDict((
     ))

@@ -87,6 +87,12 @@ def time_cmd(args):
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
 
+    if args.annottmin:
+        plt.annotate('tminT', xy=(args.tmint, 0), xytext=(args.tmint, -10),
+                arrowprops={'facecolor':'black'})
+        plt.annotate('tminC', xy=(args.tminc, 0), xytext=(args.tminc, 10),
+                arrowprops={'facecolor':'black'})
+
     plt.subplot(2, 1, 2)
     plt.plot(time, data[:, 5], 'k', linewidth=lwdth)
     plt.xlabel('Time', fontsize=ftsz)
@@ -148,4 +154,3 @@ def time_cmd(args):
             fich.write("%10.5e " % item)
         fich.write("\n")
         fich.close()
-
