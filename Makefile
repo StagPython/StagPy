@@ -33,7 +33,7 @@ autocomplete: .comp.zsh .comp.sh infozsh infobash
 
 $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
-	ln -s $(PWD)/$(STAGPY) $(LINK)
+	ln -sf $(PWD)/$(STAGPY) $(LINK)
 
 $(STAGPY): $(VENV) $(OBJS)
 	$(VENV)/bin/python setup.py install
