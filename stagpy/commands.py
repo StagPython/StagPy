@@ -1,7 +1,5 @@
 """definition of each subcommands"""
 
-from __future__ import print_function
-
 from . import constants, misc, rprof, time_series
 from .stag import StagyyData
 
@@ -12,7 +10,7 @@ def field_cmd(args):
     if args.plot is not None:
         for var, meta in constants.FIELD_VAR_LIST.items():
             misc.set_arg(args, meta.arg, var in args.plot)
-    for timestep in xrange(*args.timestep):
+    for timestep in range(*args.timestep):
         print("Processing timestep", timestep)
         for var, meta in constants.FIELD_VAR_LIST.items():
             if misc.get_arg(args, meta.arg):

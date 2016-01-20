@@ -24,7 +24,7 @@ def time_cmd(args):
     ftsz = args.fontsize
 
     if not args.par_nml:
-        print 'No par file found. Input pars by hand'
+        print('No par file found. Input pars by hand')
         read_par_file = False
         rcmb = 1
         geom = str(raw_input('spherical (s) or cartesian (c)? '))
@@ -37,7 +37,7 @@ def time_cmd(args):
             rcmb = 0.
         timefile = os.path.join(args.path, args.name+'_time.dat')
         if not os.path.isfile(timefile):
-            print 'No profile file found at', timefile
+            print('No profile file found at', timefile)
             sys.exit()
 
         rab = args.par_nml['refstate']['Ra0']
@@ -104,7 +104,7 @@ def time_cmd(args):
 
     if args.compstat:
         coords = []
-        print 'right click to select starting time of statistics computations'
+        print('right click to select starting time of statistics computations')
         # Simple mouse click function to store coordinates
         def onclick(event):
             """get position and button from mouse click"""
@@ -130,7 +130,7 @@ def time_cmd(args):
     if args.compstat:
         ch1 = np.where(time == (find_nearest(time, coords[0][0])))
 
-        print 'Statistics computed from t ='+str(time[ch1[0][0]])
+        print('Statistics computed from t ='+str(time[ch1[0][0]]))
         for num in range(2, len(colnames)):
             moy.append(np.trapz(data[ch1[0][0]:ntot-1, num],
                                 x=time[ch1[0][0]:ntot-1])/
@@ -139,14 +139,14 @@ def time_cmd(args):
                                          moy[num-2])**2,
                                         x=time[ch1[0][0]:ntot-1])/
                                (time[ntot-1]-time[ch1[0][0]])))
-            print colnames[num]+' = '+str(moy[num-2])+' pm '+str(rms[num-2])
+            print(colnames[num]+' = '+str(moy[num-2])+' pm '+str(rms[num-2]))
         ebal.append(np.trapz(ebalance[ch1[0][0]-1:ntot-3],
                              x=time[ch1[0][0]:ntot-2])/(time[ntot-2]-
                                                         time[ch1[0][0]]))
         rms_ebal.append(sqrt(np.trapz((ebalance[ch1[0][0]-1:ntot-3]-ebal)**2,
                                          x=time[ch1[0][0]:ntot-2])/
                                 (time[ntot-2]-time[ch1[0][0]])))
-        print 'Energy balance '+str(ebal)+' pm '+str(rms_ebal)
+        print('Energy balance '+str(ebal)+' pm '+str(rms_ebal))
         results = moy+ebal+rms+rms_ebal
         fich = open('Stats.dat', 'w')
         fich.write("%10.5e %10.5e %10.5e " % (rab, rah, botpphase))

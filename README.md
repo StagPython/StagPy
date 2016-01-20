@@ -2,8 +2,8 @@
 
 # StagPy
 
-StagPy is a command line tool to read and process StagYY output files to
-produce high-quality figures.
+StagPy is a Python 3 command line tool to read and process StagYY output files
+to produce high-quality figures.
 
 The aim is to have different cases in one file (Cartesian, Spherical Annulus,
 etc).
@@ -18,13 +18,23 @@ matplotlib, and seaborn (the latter is optional and can be turned off with the
 `core.useseaborn` option). These dependencies will be checked and needed
 installation performed by `setuptools` in a `virtualenv`.
 
-`virtualenv` is probably already installed on your computer, if this is not the
-case `python2` will raise an error along the lines of `No module named
-virtualenv`.  You can then install it by running `python -m pip install
-virtualenv --user`. If this raise an error, see [this documentation to install
-pip](http://python-packaging-user-guide.readthedocs.org/en/latest/installing/#install-pip-setuptools-and-wheel).
+However, installation of `numpy` and `scipy` involve heavy building operations,
+it might be better that you (or your system administrator) install it with
+a package manager such as `homebrew` on Mac OS or your favorite Linux package
+manager.
 
-The installation process is hence fairly simple:
+`virtualenv` is probably already installed on your computer. To check if this
+is the case, run `python3 -m virtualenv test`. It should create a `test`
+directory (that you can remove). If you get an error message along the lines of
+`No module named virtualenv`, you will have to install it. Run `pip3 install
+virtualenv --user` (`pip` for Python 3 might be called slightly differently on
+your system). If you use Python 3.2 (`python3 --version`), you will have to
+install specifically `pip3 install --user virtualenv==13.1.2` since Python 3.2
+support is dropped in later version of `virtualenv`. If you need to install
+`pip`, see [this
+documentation](http://python-packaging-user-guide.readthedocs.org/en/latest/installing/#install-pip-setuptools-and-wheel).
+
+The installation process is then fairly simple:
 
     git clone https://github.com/mulvrova/StagPy.git
     cd StagPy

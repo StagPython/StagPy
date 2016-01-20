@@ -4,14 +4,12 @@ Create the cmd line argument parser
 and deal with the config file
 """
 
-from __future__ import print_function
-
 from collections import OrderedDict, namedtuple
 from os import mkdir
 from subprocess import call
 import argcomplete
 import argparse
-import ConfigParser
+import configparser
 import os.path
 import shlex
 from . import commands, misc
@@ -143,9 +141,10 @@ SUB_CMDS = OrderedDict((
         'configuration handling')),
     ))
 DummySub = namedtuple('DummySub', ['conf_dict'])
-DUMMY_CORE = OrderedDict((
+DUMMY_CMDS = OrderedDict((
     ('core', DummySub(CORE)),
     ))
+DUMMY_CMDS.update(SUB_CMDS)
 
 def _set_conf_default(conf_dict, opt, dflt):
     """set default value of option in conf_dict"""
@@ -155,8 +154,8 @@ def create_config():
     """Create config file"""
     if not os.path.isdir(CONFIG_DIR):
         mkdir(CONFIG_DIR)
-    config_parser = ConfigParser.ConfigParser()
-    for sub_cmd, meta in DUMMY_CORE.items() + SUB_CMDS.items():
+    config_parser = configparser.ConfigParser()
+    for sub_cmd, meta in DUMMY_CMDS.items():
         config_parser.add_section(sub_cmd)
         for opt, opt_meta in meta.conf_dict.items():
             if opt_meta.conf_arg:
@@ -171,10 +170,10 @@ def read_config(args):
             print('Config file {} not found.'.format(CONFIG_FILE))
             print('Run stagpy config --create')
         return
-    config_parser = ConfigParser.ConfigParser()
+    config_parser = configparser.ConfigParser()
     config_parser.read(CONFIG_FILE)
     missing_sections = []
-    for sub_cmd, meta in DUMMY_CORE.items() + SUB_CMDS.items():
+    for sub_cmd, meta in DUMMY_CMDS.items():
         if not config_parser.has_section(sub_cmd):
             missing_sections.append(sub_cmd)
             continue
@@ -271,6 +270,7 @@ def parse_args():
     main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
     main_parser = add_args(main_parser, {'path':CORE['path']})
+    main_parser.set_defaults(func=lambda _:print('stagpy -h for usage'))
     subparsers = main_parser.add_subparsers()
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')

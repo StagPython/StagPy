@@ -2,7 +2,7 @@ LINK_DIR=~/bin
 LINK_NAME=stagpy
 LINK=$(LINK_DIR)/$(LINK_NAME)
 
-VENV=venv
+VENV=stagpyvenv
 STAGPY=$(VENV)/bin/stagpy
 
 CPLT=$(PWD)/$(VENV)/bin/register-python-argcomplete
@@ -39,7 +39,7 @@ $(STAGPY): $(VENV) $(OBJS)
 	$(VENV)/bin/python setup.py install
 
 $(VENV):
-	python2 -m virtualenv --system-site-packages $@
+	python3 -m virtualenv --system-site-packages $@
 	$@/bin/pip install -I argcomplete
 
 info: infopath infozsh infobash
@@ -63,7 +63,7 @@ infobash:
 clean: uninstall
 	@echo 'Removing build and virtualenv files'
 	rm -rf build/ dist/ StagPy.egg-info/ $(VENV)
-	rm -f *.pyc stagpy/*.pyc .comp.zsh .comp.sh
+	rm -rf stagpy/__pycache__ .comp.zsh .comp.sh
 
 uninstall:
 	@echo 'Removing config file...'

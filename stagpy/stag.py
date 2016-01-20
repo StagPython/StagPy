@@ -5,7 +5,7 @@ import numpy as np
 from . import constants, misc
 
 
-class StagyyData(object):
+class StagyyData:
 
     """reads StagYY binary data and processes them"""
 
@@ -86,10 +86,10 @@ class StagyyData(object):
     def _readfile(self):
         """read scalar/vector fields"""
         # compute nth, nph, nr and nb PER CPU
-        nth = self.nthtot / self.nnth
-        nph = self.nphtot / self.nnph
-        nrd = self.nrtot / self.nnr
-        nbk = self.nblocks / self.nnb
+        nth = self.nthtot // self.nnth
+        nph = self.nphtot // self.nnph
+        nrd = self.nrtot // self.nnr
+        nbk = self.nblocks // self.nnb
         # the number of values per 'read' block
         npi = (nth + self.xyp) * (nph + self.xyp) * nrd * nbk * self.nval
 

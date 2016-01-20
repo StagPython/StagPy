@@ -3,8 +3,6 @@
 Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/09/11
 """
-from __future__ import print_function
-
 import numpy as np
 from scipy import integrate as itg
 import f90nml

@@ -1,9 +1,9 @@
-*.pyc
 *.pdf
 *.swp
 .comp.zsh
 .comp.sh
+stagpy/__pycache__/
 StagPy.egg-info/
 build/
 dist/
-venv/
+stagpyvenv/
