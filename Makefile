@@ -5,6 +5,7 @@ LINK=$(LINK_DIR)/$(LINK_NAME)
 VENV=venv
 STAGPY=$(VENV)/bin/stagpy
 
+CPLT=$(PWD)/$(VENV)/bin/register-python-argcomplete
 .PHONY: all install config clean uninstall autocomplete
 .PHONY: info infopath infozsh infobash
 
@@ -25,10 +26,10 @@ autocomplete: .comp.zsh .comp.sh infozsh infobash
 .comp.zsh:
 	@echo 'autoload bashcompinit' > $@
 	@echo 'bashcompinit' >> $@
-	@echo 'eval "$$($(VENV)/bin/register-python-argcomplete $(LINK_NAME))"' >> $@
+	@echo 'eval "$$($(CPLT) $(LINK_NAME))"' >> $@
 
 .comp.sh:
-	@echo 'eval "$$($(VENV)/bin/register-python-argcomplete $(LINK_NAME))"' > $@
+	@echo 'eval "$$($(CPLT) $(LINK_NAME))"' > $@
 
 $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
