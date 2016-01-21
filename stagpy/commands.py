@@ -1,7 +1,7 @@
 """definition of each subcommands"""
 
 from . import constants, misc, rprof, time_series
-from .stag import StagyyData
+from .stagdata import BinData
 
 def field_cmd(args):
     """plot snapshots of scalar fields"""
@@ -14,7 +14,7 @@ def field_cmd(args):
         print("Processing timestep", timestep)
         for var, meta in constants.FIELD_VAR_LIST.items():
             if misc.get_arg(args, meta.arg):
-                stgdat = StagyyData(args, meta.par, timestep)
+                stgdat = BinData(args, meta.par, timestep)
                 stgdat.plot_scalar(var)
 
 def rprof_cmd(args):

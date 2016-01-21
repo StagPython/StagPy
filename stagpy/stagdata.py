@@ -5,7 +5,7 @@ import numpy as np
 from . import constants, misc
 
 
-class StagyyData:
+class BinData:
 
     """reads StagYY binary data and processes them"""
 
