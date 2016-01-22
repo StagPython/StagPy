@@ -6,9 +6,7 @@ Date: 2015/11/27
 
 import numpy as np
 from math import sqrt
-import sys
-import f90nml
-import os
+from .stagdata import TimeData
 
 def find_nearest(array, value):
     """Find the data point nearest to value"""
@@ -35,26 +33,13 @@ def time_cmd(args):
             rcmb = args.par_nml['geometry']['r_cmb']
         else:
             rcmb = 0.
-        timefile = os.path.join(args.path, args.name+'_time.dat')
-        if not os.path.isfile(timefile):
-            print('No profile file found at', timefile)
-            sys.exit()
 
         rab = args.par_nml['refstate']['Ra0']
         rah = args.par_nml['refstate']['Rh']
         botpphase = args.par_nml['boundaries']['BotPphase']
 
-    with open(timefile, 'r') as infile:
-        first = infile.readline()
-
-    colnames = first.split()
-    # suppress two columns from the header.
-    # Only temporary since this has been corrected in stag
-    if len(colnames) == 33:
-        colnames = colnames[:28]+colnames[30:]
-
-    data = np.loadtxt(timefile, skiprows=1)
-
+    time_data = TimeData(args)
+    colnames, data = time_data.colnames, time_data.data
     ntot = len(data)
 
     if spherical:

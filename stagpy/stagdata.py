@@ -226,3 +226,23 @@ class RprofData:
         self.tsteps = tsteps
         self.nzi = nzi
 
+class TimeData:
+
+    """extract temporal series"""
+
+    def __init__(self, args):
+        timefile = os.path.join(args.path, args.name+'_time.dat')
+        if not os.path.isfile(timefile):
+            print('No profile file found at', timefile)
+            sys.exit()
+        with open(timefile, 'r') as infile:
+            first = infile.readline()
+
+        self.colnames = first.split()
+        # suppress two columns from the header.
+        # Only temporary since this has been corrected in stag
+        # WARNING: possibly a problem is some columns are added?
+        if len(self.colnames) == 33:
+            self.colnames = self.colnames[:28]+self.colnames[30:]
+
+        self.data = np.loadtxt(timefile, skiprows=1)
