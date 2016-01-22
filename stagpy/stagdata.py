@@ -2,6 +2,7 @@
 
 import struct
 import numpy as np
+from scipy import integrate
 from . import constants, misc
 
 
@@ -9,24 +10,22 @@ class BinData:
 
     """reads StagYY binary data and processes them"""
 
-    def __init__(self, args, par_type, timestep):
+    def __init__(self, args, var, timestep):
         """read the necessary binary file
 
         after init, the StagyyData object is ready
         for processing
         """
         self.args = args
-        self.par_type = par_type
+        self.var = var
+        self.par_type = constants.FIELD_VAR_LIST[var].par
         self.geom = args.geometry
         self.file_format = 'l'
         self.step = timestep
 
         # name of the file to read
-        self.fullname = misc.path_fmt(args, par_type).format(timestep)
-        if par_type in ('t', 'c', 'eta', 'rho', 'str', 'age'):
-            self.nval = 1
-        elif par_type == 'vp':
-            self.nval = 4
+        self.fullname = misc.path_fmt(args, self.par_type).format(timestep)
+        self.nval = 4 if self.par_type == 'vp' else 1
 
         with open(self.fullname, 'rb') as self._fid:
             self._catch_header()
@@ -133,53 +132,35 @@ class BinData:
                             fld[snb:enb, srd:erd, sph:eph, sth:eth] = \
                                     data_cpu_3d[:, :, :, :, idx]
 
-        self.fields = []
-        for fld in flds:
-            self.fields.append(fld[0, :, :, :])
+        self.fields = {}
+        fld_names = ['u', 'v', 'w', 'p'] if self.par_type == 'vp' \
+                else [self.var]
+        for fld_name, fld in zip(fld_names, flds):
+            self.fields[fld_name] = fld[0, :, :, :]
 
-    def plot_scalar(self, var):
-        """var: one of the key of constants.FIELD_VAR_LIST"""
-        plt = self.args.plt
-        fld = constants.FIELD_VAR_LIST[var].func(self)
+    def calc_stream(self):
+        """computes and returns the stream function
 
-        # adding a row at the end to have continuous field
-        if self.geom == 'annulus':
-            # temp,composition,viscosity,density
-            if var in ('t', 'c', 'n', 'd'):
-                newline = fld[:, 0, 0]
-                fld = np.vstack([fld[:, :, 0].T, newline]).T
-            elif var == 'p':
-                fld = fld[:, :, 0]
-            self.ph_coord = np.append(
-                self.ph_coord, self.ph_coord[1] - self.ph_coord[0])
-
-        xmesh, ymesh = np.meshgrid(
-            np.array(self.ph_coord), np.array(self.r_coord) + self.rcmb)
-
-        fig, axis = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
-        if self.geom == 'annulus':
-            if var == 'n':
-                surf = axis.pcolormesh(xmesh, ymesh, fld,
-                                    norm=self.args.mpl.colors.LogNorm(),
-                                    cmap='jet_r',
-                                    rasterized=not self.args.pdf,
-                                    shading='gouraud')
-            elif var == 'd':
-                surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='bwr_r',
-                                    vmin=0.96, vmax=1.04,
-                                    rasterized=not self.args.pdf,
-                                    shading='gouraud')
-            else:
-                surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
-                                    rasterized=not self.args.pdf,
-                                    shading='gouraud')
-            cbar = plt.colorbar(surf, shrink=self.args.shrinkcb)
-            cbar.set_label(constants.FIELD_VAR_LIST[var].name)
-            plt.axis([self.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
-            plt.axis('off')
-
-        plt.tight_layout()
-        plt.savefig(misc.file_name(self.args, var).format(self.step) + '.pdf',
-                    format='PDF')
-        plt.close(fig)
+        only make sense with vp fields
+        """
+        # should add test if vp fields or not
+        vphi = self.fields['vy'][:, :, 0]
+        vph2 = -0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
+        v_r = self.fields['vz'][:, :, 0]
+        n_r, nph = np.shape(v_r)
+        stream = np.zeros(np.shape(vphi))
+        # integrate first on phi
+        stream[0, 1:nph - 1] = self.rcmb * \
+            integrate.cumtrapz(v_r[0, 0:nph - 1], self.ph_coord)
+        stream[0, 0] = 0
+        # use r coordinates where vphi is defined
+        rcoord = self.rcmb + np.array(
+            self.rgeom[0:np.shape(self.rgeom)[0] - 1:2])
+        for iph in range(0, np.shape(vph2)[1] - 1):
+            stream[1:n_r, iph] = stream[0, iph] + \
+                integrate.cumtrapz(vph2[:, iph], rcoord)  # integrate on r
+        stream = stream - np.mean(stream[n_r / 2, :])
+        # remove some typical value. Would be better to compute the golbal average
+        # taking into account variable grid spacing
+        return stream
 

@@ -1,21 +1,15 @@
 """definition of each subcommands"""
 
-from . import constants, misc, rprof, time_series
-from .stagdata import BinData
+from . import constants, misc, field, rprof, time_series
 
 def field_cmd(args):
-    """plot snapshots of scalar fields"""
+    """plot snapshots of fields"""
     misc.parse_timesteps(args)
     misc.plot_backend(args)
     if args.plot is not None:
         for var, meta in constants.FIELD_VAR_LIST.items():
             misc.set_arg(args, meta.arg, var in args.plot)
-    for timestep in range(*args.timestep):
-        print("Processing timestep", timestep)
-        for var, meta in constants.FIELD_VAR_LIST.items():
-            if misc.get_arg(args, meta.arg):
-                stgdat = BinData(args, meta.par, timestep)
-                stgdat.plot_scalar(var)
+    field.field_cmd(args)
 
 def rprof_cmd(args):
     """plot radial profiles"""

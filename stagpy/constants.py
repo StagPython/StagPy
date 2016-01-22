@@ -1,22 +1,18 @@
 """defines some constants"""
 
 from collections import OrderedDict, namedtuple
-from . import misc, processing
 
-Varf = namedtuple('Varf', ['par', 'name', 'arg', 'func'])
+Varf = namedtuple('Varf', ['par', 'name', 'arg'])
 FIELD_VAR_LIST = OrderedDict((
-    ('t', Varf('t', 'Temperature', 'plot_temperature',
-        misc.takefield(0))),
-    ('c', Varf('c', 'Composition', 'plot_composition',
-        misc.takefield(0))),
-    ('n', Varf('eta', 'Viscosity', 'plot_viscosity',
-        misc.takefield(0))),
-    ('d', Varf('rho', 'Density', 'plot_density',
-        misc.takefield(0))),
-    ('p', Varf('vp', 'Pressure', 'plot_pressure',
-        misc.takefield(3))),
-    ('s', Varf('vp', 'Stream function', 'plot_stream',
-        processing.calc_stream))
+    ('t', Varf('t', 'Temperature', 'plot_temperature')),
+    ('c', Varf('c', 'Composition', 'plot_composition')),
+    ('n', Varf('eta', 'Viscosity', 'plot_viscosity')),
+    ('d', Varf('rho', 'Density', 'plot_density')),
+    ('u', Varf('vp', 'x Velocity', 'plot_xvelo')),
+    ('v', Varf('vp', 'y Velocity', 'plot_yvelo')),
+    ('w', Varf('vp', 'z Velocity', 'plot_zvelo')),
+    ('p', Varf('vp', 'Pressure', 'plot_pressure')),
+    ('s', Varf('vp', 'Stream function', 'plot_stream')),
     ))
 
 Varr = namedtuple('Varr', ['name', 'arg', 'min_max', 'prof_idx'])
