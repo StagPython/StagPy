@@ -5,61 +5,10 @@ Date: 2015/09/11
 """
 import numpy as np
 from scipy import integrate as itg
-import f90nml
-import os
 import sys
 import math
 from . import constants, misc
-
-def _readproffile(args):
-    proffile = os.path.join(args.path, args.name+'_rprof.dat')
-    if not os.path.isfile(proffile):
-        print('No profile file found at', proffile)
-        sys.exit()
-    timesteps = []
-    data0 = []
-    lnum = -1
-    with open(proffile) as stream:
-        for line in stream:
-            if line != '\n':
-                lnum += 1
-                lll = ' '.join(line.split())
-                if line[0] == '*':
-                    timesteps.append([lnum, int(lll.split(' ')[1]),
-                                      float(lll.split(' ')[5])])
-                else:
-                    llf = np.array(lll.split(' '))
-                    data0.append(llf)
-    tsteps = np.array(timesteps)
-    nsteps = tsteps.shape[0]
-    data = np.array(data0)
-    # all the processings of timesteps
-    # should be in commands.*_cmd
-    # instead of main.py
-    # since it could be different between
-    # the different modules
-    istart, ilast, istep = args.timestep
-    if ilast == -1:
-        ilast = nsteps-1
-    if istart == -1:
-        istart = nsteps-1
-    args.timestep = istart, ilast, istep
-
-    nzp = []
-    for iti in range(0, nsteps-1):
-        nzp = np.append(nzp, tsteps[iti+1, 0]-tsteps[iti, 0]-1)
-
-    nzp = np.append(nzp, lnum-tsteps[nsteps-1, 0])
-    nzs = [[0, 0, 0]]
-    nzc = 0
-    for iti in range(1, nsteps):
-        if nzp[iti] != nzp[iti-1]:
-            nzs.append([iti, iti-nzc, int(nzp[iti-1])])
-            nzc = iti
-    if nzp[nsteps-1] != nzs[-1][1]:
-        nzs.append([nsteps, nsteps-nzc, int(nzp[nsteps-1])])
-    nzi = np.array(nzs)
-    return data, tsteps, nzi
+from .stagdata import RprofData
 
 def _normprof(rrr, func): # for args.plot_difference
     """Volumetric norm of a profile
@@ -351,7 +300,8 @@ def rprof_cmd(args):
                 return xieut
         ctheoarg = ctheoarg[0], initprof
 
-    data, tsteps, nzi = _readproffile(args)
+    rprof_data = RprofData(args)
+    data, tsteps, nzi = rprof_data.data, rprof_data.tsteps, rprof_data.nzi
 
     for var in 'tvnc': #temperature, velo, visco, concentration
         meta = constants.RPROF_VAR_LIST[var]

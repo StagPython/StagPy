@@ -2,6 +2,7 @@
 
 import struct
 import numpy as np
+import os.path
 from scipy import integrate
 from . import constants, misc
 
@@ -163,4 +164,65 @@ class BinData:
         # remove some typical value. Would be better to compute the golbal average
         # taking into account variable grid spacing
         return stream
+
+class RprofData:
+
+    """extract radial profiles data"""
+
+    def __init__(self, args):
+        """create RprofData object"""
+        self._readproffile(args)
+
+    def _readproffile(self, args):
+        """extract info from rprof.dat"""
+        proffile = os.path.join(args.path, args.name+'_rprof.dat')
+        if not os.path.isfile(proffile):
+            print('No profile file found at', proffile)
+            sys.exit()
+        timesteps = []
+        data0 = []
+        lnum = -1
+        with open(proffile) as stream:
+            for line in stream:
+                if line != '\n':
+                    lnum += 1
+                    lll = ' '.join(line.split())
+                    if line[0] == '*':
+                        timesteps.append([lnum, int(lll.split(' ')[1]),
+                                          float(lll.split(' ')[5])])
+                    else:
+                        llf = np.array(lll.split(' '))
+                        data0.append(llf)
+        tsteps = np.array(timesteps)
+        nsteps = tsteps.shape[0]
+        data = np.array(data0)
+        # all the processings of timesteps
+        # should be in commands.*_cmd
+        # instead of main.py
+        # since it could be different between
+        # the different modules
+        istart, ilast, istep = args.timestep
+        if ilast == -1:
+            ilast = nsteps-1
+        if istart == -1:
+            istart = nsteps-1
+        args.timestep = istart, ilast, istep
+
+        nzp = []
+        for iti in range(0, nsteps-1):
+            nzp = np.append(nzp, tsteps[iti+1, 0]-tsteps[iti, 0]-1)
+
+        nzp = np.append(nzp, lnum-tsteps[nsteps-1, 0])
+        nzs = [[0, 0, 0]]
+        nzc = 0
+        for iti in range(1, nsteps):
+            if nzp[iti] != nzp[iti-1]:
+                nzs.append([iti, iti-nzc, int(nzp[iti-1])])
+                nzc = iti
+        if nzp[nsteps-1] != nzs[-1][1]:
+            nzs.append([nsteps, nsteps-nzc, int(nzp[nsteps-1])])
+        nzi = np.array(nzs)
+        self.data = data
+        self.tsteps = tsteps
+        self.nzi = nzi
 
