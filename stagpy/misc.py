@@ -10,15 +10,9 @@ def file_name(args, par_type):
     """return file name format for any time step"""
     return args.name + '_' + par_type + '{:05d}'
 
-
 def path_fmt(args, par_type):
     """return full path format for any time step"""
     return os.path.join(args.path, file_name(args, par_type))
-
-
-def takefield(idx):
-    """return a function taking a stagdata field"""
-    return lambda stagdata: stagdata.fields[idx]
 
 def set_arg(args, arg, val):
     """set a cmd line with arg string name"""
