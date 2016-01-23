@@ -5,8 +5,6 @@ LINK=$(LINK_DIR)/$(LINK_NAME)
 # set venv to virtualenv with Python3.2
 VENV_MOD=venv
 
-unexport PYTHONHOME
-
 VENV_DIR=stagpyvenv
 STAGPY=$(VENV_DIR)/bin/stagpy
 
@@ -42,11 +40,11 @@ $(LINK): $(STAGPY)
 	ln -sf $(PWD)/$(STAGPY) $(LINK)
 
 $(STAGPY): $(VENV_DIR) $(OBJS)
-	$</bin/python setup.py install
+	$</bin/python -E setup.py install
 
 $(VENV_DIR): .get-pip.py requirements.txt
 	python3 -m $(VENV_MOD) --system-site-packages --without-pip $@
-	$@/bin/python $<
+	$@/bin/python -E $<
 	$@/bin/pip install -I argcomplete
 	$@/bin/pip install -r requirements.txt
 
