@@ -2,6 +2,7 @@
 *.swp
 .comp.zsh
 .comp.sh
+.get-pip.py
 stagpy/__pycache__/
 StagPy.egg-info/
 build/

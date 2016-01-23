@@ -2,22 +2,22 @@ LINK_DIR=~/bin
 LINK_NAME=stagpy
 LINK=$(LINK_DIR)/$(LINK_NAME)
 
-VENV=stagpyvenv
-STAGPY=$(VENV)/bin/stagpy
+# set venv to virtualenv with Python3.2
+VENV_MOD=venv
 
-CPLT=$(PWD)/$(VENV)/bin/register-python-argcomplete
+VENV_DIR=stagpyvenv
+STAGPY=$(VENV_DIR)/bin/stagpy
+
+CPLT=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
+
 .PHONY: all install config clean uninstall autocomplete
 .PHONY: info infopath infozsh infobash
 
 OBJS=setup.py stagpy/*.py
 
-all: install config infopath autocomplete
+all: install
 
-config: $(STAGPY)
-	@$(STAGPY) config --create
-	@echo 'Config file created!'
-
-install: $(LINK)
+install: $(LINK) config infopath autocomplete
 	@echo
 	@echo 'Installation completed!'
 
@@ -31,16 +31,26 @@ autocomplete: .comp.zsh .comp.sh infozsh infobash
 .comp.sh:
 	@echo 'eval "$$($(CPLT) $(LINK_NAME))"' > $@
 
+config: $(STAGPY)
+	@$(STAGPY) config --create
+	@echo 'Config file created!'
+
 $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
 	ln -sf $(PWD)/$(STAGPY) $(LINK)
 
-$(STAGPY): $(VENV) $(OBJS)
-	$(VENV)/bin/python setup.py install
+$(STAGPY): $(VENV_DIR) $(OBJS)
+	$</bin/python setup.py install
 
-$(VENV):
-	python3 -m virtualenv --system-site-packages $@
+$(VENV_DIR): .get-pip.py requirements.txt
+	python3 -m $(VENV_MOD) --system-site-packages --without-pip $@
+	$@/bin/python $<
 	$@/bin/pip install -I argcomplete
+	$@/bin/pip install -r requirements.txt
+
+.get-pip.py:
+	wget https://bootstrap.pypa.io/get-pip.py
+	@mv get-pip.py $@
 
 info: infopath infozsh infobash
 
@@ -62,8 +72,9 @@ infobash:
 
 clean: uninstall
 	@echo 'Removing build and virtualenv files'
-	rm -rf build/ dist/ StagPy.egg-info/ $(VENV)
-	rm -rf stagpy/__pycache__ .comp.zsh .comp.sh
+	rm -rf build/ dist/ StagPy.egg-info/ $(VENV_DIR)
+	rm -rf stagpy/__pycache__
+	rm -f .get-pip.py .comp.zsh .comp.sh
 
 uninstall:
 	@echo 'Removing config file...'
