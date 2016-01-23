@@ -5,6 +5,8 @@ LINK=$(LINK_DIR)/$(LINK_NAME)
 # set venv to virtualenv with Python3.2
 VENV_MOD=venv
 
+unexport PYTHONHOME
+
 VENV_DIR=stagpyvenv
 STAGPY=$(VENV_DIR)/bin/stagpy
 
