@@ -16,23 +16,14 @@ initially developed by Boris Kaus.
 StagPy uses the following non-standard modules: numpy, scipy, f90nml,
 matplotlib, and seaborn (the latter is optional and can be turned off with the
 `core.useseaborn` option). These dependencies will be checked and needed
-installation performed by `setuptools` in a `virtualenv`.
+installation performed in a virtual environment. If you use Python3.2 or encouter
+problems with the installation, see the troubleshooting section at the end of
+this README.
 
 However, installation of `numpy` and `scipy` involve heavy building operations,
 it might be better that you (or your system administrator) install it with
 a package manager such as `homebrew` on Mac OS or your favorite Linux package
 manager.
-
-`virtualenv` is probably already installed on your computer. To check if this
-is the case, run `python3 -m virtualenv test`. It should create a `test`
-directory (that you can remove). If you get an error message along the lines of
-`No module named virtualenv`, you will have to install it. Run `pip3 install
-virtualenv --user` (`pip` for Python 3 might be called slightly differently on
-your system). If you use Python 3.2 (`python3 --version`), you will have to
-install specifically `pip3 install --user virtualenv==13.1.2` since Python 3.2
-support is dropped in later version of `virtualenv`. If you need to install
-`pip`, see [this
-documentation](http://python-packaging-user-guide.readthedocs.org/en/latest/installing/#install-pip-setuptools-and-wheel).
 
 The installation process is then fairly simple:
 
@@ -40,9 +31,9 @@ The installation process is then fairly simple:
     cd StagPy
     make
 
-A soft link named `stagpy` is created in your `~/bin` directory allows you to
-launch StagPy directly by running `stagpy` in a terminal (provided that `~/bin`
-is in your `PATH` environment variable).
+A soft link named `stagpy` is created in your `~/bin` directory, allowing you
+to launch StagPy directly by running `stagpy` in a terminal (provided that
+`~/bin` is in your `PATH` environment variable).
 
 Two files `.comp.zsh` and `.comp.sh` are created. Source them respectively in
 `~/.zshrc` and `~/.bashrc` to enjoy command line completion with zsh and bash.
@@ -97,3 +88,23 @@ By default, the temperature, pressure and stream function fields are plotted.
 You can change this with the `-o` option (e.g. `./main.py field -o ps` to plot
 only the pressure and stream function fields).
 
+## Troubleshooting
+
+### Python 3.2
+
+By default, the Makefile uses the `venv` standard module to create the
+virtual environment. This module is not included with Python 3.2, you
+will need to use the `virtualenv` module instead.
+
+### Matplotlib related error in MacOS
+
+This might be due to the matplotlib backend that is not correctly set. See
+[this Stack Overflow
+question](http://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python)
+
+### Installation fails with `ImportError: No module named 'encodings'`
+
+This seems to be due to a bug in the venv module with some Python installation
+setups. If installing Python properly with your package manager doesn't solve
+the issue, you can try installing StagPy without any virtual environment by
+using `make novirtualenv`.
