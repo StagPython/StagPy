@@ -3,6 +3,7 @@
 .comp.zsh
 .comp.sh
 .get-pip.py
+.install.txt
 stagpy/__pycache__/
 StagPy.egg-info/
 build/

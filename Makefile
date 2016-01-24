@@ -12,6 +12,7 @@ CPLT=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
 
 .PHONY: all install config clean uninstall autocomplete
 .PHONY: info infopath infozsh infobash
+.PHONY: novirtualenv
 
 OBJS=setup.py stagpy/*.py
 
@@ -75,7 +76,7 @@ clean: uninstall
 	@echo 'Removing build and virtualenv files'
 	rm -rf build/ dist/ StagPy.egg-info/ $(VENV_DIR)
 	rm -rf stagpy/__pycache__
-	rm -f .get-pip.py .comp.zsh .comp.sh
+	rm -f .get-pip.py .comp.zsh .comp.sh .install.txt
 
 uninstall:
 	@echo 'Removing config file...'
@@ -83,3 +84,22 @@ uninstall:
 	@echo 'Removing link...'
 	@rm -f $(LINK)
 	@echo 'Done.'
+
+novirtualenv: .get-pip.py requirements.txt $(OBJS)
+	@echo 'Installing without virtual environment'
+	python3 $< --user
+	python3 -m pip install --user -r requirements.txt
+	python3 setup.py install --user --record .install.txt
+	@echo 'Installation finished!'
+	@echo 'Have a look at .install.txt to know where'
+	@echo 'StagPy has been installed'
+	@echo
+	@echo 'Add'
+	@echo ' autoload bashcompinit'
+	@echo ' bashcompinit'
+	@echo ' eval "$$(register-python-argcomplete stagpy)"'
+	@echo 'to your ~/.zshrc to enjoy command line completion with zsh!'
+	@echo
+	@echo 'Add'
+	@echo ' eval "$$(register-python-argcomplete stagpy)"'
+	@echo 'to your ~/.bashrc to enjoy command line completion with bash!'
