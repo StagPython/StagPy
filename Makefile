@@ -49,8 +49,9 @@ $(VENV_DIR): .get-pip.py requirements.txt
 	$@/bin/pip install -r requirements.txt
 
 .get-pip.py:
-	wget https://bootstrap.pypa.io/get-pip.py
-	@mv get-pip.py $@
+	@echo 'Dowloading get-pip.py...'
+	@python3 download-get-pip.py
+	@echo 'Done'
 
 info: infopath infozsh infobash
 
