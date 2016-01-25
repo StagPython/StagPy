@@ -115,6 +115,8 @@ TIME = OrderedDict((
     ))
 VAR = OrderedDict((
     ))
+PLATES = OrderedDict((
+    ))
 CONFIG = OrderedDict((
     ('create', Conf(None, True, None, {'action':'store_true'},
         False, 'create new config file')),
@@ -143,6 +145,8 @@ SUB_CMDS = OrderedDict((
         'plot temporal series')),
     ('var', Sub(VAR, False, commands.var_cmd,
         'print the list of variables')),
+    ('plates', Sub(PLATES, True, commands.plates_cmd,
+        'plates analysis')),
     ('config', Sub(CONFIG, False, config_cmd,
         'configuration handling')),
     ))

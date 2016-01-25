@@ -1,6 +1,6 @@
 """definition of each subcommands"""
 
-from . import constants, misc, field, rprof, time_series
+from . import constants, misc, field, rprof, time_series, plates
 
 def field_cmd(args):
     """plot snapshots of fields"""
@@ -45,3 +45,9 @@ def var_cmd(_):
     print(*('{}: {}'.format(v, m.name)
         for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
 
+def plates_cmd(args):
+    """plates analysis"""
+    misc.parse_timesteps(args)
+    misc.plot_backend(args)
+    plates.plates_cmd(args)
+    

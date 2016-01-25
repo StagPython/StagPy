@@ -1,5 +1,5 @@
 LINK_DIR=~/bin
-LINK_NAME=stagpy
+LINK_NAME=stagbis
 LINK=$(LINK_DIR)/$(LINK_NAME)
 
 VENV=stagpyvenv
