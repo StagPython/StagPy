@@ -55,6 +55,7 @@ The available subcommands are the following:
   function;
 - `rprof`: computes and/or plots radial profiles;
 - `time`: computes and/or plots time series;
+- `plates`: plate analysis;
 - `var`: displays a list of available variables;
 - `config`: configuration handling.
 

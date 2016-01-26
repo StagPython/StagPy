@@ -66,6 +66,8 @@ FIELD = OrderedDict((
         True, 'viscosity scalar field')),
     ('plot_density', Conf(False, False, None, {},
         True, 'density scalar field')),
+    ('plot_age', Conf(False, False, None, {},
+        True, 'age scalar field')),
     ('shrinkcb', Conf(0.5, False, None, {},
         True, 'color bar shrink factor')),
     ))
