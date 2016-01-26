@@ -45,7 +45,7 @@ $(STAGPY): $(VENV_DIR) $(OBJS)
 
 $(VENV_DIR): .get-pip.py requirements.txt
 	python3 -m $(VENV_MOD) --system-site-packages --without-pip $@
-	$@/bin/python -E -I $<
+	$@/bin/python -E $< -I
 	$@/bin/pip install -I argcomplete
 	$@/bin/pip install -r requirements.txt
 
