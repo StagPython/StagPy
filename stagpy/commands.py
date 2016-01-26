@@ -1,6 +1,6 @@
 """definition of each subcommands"""
 
-from . import constants, misc, field, rprof, time_series
+from . import constants, misc, field, rprof, time_series, plates
 
 def field_cmd(args):
     """plot snapshots of fields"""
@@ -34,6 +34,12 @@ def time_cmd(args):
         args.matplotback = None
     misc.plot_backend(args)
     time_series.time_cmd(args)
+
+def plates_cmd(args):
+    """plate analysis"""
+    misc.parse_timesteps(args)
+    misc.plot_backend(args)
+    plates.plates_cmd(args)
 
 def var_cmd(_):
     """display a list of available variables"""

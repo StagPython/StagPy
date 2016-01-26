@@ -36,7 +36,7 @@ def time_cmd(args):
 
         rab = args.par_nml['refstate']['Ra0']
         rah = args.par_nml['refstate']['Rh']
-        botpphase = args.par_nml['boundaries']['BotPphase']
+        botpphase = 'dummy' #args.par_nml['boundaries']['BotPphase']
 
     time_data = TimeData(args)
     colnames, data = time_data.colnames, time_data.data
@@ -64,8 +64,8 @@ def time_cmd(args):
     plt.subplot(2, 1, 1)
     plt.plot(time, data[:, 2]*coefs, 'b', label='Surface', linewidth=lwdth)
     plt.plot(time, data[:, 3]*coefb, 'r', label='Bottom', linewidth=lwdth)
-    plt.plot(time[1:ntot-2:], ebalance, 'g', label='Energy balance',
-             linewidth=lwdth)
+    #plt.plot(time[1:ntot-2:], ebalance, 'g', label='Energy balance',
+    #         linewidth=lwdth)
     plt.ylabel('Heat flow', fontsize=ftsz)
     plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
     plt.legend.get_frame().set_facecolor('white')

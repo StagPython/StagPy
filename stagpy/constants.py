@@ -8,6 +8,7 @@ FIELD_VAR_LIST = OrderedDict((
     ('c', Varf('c', 'Composition', 'plot_composition')),
     ('n', Varf('eta', 'Viscosity', 'plot_viscosity')),
     ('d', Varf('rho', 'Density', 'plot_density')),
+    ('a', Varf('age', 'Age', 'plot_age')),
     ('u', Varf('vp', 'x Velocity', 'plot_xvelo')),
     ('v', Varf('vp', 'y Velocity', 'plot_yvelo')),
     ('w', Varf('vp', 'z Velocity', 'plot_zvelo')),

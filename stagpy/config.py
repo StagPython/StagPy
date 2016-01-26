@@ -113,6 +113,8 @@ TIME = OrderedDict((
     ('tminc', Conf(0., True, None, {},
         False, 'specify tminc')),
     ))
+PLATES = OrderedDict((
+    ))
 VAR = OrderedDict((
     ))
 CONFIG = OrderedDict((
@@ -141,6 +143,8 @@ SUB_CMDS = OrderedDict((
         'plot radial profiles')),
     ('time', Sub(TIME, True, commands.time_cmd,
         'plot temporal series')),
+    ('plates', Sub(PLATES, True, commands.plates_cmd,
+        'plate analysis')),
     ('var', Sub(VAR, False, commands.var_cmd,
         'print the list of variables')),
     ('config', Sub(CONFIG, False, config_cmd,
