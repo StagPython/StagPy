@@ -47,10 +47,7 @@ def plot_scalar(args, stgdat, var):
         plt.axis([stgdat.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
         plt.axis('off')
 
-    plt.tight_layout()
-    plt.savefig(misc.file_name(args, var).format(stgdat.step) + '.pdf',
-                format='PDF')
-    plt.close(fig)
+    return fig, axis
 
 def field_cmd(args):
     """extract and plot field data"""
@@ -59,4 +56,10 @@ def field_cmd(args):
             if misc.get_arg(args, meta.arg):
                 # will read vp many times!
                 stgdat = BinData(args, var, timestep)
-                plot_scalar(args, stgdat, var)
+                fig, axis = plot_scalar(args, stgdat, var)
+                args.plt.figure(fig.number)
+                args.plt.tight_layout()
+                args.plt.savefig(
+                        misc.file_name(args, var).format(stgdat.step) + '.pdf',
+                        format='PDF')
+                args.plt.close(fig)
