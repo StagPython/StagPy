@@ -116,6 +116,8 @@ TIME = OrderedDict((
         False, 'specify tminc')),
     ))
 PLATES = OrderedDict((
+    ('vzcheck', Conf(False, True, None, {},
+        True, 'compute steady state statistics')),
     ))
 VAR = OrderedDict((
     ))
