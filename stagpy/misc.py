@@ -64,7 +64,7 @@ def parse_timesteps(args):
         tstp = tstp[0:2] + [1]
     if not tstp[2]:
         tstp[2] = 1
-    args.timestep = map(int, tstp)
+    args.timestep = list(map(int, tstp))
 
 def plot_backend(args):
     """import matplotlib and seaborn"""
