@@ -14,6 +14,7 @@ CPLT=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
 .PHONY: info infopath infozsh infobash
 .PHONY: novirtualenv
 
+CONF_FILE=~/.config/stagpy/config
 OBJS=setup.py stagpy/*.py
 
 all: install
@@ -32,7 +33,11 @@ autocomplete: .comp.zsh .comp.sh infozsh infobash
 .comp.sh:
 	@echo 'eval "$$($(CPLT) $(LINK_NAME))"' > $@
 
-config: $(STAGPY)
+config: $(STAGPY) $(CONF_FILE) stagpy/config.py
+	@$(STAGPY) config --update
+	@echo 'Config file updated!'
+
+$(CONF_FILE):
 	@$(STAGPY) config --create
 	@echo 'Config file created!'
 
