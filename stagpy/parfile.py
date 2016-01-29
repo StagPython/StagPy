@@ -25,7 +25,7 @@ PAR_DEFAULT={
         'Io_tidal_heating':False,
         'multig_solve':True,
         'plates_analyse':False,
-        'dimensional_units':True,
+        'dimensional_units':False,
         'total_pressure':False,
         'dens_read_Fabio':False,
         'visc_read_Fabio':False,
@@ -33,11 +33,11 @@ PAR_DEFAULT={
         },
 
     'geometry':{
-        'shape':'cartesian',
-        'nxtot':32,
-        'nytot':32,
-        'nztot':32,
-        'aspect_ratio':[1.0,1.0,1.0],
+        'shape':'spherical',
+        'nxtot':1,
+        'nytot':512,
+        'nztot':64,
+        'aspect_ratio':[1.0,10.0,1.0],
         'theta_position':'default',
         'zspacing_mode':'constant',
         'dresl_topbot':1.0,
@@ -122,7 +122,7 @@ PAR_DEFAULT={
 
     'boundaries':{
         'topT_mode':'isothermal',
-        'topT_val':0.12,
+        'topT_val':1.0,
         'botT_mode':'iso',
         'botT_val':0.0,
         'outT_val':-1.0,
@@ -196,7 +196,7 @@ PAR_DEFAULT={
         },
 
     'viscosity':{
-        'ietalaw':1,
+        'ietalaw':0,
         'E_eta':[[[0.0]]],
         'V_eta':[[[0.0]]],
         'Pdecay_V':[[['BIG']]],
@@ -348,7 +348,7 @@ PAR_DEFAULT={
     'ioin':{
         'input_file':'null',
         'input_frame':1,
-        'output_file_stem':'output',
+        'output_file_stem':'test',
         't_write':True,
         'vp_write':False,
         'eta_write':False,
@@ -399,8 +399,8 @@ PAR_DEFAULT={
         'save_file_framestep':10,
         'overwrite_old_files':False,
         'restart_from_meshed_fields_only':False,
-        'hdf5_output_folder':"+hdf5",
-        'hdf5_input_folder':"+hdf5",
+        'hdf5_output_folder':'+hdf5',
+        'hdf5_input_folder':'+hdf5',
         'MaxFileSizeAllowed':100000000,
         'MaxFileSizeAllowedTra':100000000,
         },
@@ -616,5 +616,4 @@ def readpar(args):
         if not (args.create or args.update or args.edit):
             print('no par file found, check path')
     par_nml = par_dflt
-    print(par_nml['ioin']['output_file_stem'])
     return par_nml
