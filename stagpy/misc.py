@@ -23,17 +23,6 @@ def get_arg(args, arg):
     """set a cmd line with arg string name"""
     return vars(args)[arg]
 
-def readpar(args):
-    """read StagYY par file"""
-    par_file = os.path.join(args.path, 'par')
-    if os.path.isfile(par_file):
-        par_nml = f90nml.read(par_file)
-    else:
-        if not (args.create or args.update or args.edit):
-            print('no par file found, check path')
-        par_nml = None
-    return par_nml
-
 def lastfile(args, begstep):
     """look for the last binary file
 

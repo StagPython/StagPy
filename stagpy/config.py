@@ -12,9 +12,9 @@ import argparse
 import configparser
 import os.path
 import shlex
-from . import commands, misc
+from . import commands, parfile
+from .constants import CONFIG_DIR
 
-CONFIG_DIR = os.path.expanduser('~/.config/stagpy')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config')
 
 Conf = namedtuple('ConfigEntry',
@@ -166,8 +166,6 @@ def _set_conf_default(conf_dict, opt, dflt):
 
 def create_config():
     """Create config file"""
-    if not os.path.isdir(CONFIG_DIR):
-        mkdir(CONFIG_DIR)
     config_parser = configparser.ConfigParser()
     for sub_cmd, meta in DUMMY_CMDS.items():
         config_parser.add_section(sub_cmd)
@@ -252,6 +250,8 @@ def add_args(parser, conf_dict):
 def parse_args():
     """Parse cmd line arguments"""
     #get path from config file before
+    if not os.path.isdir(CONFIG_DIR):
+        mkdir(CONFIG_DIR)
     dummy_parser = argparse.ArgumentParser(add_help=False)
     _, remainder = dummy_parser.parse_known_args()
     keep_cmd_path = '-p' in remainder or '--path' in remainder
@@ -279,7 +279,7 @@ def parse_args():
     if keep_cmd_path:
         args.path = cmd_path
         _set_conf_default(CORE, 'path', args.path)
-    par_nml = misc.readpar(args)
+    par_nml = parfile.readpar(args)
 
     main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
