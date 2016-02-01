@@ -25,7 +25,7 @@ class BinData:
         self.step = timestep
 
         # name of the file to read
-        self.fullname = misc.path_fmt(args, self.par_type).format(timestep)
+        self.fullname = misc.file_name(args, self.par_type).format(timestep)
         self.nval = 4 if self.par_type == 'vp' else 1
 
         with open(self.fullname, 'rb') as self._fid:

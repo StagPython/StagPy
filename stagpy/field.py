@@ -60,6 +60,6 @@ def field_cmd(args):
                 args.plt.figure(fig.number)
                 args.plt.tight_layout()
                 args.plt.savefig(
-                        misc.file_name(args, var).format(stgdat.step) + '.pdf',
+                        misc.out_name(args, var).format(stgdat.step) + '.pdf',
                         format='PDF')
                 args.plt.close(fig)

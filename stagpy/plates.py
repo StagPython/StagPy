@@ -252,7 +252,7 @@ def plot_plates(args,velocity,temp,conc,age,timestep):
 
         ax1.set_xlim(0,2*np.pi)
 
-        figname=misc.file_name(args,'surf').format(temp.step)+'.pdf'
+        figname=misc.out_name(args,'surf').format(temp.step)+'.pdf'
         plt.savefig(figname,format='PDF')
         plt.close()
 
@@ -315,7 +315,7 @@ def plot_plates(args,velocity,temp,conc,age,timestep):
            ax2.axvline(x=ridge[ii],ymin=topomin,ymax=topomax,color='green',ls='dashed',alpha=0.8)
         #ax1.set_xlim(0,2*np.pi)
         ax1.set_title(timestep)
-        figname=misc.file_name(args,'surfvel').format(temp.step)+'.pdf'
+        figname=misc.out_name(args,'surfvel').format(temp.step)+'.pdf'
         plt.savefig(figname,format='PDF')
         plt.close()
 
@@ -343,7 +343,7 @@ def plot_plates(args,velocity,temp,conc,age,timestep):
          for ii in np.arange(len(ridge)):
            ax2.axvline(x=ridge[ii],ymin=agemin,ymax=agemax,color='green',ls='dashed',alpha=0.8)
          ax1.set_title(timestep)
-         figname=misc.file_name(args,'surfage').format(temp.step)+'.pdf'
+         figname=misc.out_name(args,'surfage').format(temp.step)+'.pdf'
          plt.savefig(figname,format='PDF')
          plt.close()
         return None
