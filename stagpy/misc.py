@@ -1,26 +1,30 @@
 """miscellaneous definitions"""
 
-import f90nml
 import importlib
 from math import ceil
 import os.path
+
 
 def file_name(args, par_type):
     """return file name format for any time step"""
     fname = args.name + '_' + par_type + '{:05d}'
     return os.path.join(args.path, fname)
 
+
 def out_name(args, par_type):
     """return out file name format for any time step"""
     return args.outname + '_' + par_type + '{:05d}'
+
 
 def set_arg(args, arg, val):
     """set a cmd line with arg string name"""
     vars(args)[arg] = val
 
+
 def get_arg(args, arg):
     """set a cmd line with arg string name"""
     return vars(args)[arg]
+
 
 def lastfile(args, begstep):
     """look for the last binary file
@@ -38,6 +42,7 @@ def lastfile(args, begstep):
             endstep = guess
     return begstep
 
+
 def parse_timesteps(args):
     """parse timestep argument"""
     tstp = args.timestep.split(':')
@@ -53,6 +58,7 @@ def parse_timesteps(args):
     if not tstp[2]:
         tstp[2] = 1
     args.timestep = list(map(int, tstp))
+
 
 def plot_backend(args):
     """import matplotlib and seaborn"""

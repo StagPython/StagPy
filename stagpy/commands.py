@@ -2,6 +2,7 @@
 
 from . import constants, misc, field, rprof, time_series, plates
 
+
 def field_cmd(args):
     """plot snapshots of fields"""
     misc.parse_timesteps(args)
@@ -10,6 +11,7 @@ def field_cmd(args):
         for var, meta in constants.FIELD_VAR_LIST.items():
             misc.set_arg(args, meta.arg, var in args.plot)
     field.field_cmd(args)
+
 
 def rprof_cmd(args):
     """plot radial profiles"""
@@ -27,6 +29,7 @@ def rprof_cmd(args):
                 misc.set_arg(args, meta.min_max, True)
     rprof.rprof_cmd(args)
 
+
 def time_cmd(args):
     """plot time series"""
     misc.parse_timesteps(args)
@@ -35,19 +38,21 @@ def time_cmd(args):
     misc.plot_backend(args)
     time_series.time_cmd(args)
 
+
 def plates_cmd(args):
     """plate analysis"""
     misc.parse_timesteps(args)
     misc.plot_backend(args)
     plates.plates_cmd(args)
 
+
 def var_cmd(_):
     """display a list of available variables"""
     print('field:')
     print(*('{}: {}'.format(v, m.name)
-        for v, m in constants.FIELD_VAR_LIST.items()), sep='\n')
+          for v, m in constants.FIELD_VAR_LIST.items()), sep='\n')
     print()
     print('rprof:')
     print(*('{}: {}'.format(v, m.name)
-        for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
+          for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
 

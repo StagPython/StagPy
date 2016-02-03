@@ -17,7 +17,7 @@ FIELD_VAR_LIST = OrderedDict((
     ('w', Varf('vp', 'z Velocity', 'plot_zvelo')),
     ('p', Varf('vp', 'Pressure', 'plot_pressure')),
     ('s', Varf('vp', 'Stream function', 'plot_stream')),
-    ))
+))
 
 Varr = namedtuple('Varr', ['name', 'arg', 'min_max', 'prof_idx'])
 RPROF_VAR_LIST = OrderedDict((
@@ -31,4 +31,4 @@ RPROF_VAR_LIST = OrderedDict((
     ('h', Varr('Concentration Theo', 'plot_conctheo', None, None)),
     ('i', Varr('Init overturn', 'plot_overturn_init', None, None)),
     ('d', Varr('Difference', 'plot_difference', None, None)),
-    ))
+))

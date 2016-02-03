@@ -56,7 +56,7 @@ $(VENV_DIR): .get-pip.py requirements.txt
 
 .get-pip.py:
 	@echo 'Dowloading get-pip.py...'
-	@python3 download-get-pip.py
+	@python3 downloadgetpip.py
 	@echo 'Done'
 
 info: infopath infozsh infobash
