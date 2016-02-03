@@ -368,8 +368,8 @@ def plates_cmd(args):
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
         temp = BinData(args, 't', timestep)
-        rprof_data=RprofData(args)
         if args.vzcheck:
+            rprof_data=RprofData(args)
             plt = args.plt
             limits, nphi, dVphi = detectPlates(temp, velocity,
                     rprof_data, args)
