@@ -15,7 +15,8 @@ def plot_scalar(args, stgdat, var):
     # adding a row at the end to have continuous field
     if stgdat.geom == 'annulus':
         if stgdat.par_type == 'vp':
-            fld = fld[:, :, 0]
+            if var!='s':
+                fld = fld[:, :, 0]
         else:
             newline = fld[:, 0, 0]
             fld = np.vstack([fld[:, :, 0].T, newline]).T

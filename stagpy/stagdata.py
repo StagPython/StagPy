@@ -145,9 +145,9 @@ class BinData:
         only make sense with vp fields
         """
         # should add test if vp fields or not
-        vphi = self.fields['vy'][:, :, 0]
+        vphi = self.fields['v'][:, :, 0]
         vph2 = -0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
-        v_r = self.fields['vz'][:, :, 0]
+        v_r = self.fields['w'][:, :, 0]
         n_r, nph = np.shape(v_r)
         stream = np.zeros(np.shape(vphi))
         # integrate first on phi
