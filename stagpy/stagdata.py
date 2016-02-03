@@ -3,6 +3,7 @@
 import struct
 import numpy as np
 import os.path
+import sys
 from scipy import integrate
 from . import constants, misc
 
@@ -38,7 +39,7 @@ class BinData:
         Return a tuple of elements if more than one element.
         Default: read 1 word of 4 bytes formatted as an integer.
         """
-        elts = struct.unpack(fmt*nwords, self._fid.read(nwords*nbytes))
+        elts = struct.unpack(fmt * nwords, self._fid.read(nwords * nbytes))
         if len(elts) == 1:
             elts = elts[0]
         return elts
@@ -131,11 +132,11 @@ class BinData:
 
                         for idx, fld in enumerate(flds):
                             fld[snb:enb, srd:erd, sph:eph, sth:eth] = \
-                                    data_cpu_3d[:, :, :, :, idx]
+                                data_cpu_3d[:, :, :, :, idx]
 
         self.fields = {}
         fld_names = ['u', 'v', 'w', 'p'] if self.par_type == 'vp' \
-                else [self.var]
+            else [self.var]
         for fld_name, fld in zip(fld_names, flds):
             self.fields[fld_name] = fld[0, :, :, :]
 
@@ -146,7 +147,8 @@ class BinData:
         """
         # should add test if vp fields or not
         vphi = self.fields['v'][:, :, 0]
-        vph2 = -0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
+        # interpolate to the same phi
+        vph2 = -0.5 * (vphi + np.roll(vphi, 1, 1))
         v_r = self.fields['w'][:, :, 0]
         n_r, nph = np.shape(v_r)
         stream = np.zeros(np.shape(vphi))
@@ -161,9 +163,11 @@ class BinData:
             stream[1:n_r, iph] = stream[0, iph] + \
                 integrate.cumtrapz(vph2[:, iph], rcoord)  # integrate on r
         stream = stream - np.mean(stream[n_r / 2, :])
-        # remove some typical value. Would be better to compute the golbal average
+        # remove some typical value.
+        # Would be better to compute the global average
         # taking into account variable grid spacing
         return stream
+
 
 class RprofData:
 
@@ -175,7 +179,7 @@ class RprofData:
 
     def _readproffile(self, args):
         """extract info from rprof.dat"""
-        proffile = os.path.join(args.path, args.name+'_rprof.dat')
+        proffile = os.path.join(args.path, args.name + '_rprof.dat')
         if not os.path.isfile(proffile):
             print('No profile file found at', proffile)
             sys.exit()
@@ -203,35 +207,37 @@ class RprofData:
         # the different modules
         istart, ilast, istep = args.timestep
         if ilast == -1:
-            ilast = nsteps-1
+            ilast = nsteps - 1
         if istart == -1:
-            istart = nsteps-1
+            istart = nsteps - 1
         args.timestep = istart, ilast, istep
 
         nzp = []
-        for iti in range(0, nsteps-1):
-            nzp = np.append(nzp, tsteps[iti+1, 0]-tsteps[iti, 0]-1)
+        for iti in range(0, nsteps - 1):
+            nzp = np.append(nzp, tsteps[iti + 1, 0] - tsteps[iti, 0] - 1)
 
-        nzp = np.append(nzp, lnum-tsteps[nsteps-1, 0])
+        nzp = np.append(nzp, lnum - tsteps[nsteps - 1, 0])
         nzs = [[0, 0, 0]]
         nzc = 0
         for iti in range(1, nsteps):
-            if nzp[iti] != nzp[iti-1]:
-                nzs.append([iti, iti-nzc, int(nzp[iti-1])])
+            if nzp[iti] != nzp[iti - 1]:
+                nzs.append([iti, iti-nzc, int(nzp[iti - 1])])
                 nzc = iti
-        if nzp[nsteps-1] != nzs[-1][1]:
-            nzs.append([nsteps, nsteps-nzc, int(nzp[nsteps-1])])
+        if nzp[nsteps - 1] != nzs[-1][1]:
+            nzs.append([nsteps, nsteps - nzc, int(nzp[nsteps - 1])])
         nzi = np.array(nzs)
         self.data = data
         self.tsteps = tsteps
         self.nzi = nzi
+
 
 class TimeData:
 
     """extract temporal series"""
 
     def __init__(self, args):
-        timefile = os.path.join(args.path, args.name+'_time.dat')
+        """read temporal series from time.dat"""
+        timefile = os.path.join(args.path, args.name + '_time.dat')
         if not os.path.isfile(timefile):
             print('No profile file found at', timefile)
             sys.exit()
@@ -243,6 +249,6 @@ class TimeData:
         # Only temporary since this has been corrected in stag
         # WARNING: possibly a problem is some columns are added?
         if len(self.colnames) == 33:
-            self.colnames = self.colnames[:28]+self.colnames[30:]
+            self.colnames = self.colnames[:28] + self.colnames[30:]
 
         self.data = np.loadtxt(timefile, skiprows=1)

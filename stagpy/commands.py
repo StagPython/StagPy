@@ -55,4 +55,3 @@ def var_cmd(_):
     print('rprof:')
     print(*('{}: {}'.format(v, m.name)
           for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
-
