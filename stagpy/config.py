@@ -119,7 +119,7 @@ TIME = OrderedDict((
     ))
 PLATES = OrderedDict((
     ('vzcheck', Conf(False, True, None, {},
-        True, 'activate Colin's version with vz checking')),
+        True, 'activate Colin\'s version with vz checking')),
     ('timeprofile', Conf(False, True, None, {},
         True, 'plots nb of plates in function of time')),
     ))
