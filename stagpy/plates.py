@@ -126,7 +126,54 @@ def detectPlates(stagdat_t,stagdat_vp,rprof_data,args):
             limits[i]=int(limits[i])
     return(limits,nphi,dVphi)
 
-def plot_plates(args,velocity,temp,conc,age,timestep):
+def detect_plates(args,velocity):
+        velocityfld=velocity.fields['v']
+        ph_coord=velocity.ph_coord
+        ph_coord=np.append(ph_coord,velocity.ph_coord[1]-velocity.ph_coord[0])
+
+        dsa=0.05
+        indsurf=np.argmin(abs((1-dsa)-np.array(velocity.r_coord)))-4 #### we are a bit below the surface; should check if you are in the mechanical/thermal boundary layer
+        vphi=velocityfld[:,:,0]
+        vph2=0.5*(vphi+np.roll(vphi,1,1)) # interpolate to the same phi
+        dvph2=(np.diff(vph2[indsurf,:])/(ph_coord[0]*2.)) # velocity derivation
+
+        # ############################################## prepare stuff to find trenches and ridges
+        myorder_trench=40
+        myorder_ridge=20 # threshold
+        
+        ######################################## finding trenches
+        pom2=deepcopy(dvph2)
+        maskbigdvel=np.amin(dvph2)*0.25 # putting threshold
+        pom2[pom2>maskbigdvel]=0   # user putting threshold
+        arglessDV=argrelextrema(pom2, np.less,order=myorder_trench,mode='wrap')[0]
+        trench=ph_coord[arglessDV]
+
+        ######################################## finding ridges
+        pom2=deepcopy(dvph2)
+        masksmalldvel=np.amax(dvph2)*0.2 # putting threshold
+        pom2[pom2<masksmalldvel]=0
+        arggreatDV=argrelextrema(pom2, np.greater,order=myorder_ridge,mode='wrap')[0]
+        ridge=ph_coord[arggreatDV]
+
+
+        # ################################################ 
+        #agetrench=age_surface_dim[arglessDV] # age of the trench
+
+        ################### elimination of ridges that are too close to trench
+        argdel=[]
+        if (len(trench)>0 and len(ridge)>0):
+           for ii in np.arange(len(ridge)):
+               mdistance=np.amin(abs(trench-ridge[ii]))
+               if mdistance<0.016:
+                   argdel.append(ii)
+           if len(np.array(argdel))>0:
+               print('deleting from ridge',trench,ridge[argdel])
+               ridge=delete(ridge,np.array(argdel))
+               arggreatDV=delete(arggreatDV,np.array(argdel))
+
+        return(trench,ridge)
+
+def plot_plates(args,velocity,temp,conc,age,timestep,trench,ridge):
         plt = args.plt
         lw=1
         meanvrms=605.0 ### to be changed
@@ -192,44 +239,10 @@ def plot_plates(args,velocity,temp,conc,age,timestep):
         ax3.set_ylabel("dv")
         ax4.set_ylabel("Velocity")
 
-        # ################################################################## prepare stuff to find trenches and ridges
-        myorder=500
-        myorderdv=40
-        myorderdv2=10# threshold
-        arglessT=argrelextrema(tempfld[indsurf,:-1], np.less,order=myorder,mode='wrap')[0]
-        maskbigdvel=np.amin(dvph2)*0.5 # user, putting threshold
-        pom2=deepcopy(dvph2)
-        pom2[pom2>-40000]=0   # user putting threshold
-        arglessDV=argrelextrema(pom2, np.less,order=myorderdv,mode='wrap')[0]
-        ###dvph2smooth = np.lowess(dvph2, ph_coord[:-1], is_sorted=True, frac=0.004, it=0) # smoothing derivatives first
-        masksmalldvel=np.amax(dvph2)*0.4 # user, putting threshold
-        ###pom2=deepcopy(dvph2smooth[:,1])
-        #pom2[pom2<masksmalldvel]=0
-        arggreatDV=argrelextrema(pom2, np.greater,order=myorderdv2,mode='wrap')[0]
-        #arglessETA=argrelextrema(viscfld[indsurf,:-1], np.less,order=myorder,mode='wrap')[0]
-        argmax=argrelextrema(tempfld[indsurf,:-1], np.greater)
-
-        # ################################################ position of trench and ridges using the velocity derivative
-        trench=ph_coord[arglessDV]
-        agetrench=age_surface_dim[arglessDV] # age of the trench
-        ridge=ph_coord[arggreatDV]
-
-        ################### elimination of ridges that are too close to trench
-        argdel=[]
-        if (len(trench)>0 and len(ridge)>0):
-           for ii in arange(len(ridge)):
-               mdistance=amin(abs(trench-ridge[ii]))
-               if mdistance<0.016:
-                   argdel.append(ii)
-           if len(np.array(argdel))>0:
-               print('deleting from ridge',trench,ridge[argdel])
-               ridge=delete(ridge,np.array(argdel))
-               arggreatDV=delete(arggreatDV,np.array(argdel))
 
         ## ################################################ plotting
-        ax2.plot(ph_coord[arglessT],tempfld[indsurf,arglessT],'ro')
-        ax3.plot(ph_coord[arglessDV],dvph2[arglessDV],'ro')
-        ax3.plot(ph_coord[arggreatDV],dvph2[arggreatDV],'go')
+        #ax3.plot(ph_coord[arglessDV],dvph2[arglessDV],'ro')
+        #ax3.plot(ph_coord[arggreatDV],dvph2[arggreatDV],'go')
         ###ax4.plot(ph_coord[arglessETA],viscfld[indsurf,arglessETA],'ro')
         ax1.set_title(timestep)
 
@@ -304,6 +317,7 @@ def plot_plates(args,velocity,temp,conc,age,timestep):
            ax1.axvline(x=trench[ii],ymin=topomin,ymax=topomax,color='red',ls='dashed',alpha=0.8)
            #ax1.arrow(trench[ii],2000,-distancecont,0)
            ax1.grid()
+
         for ii in np.arange(len(ridge)):
            ax1.axvline(x=ridge[ii],ymin=topomin,ymax=topomax,color='green',ls='dashed',alpha=0.8)
         ax2.set_ylabel("Topography [km]")
@@ -390,7 +404,9 @@ def plates_cmd(args):
         else:
             conc = BinData(args, 'c', timestep)
             age = BinData(args, 'a', timestep)
-            plot_plates(args,velocity,temp,conc,age,timestep)
+            trenches,ridges=detect_plates(args,velocity)
+            plot_plates(args,velocity,temp,conc,age,timestep,trenches,ridges)
+
     if args.timeprofile and args.vzcheck:
         plt.figure(-1)
         plt.axis([0,int((args.timestep[1]-args.timestep[0])/args.timestep[2]),0,np.max(nb_plates)])
