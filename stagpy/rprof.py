@@ -31,7 +31,7 @@ def _extrap(xpos, xpoints, ypoints):  # for args.plot_difference
         * (ypoints[0] - ypoints[1]) / (xpoints[0] - xpoints[1])
     ypos[xpos > xpoints[-1]] = ypoints[-1]\
         + (xpos[xpos > xpoints[-1]] - xpoints[-1])\
-        * (ypoints[-1] - ypoints[-2])/(xpoints[-1] - xpoints[-2])
+        * (ypoints[-1] - ypoints[-2]) / (xpoints[-1] - xpoints[-2])
     return ypos
 
 
@@ -72,8 +72,9 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
     linestyles = ('-', '--', '-.', ':')
 
     if integrate:
-        def integ(f, r):
-            return f * (r / rmax)**2
+        def integ(fct, rad):
+            """(theta, phi) surface scaling factor"""
+            return fct * (rad / rmax)**2
 
     if quant[0] == 'Grid':
         fig, axe = plt.subplots(2, sharex=True)
@@ -92,7 +93,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
         inn = ann.index(step)
         nnz = np.multiply(nzi[:, 1], nzi[:, 2])
 
-        ir0 = np.sum([nnz[0:inn]]) + (step-nzi[inn - 1, 0] - 1) * nzi[inn, 2]
+        ir0 = np.sum([nnz[0:inn]]) + (step - nzi[inn - 1, 0] - 1) * nzi[inn, 2]
         ir1 = ir0 + nzi[inn, 2] - 1
 
         if quant[0] == 'Energy':
@@ -132,8 +133,8 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                     # overturned version of the initial profiles
                     if ((quant[0] == 'Concentration' or
                          quant[0] == 'Temperature') and
-                           (args.plot_overturn_init or args.plot_difference) and
-                           step == istart + 1):
+                        (args.plot_overturn_init or args.plot_difference) and
+                        step == istart + 1):
                         rfin = (rmax**3 + rmin**3 - radius**3)**(1 / 3)
                         if quant[0] == 'Concentration':
                             conc0 = _extrap(rfin, radius, profiles[:, 0])
@@ -227,11 +228,13 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
             axax[0].set_ylabel('Composition diff.')
             plt.legend(loc='upper right')
             return tsteps[iminc * istep, 2], concdif[iminc] / concdif[0],\
-                   iminc, timename
+                iminc, timename
         if quant[0] == 'Temperature':
-            axax[1].semilogy(tsteps[istart:ilast:istep, 2], tempdif / tempdif[0])
+            axax[1].semilogy(tsteps[istart:ilast:istep, 2],
+                             tempdif / tempdif[0])
             imint = tempdif.index(min(tempdif))
-            axax[1].semilogy(tsteps[imint * istep, 2], tempdif[imint] / tempdif[0],
+            axax[1].semilogy(tsteps[imint * istep, 2],
+                             tempdif[imint] / tempdif[0],
                              'o', label=r'$t=%.2e$' % (tsteps[imint, 2]))
             axax[1].set_ylabel('Temperature diff.')
             plt.legend(loc='lower right')
@@ -248,8 +251,9 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                              linestyle='--', label=r'$sigma=%.2e$' % sigma)
             plt.legend(loc='upper right')
             return tsteps[imint * istep, 2], tempdif[imint] / tempdif[0], iwm,\
-                   wma, imint, sigma, timename
+                wma, imint, sigma, timename
     return None
+
 
 def rprof_cmd(args):
     """Plot radial profiles"""
