@@ -18,123 +18,161 @@ from .constants import CONFIG_DIR
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config')
 
 Conf = namedtuple('ConfigEntry',
-        ['default', 'cmd_arg', 'shortname', 'kwargs',
-            'conf_arg', 'help_string'])
+                  ['default', 'cmd_arg', 'shortname', 'kwargs',
+                   'conf_arg', 'help_string'])
 CORE = OrderedDict((
     ('path', Conf('./', True, 'p', {},
-        True, 'StagYY run directory')),
+                  True, 'StagYY run directory')),
     ('name', Conf('test', True, None, {},
-        True, 'StagYY generic output file name')),
+                  True, 'StagYY generic output file name')),
     ('outname', Conf('stagpy', True, 'n', {},
-        True, 'StagPy generic output file name')),
-    ('geometry', Conf('annulus', True, 'g', {'choices':['annulus']},
-        True, 'geometry of the domain')),
+                     True, 'StagPy generic output file name')),
+    ('geometry', Conf('annulus', True, 'g', {'choices': ['annulus']},
+                      True, 'geometry of the domain')),
     ('timestep', Conf('100', True, 's', {},
-        True, 'timestep slice')),
+                      True, 'timestep slice')),
     ('xkcd', Conf(False, True, None, {},
-        True, 'use the xkcd style')),
+                  True, 'use the xkcd style')),
     ('pdf', Conf(False, True, None, {},
-        True, 'produce non-rasterized pdf (slow!)')),
+                 True, 'produce non-rasterized pdf (slow!)')),
     ('dsa', Conf(0.05, False, None, {},
-        True, 'thickness of sticky air')),
+                 True, 'thickness of sticky air')),
     ('fontsize', Conf(16, False, None, {},
-        True, 'font size')),
+                      True, 'font size')),
     ('linewidth', Conf(2, False, None, {},
-        True, 'line width')),
+                       True, 'line width')),
     ('matplotback', Conf('agg', False, None, {},
-        True, 'graphical backend')),
+                         True, 'graphical backend')),
     ('useseaborn', Conf(True, False, None, {},
-        True, 'use or not seaborn')),
-    ))
+                        True, 'use or not seaborn')),
+))
 FIELD = OrderedDict((
-    ('plot', Conf(None, True, 'o',
-        {'nargs':'?', 'const':'', 'type':str},
-        False, 'specify which variable to plot')),
-    ('plot_temperature', Conf(True, False, None, {},
-        True, 'temperature scalar field')),
-    ('plot_xvelo', Conf(False, False, None, {},
-        True, 'x velocity scalar field')),
-    ('plot_yvelo', Conf(False, False, None, {},
-        True, 'y velocity scalar field')),
-    ('plot_zvelo', Conf(False, False, None, {},
-        True, 'z velocity scalar field')),
-    ('plot_pressure', Conf(True, False, None, {},
-        True, 'pressure scalar field')),
-    ('plot_stream', Conf(True, False, None, {},
-        True, 'stream function scalar field')),
-    ('plot_composition', Conf(False, False, None, {},
-        True, 'composition scalar field')),
-    ('plot_viscosity', Conf(False, False, None, {},
-        True, 'viscosity scalar field')),
-    ('plot_density', Conf(False, False, None, {},
-        True, 'density scalar field')),
-    ('plot_age', Conf(False, False, None, {},
-        True, 'age scalar field')),
-    ('shrinkcb', Conf(0.5, False, None, {},
-        True, 'color bar shrink factor')),
-    ))
+    ('plot',
+        Conf(None, True, 'o',
+             {'nargs': '?', 'const': '', 'type': str},
+             False, 'specify which variable to plot')),
+    ('plot_temperature',
+        Conf(True, False, None, {},
+             True, 'temperature scalar field')),
+    ('plot_xvelo',
+        Conf(False, False, None, {},
+             True, 'x velocity scalar field')),
+    ('plot_yvelo',
+        Conf(False, False, None, {},
+             True, 'y velocity scalar field')),
+    ('plot_zvelo',
+        Conf(False, False, None, {},
+             True, 'z velocity scalar field')),
+    ('plot_pressure',
+        Conf(True, False, None, {},
+             True, 'pressure scalar field')),
+    ('plot_stream',
+        Conf(True, False, None, {},
+             True, 'stream function scalar field')),
+    ('plot_composition',
+        Conf(False, False, None, {},
+             True, 'composition scalar field')),
+    ('plot_viscosity',
+        Conf(False, False, None, {},
+             True, 'viscosity scalar field')),
+    ('plot_density',
+        Conf(False, False, None, {},
+             True, 'density scalar field')),
+    ('plot_age',
+        Conf(False, False, None, {},
+             True, 'age scalar field')),
+    ('shrinkcb',
+        Conf(0.5, False, None, {},
+             True, 'color bar shrink factor')),
+))
 RPROF = OrderedDict((
-    ('plot', Conf(None, True, 'o',
-        {'nargs':'?', 'const':'', 'type':str},
-        False, 'specify which variable to plot')),
-    ('plot_grid', Conf(True, False, None, {},
-        True, 'plot grid')),
-    ('plot_temperature', Conf(True, False, None, {},
-        True, 'plot temperature')),
-    ('plot_minmaxtemp', Conf(False, False, None, {},
-        True, 'plot min and max temperature')),
-    ('plot_velocity', Conf(True, False, None, {},
-        True, 'plot velocity')),
-    ('plot_minmaxvelo', Conf(False, False, None, {},
-        True, 'plot min and max velocity')),
-    ('plot_viscosity', Conf(False, False, None, {},
-        True, 'plot viscosity')),
-    ('plot_minmaxvisco', Conf(False, False, None, {},
-        True, 'plot min and max viscosity')),
-    ('plot_advection', Conf(True, False, None, {},
-        True, 'plot heat advction')),
-    ('plot_energy', Conf(True, False, None, {},
-        True, 'plot energy')),
-    ('plot_concentration', Conf(True, False, None, {},
-        True, 'plot concentration')),
-    ('plot_minmaxcon', Conf(False, False, None, {},
-        True, 'plot min and max concentration')),
-    ('plot_conctheo', Conf(True, False, None, {},
-        True, 'plot concentration theo')),
-    ('plot_overturn_init', Conf(True, False, None, {},
-        True, 'plot overturn init')),
-    ('plot_difference', Conf(True, False, None, {},
-        True, 'plot difference between T and C profs and overturned \
+    ('plot',
+        Conf(None, True, 'o',
+             {'nargs': '?', 'const': '', 'type': str},
+             False, 'specify which variable to plot')),
+    ('plot_grid',
+        Conf(True, False, None, {},
+             True, 'plot grid')),
+    ('plot_temperature',
+        Conf(True, False, None, {},
+             True, 'plot temperature')),
+    ('plot_minmaxtemp',
+        Conf(False, False, None, {},
+             True, 'plot min and max temperature')),
+    ('plot_velocity',
+        Conf(True, False, None, {},
+             True, 'plot velocity')),
+    ('plot_minmaxvelo',
+        Conf(False, False, None, {},
+             True, 'plot min and max velocity')),
+    ('plot_viscosity',
+        Conf(False, False, None, {},
+             True, 'plot viscosity')),
+    ('plot_minmaxvisco',
+        Conf(False, False, None, {},
+             True, 'plot min and max viscosity')),
+    ('plot_advection',
+        Conf(True, False, None, {},
+             True, 'plot heat advction')),
+    ('plot_energy',
+        Conf(True, False, None, {},
+             True, 'plot energy')),
+    ('plot_concentration',
+        Conf(True, False, None, {},
+             True, 'plot concentration')),
+    ('plot_minmaxcon',
+        Conf(False, False, None, {},
+             True, 'plot min and max concentration')),
+    ('plot_conctheo',
+        Conf(True, False, None, {},
+             True, 'plot concentration theo')),
+    ('plot_overturn_init',
+        Conf(True, False, None, {},
+             True, 'plot overturn init')),
+    ('plot_difference',
+        Conf(True, False, None, {},
+             True, 'plot difference between T and C profs and overturned \
                 version of their initial values')),
-    ))
+))
 TIME = OrderedDict((
-    ('compstat', Conf(True, True, None, {},
-        True, 'compute steady state statistics')),
-    ('annottmin', Conf(False, True, None, {},
-        True, 'put an arrow at tminc and tmint')),
-    ('tmint', Conf(0., True, None, {},
-        False, 'specify tmint')),
-    ('tminc', Conf(0., True, None, {},
-        False, 'specify tminc')),
-    ))
+    ('compstat',
+        Conf(True, True, None, {},
+             True, 'compute steady state statistics')),
+    ('annottmin',
+        Conf(False, True, None, {},
+             True, 'put an arrow at tminc and tmint')),
+    ('tmint',
+        Conf(0., True, None, {},
+             False, 'specify tmint')),
+    ('tminc',
+        Conf(0., True, None, {},
+             False, 'specify tminc')),
+))
 PLATES = OrderedDict((
-    ('vzcheck', Conf(False, True, None, {},
-        True, 'activate Colin\'s version with vz checking')),
-    ('timeprofile', Conf(False, True, None, {},
-        True, 'plots nb of plates in function of time')),
-    ))
+    ('vzcheck',
+        Conf(False, True, None, {},
+             True, 'activate Colin\'s version with vz checking')),
+    ('timeprofile',
+        Conf(False, True, None, {},
+             True, 'plots nb of plates in function of time')),
+))
 VAR = OrderedDict((
-    ))
+))
 CONFIG = OrderedDict((
-    ('create', Conf(None, True, None, {'action':'store_true'},
-        False, 'create new config file')),
-    ('update', Conf(None, True, None, {'action':'store_true'},
-        False, 'add missing entries to existing config file')),
-    ('edit', Conf(None, True, None, {'action':'store_true'},
-        False, 'open config file in a text editor')),
-    ('editor', Conf('vim', False, None, {},
-        True, 'text editor')),
-    ))
+    ('create',
+        Conf(None, True, None, {'action': 'store_true'},
+             False, 'create new config file')),
+    ('update',
+        Conf(None, True, None, {'action': 'store_true'},
+             False, 'add missing entries to existing config file')),
+    ('edit',
+        Conf(None, True, None, {'action': 'store_true'},
+             False, 'open config file in a text editor')),
+    ('editor',
+        Conf('vim', False, None, {},
+             True, 'text editor')),
+))
+
 
 def config_cmd(args):
     """sub command config"""
@@ -146,27 +184,29 @@ def config_cmd(args):
 Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func', 'help_string'])
 SUB_CMDS = OrderedDict((
     ('field', Sub(FIELD, True, commands.field_cmd,
-        'plot scalar fields')),
+                  'plot scalar fields')),
     ('rprof', Sub(RPROF, True, commands.rprof_cmd,
-        'plot radial profiles')),
+                  'plot radial profiles')),
     ('time', Sub(TIME, True, commands.time_cmd,
-        'plot temporal series')),
+                 'plot temporal series')),
     ('plates', Sub(PLATES, True, commands.plates_cmd,
-        'plate analysis')),
+                   'plate analysis')),
     ('var', Sub(VAR, False, commands.var_cmd,
-        'print the list of variables')),
+                'print the list of variables')),
     ('config', Sub(CONFIG, False, config_cmd,
-        'configuration handling')),
-    ))
+                   'configuration handling')),
+))
 DummySub = namedtuple('DummySub', ['conf_dict'])
 DUMMY_CMDS = OrderedDict((
     ('core', DummySub(CORE)),
-    ))
+))
 DUMMY_CMDS.update(SUB_CMDS)
+
 
 def _set_conf_default(conf_dict, opt, dflt):
     """set default value of option in conf_dict"""
     conf_dict[opt] = conf_dict[opt]._replace(default=dflt)
+
 
 def create_config():
     """Create config file"""
@@ -178,6 +218,7 @@ def create_config():
                 config_parser.set(sub_cmd, opt, str(opt_meta.default))
     with open(CONFIG_FILE, 'w') as out_stream:
         config_parser.write(out_stream)
+
 
 def read_config(args):
     """Read config file and set conf_dict as needed"""
@@ -210,7 +251,7 @@ def read_config(args):
             _set_conf_default(meta.conf_dict, opt, dflt)
         if missing_opts and not args.update:
             print('WARNING! Missing options in {} section of config file:'.
-                    format(sub_cmd))
+                  format(sub_cmd))
             print(*missing_opts)
             print()
     if missing_sections and not args.update:
@@ -221,6 +262,7 @@ def read_config(args):
         print('Run stagpy config --update to update config file')
         print()
 
+
 class Toggle(argparse.Action):
 
     """argparse Action to store True/False to a +/-arg"""
@@ -228,6 +270,7 @@ class Toggle(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         """set args attribute with True/False"""
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
+
 
 def add_args(parser, conf_dict):
     """Add arguments to a parser"""
@@ -251,15 +294,16 @@ def add_args(parser, conf_dict):
     parser.set_defaults(**{a: c.default for a, c in conf_dict.items()})
     return parser
 
+
 def parse_args():
     """Parse cmd line arguments"""
-    #get path from config file before
+    # get path from config file before
     if not os.path.isdir(CONFIG_DIR):
         mkdir(CONFIG_DIR)
     dummy_parser = argparse.ArgumentParser(add_help=False)
     _, remainder = dummy_parser.parse_known_args()
     keep_cmd_path = '-p' in remainder or '--path' in remainder
-    dummy_parser = add_args(dummy_parser, {'path':CORE['path']})
+    dummy_parser = add_args(dummy_parser, {'path': CORE['path']})
     args, remainder = dummy_parser.parse_known_args()
     cmd_path = args.path
     _set_conf_default(CORE, 'path', args.path)
@@ -278,7 +322,7 @@ def parse_args():
         except:
             print('ERROR while reading config file')
             print('Run stagpy config --create to obtain a new config file')
-            print('='*26)
+            print('=' * 26)
             raise
     if keep_cmd_path:
         args.path = cmd_path
@@ -287,8 +331,8 @@ def parse_args():
 
     main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
-    main_parser = add_args(main_parser, {'path':CORE['path']})
-    main_parser.set_defaults(func=lambda _:print('stagpy -h for usage'))
+    main_parser = add_args(main_parser, {'path': CORE['path']})
+    main_parser.set_defaults(func=lambda _: print('stagpy -h for usage'))
     subparsers = main_parser.add_subparsers()
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
@@ -297,7 +341,7 @@ def parse_args():
         core_parser.set_defaults(name=par_nml['ioin']['output_file_stem'])
 
     for sub_cmd, meta in SUB_CMDS.items():
-        kwargs = {'prefix_chars':'+-', 'help':meta.help_string}
+        kwargs = {'prefix_chars': '+-', 'help': meta.help_string}
         if meta.use_core:
             kwargs.update(parents=[core_parser])
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)

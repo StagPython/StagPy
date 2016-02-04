@@ -5,12 +5,14 @@ Date: 2015/11/27
 """
 
 import numpy as np
+import sys
 from math import sqrt
 from .stagdata import TimeData
 
+
 def find_nearest(array, value):
     """Find the data point nearest to value"""
-    idx = (np.abs(array-value)).argmin()
+    idx = (np.abs(array - value)).argmin()
     return array[idx]
 
 
@@ -22,21 +24,18 @@ def time_cmd(args):
     ftsz = args.fontsize
 
     if not args.par_nml:
-        print('No par file found. Input pars by hand')
-        read_par_file = False
-        rcmb = 1
-        geom = str(raw_input('spherical (s) or cartesian (c)? '))
-        spherical = geom == 's'
-    else:
-        spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
-        if spherical:
-            rcmb = args.par_nml['geometry']['r_cmb']
-        else:
-            rcmb = 0.
+        print('No par file found. Abort.')
+        sys.exit()
 
-        rab = args.par_nml['refstate']['Ra0']
-        rah = args.par_nml['refstate']['Rh']
-        botpphase = args.par_nml['boundaries']['BotPphase'] ### should be replaced if missing in par file
+    spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+    if spherical:
+        rcmb = args.par_nml['geometry']['r_cmb']
+    else:
+        rcmb = 0.
+
+    rab = args.par_nml['refstate']['Ra0']
+    rah = args.par_nml['refstate']['Rh']
+    botpphase = args.par_nml['boundaries']['BotPphase']
 
     time_data = TimeData(args)
     colnames, data = time_data.colnames, time_data.data
@@ -44,10 +43,10 @@ def time_cmd(args):
 
     if spherical:
         rmin = rcmb
-        rmax = rmin+1
-        coefb = 1 #rb**2*4*pi
-        coefs = (rmax/rmin)**2 #*4*pi
-        volume = rmin*(1-(rmax/rmin)**3)/3 #*4*pi/3
+        rmax = rmin + 1
+        coefb = 1  # rb**2*4*pi
+        coefs = (rmax / rmin)**2  # *4*pi
+        volume = rmin * (1 - (rmax / rmin)**3) / 3  # *4*pi/3
     else:
         coefb = 1.
         coefs = 1.
@@ -55,16 +54,17 @@ def time_cmd(args):
 
     time = data[:, 1]
 
-    dtdt = (data[2:ntot-1, 5]-data[0:ntot-3, 5]) / (data[2:ntot-1, 1]-
-                                                    data[0:ntot-3, 1])
-    ebalance = data[1:ntot-2, 2]*coefs - data[1:ntot-2, 3]*coefb - volume*dtdt
+    dtdt = (data[2:ntot - 1, 5] - data[0:ntot - 3, 5]) /\
+        (data[2:ntot - 1, 1] - data[0:ntot - 3, 1])
+    ebalance = data[1:ntot - 2, 2]*coefs - data[1:ntot - 2, 3] * coefb\
+        - volume * dtdt
 
     fig = plt.figure(figsize=(30, 10))
 
     plt.subplot(2, 1, 1)
-    plt.plot(time, data[:, 2]*coefs, 'b', label='Surface', linewidth=lwdth)
-    plt.plot(time, data[:, 3]*coefb, 'r', label='Bottom', linewidth=lwdth)
-    plt.plot(time[1:ntot-2:], ebalance, 'g', label='Energy balance',
+    plt.plot(time, data[:, 2] * coefs, 'b', label='Surface', linewidth=lwdth)
+    plt.plot(time, data[:, 3] * coefb, 'r', label='Bottom', linewidth=lwdth)
+    plt.plot(time[1:ntot - 2:], ebalance, 'g', label='Energy balance',
              linewidth=lwdth)
     plt.ylabel('Heat flow', fontsize=ftsz)
     plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
@@ -74,9 +74,9 @@ def time_cmd(args):
 
     if args.annottmin:
         plt.annotate('tminT', xy=(args.tmint, 0), xytext=(args.tmint, -10),
-                arrowprops={'facecolor':'black'})
+                     arrowprops={'facecolor': 'black'})
         plt.annotate('tminC', xy=(args.tminc, 0), xytext=(args.tminc, 10),
-                arrowprops={'facecolor':'black'})
+                     arrowprops={'facecolor': 'black'})
 
     plt.subplot(2, 1, 2)
     plt.plot(time, data[:, 5], 'k', linewidth=lwdth)
@@ -91,6 +91,7 @@ def time_cmd(args):
         coords = []
         print('right click to select starting time of statistics computations')
         # Simple mouse click function to store coordinates
+
         def onclick(event):
             """get position and button from mouse click"""
             ixc, iyc = event.xdata, event.ydata
@@ -115,24 +116,25 @@ def time_cmd(args):
     if args.compstat:
         ch1 = np.where(time == (find_nearest(time, coords[0][0])))
 
-        print('Statistics computed from t ='+str(time[ch1[0][0]]))
+        print('Statistics computed from t =' + str(time[ch1[0][0]]))
         for num in range(2, len(colnames)):
-            moy.append(np.trapz(data[ch1[0][0]:ntot-1, num],
-                                x=time[ch1[0][0]:ntot-1])/
-                       (time[ntot-1]-time[ch1[0][0]]))
-            rms.append(sqrt(np.trapz((data[ch1[0][0]:ntot-1, num] -
-                                         moy[num-2])**2,
-                                        x=time[ch1[0][0]:ntot-1])/
-                               (time[ntot-1]-time[ch1[0][0]])))
-            print(colnames[num]+' = '+str(moy[num-2])+' pm '+str(rms[num-2]))
-        ebal.append(np.trapz(ebalance[ch1[0][0]-1:ntot-3],
-                             x=time[ch1[0][0]:ntot-2])/(time[ntot-2]-
-                                                        time[ch1[0][0]]))
-        rms_ebal.append(sqrt(np.trapz((ebalance[ch1[0][0]-1:ntot-3]-ebal)**2,
-                                         x=time[ch1[0][0]:ntot-2])/
-                                (time[ntot-2]-time[ch1[0][0]])))
-        print('Energy balance '+str(ebal)+' pm '+str(rms_ebal))
-        results = moy+ebal+rms+rms_ebal
+            moy.append(np.trapz(data[ch1[0][0]:ntot - 1, num],
+                                x=time[ch1[0][0]:ntot - 1]) /
+                       (time[ntot - 1] - time[ch1[0][0]]))
+            rms.append(sqrt(np.trapz((data[ch1[0][0]:ntot - 1, num] -
+                                      moy[num - 2])**2,
+                                     x=time[ch1[0][0]:ntot - 1])/
+                            (time[ntot - 1] - time[ch1[0][0]])))
+            print(colnames[num], '=', moy[num - 2], 'pm', rms[num - 2])
+        ebal.append(np.trapz(ebalance[ch1[0][0] - 1:ntot - 3],
+                             x=time[ch1[0][0]:ntot - 2]) /
+                    (time[ntot - 2] - time[ch1[0][0]]))
+        rms_ebal.append(sqrt(np.trapz(
+                             (ebalance[ch1[0][0] - 1:ntot - 3] - ebal)**2,
+                             x=time[ch1[0][0]:ntot - 2]) /
+                             (time[ntot - 2] - time[ch1[0][0]])))
+        print('Energy balance', ebal, 'pm', rms_ebal)
+        results = moy + ebal + rms + rms_ebal
         fich = open('Stats.dat', 'w')
         fich.write("%10.5e %10.5e %10.5e " % (rab, rah, botpphase))
         for item in results:

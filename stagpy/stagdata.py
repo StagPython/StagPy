@@ -221,7 +221,7 @@ class RprofData:
         nzc = 0
         for iti in range(1, nsteps):
             if nzp[iti] != nzp[iti - 1]:
-                nzs.append([iti, iti-nzc, int(nzp[iti - 1])])
+                nzs.append([iti, iti - nzc, int(nzp[iti - 1])])
                 nzc = iti
         if nzp[nsteps - 1] != nzs[-1][1]:
             nzs.append([nsteps, nsteps - nzc, int(nzp[nsteps - 1])])
