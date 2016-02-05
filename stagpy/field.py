@@ -52,6 +52,16 @@ def plot_scalar(args, stgdat, var):
     return fig, axis
 
 
+def plot_stream(args, fig, axis, x_1, x_2, v_1, v_2):
+    """use of streamplot to plot stream lines
+
+    only works in cartesian with regular grids
+    """
+    v_tot = np.sqrt(v_1**2 + v_2**2)
+    lwd = 2*v_tot/v_tot.max()
+    axis.streamplot(x_1, x_2, v_1, v_2, density=0.8, color='k', linewidth=lwd)
+
+
 def field_cmd(args):
     """extract and plot field data"""
     for timestep in range(*args.timestep):
