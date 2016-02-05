@@ -81,8 +81,23 @@ class BinData:
         self.bot_temp = self._readbin('f')
 
         self.th_coord = self._readbin('f', self.nthtot)  # th-coordinates
-        self.ph_coord = self._readbin('f', self.nphtot)  # ph-coordinates
+        ph_coord = self._readbin('f', self.nphtot)  # ph-coordinates
+        self._ph_coord = ph_coord
+        # to have continuous field
+        self.ph_coord = np.append(ph_coord, ph_coord[1] - ph_coord[0])
         self.r_coord = self._readbin('f', self.nrtot)  # r-coordinates
+
+        # create meshgrid (2D for the moment since only annulus is supported)
+        self.ph_mesh, self.r_mesh = np.meshgrid(
+            np.array(self.ph_coord), np.array(self.r_coord) + self.rcmb)
+
+        # compute cartesian coordinates
+        # z along rotation axis at theta=0
+        # x at th=90, phi=0
+        # y at th=90, phi=90
+        self.x_mesh = self.r_mesh * np.cos(self.ph_mesh)# * np.sin(self.th_mesh)
+        self.y_mesh = self.r_mesh * np.sin(self.ph_mesh)# * np.sin(self.th_mesh)
+        #self.z_coord = self.r_mesh * np.cos(self.th_mesh)
 
     def _readfile(self):
         """read scalar/vector fields"""
@@ -154,7 +169,7 @@ class BinData:
         stream = np.zeros(np.shape(vphi))
         # integrate first on phi
         stream[0, 1:nph - 1] = self.rcmb * \
-            integrate.cumtrapz(v_r[0, 0:nph - 1], self.ph_coord)
+            integrate.cumtrapz(v_r[0, 0:nph - 1], self._ph_coord)
         stream[0, 0] = 0
         # use r coordinates where vphi is defined
         rcoord = self.rcmb + np.array(

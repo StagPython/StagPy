@@ -21,13 +21,10 @@ def plot_scalar(args, stgdat, var):
         else:
             newline = fld[:, 0, 0]
             fld = np.vstack([fld[:, :, 0].T, newline]).T
-        ph_coord = np.append(
-            stgdat.ph_coord, stgdat.ph_coord[1] - stgdat.ph_coord[0])
 
-    xmesh, ymesh = np.meshgrid(
-        np.array(ph_coord), np.array(stgdat.r_coord) + stgdat.rcmb)
+    xmesh, ymesh = stgdat.x_mesh, stgdat.y_mesh
 
-    fig, axis = plt.subplots(ncols=1, subplot_kw={'projection': 'polar'})
+    fig, axis = plt.subplots(ncols=1)
     if stgdat.geom == 'annulus':
         if var == 'n':
             surf = axis.pcolormesh(xmesh, ymesh, fld,
@@ -46,9 +43,8 @@ def plot_scalar(args, stgdat, var):
                                    shading='gouraud')
         cbar = plt.colorbar(surf, shrink=args.shrinkcb)
         cbar.set_label(constants.FIELD_VAR_LIST[var].name)
-        plt.axis([stgdat.rcmb, np.amax(xmesh), 0, np.amax(ymesh)])
+        plt.axis('equal')
         plt.axis('off')
-
     return fig, axis
 
 
