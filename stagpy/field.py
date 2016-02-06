@@ -17,12 +17,12 @@ def plot_scalar(args, stgdat, var):
     if stgdat.geom == 'annulus':
         if stgdat.par_type == 'vp':
             if var != 's':
-                fld = fld[:, :, 0]
+                fld = fld[:, :, 0].T
         else:
             newline = fld[:, 0, 0]
-            fld = np.vstack([fld[:, :, 0].T, newline]).T
+            fld = np.vstack([fld[:, :, 0].T, newline])
 
-    xmesh, ymesh = stgdat.x_mesh, stgdat.y_mesh
+    xmesh, ymesh = stgdat.x_mesh[0, :, :], stgdat.y_mesh[0, :, :]
 
     fig, axis = plt.subplots(ncols=1)
     if stgdat.geom == 'annulus':

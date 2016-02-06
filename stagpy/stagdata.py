@@ -80,24 +80,30 @@ class BinData:
         self.erupta_total = self._readbin('f')
         self.bot_temp = self._readbin('f')
 
-        self.th_coord = self._readbin('f', self.nthtot)  # th-coordinates
-        ph_coord = self._readbin('f', self.nphtot)  # ph-coordinates
+        # theta coordinates
+        self.th_coord = np.array(self._readbin('f', self.nthtot))
+        # force to pi/2 if 2D
+        self.th_coord = np.array(np.pi / 2)
+        # phi coordinates
+        ph_coord = np.array(self._readbin('f', self.nphtot))
         self._ph_coord = ph_coord
         # to have continuous field
         self.ph_coord = np.append(ph_coord, ph_coord[1] - ph_coord[0])
-        self.r_coord = self._readbin('f', self.nrtot)  # r-coordinates
+        # radius coordinates
+        self.r_coord = np.array(self._readbin('f', self.nrtot))
 
-        # create meshgrid (2D for the moment since only annulus is supported)
-        self.ph_mesh, self.r_mesh = np.meshgrid(
-            np.array(self.ph_coord), np.array(self.r_coord) + self.rcmb)
+        # create meshgrids
+        self.th_mesh, self.ph_mesh, self.r_mesh = np.meshgrid(
+            self.th_coord, self.ph_coord, self.r_coord + self.rcmb,
+            indexing='ij')
 
         # compute cartesian coordinates
         # z along rotation axis at theta=0
         # x at th=90, phi=0
         # y at th=90, phi=90
-        self.x_mesh = self.r_mesh * np.cos(self.ph_mesh)# * np.sin(self.th_mesh)
-        self.y_mesh = self.r_mesh * np.sin(self.ph_mesh)# * np.sin(self.th_mesh)
-        #self.z_coord = self.r_mesh * np.cos(self.th_mesh)
+        self.x_mesh = self.r_mesh * np.cos(self.ph_mesh) * np.sin(self.th_mesh)
+        self.y_mesh = self.r_mesh * np.sin(self.ph_mesh) * np.sin(self.th_mesh)
+        self.z_mesh = self.r_mesh * np.cos(self.th_mesh)
 
     def _readfile(self):
         """read scalar/vector fields"""
@@ -114,6 +120,8 @@ class BinData:
         else:
             self.scalefac = 1
 
+        # flds should be construct with the "normal" indexing order th, ph, r
+        # there shouldn't be a need to transpose in plot_scalar
         dim_fields = (self.nblocks, self.nrtot,
                       self.nphtot + self.xyp, self.nthtot + self.xyp)
 

@@ -131,7 +131,7 @@ def detect_plates(args,velocity):
         ph_coord=velocity.ph_coord
 
         dsa=0.05
-        indsurf=np.argmin(abs((1-dsa)-np.array(velocity.r_coord)))-4 #### we are a bit below the surface; should check if you are in the mechanical/thermal boundary layer
+        indsurf = np.argmin(abs((1 - dsa) - velocity.r_coord)) - 4  # we are a bit below the surface; should check if you are in the mechanical/thermal boundary layer
         vphi=velocityfld[:,:,0]
         vph2=0.5*(vphi+np.roll(vphi,1,1)) # interpolate to the same phi
         dvph2=(np.diff(vph2[indsurf,:])/(ph_coord[0]*2.)) # velocity derivation
@@ -194,7 +194,7 @@ def plot_plates(args,velocity,temp,conc,age,timestep,trench,ridge):
         newline = agefld[:, 0, 0]
         agefld = np.vstack([agefld[:, :, 0].T, newline]).T
 
-        indsurf=np.argmin(abs((1-dsa)-np.array(temp.r_coord)))-4 #### we are a bit below the surface; delete "-some number" to be just below the surface (that is considered plane here); should check if you are in the mechanical/thermal boundary layer
+        indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4  # we are a bit below the surface; delete "-some number" to be just below the surface (that is considered plane here); should check if you are in the mechanical/thermal boundary layer
         indcont=np.argmin(abs((1-dsa)-np.array(velocity.r_coord)))-10 ### depth to detect the continents
         continents=np.ma.masked_where(np.logical_or(concfld[indcont,:-1]<3,concfld[indcont,:-1]>4),concfld[indcont,:-1])
         continentsall=continents/continents # masked array, only continents are true
