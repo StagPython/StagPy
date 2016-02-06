@@ -129,7 +129,6 @@ def detectPlates(stagdat_t,stagdat_vp,rprof_data,args):
 def detect_plates(args,velocity):
         velocityfld=velocity.fields['v']
         ph_coord=velocity.ph_coord
-        ph_coord=np.append(ph_coord,velocity.ph_coord[1]-velocity.ph_coord[0])
 
         dsa=0.05
         indsurf=np.argmin(abs((1-dsa)-np.array(velocity.r_coord)))-4 #### we are a bit below the surface; should check if you are in the mechanical/thermal boundary layer
@@ -209,7 +208,6 @@ def plot_plates(args,velocity,temp,conc,age,timestep,trench,ridge):
             age_surface_dim=age_surface*meanvrms*ttransit/yearins/1.e6
 
         ph_coord=conc.ph_coord
-        ph_coord=np.append(ph_coord,conc.ph_coord[1]-conc.ph_coord[0])
         # ############################################################### velocity
         vphi=velocityfld[:,:,0]
         vph2=0.5*(vphi+np.roll(vphi,1,1)) # interpolate to the same phi
