@@ -208,6 +208,30 @@ def _set_conf_default(conf_dict, opt, dflt):
     conf_dict[opt] = conf_dict[opt]._replace(default=dflt)
 
 
+def _read_section(config_parser, sub_cmd, meta):
+    """read section of config parser
+
+    read section corresponding to the sub command sub_cmd
+    and set meta.conf_dict default values to the read values
+    """
+    missing_opts = []
+    for opt, meta_opt in meta.conf_dict.items():
+        if not config_parser.has_option(sub_cmd, opt):
+            if meta_opt.conf_arg:
+                missing_opts.append(opt)
+            continue
+        if isinstance(meta_opt.default, bool):
+            dflt = config_parser.getboolean(sub_cmd, opt)
+        elif isinstance(meta_opt.default, float):
+            dflt = config_parser.getfloat(sub_cmd, opt)
+        elif isinstance(meta_opt.default, int):
+            dflt = config_parser.getint(sub_cmd, opt)
+        else:
+            dflt = config_parser.get(sub_cmd, opt)
+        _set_conf_default(meta.conf_dict, opt, dflt)
+    return missing_opts
+
+
 def create_config():
     """Create config file"""
     config_parser = configparser.ConfigParser()
@@ -234,21 +258,7 @@ def read_config(args):
         if not config_parser.has_section(sub_cmd):
             missing_sections.append(sub_cmd)
             continue
-        missing_opts = []
-        for opt, meta_opt in meta.conf_dict.items():
-            if not config_parser.has_option(sub_cmd, opt):
-                if meta_opt.conf_arg:
-                    missing_opts.append(opt)
-                continue
-            if isinstance(meta_opt.default, bool):
-                dflt = config_parser.getboolean(sub_cmd, opt)
-            elif isinstance(meta_opt.default, float):
-                dflt = config_parser.getfloat(sub_cmd, opt)
-            elif isinstance(meta_opt.default, int):
-                dflt = config_parser.getint(sub_cmd, opt)
-            else:
-                dflt = config_parser.get(sub_cmd, opt)
-            _set_conf_default(meta.conf_dict, opt, dflt)
+        missing_opts = _read_section(config_parser, sub_cmd, meta)
         if missing_opts and not args.update:
             print('WARNING! Missing options in {} section of config file:'.
                   format(sub_cmd))
