@@ -347,8 +347,7 @@ def parse_args():
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
     core_parser = add_args(core_parser, CORE)
-    if par_nml:
-        core_parser.set_defaults(name=par_nml['ioin']['output_file_stem'])
+    core_parser.set_defaults(name=par_nml['ioin']['output_file_stem'])
 
     for sub_cmd, meta in SUB_CMDS.items():
         kwargs = {'prefix_chars': '+-', 'help': meta.help_string}

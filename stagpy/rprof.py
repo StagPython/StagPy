@@ -5,7 +5,6 @@ Date: 2015/09/11
 """
 import numpy as np
 from scipy import integrate as itg
-import sys
 import math
 from . import constants, misc
 from .stagdata import RprofData
@@ -272,10 +271,6 @@ def rprof_cmd(args):
 
     # parameters for the theoretical composition profiles
 
-    if not args.par_nml:  # too much parameter to define arbitrarily
-        print('No par file found. Abort.')
-        sys.exit()
-
     spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
     if spherical:
         rcmb = args.par_nml['geometry']['r_cmb']
@@ -286,18 +281,9 @@ def rprof_cmd(args):
     rbounds = rmin, rmax, rcmb
 
     if args.plot_conctheo:
-        if 'fe_eut' in args.par_nml['tracersin']:
-            xieut = args.par_nml['tracersin']['fe_eut']
-        else:
-            xieut = 0.8
-        if 'k_fe' in args.par_nml['tracersin']:
-            k_fe = args.par_nml['tracersin']['k_fe']
-        else:
-            k_fe = 0.85
-        if 'fe_cont' in args.par_nml['tracersin']:
-            xi0l = args.par_nml['tracersin']['fe_cont']
-        else:
-            xi0l = 0.1
+        xieut = args.par_nml['tracersin']['fe_eut']
+        k_fe = args.par_nml['tracersin']['k_fe']
+        xi0l = args.par_nml['tracersin']['fe_cont']
         xi0s = k_fe * xi0l
         xired = xi0l / xieut
         rsup = (rmax**3 - xired**(1 / (1 - k_fe)) *

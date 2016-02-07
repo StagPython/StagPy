@@ -5,7 +5,6 @@ Date: 2015/11/27
 """
 
 import numpy as np
-import sys
 from math import sqrt
 from .stagdata import TimeData
 
