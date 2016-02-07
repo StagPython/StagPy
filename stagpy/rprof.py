@@ -119,7 +119,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                 radius = np.array(data[ir0:ir1, 0], float) + rcmb
             for i in range(profiles.shape[1]):
                 if integrate:
-                    donnee = map(integ, profiles[:, i], radius)
+                    donnee = list(map(integ, profiles[:, i], radius))
                 else:
                     donnee = profiles[:, i]
                 if i == 0:
@@ -165,7 +165,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                             args.plot_conctheo and step == istart + 1):
                         # plot the full profile between rmin and rmax
                         radius2 = np.linspace(rmin, rmax, 1000)
-                        cinit = map(initprof, radius2)
+                        cinit = list(map(initprof, radius2))
                         rfin = (rmax**3 + rmin**3 - radius2**3)**(1 / 3)
                         plt.plot(cinit, radius2, 'r--',
                                  linewidth=lwdth, label='Theoretical')
