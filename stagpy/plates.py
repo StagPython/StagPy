@@ -373,19 +373,21 @@ def plates_cmd(args):
        using velocity field (velocity derivation)
     """
     """plots the number of plates over a designated lapse of time"""
-    seuil_memz=0
-    seuil_memphi=0
-    nb_plates=[]
-    timedat=TimeData(args)
-    tsteps = [i * args.timestep[2] for i in args.timestep]
-    slc = slice(*tsteps)
-    time,ch2o=timedat.data[:, 1][slc],timedat.data[:, 27][slc]
+    if args.vzcheck:
+        seuil_memz=0
+        seuil_memphi=0
+        nb_plates=[]
+        timedat=TimeData(args)
+        tsteps = [i * args.timestep[2] for i in args.timestep]
+        slc = slice(*tsteps)
+        time,ch2o=timedat.data[:, 1][slc],timedat.data[:, 27][slc]
+
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
         temp = BinData(args, 't', timestep)
-        water = BinData(args,'h', timestep)
-        rprof_data = RprofData(args)
         if args.vzcheck:
+            rprof_data = RprofData(args)
+            water = BinData(args,'h', timestep)
             rprof_data=RprofData(args)
             plt = args.plt
             limits, nphi, dVphi, seuil_memphi, seuil_memz, Vphi_surf, water_profile = detectPlates(temp, velocity, water,
