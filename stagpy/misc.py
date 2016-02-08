@@ -1,6 +1,7 @@
 """miscellaneous definitions"""
 
 import importlib
+from itertools import zip_longest
 from math import ceil
 import os.path
 
@@ -41,6 +42,20 @@ def lastfile(args, begstep):
         else:
             endstep = guess
     return begstep
+
+
+def parse_line(line, convert=[]):
+    """convert columns of a text line
+
+    line values have to be space separated,
+    values are converted to float by default.
+
+    convert argument is a list of functions
+    used to convert the first values.
+    """
+    line = line.split()
+    for val, func in zip_longest(line, convert[:len(line)], fillvalue=float):
+        yield func(val)
 
 
 def parse_timesteps(args):

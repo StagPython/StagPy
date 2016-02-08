@@ -5,6 +5,7 @@ import numpy as np
 import os.path
 import sys
 import re
+from itertools import zip_longest
 from scipy import integrate
 from . import constants, misc
 
@@ -267,6 +268,14 @@ class TimeData:
             sys.exit()
         with open(timefile, 'r') as infile:
             first = infile.readline()
+            line = infile.readline()
+            data = [list(misc.parse_line(line))]
+            for line in infile:
+                step = list(misc.parse_line(line, convert=[int]))
+                # remove useless lines when run is restarted
+                while step[0] <= data[-1][0]:
+                    data.pop()
+                data.append(step)
 
         self.colnames = first.split()
         # suppress two columns from the header.
@@ -275,4 +284,4 @@ class TimeData:
         if len(self.colnames) == 33:
             self.colnames = self.colnames[:28] + self.colnames[30:]
 
-        self.data = np.loadtxt(timefile, skiprows=1)
+        self.data = np.array(list(zip_longest(*data,fillvalue=0))).T
