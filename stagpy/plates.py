@@ -5,14 +5,15 @@ Date: 2016/26/01
 import numpy as np
 import sys
 from . import misc
-from .stagdata import BinData, RprofData
+from .stagdata import BinData, RprofData, TimeData
 from scipy.signal import argrelextrema
 from copy import deepcopy
 #from statsmodels.nonparametric.smoothers_lowess import lowess
 
-def detectPlates(stagdat_t,stagdat_vp,rprof_data,args,seuil_memphi, seuil_memz):
+def detectPlates(stagdat_t,stagdat_vp,stagdat_h,rprof_data,args,seuil_memphi, seuil_memz):
     Vz = stagdat_vp.fields['w']
     Vphi = stagdat_vp.fields['v']
+    h2o = stagdat_h.fields['h']
     Tcell = stagdat_t.fields['t']
     data, nzi = rprof_data.data, rprof_data.nzi
     nz = len(Vz)
@@ -35,6 +36,11 @@ def detectPlates(stagdat_t,stagdat_vp,rprof_data,args,seuil_memphi, seuil_memz):
     for i in range(len(radius)):
         radius[i] += rcmb
 
+    #water profile
+    water_profile=nz*[0]
+    for z in range(nz):
+        for phi in range(nphi):
+            water_profile[z]+=h2o[z,phi,0]/nphi
     #calculing Tmean
     Tmean=0
     for r in range(len(radius)):
@@ -116,7 +122,7 @@ def detectPlates(stagdat_t,stagdat_vp,rprof_data,args,seuil_memphi, seuil_memz):
         print(limits)
 
         print('\n')
-    return(limits,nphi,dVphi,seuildVphi,seuilVz,Vphi[nz-1,:,0])
+    return(limits,nphi,dVphi,seuildVphi,seuilVz,Vphi[nz-1,:,0],water_profile)
 
 def detect_plates(args,velocity):
         velocityfld=velocity.fields['v']
@@ -370,15 +376,19 @@ def plates_cmd(args):
     seuil_memz=0
     seuil_memphi=0
     nb_plates=[]
-    time_data = TimeData(args).data[:, 24]
+    timedat=TimeData(args)
+    tsteps = [i * args.timestep[2] for i in args.timestep]
+    slc = slice(*tsteps)
+    time,ch2o=timedat.data[:, 1][slc],timedat.data[:, 27][slc]
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
         temp = BinData(args, 't', timestep)
+        water = BinData(args,'h', timestep)
         rprof_data = RprofData(args)
         if args.vzcheck:
             rprof_data=RprofData(args)
             plt = args.plt
-            limits, nphi, dVphi, seuil_memphi, seuil_memz, Vphi_surf = detectPlates(temp, velocity,
+            limits, nphi, dVphi, seuil_memphi, seuil_memz, Vphi_surf, water_profile = detectPlates(temp, velocity, water,
                     rprof_data, args, seuil_memphi, seuil_memz)
             limits.sort()
             sizePlates=[limits[0]+nphi-limits[-1]]
@@ -395,6 +405,8 @@ def plates_cmd(args):
             plt.scatter(limits,l,color='red')
             plt.subplot(222)
             plt.hist(sizePlates,10,(0,nphi/2))
+            plt.subplot(224)
+            plt.plot(water_profile)
             plt.savefig('plates'+ str(timestep) + '.pdf',format='PDF')
 
             nb_plates+=[len(limits)]
@@ -409,7 +421,10 @@ def plates_cmd(args):
         for i in range(2,len(nb_plates)-3):
             nb_plates[i]=(nb_plates[i-2]+nb_plates[i-1]+nb_plates[i]+nb_plates[i+1]+nb_plates[i+2])/5
         plt.figure(-1)
-        plt.axis([0,int((args.timestep[1]-args.timestep[0])/args.timestep[2]),0,np.max(nb_plates)])
-        plt.plot(nb_plates)
+        plt.subplot(121)
+        plt.axis([time[0],time[-1],0,np.max(nb_plates)])
+        plt.plot(time,nb_plates)
+        plt.subplot(122)
+        plt.plot(time,ch2o)
         plt.savefig('herewego'+str(args.timestep[0])+'_'+str(args.timestep[1])+'.pdf',format='PDF')
         plt.close(-1)
