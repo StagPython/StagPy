@@ -10,7 +10,7 @@ from scipy.signal import argrelextrema
 from copy import deepcopy
 #from statsmodels.nonparametric.smoothers_lowess import lowess
 
-def detectPlates(stagdat_t,stagdat_vp,rprof_data,args):
+def detectPlates(stagdat_t,stagdat_vp,rprof_data,args,seuil_memphi, seuil_memz):
     Vz = stagdat_vp.fields['w']
     Vphi = stagdat_vp.fields['v']
     Tcell = stagdat_t.fields['t']
@@ -71,21 +71,27 @@ def detectPlates(stagdat_t,stagdat_vp,rprof_data,args):
         print('stagnant lid')
         sys.exit()
     else:
-        #verifying horizontal plate speed
+        #verifying horizontal plate speed and closeness of plates
         dVphi=nphi*[0]
-        seuildVphi=10*Vrms
+        seuildVphi=16*Vrms
+
         for phi in range(0,nphi):
             dVphi[phi]=(Vphi[nz-1,phi,0]-Vphi[nz-1,phi-1,0])/((1+rcmb)*dphi)
         limits=[]
-        max_dVphi=0
-        for i in dVphi:
-            if abs(i)>max_dVphi:
-                max_dVphi=abs(i)
-        for phi in range(0,nphi-1):
-            if abs(dVphi[phi])>=abs(dVphi[phi-1]) and abs(dVphi[phi])>=abs(dVphi[phi+1]) and abs(dVphi[phi])>=seuildVphi:
+        for phi in range(0,nphi-int(nphi/33)):
+            mark=True
+            for i in range (phi-int(nphi/33),phi+int(nphi/33)):
+                if abs(dVphi[i])>abs(dVphi[phi]):
+                    mark=False
+            if mark and abs(dVphi[phi])>=seuildVphi:
                 limits+=[phi]
-        if abs(dVphi[nphi-1])>=abs(dVphi[nphi-2]) and abs(dVphi[nphi-1])>=abs(dVphi[0]) and abs(dVphi[nphi-1])>=seuildVphi:
-            limits+=[nphi-1]
+        for phi in range(nphi-int(nphi/33)+1,nphi):
+            mark=True
+            for i in range (phi-int(nphi/33)-nphi,phi+int(nphi/33)-nphi):
+                if abs(dVphi[i])>abs(dVphi[phi]):
+                    mark=False
+            if mark and abs(dVphi[phi])>=seuildVphi:
+                limits+=[phi]
         print(limits)
 
         #verifying vertical speed
@@ -99,32 +105,18 @@ def detectPlates(stagdat_t,stagdat_vp,rprof_data,args):
             else:
                 for z in range(0,nz):
                     Vzm+=(abs(Vz[z,phi,0])+abs(Vz[z,phi-1,0])+abs(Vz[z,phi+1,0]))/(nz*3)
-            seuilVz=Vzmean*0.3
+
+            if seuil_memz!=0:
+                seuilVz=Vzmean*0.1+seuil_memz/2
+            else:
+                seuilVz=Vzmean*0
             if Vzm<seuilVz:
                 limits.remove(phi)
                 k+=1
         print(limits)
 
-        #verifying closeness of limits
-        while abs(nphi-limits[-1]+limits[0])<=(nphi/100):
-            newlimit=(-nphi+limits[-1]+limits[0])/2
-            if newlimit<0:
-                newlimit=nphi+newlimit
-            limits=[newlimit]+limits[1:-1]
-            limits.sort()
-        i=1
-        while i < len(limits):
-            if abs(limits[i-1]-limits[i])<=(nphi/50):
-                limits=limits[:i-1]+[(limits[i-1]+limits[i])/2]+limits[i+1:]
-            else:
-                i+=1
-
-
-        print(limits)
         print('\n')
-        for i in range(len(limits)):
-            limits[i]=int(limits[i])
-    return(limits,nphi,dVphi)
+    return(limits,nphi,dVphi,seuildVphi,seuilVz,Vphi[nz-1,:,0])
 
 def detect_plates(args,velocity):
         velocityfld=velocity.fields['v']
@@ -375,28 +367,36 @@ def plates_cmd(args):
        using velocity field (velocity derivation)
     """
     """plots the number of plates over a designated lapse of time"""
-
+    seuil_memz=0
+    seuil_memphi=0
     nb_plates=[]
+    time_data = TimeData(args).data[:, 24]
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
         temp = BinData(args, 't', timestep)
+        rprof_data = RprofData(args)
         if args.vzcheck:
             rprof_data=RprofData(args)
             plt = args.plt
-            limits, nphi, dVphi = detectPlates(temp, velocity,
-                    rprof_data, args)
+            limits, nphi, dVphi, seuil_memphi, seuil_memz, Vphi_surf = detectPlates(temp, velocity,
+                    rprof_data, args, seuil_memphi, seuil_memz)
             limits.sort()
             sizePlates=[limits[0]+nphi-limits[-1]]
             for l in range(1,len(limits)):
                 sizePlates+=[limits[l]-limits[l-1]]
             l=len(limits)*[max(dVphi)]
             plt.figure(timestep)
-            plt.subplot(121)
+            plt.subplot(221)
+            plt.axis([0,len(velocity.fields['w'][0])-1,np.min(Vphi_surf)*1.2,np.max(Vphi_surf)*1.2])
+            plt.plot(Vphi_surf)
+            plt.subplot(223)
+            plt.axis([0,len(velocity.fields['w'][0])-1,np.min(dVphi)*1.2,np.max(dVphi)*1.2])
             plt.plot(dVphi)
             plt.scatter(limits,l,color='red')
-            plt.subplot(122)
+            plt.subplot(222)
             plt.hist(sizePlates,10,(0,nphi/2))
             plt.savefig('plates'+ str(timestep) + '.pdf',format='PDF')
+
             nb_plates+=[len(limits)]
             plt.close(timestep)
         else:
@@ -406,8 +406,10 @@ def plates_cmd(args):
             plot_plates(args,velocity,temp,conc,age,timestep,trenches,ridges)
 
     if args.timeprofile and args.vzcheck:
+        for i in range(2,len(nb_plates)-3):
+            nb_plates[i]=(nb_plates[i-2]+nb_plates[i-1]+nb_plates[i]+nb_plates[i+1]+nb_plates[i+2])/5
         plt.figure(-1)
         plt.axis([0,int((args.timestep[1]-args.timestep[0])/args.timestep[2]),0,np.max(nb_plates)])
         plt.plot(nb_plates)
-        plt.savefig('herewego.pdf',format='PDF')
+        plt.savefig('herewego'+str(args.timestep[0])+'_'+str(args.timestep[1])+'.pdf',format='PDF')
         plt.close(-1)
