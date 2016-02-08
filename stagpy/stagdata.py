@@ -199,7 +199,7 @@ class RprofData:
 
     def __init__(self, args):
         """create RprofData object"""
-        step_regex = re.compile('^\*+step:\s*(\d+) ; time =\s*(\S+)')
+        step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')
         self._readproffile(args, step_regex)
 
     def _readproffile(self, args, step_regex):
