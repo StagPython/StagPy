@@ -44,7 +44,7 @@ def lastfile(args, begstep):
     return begstep
 
 
-def parse_line(line, convert=[]):
+def parse_line(line, convert=None):
     """convert columns of a text line
 
     line values have to be space separated,
@@ -53,6 +53,8 @@ def parse_line(line, convert=[]):
     convert argument is a list of functions
     used to convert the first values.
     """
+    if convert is None:
+        convert = []
     line = line.split()
     for val, func in zip_longest(line, convert[:len(line)], fillvalue=float):
         yield func(val)
