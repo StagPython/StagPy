@@ -4,6 +4,7 @@ import struct
 import numpy as np
 import os.path
 import sys
+import re
 from scipy import integrate
 from . import constants, misc
 
@@ -198,9 +199,10 @@ class RprofData:
 
     def __init__(self, args):
         """create RprofData object"""
-        self._readproffile(args)
+        step_regex = re.compile('^\*+step:\s*(\d+) ; time =\s*(\S+)')
+        self._readproffile(args, step_regex)
 
-    def _readproffile(self, args):
+    def _readproffile(self, args, step_regex):
         """extract info from rprof.dat"""
         proffile = os.path.join(args.path, args.name + '_rprof.dat')
         if not os.path.isfile(proffile):
@@ -213,13 +215,12 @@ class RprofData:
             for line in stream:
                 if line != '\n':
                     lnum += 1
-                    lll = ' '.join(line.split())
                     if line[0] == '*':
-                        timesteps.append([lnum, int(lll.split(' ')[1]),
-                                          float(lll.split(' ')[5])])
+                        match = step_regex.match(line)
+                        timesteps.append([lnum, int(match.group(1)),
+                                          float(match.group(2))])
                     else:
-                        llf = np.array(lll.split(' '))
-                        data0.append(llf)
+                        data0.append(np.array(line.split()))
         tsteps = np.array(timesteps)
         nsteps = tsteps.shape[0]
         data = np.array(data0)
