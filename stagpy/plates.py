@@ -243,8 +243,7 @@ def plot_plates(args,velocity,temp,conc,age,timestep,trench,ridge):
         ax1.set_title(timestep)
 
         ############################## topography
-        par_type='sc'
-        fname=misc.file_name(args,par_type).format(temp.step)+'.dat'   #name of the file to read
+        fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
         depth_mantle=2890.0 # in km
         topo=np.genfromtxt(fname)
         topo[:,1]=topo[:,1]/(1.-dsa) #### rescaling topography !!!!!!!!!!!!!!!

@@ -6,17 +6,27 @@ from math import ceil
 import os.path
 import sys
 
+INT_FMT = '{:05d}'
+
 
 def stop(*msgs):
+    """print error message and exit"""
     print('ERROR:', *msgs, file=sys.stderr)
     sys.exit()
 
 
-def stag_file(args, fname, timestep=None):
-    """return full file name of StagYY out file"""
+def _file_name(args, fname):
+    """return full name of StagYY out file"""
+    return os.path.join(args.path, args.name + '_' + fname)
+
+
+def stag_file(args, fname, timestep=None, suffix=''):
+    """return name of StagYY out file if exists
+
+    specify a time step if needed"""
     if timestep is not None:
-        fname = fname + '{:05d}'.format(timestep)
-    fname = os.path.join(args.path, args.name + '_' + fname)
+        fname = fname + INT_FMT.format(timestep)
+    fname = _file_name(args, fname + suffix)
     if not os.path.isfile(fname):
         stop('requested file {} not found'.format(fname))
     return fname
@@ -24,7 +34,7 @@ def stag_file(args, fname, timestep=None):
 
 def out_name(args, par_type):
     """return out file name format for any time step"""
-    return args.outname + '_' + par_type + '{:05d}'
+    return args.outname + '_' + par_type + INT_FMT
 
 
 def set_arg(args, arg, val):
@@ -42,7 +52,7 @@ def lastfile(args, begstep):
 
     research based on temperature files
     """
-    fmt = file_name(args, 't')
+    fmt = _file_name(args, 't' + INT_FMT)
 
     endstep = 100000
     while begstep + 1 < endstep:
