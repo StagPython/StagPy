@@ -1,10 +1,8 @@
 """define StagyyData"""
 
-import struct
 import numpy as np
-import os.path
-import sys
 import re
+import struct
 from itertools import zip_longest
 from scipy import integrate
 from . import constants, misc
@@ -28,7 +26,7 @@ class BinData:
         self.step = timestep
 
         # name of the file to read
-        self.fullname = misc.file_name(args, self.par_type).format(timestep)
+        self.fullname = misc.stag_file(args, self.par_type, timestep)
         self.nval = 4 if self.par_type == 'vp' else 1
 
         with open(self.fullname, 'rb') as self._fid:
@@ -205,10 +203,7 @@ class RprofData:
 
     def _readproffile(self, args, step_regex):
         """extract info from rprof.dat"""
-        proffile = os.path.join(args.path, args.name + '_rprof.dat')
-        if not os.path.isfile(proffile):
-            print('No profile file found at', proffile)
-            sys.exit()
+        proffile = misc.stag_file(args, 'rprof.dat')
         timesteps = []
         data0 = []
         lnum = -1
@@ -262,10 +257,7 @@ class TimeData:
 
     def __init__(self, args):
         """read temporal series from time.dat"""
-        timefile = os.path.join(args.path, args.name + '_time.dat')
-        if not os.path.isfile(timefile):
-            print('No profile file found at', timefile)
-            sys.exit()
+        timefile = misc.stag_file(args, 'time.dat')
         with open(timefile, 'r') as infile:
             first = infile.readline()
             line = infile.readline()

@@ -4,12 +4,22 @@ import importlib
 from itertools import zip_longest
 from math import ceil
 import os.path
+import sys
 
 
-def file_name(args, par_type):
-    """return file name format for any time step"""
-    fname = args.name + '_' + par_type + '{:05d}'
-    return os.path.join(args.path, fname)
+def stop(*msgs):
+    print('ERROR:', *msgs, file=sys.stderr)
+    sys.exit()
+
+
+def stag_file(args, fname, timestep=None):
+    """return full file name of StagYY out file"""
+    if timestep is not None:
+        fname = fname + '{:05d}'.format(timestep)
+    fname = os.path.join(args.path, args.name + '_' + fname)
+    if not os.path.isfile(fname):
+        stop('requested file {} not found'.format(fname))
+    return fname
 
 
 def out_name(args, par_type):
