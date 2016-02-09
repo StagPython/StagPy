@@ -377,8 +377,8 @@ def plates_cmd(args):
         seuil_memphi=0
         nb_plates=[]
         timedat=TimeData(args)
-        tsteps = [i * args.timestep[2] for i in args.timestep]
-        slc = slice(*tsteps)
+        slc = slice(*(i * args.par_nml['ioin']['save_file_framestep']
+                      for i in args.timestep))
         time,ch2o=timedat.data[:, 1][slc],timedat.data[:, 27][slc]
 
     for timestep in range(*args.timestep):
