@@ -23,7 +23,8 @@ def _file_name(args, fname):
 def stag_file(args, fname, timestep=None, suffix=''):
     """return name of StagYY out file if exists
 
-    specify a time step if needed"""
+    specify a time step if needed
+    """
     if timestep is not None:
         fname = fname + INT_FMT.format(timestep)
     fname = _file_name(args, fname + suffix)

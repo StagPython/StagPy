@@ -48,13 +48,16 @@ def plot_scalar(args, stgdat, var):
     return fig, axis
 
 
-def plot_stream(args, fig, axis, x_1, x_2, v_1, v_2):
+def plot_stream(args, fig, component1, component2):
     """use of streamplot to plot stream lines
 
     only works in cartesian with regular grids
     """
+    x_1, v_1 = component1
+    x_2, v_2 = component2
     v_tot = np.sqrt(v_1**2 + v_2**2)
-    lwd = 2*v_tot/v_tot.max()
+    lwd = 2 * v_tot / v_tot.max()
+    args.plt.figure(fig.number)
     axis.streamplot(x_1, x_2, v_1, v_2, density=0.8, color='k', linewidth=lwd)
 
 
@@ -65,7 +68,7 @@ def field_cmd(args):
             if misc.get_arg(args, meta.arg):
                 # will read vp many times!
                 stgdat = BinData(args, var, timestep)
-                fig, axis = plot_scalar(args, stgdat, var)
+                fig, _ = plot_scalar(args, stgdat, var)
                 args.plt.figure(fig.number)
                 args.plt.tight_layout()
                 args.plt.savefig(

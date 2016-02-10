@@ -276,4 +276,4 @@ class TimeData:
         if len(self.colnames) == 33:
             self.colnames = self.colnames[:28] + self.colnames[30:]
 
-        self.data = np.array(list(zip_longest(*data,fillvalue=0))).T
+        self.data = np.array(list(zip_longest(*data, fillvalue=0))).T

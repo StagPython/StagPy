@@ -130,10 +130,9 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                     col = pplot[0].get_color()
 
                     # overturned version of the initial profiles
-                    if ((quant[0] == 'Concentration' or
-                         quant[0] == 'Temperature') and
-                        (args.plot_overturn_init or args.plot_difference) and
-                        step == istart + 1):
+                    if quant[0] in ('Concentration', 'Temperature') and\
+                       (args.plot_overturn_init or args.plot_difference) and\
+                       step == istart + 1:
                         rfin = (rmax**3 + rmin**3 - radius**3)**(1 / 3)
                         if quant[0] == 'Concentration':
                             conc0 = _extrap(rfin, radius, profiles[:, 0])
