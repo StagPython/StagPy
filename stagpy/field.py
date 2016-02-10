@@ -48,7 +48,7 @@ def plot_scalar(args, stgdat, var):
     return fig, axis
 
 
-def plot_stream(args, fig, component1, component2):
+def plot_stream(args, fig, axis, component1, component2):
     """use of streamplot to plot stream lines
 
     only works in cartesian with regular grids
