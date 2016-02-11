@@ -139,6 +139,7 @@ def detect_plates_vzcheck(stagdat_t, stagdat_vp, stagdat_h, rprof_data,
 
 
 def detect_plates(args, velocity):
+    """detect plates using horizontal velocity"""
     velocityfld = velocity.fields['v']
     ph_coord = velocity.ph_coord
 
@@ -175,12 +176,12 @@ def detect_plates(args, velocity):
 
     # elimination of ridges that are too close to trench
     argdel = []
-    if (len(trench) > 0 and len(ridge) > 0):
-        for i in np.arange(len(ridge)):
+    if trench and ridge:
+        for i in range(len(ridge)):
             mdistance = np.amin(abs(trench - ridge[i]))
             if mdistance < 0.016:
                 argdel.append(i)
-        if len(np.array(argdel)) > 0:
+        if argdel:
             print('deleting from ridge', trench, ridge[argdel])
             ridge = np.delete(ridge, np.array(argdel))
             arggreat_dv = np.delete(arggreat_dv, np.array(argdel))
@@ -291,11 +292,11 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
     ax41.axhline(
         y=0, xmin=0, xmax=2 * np.pi, color='black', ls='dashed', alpha=0.7)
 
-    for i in np.arange(len(trench)):
+    for i in range(len(trench)):
         ax41.axvline(
             x=trench[i], ymin=topomin, ymax=topomax,
             color='red', ls='dashed', alpha=0.4)
-    for i in np.arange(len(ridge)):
+    for i in range(len(ridge)):
         ax41.axvline(
             x=ridge[i], ymin=topomin, ymax=topomax,
             color='green', ls='dashed', alpha=0.8)
@@ -318,7 +319,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
     ax1.set_ylabel("Velocity")
     topomax = 30
     topomin = -60
-    for i in np.arange(len(trench)):
+    for i in range(len(trench)):
         ax1.axvline(
             x=trench[i], ymin=topomin, ymax=topomax,
             color='red', ls='dashed', alpha=0.8)
@@ -330,8 +331,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
             abs(ph_coord_noendpoint[continentsall == 1] - trench[i]))
         continentpos = ph_coord_noendpoint[continentsall == 1][argdistancecont]
         # do i have a ridge in between continent edge and trench?
-        if len(ridge):
-            if (min(abs(continentpos - ridge)) > distancecont):
+        if ridge:
+            if min(abs(continentpos - ridge)) > distancecont:
                 # unexistent variables?
                 # ph_trench_subd.append(trench[i])
                 # age_subd.append(agetrench[i])
@@ -340,7 +341,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
                 # times_subd.append(temp.ti_ad)
 
                 # continent is on the left
-                if ((continentpos - trench[i]) < 0):
+                if (continentpos - trench[i]) < 0:
                     ax1.annotate('', xy=(trench[i] - distancecont, 2000),
                                  xycoords='data', xytext=(trench[i], 2000),
                                  textcoords='data',
@@ -410,11 +411,11 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
             ph_coord[:-1], continentsall * agemax, agemin,
             facecolor='#8B6914', alpha=0.2)
         ax2.set_ylim(agemin, agemax)
-        for i in np.arange(len(trench)):
+        for i in range(len(trench)):
             ax2.axvline(
                 x=trench[i], ymin=agemin, ymax=agemax,
                 color='red', ls='dashed', alpha=0.8)
-        for i in np.arange(len(ridge)):
+        for i in range(len(ridge)):
             ax2.axvline(
                 x=ridge[i], ymin=agemin, ymax=agemax,
                 color='green', ls='dashed', alpha=0.8)
@@ -447,7 +448,7 @@ def plates_cmd(args):
             water = BinData(args, 'h', timestep)
             rprof_data = RprofData(args)
             plt = args.plt
-            limits, nphi, dvphi, seuil_memz, Vphi_surf, water_profile =\
+            limits, nphi, dvphi, seuil_memz, vphi_surf, water_profile =\
                 detect_plates_vzcheck(temp, velocity, water, rprof_data,
                                       args, seuil_memz)
             limits.sort()
@@ -458,8 +459,8 @@ def plates_cmd(args):
             plt.figure(timestep)
             plt.subplot(221)
             plt.axis([0, len(velocity.fields['w'][0]) - 1,
-                      np.min(Vphi_surf) * 1.2, np.max(Vphi_surf) * 1.2])
-            plt.plot(Vphi_surf)
+                      np.min(vphi_surf) * 1.2, np.max(vphi_surf) * 1.2])
+            plt.plot(vphi_surf)
             plt.subplot(223)
             plt.axis(
                 [0, len(velocity.fields['w'][0]) - 1,
@@ -472,7 +473,7 @@ def plates_cmd(args):
             plt.plot(water_profile)
             plt.savefig('plates' + str(timestep) + '.pdf', format='PDF')
 
-            nb_plates += [len(limits)]
+            nb_plates.append(len(limits))
             plt.close(timestep)
         else:
             conc = BinData(args, 'c', timestep)
