@@ -35,8 +35,6 @@ CORE = OrderedDict((
                   True, 'use the xkcd style')),
     ('pdf', Conf(False, True, None, {},
                  True, 'produce non-rasterized pdf (slow!)')),
-    ('dsa', Conf(0.05, False, None, {},
-                 True, 'thickness of sticky air')),
     ('fontsize', Conf(16, False, None, {},
                       True, 'font size')),
     ('linewidth', Conf(2, False, None, {},
@@ -158,6 +156,9 @@ PLATES = OrderedDict((
     ('timeprofile',
         Conf(False, True, None, {},
              True, 'plots nb of plates in function of time')),
+    ('dsa',
+        Conf(0.05, False, None, {},
+             True, 'thickness of sticky air')),
 ))
 VAR = OrderedDict((
 ))
