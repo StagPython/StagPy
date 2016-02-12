@@ -6,6 +6,7 @@
 .install.txt
 stagpy/__pycache__/
 StagPy.egg-info/
+stagpy.egg-info/
 build/
 dist/
 stagpyvenv/
