@@ -43,13 +43,13 @@ either bash or zsh.
 
 Add this to your ``~/.bashrc`` file::
 
-    eval $(register-python-argcomplete stagpy)
+    eval "$(register-python-argcomplete stagpy)"
 
 Or this to your ``~/.zshrc`` file::
 
     autoload bashcompinit
     bashcompinit
-    eval $(register-python-argcomplete stagpy)
+    eval "$(register-python-argcomplete stagpy)"
 
 
 Finally, run the following once to create your config file (at
