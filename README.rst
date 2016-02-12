@@ -18,51 +18,46 @@ initially developed by Boris Kaus.
 Installation
 ============
 
-StagPy is available with ``pip``. You can install it with the following
+*if you want to use (and modify) the development version, see the "For
+developers" section at the end of this page*
+
+You will need Python 3.3 or higher to use StagPy.
+
+If you don't have ``pip`` for Python3 on your system, download the official
+script <https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
+
+StagPy is available via ``pip``. You can install it with the following
 command::
 
-    pip install --user stagpy
+    python3 -m pip install --user stagpy
+
+Make sure that the directory where ``pip`` install package entry-points
+(usually ``~/.local/bin``) is in your ``PATH`` environment variable.
+You can run ``python3 -m pip show stagpy`` to obtain some hint about this
+location (this command will show you were the compiled sources are installed,
+e.g. ``~/.local/lib/python3.5/site-packages``, from which you can deduce the
+entry-point location, e.g. ``~/.local/bin``).
+
+Once this is done, you can enable command-line auto-completion if you use
+either bash or zsh.
+
+Add this to your ``~/.bashrc`` file::
+
+    eval $(register-python-argcomplete stagpy)
+
+Or this to your ``~/.zshrc`` file::
+
+    autoload bashcompinit
+    bashcompinit
+    eval $(register-python-argcomplete stagpy)
 
 
-For developers
---------------
+Finally, run the following once to create your config file (at
+``~/.config/stagpy/``)::
 
-A ``Makefile`` in the git repository allows you to install StagPy in a
-virtual environment.
+    stagpy config --create
 
-StagPy uses the following non-standard modules: numpy, scipy, f90nml,
-matplotlib, and seaborn (the latter is optional and can be turned off with the
-``core.useseaborn`` option). These dependencies will be checked and needed
-installation performed in a virtual environment. If you use Python3.2 or
-encouter problems with the installation, see the troubleshooting section at the
-end of this README.
-
-However, installation of ``numpy`` and ``scipy`` involve heavy building
-operations, it might be better that you (or your system administrator) install
-it with a package manager such as ``homebrew`` on Mac OS or your favorite Linux
-package manager.
-
-The installation process is then fairly simple::
-
-    git clone https://github.com/mulvrova/StagPy.git
-    cd StagPy
-    make
-
-A soft link named ``stagpy`` is created in your ``~/bin`` directory, allowing you
-to launch StagPy directly by running ``stagpy`` in a terminal (provided that
-``~/bin`` is in your ``PATH`` environment variable).
-
-Two files ``.comp.zsh`` and ``.comp.sh`` are created. Source them respectively in
-``~/.zshrc`` and ``~/.bashrc`` to enjoy command line completion with zsh and bash.
-Run ``make info`` to obtain the right sourcing commands.
-
-To check that everything work fine, go to the ``data`` directory of the
-repository and run::
-
-    stagpy field
-
-Three PDF files with a plot of the temperature, pressure and
-stream function fields should appear.
+Enjoy!
 
 
 Available commands
@@ -109,14 +104,49 @@ You can change this with the ``-o`` option (e.g. ``./main.py field -o ps`` to
 plot only the pressure and stream function fields).
 
 
+For developers
+==============
+
+A ``Makefile`` in the git repository allows you to install StagPy in a
+virtual environment.
+
+StagPy uses the following non-standard modules: numpy, scipy, f90nml,
+matplotlib, and seaborn (the latter is optional and can be turned off with the
+``core.useseaborn`` option). These dependencies will be checked and needed
+installation performed in a virtual environment. If you use Python3.2 or
+encouter problems with the installation, see the troubleshooting section at the
+end of this README.
+
+However, installation of ``numpy`` and ``scipy`` involve heavy building
+operations, it might be better that you (or your system administrator) install
+it with a package manager such as ``homebrew`` on Mac OS or your favorite Linux
+package manager.
+
+The installation process is then fairly simple::
+
+    git clone https://github.com/mulvrova/StagPy.git
+    cd StagPy
+    make
+
+A soft link named ``stagpy`` is created in your ``~/bin`` directory, allowing you
+to launch StagPy directly by running ``stagpy`` in a terminal (provided that
+``~/bin`` is in your ``PATH`` environment variable).
+
+Two files ``.comp.zsh`` and ``.comp.sh`` are created. Source them respectively in
+``~/.zshrc`` and ``~/.bashrc`` to enjoy command line completion with zsh and bash.
+Run ``make info`` to obtain the right sourcing commands.
+
+To check that everything work fine, go to the ``data`` directory of the
+repository and run::
+
+    stagpy field
+
+Three PDF files with a plot of the temperature, pressure and
+stream function fields should appear.
+
+
 Troubleshooting
 ===============
-
-*   Python 3.2
-
-    By default, the Makefile uses the ``venv`` standard module to create the
-    virtual environment. This module is not included with Python 3.2, you will
-    need to use the ``virtualenv`` module instead.
 
 *   Matplotlib related error in MacOS
 
