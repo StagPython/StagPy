@@ -48,7 +48,8 @@ FIELD = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
-             False, 'specify which variable to plot')),
+             False, ('specify which variable to plot, '
+                     'run stagpy var for a list of variables'))),
     ('plot_temperature',
         Conf(True, False, None, {},
              True, 'temperature scalar field')),
