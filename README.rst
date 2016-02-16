@@ -18,16 +18,39 @@ initially developed by Boris Kaus.
 Installation
 ============
 
-*if you want to use (and modify) the development version, see the "For
-developers" section at the end of this page*
+*if you want to use (and modify) the development version, see the `For
+developers`_ section at the end of this page*
 
-You will need Python 3.3 or higher to use StagPy.
+You will need Python 3.3 or higher to use StagPy. You can install StagPy with
+``conda`` (you will need Python 3.5) or with ``pip``. Both process are
+described hereafter.
+
+If Python3 is not installed on your system or you don't have sufficient
+permissions to update it, the simplest way to get it is to install Miniconda_
+or Anaconda_ (Anaconda being Miniconda with a lot of extra modules that can be
+installed in Miniconda later, this choice doesn't matter; pick Miniconda if you
+want a faster and lighter installation). Then, use ``conda`` to install StagPy.
+
+.. _Miniconda: http://conda.pydata.org/miniconda.html
+.. _Anaconda: https://www.continuum.io/downloads
+
+Installation using ``conda``
+----------------------------
+
+The installation is rather simple::
+
+    conda install -c amorison stagpy
+
+See the `Some setup`_ subsection to enable autocompletion and create your
+config file.
+
+Installation using ``pip``
+--------------------------
 
 If you don't have ``pip`` for Python3 on your system, download the official
 script <https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
 
-StagPy is available via ``pip``. You can install it with the following
-command::
+You can then install StagPy with the following command::
 
     python3 -m pip install --user stagpy
 
@@ -38,7 +61,13 @@ location (this command will show you were the compiled sources are installed,
 e.g. ``~/.local/lib/python3.5/site-packages``, from which you can deduce the
 entry-point location, e.g. ``~/.local/bin``).
 
-Once this is done, you can enable command-line auto-completion if you use
+See the `Some setup`_ subsection to enable autocompletion and create your
+config file.
+
+Some setup
+----------
+
+Once you have installed, you can enable command-line auto-completion if you use
 either bash or zsh.
 
 Add this to your ``~/.bashrc`` file::
@@ -107,39 +136,45 @@ plot only the pressure and stream function fields).
 For developers
 ==============
 
-A ``Makefile`` in the git repository allows you to install StagPy in a
-virtual environment.
+If you want to contribute to development of StagPy, create an account on
+GitHub_ and fork the `StagPy repository`__.
 
-StagPy uses the following non-standard modules: numpy, scipy, f90nml,
-matplotlib, and seaborn (the latter is optional and can be turned off with the
-``core.useseaborn`` option). These dependencies will be checked and needed
-installation performed in a virtual environment. If you use Python3.2 or
-encouter problems with the installation, see the troubleshooting section at the
-end of this README.
+.. _GitHub: https://github.com/
+.. __: https://github.com/mulvrova/StagPy
 
-However, installation of ``numpy`` and ``scipy`` involve heavy building
-operations, it might be better that you (or your system administrator) install
-it with a package manager such as ``homebrew`` on Mac OS or your favorite Linux
-package manager.
+The development of StagPy is made using the Git version control system. The
+first three chapters of the `Git book`__ should give you all the necessary
+basic knowledge to use Git for this project.
+
+.. __: https://git-scm.com/book/en/v2
+
+A ``Makefile`` in the git repository allows you to install StagPy in a virtual
+environment with all the necessary dependencies.  However, installation of
+``numpy`` and ``scipy`` involve heavy building operations, it might be better
+that you (or your system administrator) install it with a package manager such
+as ``homebrew`` on Mac OS or your favorite Linux package manager (or with
+``conda`` if you use it).
 
 The installation process is then fairly simple::
 
-    git clone https://github.com/mulvrova/StagPy.git
+    git clone https://github.com/YOUR_USER_NAME/StagPy.git
     cd StagPy
     make
 
-A soft link named ``stagpy`` is created in your ``~/bin`` directory, allowing you
-to launch StagPy directly by running ``stagpy`` in a terminal (provided that
-``~/bin`` is in your ``PATH`` environment variable).
+A soft link named ``stagpy-git`` is created in your ``~/bin`` directory,
+allowing you to launch the development version of StagPy directly by running
+``stagpy-git`` in a terminal (provided that ``~/bin`` is in your ``PATH``
+environment variable).
 
-Two files ``.comp.zsh`` and ``.comp.sh`` are created. Source them respectively in
-``~/.zshrc`` and ``~/.bashrc`` to enjoy command line completion with zsh and bash.
-Run ``make info`` to obtain the right sourcing commands.
+Two files ``comp.zsh`` and ``comp.sh`` are created in the ``bld`` folder.
+Source them respectively in ``~/.zshrc`` and ``~/.bashrc`` to enjoy command
+line completion with zsh and bash.  Run ``make info`` to obtain the right
+sourcing commands.
 
 To check that everything work fine, go to the ``data`` directory of the
 repository and run::
 
-    stagpy field
+    stagpy-git field
 
 Three PDF files with a plot of the temperature, pressure and
 stream function fields should appear.

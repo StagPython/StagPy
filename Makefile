@@ -1,14 +1,16 @@
 LINK_DIR=~/bin
-LINK_NAME=stagpy
+LINK_NAME=stagpy-git
 LINK=$(LINK_DIR)/$(LINK_NAME)
 
-# set venv to virtualenv with Python3.2
-VENV_MOD=venv
+PY=python3
 
-VENV_DIR=stagpyvenv
+BLD_DIR=bld
+VENV_DIR=$(BLD_DIR)/venv
 STAGPY=$(VENV_DIR)/bin/stagpy
+VPY=$(VENV_DIR)/bin/python
+VPIP=$(VENV_DIR)/bin/pip
 
-CPLT=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
+COMP=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
 
 .PHONY: all install config clean uninstall autocomplete
 .PHONY: info infopath infozsh infobash
@@ -16,24 +18,29 @@ CPLT=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
 
 CONF_FILE=~/.config/stagpy/config
 OBJS=setup.py stagpy/*.py
+COMP_ZSH=$(BLD_DIR)/comp.zsh
+COMP_SH=$(BLD_DIR)/comp.sh
 
-all: install
+all: $(BLD_DIR) install
+
+$(BLD_DIR):
+	@mkdir -p $@
 
 install: $(LINK) config infopath autocomplete
 	@echo
 	@echo 'Installation completed!'
 
-autocomplete: .comp.zsh .comp.sh infozsh infobash
+autocomplete: $(COMP_ZSH) $(COMP_SH) infozsh infobash
 
-.comp.zsh:
+$(COMP_ZSH):
 	@echo 'autoload bashcompinit' > $@
 	@echo 'bashcompinit' >> $@
-	@echo 'eval "$$($(CPLT) $(LINK_NAME))"' >> $@
+	@echo 'eval "$$($(COMP) $(LINK_NAME))"' >> $@
 
-.comp.sh:
-	@echo 'eval "$$($(CPLT) $(LINK_NAME))"' > $@
+$(COMP_SH):
+	@echo 'eval "$$($(COMP) $(LINK_NAME))"' > $@
 
-config: $(STAGPY) $(CONF_FILE) stagpy/config.py
+config: $(STAGPY) $(CONF_FILE)
 	@$(STAGPY) config --update
 	@echo 'Config file updated!'
 
@@ -46,17 +53,19 @@ $(LINK): $(STAGPY)
 	ln -sf $(PWD)/$(STAGPY) $(LINK)
 
 $(STAGPY): $(VENV_DIR) $(OBJS)
-	$</bin/python -E setup.py install
+	$(VPY) -E setup.py install
+	@echo 'Removing useless build files'
+	@-rm -rf build data dist stagpy.egg-info
 
-$(VENV_DIR): .get-pip.py requirements.txt
-	python3 -m $(VENV_MOD) --system-site-packages --without-pip $@
-	$@/bin/python -E $< -I
-	$@/bin/pip install -I argcomplete
-	$@/bin/pip install -r requirements.txt
+$(VENV_DIR): $(BLD_DIR)/get-pip.py requirements.txt
+	$(PY) -m venv --system-site-packages --without-pip $@
+	$(VPY) -E $< -I
+	$(VPIP) install -I argcomplete
+	$(VPIP) install -r requirements.txt
 
-.get-pip.py:
+$(BLD_DIR)/get-pip.py:
 	@echo 'Dowloading get-pip.py...'
-	@python3 downloadgetpip.py
+	@$(PY) downloadgetpip.py $@
 	@echo 'Done'
 
 info: infopath infozsh infobash
@@ -68,35 +77,33 @@ infopath:
 infozsh:
 	@echo
 	@echo 'Add'
-	@echo ' source $(PWD)/.comp.zsh'
+	@echo ' source $(PWD)/$(COMP_ZSH)'
 	@echo 'to your ~/.zshrc to enjoy command line completion with zsh!'
 
 infobash:
 	@echo
 	@echo 'Add'
-	@echo ' source $(PWD)/.comp.sh'
+	@echo ' source $(PWD)/$(COMP_SH)'
 	@echo 'to your ~/.bashrc to enjoy command line completion with bash!'
 
 clean: uninstall
-	@echo 'Removing build and virtualenv files'
-	rm -rf build/ dist/ StagPy.egg-info/ $(VENV_DIR)
-	rm -rf stagpy/__pycache__
-	rm -f .get-pip.py .comp.zsh .comp.sh .install.txt
+	@echo 'Removing build files'
+	@-rm -rf $(BLD_DIR)
 
 uninstall:
 	@echo 'Removing config file...'
-	@rm -rf ~/.config/stagpy/
+	@-rm -rf ~/.config/stagpy/
 	@echo 'Removing link...'
-	@rm -f $(LINK)
+	@-rm -f $(LINK)
 	@echo 'Done.'
 
-novirtualenv: .get-pip.py requirements.txt $(OBJS)
+novirtualenv: $(BLD_DIR)/get-pip.py requirements.txt $(OBJS)
 	@echo 'Installing without virtual environment'
-	python3 $< --user
-	python3 -m pip install --user -r requirements.txt
-	python3 setup.py install --user --record .install.txt
+	$(PY) $< --user
+	$(PY) -m pip install --user -r requirements.txt
+	$(PY) setup.py install --user --record $(BLD_DIR)/install.txt
 	@echo 'Installation finished!'
-	@echo 'Have a look at .install.txt to know where'
+	@echo 'Have a look at $(BLD_DIR)/install.txt to know where'
 	@echo 'StagPy has been installed'
 	@echo
 	@echo 'Add'

@@ -3,14 +3,16 @@
 from setuptools import setup
 
 with open('README.rst') as rdm:
-    LONG_DESCRIPTION = rdm.read()
+    README = rdm.read()
 
 setup(
     name='stagpy',
     version='0.1.0',
 
     description='Tool for StagYY output files processing',
-    long_description=LONG_DESCRIPTION,
+    long_description=README,
+
+    data_files=[('', ['LICENSE', 'README.rst'])],
 
     url='https://github.com/mulvrova/StagPy',
 
