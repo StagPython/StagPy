@@ -18,8 +18,8 @@ initially developed by Boris Kaus.
 Installation
 ============
 
-*if you want to use (and modify) the development version, see the `For
-developers`_ section at the end of this page*
+*if you want to use (and modify) the development version, see the* `For
+developers`_ *section at the end of this page*
 
 You will need Python 3.3 or higher to use StagPy. You can install StagPy with
 ``conda`` (you will need Python 3.5) or with ``pip``. Both process are
