@@ -7,16 +7,15 @@ with open('README.rst') as rdm:
 
 setup(
     name='stagpy',
-    version='0.1.1',
+    version='0.1.2',
 
     description='Tool for StagYY output files processing',
     long_description=README,
 
-    data_files=[('', ['LICENSE', 'README.rst'])],
-
     url='https://github.com/mulvrova/StagPy',
 
     author='Martina Ulvrova, Adrien Morison, Stéphane Labrosse',
+    author_email='adrien.morison@gmail.com',
 
     license='GPLv2',
     classifiers=[
