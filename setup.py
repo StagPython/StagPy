@@ -7,7 +7,7 @@ with open('README.rst') as rdm:
 
 setup(
     name='stagpy',
-    version='0.1.0',
+    version='0.1.1',
 
     description='Tool for StagYY output files processing',
     long_description=README,
