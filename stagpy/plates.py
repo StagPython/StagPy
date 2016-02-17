@@ -176,7 +176,7 @@ def detect_plates(args, velocity):
 
     # elimination of ridges that are too close to trench
     argdel = []
-    if trench and ridge:
+    if len(trench) and len(ridge):
         for i in range(len(ridge)):
             mdistance = np.amin(abs(trench - ridge[i]))
             if mdistance < 0.016:
