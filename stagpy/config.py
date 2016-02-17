@@ -163,6 +163,8 @@ PLATES = OrderedDict((
 ))
 VAR = OrderedDict((
 ))
+VERSION = OrderedDict((
+))
 CONFIG = OrderedDict((
     ('create',
         Conf(None, True, None, {'action': 'store_true'},
@@ -198,6 +200,8 @@ SUB_CMDS = OrderedDict((
                    'plate analysis')),
     ('var', Sub(VAR, False, commands.var_cmd,
                 'print the list of variables')),
+    ('version', Sub(VERSION, False, commands.version_cmd,
+                    'print the version')),
     ('config', Sub(CONFIG, False, config_cmd,
                    'configuration handling')),
 ))

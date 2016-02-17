@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
+from stagpy import __version__
 
 with open('README.rst') as rdm:
     README = rdm.read()
 
 setup(
     name='stagpy',
-    version='0.1.2',
+    version=__version__,
 
     description='Tool for StagYY output files processing',
     long_description=README,
@@ -41,3 +42,6 @@ setup(
         'argcomplete',
         ],
 )
+
+if 'dev' in __version__:
+    print('UNSTABLE DEVELOPMENT VERSION {}'.format(__version__))

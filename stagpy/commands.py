@@ -1,6 +1,7 @@
 """definition of each subcommands"""
 
 from . import constants, misc, field, rprof, time_series, plates
+from . import __version__
 
 
 def field_cmd(args):
@@ -55,3 +56,8 @@ def var_cmd(_):
     print('rprof:')
     print(*('{}: {}'.format(v, m.name)
           for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
+
+
+def version_cmd(_):
+    """print current version"""
+    print('stagpy version: v{}'.format(__version__))
