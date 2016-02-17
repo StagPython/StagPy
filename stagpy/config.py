@@ -126,19 +126,19 @@ RPROF = OrderedDict((
         Conf(False, False, None, {},
              True, 'plot min and max concentration')),
     ('plot_conctheo',
-        Conf(True, False, None, {},
+        Conf(False, False, None, {},
              True, 'plot concentration theo')),
     ('plot_overturn_init',
-        Conf(True, False, None, {},
+        Conf(False, False, None, {},
              True, 'plot overturn init')),
     ('plot_difference',
-        Conf(True, False, None, {},
+        Conf(False, False, None, {},
              True, 'plot difference between T and C profs and overturned \
                 version of their initial values')),
 ))
 TIME = OrderedDict((
     ('compstat',
-        Conf(True, True, None, {},
+        Conf(False, True, None, {},
              True, 'compute steady state statistics')),
     ('annottmin',
         Conf(False, True, None, {},
