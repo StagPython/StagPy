@@ -6,9 +6,6 @@ python-targets:
 pep8:
     full: true
 max-line-length: 80
-requirements:
-    - matplotlib
-    - seaborn
 autodetect: true
 ignore-paths:
         - data
