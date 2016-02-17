@@ -55,7 +55,7 @@ $(LINK): $(STAGPY)
 $(STAGPY): $(VENV_DIR) $(OBJS)
 	$(VPY) -E setup.py install
 	@echo 'Removing useless build files'
-	@-rm -rf build data dist stagpy.egg-info
+	@-rm -rf build dist stagpy.egg-info
 
 $(VENV_DIR): $(BLD_DIR)/get-pip.py requirements.txt
 	$(PY) -m venv --system-site-packages --without-pip $@
