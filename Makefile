@@ -20,7 +20,7 @@ OBJS=setup.py stagpy/*.py
 COMP_ZSH=$(BLD_DIR)/comp.zsh
 COMP_SH=$(BLD_DIR)/comp.sh
 
-all: $(BLD_DIR) install
+all: install
 
 $(BLD_DIR):
 	@mkdir -p $@
@@ -31,12 +31,12 @@ install: $(LINK) config infopath autocomplete
 
 autocomplete: $(COMP_ZSH) $(COMP_SH) infozsh infobash
 
-$(COMP_ZSH):
+$(COMP_ZSH): $(LINK)
 	@echo 'autoload bashcompinit' > $@
 	@echo 'bashcompinit' >> $@
 	@echo 'eval "$$($(COMP) $(LINK_NAME))"' >> $@
 
-$(COMP_SH):
+$(COMP_SH): $(LINK)
 	@echo 'eval "$$($(COMP) $(LINK_NAME))"' > $@
 
 config: $(STAGPY) $(CONF_FILE)
@@ -62,7 +62,7 @@ $(VENV_DIR): $(BLD_DIR)/get-pip.py requirements.txt
 	$(VPIP) install -I argcomplete
 	$(VPIP) install -r requirements.txt
 
-$(BLD_DIR)/get-pip.py:
+$(BLD_DIR)/get-pip.py: $(BLD_DIR)
 	@echo 'Dowloading get-pip.py...'
 	@$(PY) downloadgetpip.py $@
 	@echo 'Done'
@@ -90,7 +90,7 @@ clean: uninstall
 	@-rm -rf $(BLD_DIR)
 
 uninstall:
-	@echo 'Removing config file...'
+	@echo 'Removing config files...'
 	@-rm -rf ~/.config/stagpy/
 	@echo 'Removing link...'
 	@-rm -f $(LINK)
