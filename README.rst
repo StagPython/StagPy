@@ -188,10 +188,3 @@ Troubleshooting
     This might be due to the matplotlib backend that is not correctly set. See
     this Stack Overflow question:
     <http://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python>
-
-*   Installation fails with ``ImportError: No module named 'encodings'``
-
-    This seems to be due to a bug in the venv module with some Python
-    installation setups. If installing Python properly with your package
-    manager doesn't solve the issue, you can try installing StagPy without any
-    virtual environment by using ``make novirtualenv``.
