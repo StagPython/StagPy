@@ -95,3 +95,5 @@ uninstall:
 	@echo 'Removing link...'
 	@-rm -f $(LINK)
 	@echo 'Done.'
+
+again: clean all
