@@ -52,7 +52,7 @@ script <https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
 
 You can then install StagPy with the following command::
 
-    python3 -m pip install --user stagpy
+    python3 -m pip install -U --user stagpy
 
 Make sure that the directory where ``pip`` install package entry-points
 (usually ``~/.local/bin``) is in your ``PATH`` environment variable.
