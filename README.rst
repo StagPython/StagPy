@@ -161,6 +161,10 @@ The installation process is then fairly simple::
     cd StagPy
     make
 
+The version installed in the virtual environment points directly towards the
+source files. It means that you don't need to run ``make`` again for your
+changes to the source files to be taken into account.
+
 A soft link named ``stagpy-git`` is created in your ``~/bin`` directory,
 allowing you to launch the development version of StagPy directly by running
 ``stagpy-git`` in a terminal (provided that ``~/bin`` is in your ``PATH``
