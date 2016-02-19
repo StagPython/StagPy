@@ -5,6 +5,13 @@
    :target: http://stagpy.readthedocs.org/en/latest/?badge=latest
    :alt: Documentation Status
 
+.. image:: https://anaconda.org/amorison/stagpy/badges/version.svg
+   :target: https://anaconda.org/amorison/stagpy
+   :alt: Anaconda Cloud
+.. image:: https://badge.fury.io/py/stagpy.svg
+   :target: https://badge.fury.io/py/stagpy
+   :alt: PyPI Version
+
 StagPy
 ======
 
