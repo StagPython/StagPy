@@ -1,6 +1,9 @@
 .. image:: https://landscape.io/github/mulvrova/StagPy/master/landscape.svg?style=flat-square
    :target: https://landscape.io/github/mulvrova/StagPy/master
    :alt: Code Health
+.. image:: https://readthedocs.org/projects/stagpy/badge/?version=latest
+   :target: http://stagpy.readthedocs.org/en/latest/?badge=latest
+   :alt: Documentation Status
 
 StagPy
 ======
