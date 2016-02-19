@@ -9,3 +9,4 @@ max-line-length: 80
 autodetect: true
 ignore-paths:
         - data
+        - docs
