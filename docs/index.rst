@@ -11,9 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   install
-   tuto
-   developers
-   maintainers
+   sources/install
+   sources/tuto
+   sources/developers
+   sources/maintainers
 
 
