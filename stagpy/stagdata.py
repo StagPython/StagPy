@@ -33,12 +33,22 @@ class BinData:
             self._catch_header()
             self._readfile()
 
-    def _readbin(self, fmt='i', nwords=1, nbytes=4):
-        """read n words of n bytes with fmt format
+    def _readbin(self, fmt='i', nwords=1):
+        """Read n words of 4 or 8 bytes with fmt format.
+
+        fmt: 'i' or 'f' (integer or float)
+        4 or 8 bytes: depends on nmagic
 
         Return a tuple of elements if more than one element.
-        Default: read 1 word of 4 bytes formatted as an integer.
+
+        Default: read 1 word formatted as an integer.
         """
+        if self._64bit:
+            nbytes = 8
+            fmt = fmt.replace('i', 'q')
+            fmt = fmt.replace('f', 'd')
+        else:
+            nbytes = 4
         elts = struct.unpack(fmt * nwords, self._fid.read(nwords * nbytes))
         if len(elts) == 1:
             elts = elts[0]
@@ -46,7 +56,12 @@ class BinData:
 
     def _catch_header(self):
         """reads header of binary file"""
+        self._64bit = False
         self.nmagic = self._readbin()  # Version
+        if self.nmagic > 8000:  # 64 bits
+            self.nmagic -= 8000
+            self._readbin()  # need to read 4 more bytes
+            self._64bit = True
 
         # check nb components
         if (self.nmagic < 100 and self.nval > 1) \
