@@ -13,7 +13,7 @@ setup(
     description='Tool for StagYY output files processing',
     long_description=README,
 
-    url='https://github.com/mulvrova/StagPy',
+    url='https://github.com/StagPython/StagPy',
 
     author='Martina Ulvrova, Adrien Morison, Stéphane Labrosse',
     author_email='adrien.morison@gmail.com',
