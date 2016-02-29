@@ -5,7 +5,7 @@ If you want to contribute to development of StagPy, create an account on
 GitHub_ and fork the `StagPy repository`__.
 
 .. _GitHub: https://github.com/
-.. __: https://github.com/mulvrova/StagPy
+.. __: https://github.com/StagPython/StagPy
 
 The development of StagPy is made using the Git version control system. The
 first three chapters of the `Git book`__ should give you all the necessary
