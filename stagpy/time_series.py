@@ -7,6 +7,7 @@ Date: 2015/11/27
 import numpy as np
 from math import sqrt
 from .stagdata import TimeData
+from matplotlib import rc  # latex inside plots
 
 
 def find_nearest(array, value):
@@ -44,18 +45,23 @@ def time_cmd(args):
         coefs = 1.
         volume = 1.
 
-    time = data[:, 1]
+    time  = data[:, 1]
+    mtemp = data[:, 5] 
+    ftop  = data[:, 2]* coefs
+    fbot  = data[:, 3]* coefb
+    vrms  = data[:, 8]
 
     dtdt = (data[2:ntot - 1, 5] - data[0:ntot - 3, 5]) /\
         (data[2:ntot - 1, 1] - data[0:ntot - 3, 1])
     ebalance = data[1:ntot - 2, 2] * coefs - data[1:ntot - 2, 3] * coefb\
         - volume * dtdt
 
+    # -------- TEMPERATURE and FLOW PLOTS
     fig = plt.figure(figsize=(30, 10))
 
     plt.subplot(2, 1, 1)
-    plt.plot(time, data[:, 2] * coefs, 'b', label='Surface', linewidth=lwdth)
-    plt.plot(time, data[:, 3] * coefb, 'r', label='Bottom', linewidth=lwdth)
+    plt.plot(time, ftop, 'b', label='Surface', linewidth=lwdth)
+    plt.plot(time, fbot, 'r', label='Bottom', linewidth=lwdth)
     if args.energy:
         plt.plot(time[1:ntot - 2:], ebalance, 'g', label='Energy balance',
              linewidth=lwdth)
@@ -72,13 +78,31 @@ def time_cmd(args):
                      arrowprops={'facecolor': 'black'})
 
     plt.subplot(2, 1, 2)
-    plt.plot(time, data[:, 5], 'k', linewidth=lwdth)
+    plt.plot(time, mtemp, 'k', linewidth=lwdth)
     plt.xlabel('Time', fontsize=ftsz)
     plt.ylabel('Mean temperature', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
 
-    plt.savefig("flux_time.pdf", format='PDF')
+    plt.savefig("fig_fluxtime.pdf", format='PDF')
+
+    # -------- TEMPERATURE and VRMS PLOTS
+    fig = plt.figure(figsize=(30, 10))
+
+    plt.subplot(2, 1, 1)
+    plt.plot(time, vrms, 'g', linewidth=lwdth)
+    plt.ylabel(r'$v_{\rm rms}$', fontsize=ftsz)
+    plt.xticks(fontsize=ftsz)
+    plt.yticks(fontsize=ftsz)
+
+    plt.subplot(2, 1, 2)
+    plt.plot(time, mtemp, 'k', linewidth=lwdth)
+    plt.xlabel('Time', fontsize=ftsz)
+    plt.ylabel('Mean temperature', fontsize=ftsz)
+    plt.xticks(fontsize=ftsz)
+    plt.yticks(fontsize=ftsz)
+
+    plt.savefig("fig_vrmstime.pdf", format='PDF')
 
     if not args.compstat:
         return None
