@@ -136,10 +136,14 @@ RPROF = OrderedDict((
              True, 'plot difference between T and C profs and overturned \
                 version of their initial values')),
 ))
+
 TIME = OrderedDict((
     ('compstat',
         Conf(False, True, None, {},
              True, 'compute steady state statistics')),
+    ('energy',
+        Conf(True, True, None, {},
+             True, 'display energy balance in the heat flow plot')),
     ('annottmin',
         Conf(False, True, None, {},
              True, 'put an arrow at tminc and tmint')),

@@ -56,7 +56,8 @@ def time_cmd(args):
     plt.subplot(2, 1, 1)
     plt.plot(time, data[:, 2] * coefs, 'b', label='Surface', linewidth=lwdth)
     plt.plot(time, data[:, 3] * coefb, 'r', label='Bottom', linewidth=lwdth)
-    plt.plot(time[1:ntot - 2:], ebalance, 'g', label='Energy balance',
+    if args.energy:
+        plt.plot(time[1:ntot - 2:], ebalance, 'g', label='Energy balance',
              linewidth=lwdth)
     plt.ylabel('Heat flow', fontsize=ftsz)
     plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
