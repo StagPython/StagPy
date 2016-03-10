@@ -140,10 +140,10 @@ RPROF = OrderedDict((
 TIME = OrderedDict((
     ('compstat',
         Conf(False, True, None, {},
-             False, 'compute steady state statistics')),
+             True, 'compute steady state statistics')),
     ('energy',
         Conf(False, True, None, {},
-             False, 'display energy balance in the heat flow plot')),
+             True, 'display energy balance in the heat flow plot')),
     ('tstart',
         Conf(0., True, None, {},
              False, 'specify beginning for the time series')),
