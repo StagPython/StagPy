@@ -49,6 +49,9 @@ def time_cmd(args):
     else:
         nstart=np.argmin(abs(args.tstart-data[:,1]))
 
+    if abs(args.tend)<eps:
+        args.tend=np.amax(data[:,1])
+
     time  = data[nstart:, 1]
     mtemp = data[nstart:, 5] 
     ftop  = data[nstart:, 2]* coefs
@@ -74,7 +77,7 @@ def time_cmd(args):
     plt.legend.get_frame().set_facecolor('white')
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,np.amax(time)])
+    plt.xlim([args.tstart,args.tend])
 
     if args.annottmin:
         plt.annotate('tminT', xy=(args.tmint, 0), xytext=(args.tmint, -10),
@@ -88,7 +91,7 @@ def time_cmd(args):
     plt.ylabel('Mean temperature', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,np.amax(time)])
+    plt.xlim([args.tstart,args.tend])
 
     plt.savefig("fig_fluxtime.pdf", format='PDF')
 
@@ -100,7 +103,7 @@ def time_cmd(args):
     plt.ylabel(r'$v_{\rm rms}$', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,np.amax(time)])
+    plt.xlim([args.tstart,args.tend])
 
     plt.subplot(2, 1, 2)
     plt.plot(time, mtemp, 'k', linewidth=lwdth)
@@ -108,7 +111,7 @@ def time_cmd(args):
     plt.ylabel('Mean temperature', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,np.amax(time)])
+    plt.xlim([args.tstart,args.tend])
 
     plt.savefig("fig_vrmstime.pdf", format='PDF')
 
