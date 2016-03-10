@@ -181,7 +181,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                              linestyle=linestyles[i], linewidth=lwdth)
                 # change the vertical limits
                 plt.ylim([rmin - 0.05, rmax + 0.05])
-            if len(vartuple) > 1 and step == ilast:
+            if len(vartuple) > 1 and step == ilast and quant[0] != 'Viscosity':
                     # legends for the additionnal profiles
                 axes = plt.gca()
                 rangex = axes.get_xlim()
@@ -197,6 +197,8 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                              quant[i + 1], ha='right')
 
             if step == ilast:
+                if quant[0] == 'Viscosity':
+                    plt.xscale('log')
                 plt.xlabel(quant[0], fontsize=ftsz)
                 plt.ylabel('z', fontsize=ftsz)
                 plt.xticks(fontsize=ftsz)
