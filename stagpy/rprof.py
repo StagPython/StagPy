@@ -196,6 +196,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                     plt.text(xlgd1 - 0.02 * (rangex[1] - rangex[0]), ylgd,
                              quant[i + 1], ha='right')
 
+            if step == ilast:
                 plt.xlabel(quant[0], fontsize=ftsz)
                 plt.ylabel('z', fontsize=ftsz)
                 plt.xticks(fontsize=ftsz)
