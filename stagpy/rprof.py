@@ -53,6 +53,10 @@ def _calc_energy(data, ir0, ir1):  # for args.plot_energy
     qtot = qadv + qcond
     return qtot, qadv, qcond, zgrid
 
+def fmttime(x):
+    a, b = '{:.2e}'.format(x).split('e')
+    b = int(b)
+    return r'$t={} \times 10^{{{}}}$'.format(a, b)
 
 def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                  ctheoarg, integrate=False):
@@ -89,7 +93,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
 
     ### this is from http://stackoverflow.com/questions/4805048/how-to-get-different-colored-lines-for-different-plots-in-a-single-figure
     num_plots=(ilast-istart-1)/istep+1
-    colormap = plt.cm.magma_r
+    colormap = plt.cm.winter_r
     plt.gca().set_prop_cycle(cycler('color',[colormap(i) for i in np.linspace(0, 0.9, num_plots)]))
 
     for step in range(istart + 1, ilast + 1, istep):
@@ -131,8 +135,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                     donnee = profiles[:, i]
                 if i == 0:
                     pplot = plt.plot(donnee, radius, linewidth=lwdth,
-                                     label=r'$t=%.2e$' %
-                                     (tsteps[step - 1, 2]))
+                                     label=fmttime(tsteps[step - 1, 2]))
 
                     # get color and size characteristics
                     col = pplot[0].get_color()
@@ -233,7 +236,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
             axax[0].semilogy(tsteps[0:ilast:istep, 2], concdif / concdif[0])
             axax[0].semilogy(tsteps[iminc * istep, 2],
                              concdif[iminc] / concdif[0],
-                             'o', label=r'$t=%.2e$' % (tsteps[iminc, 2]))
+                             'o', label=fmttime(tsteps[iminc, 2]))
             axax[0].set_ylabel('Composition diff.')
             plt.legend(loc='upper right')
             return tsteps[iminc * istep, 2], concdif[iminc] / concdif[0],\
@@ -244,7 +247,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
             imint = tempdif.index(min(tempdif))
             axax[1].semilogy(tsteps[imint * istep, 2],
                              tempdif[imint] / tempdif[0],
-                             'o', label=r'$t=%.2e$' % (tsteps[imint, 2]))
+                             'o', label=fmttime(tsteps[imint, 2]))
             axax[1].set_ylabel('Temperature diff.')
             plt.legend(loc='lower right')
             # maximum velocity as function of time
