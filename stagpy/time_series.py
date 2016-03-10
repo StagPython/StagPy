@@ -7,8 +7,6 @@ Date: 2015/11/27
 import numpy as np
 from math import sqrt
 from .stagdata import TimeData
-from matplotlib import rc  # latex inside plots
-
 
 def find_nearest(array, value):
     """Find the data point nearest to value"""
@@ -18,6 +16,7 @@ def find_nearest(array, value):
 
 def time_cmd(args):
     """plot temporal series"""
+    eps=1.e-10
     plt = args.plt
 
     lwdth = args.linewidth
@@ -45,11 +44,16 @@ def time_cmd(args):
         coefs = 1.
         volume = 1.
 
-    time  = data[:, 1]
-    mtemp = data[:, 5] 
-    ftop  = data[:, 2]* coefs
-    fbot  = data[:, 3]* coefb
-    vrms  = data[:, 8]
+    if abs(args.tstart)<eps:
+        nstart=0
+    else:
+        nstart=np.argmin(abs(args.tstart-data[:,1]))
+
+    time  = data[nstart:, 1]
+    mtemp = data[nstart:, 5] 
+    ftop  = data[nstart:, 2]* coefs
+    fbot  = data[nstart:, 3]* coefb
+    vrms  = data[nstart:, 8]
 
     dtdt = (data[2:ntot - 1, 5] - data[0:ntot - 3, 5]) /\
         (data[2:ntot - 1, 1] - data[0:ntot - 3, 1])
@@ -70,6 +74,7 @@ def time_cmd(args):
     plt.legend.get_frame().set_facecolor('white')
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
+    plt.xlim([args.tstart,np.amax(time)])
 
     if args.annottmin:
         plt.annotate('tminT', xy=(args.tmint, 0), xytext=(args.tmint, -10),
@@ -83,6 +88,7 @@ def time_cmd(args):
     plt.ylabel('Mean temperature', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
+    plt.xlim([args.tstart,np.amax(time)])
 
     plt.savefig("fig_fluxtime.pdf", format='PDF')
 
@@ -94,6 +100,7 @@ def time_cmd(args):
     plt.ylabel(r'$v_{\rm rms}$', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
+    plt.xlim([args.tstart,np.amax(time)])
 
     plt.subplot(2, 1, 2)
     plt.plot(time, mtemp, 'k', linewidth=lwdth)
@@ -101,6 +108,7 @@ def time_cmd(args):
     plt.ylabel('Mean temperature', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
+    plt.xlim([args.tstart,np.amax(time)])
 
     plt.savefig("fig_vrmstime.pdf", format='PDF')
 
