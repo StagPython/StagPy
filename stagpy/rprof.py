@@ -102,12 +102,14 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
         if quant[0] == 'Grid':
             axe[0].plot(data[ir0:ir1, 0], '-ko', label='z')
             axe[0].set_ylabel('z', fontsize=ftsz)
+            axe[0].set_xlim([0,len(data[ir0:ir1, 0])])
 
             dzgrid = (np.array(data[ir0 + 1:ir1, 0], np.float) -
                       np.array(data[ir0:ir1 - 1, 0], np.float))
             axe[1].plot(dzgrid, '-ko', label='dz')
-            axe[1].set_xlabel('cell number', fontsize=ftsz)
+            axe[1].set_xlabel('Cell number', fontsize=ftsz)
             axe[1].set_ylabel('dz', fontsize=ftsz)
+            axe[1].set_xlim([0,len(data[ir0:ir1, 0])])
         else:
             if quant[0] == 'Energy':
                 profiles = np.array(np.transpose(energy)[:, [0, 1, 2]],
