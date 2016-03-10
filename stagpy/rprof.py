@@ -8,6 +8,7 @@ from scipy import integrate as itg
 import math
 from . import constants, misc
 from .stagdata import RprofData
+from cycler import cycler
 
 
 def _normprof(rrr, func):  # for args.plot_difference
@@ -85,6 +86,11 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
         concdif = []
         tempdif = []
         wmax = []
+
+    ### this is from http://stackoverflow.com/questions/4805048/how-to-get-different-colored-lines-for-different-plots-in-a-single-figure
+    num_plots=(ilast-istart-1)/istep+1
+    colormap = plt.cm.magma_r
+    plt.gca().set_prop_cycle(cycler('color',[colormap(i) for i in np.linspace(0, 0.9, num_plots)]))
 
     for step in range(istart + 1, ilast + 1, istep):
         # find the indices
