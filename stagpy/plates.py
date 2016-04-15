@@ -274,7 +274,6 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
 
     # topography
     fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
-    depth_mantle = 2890.0  # in km
     topo = np.genfromtxt(fname)
     # rescaling topography!
     topo[:, 1] = topo[:, 1] / (1. - dsa)
@@ -284,7 +283,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
 
     ax31 = ax3.twinx()
     ax31.set_ylabel("Topography [km]")
-    ax31.plot(topo[:, 0], topo[:, 1] * depth_mantle, color='black', alpha=0.4)
+    ax31.plot(topo[:, 0], topo[:, 1] * args.par_nml['geometry']['d_dimensional']/1000., color='black', alpha=0.4)
     ax31.set_ylim(topomin, topomax)
 
     ax41 = ax4.twinx()
@@ -300,7 +299,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
         ax41.axvline(
             x=ridge[i], ymin=topomin, ymax=topomax,
             color='green', ls='dashed', alpha=0.8)
-    ax41.plot(topo[:, 0], topo[:, 1] * depth_mantle,
+    ax41.plot(topo[:, 0], topo[:, 1] * args.par_nml['geometry']['d_dimensional']/1000.,
               color='black', alpha=0.7)
     ax41.set_ylim(topomin, topomax)
 
@@ -364,9 +363,9 @@ def plot_plates(args, velocity, temp, conc, age, timestep, trench, ridge):
             x=ridge[i], ymin=topomin, ymax=topomax,
             color='green', ls='dashed', alpha=0.8)
     ax2.set_ylabel("Topography [km]")
-    ax2.plot(topo[:, 0], topo[:, 1] * depth_mantle, color='black')
+    ax2.plot(topo[:, 0], topo[:, 1] * args.par_nml['geometry']['d_dimensional']/1000., color='black')
     ax2.set_xlim(0, 2 * np.pi)
-    dtopo = deepcopy(topo[:, 1] * depth_mantle)
+    dtopo = deepcopy(topo[:, 1] * args.par_nml['geometry']['d_dimensional']/1000.)
     mask = dtopo > 0
     water = deepcopy(dtopo)
     water[mask] = 0
