@@ -26,25 +26,32 @@ def plot_scalar(args, stgdat, var):
 
     fig, axis = plt.subplots(ncols=1)
     if stgdat.geom == 'annulus':
-        if var == 'n':
+        if var == 'n': # viscosity
             surf = axis.pcolormesh(xmesh, ymesh, fld,
                                    norm=args.mpl.colors.LogNorm(),
                                    cmap='jet_r',
                                    rasterized=not args.pdf,
                                    shading='gouraud')
-        elif var == 'd':
+        elif var == 'd': # density
             surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='bwr_r',
                                    vmin=0.96, vmax=1.04,
                                    rasterized=not args.pdf,
                                    shading='gouraud')
+        elif var == 'r': # topography
+            plt.plot(stgdat.ph_coord[:-1],fld[:-1,1],'-')
+            plt.xlim([np.amin(stgdat.ph_coord),np.amax(stgdat.ph_coord)])
+            plt.xlabel('Distance')
+            plt.ylabel('Topography')
         else:
             surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
                                    rasterized=not args.pdf,
                                    shading='gouraud')
-        cbar = plt.colorbar(surf, shrink=args.shrinkcb)
-        cbar.set_label(constants.FIELD_VAR_LIST[var].name)
-        plt.axis('equal')
-        plt.axis('off')
+
+        if var != 'r':
+            cbar = plt.colorbar(surf, shrink=args.shrinkcb)
+            cbar.set_label(constants.FIELD_VAR_LIST[var].name)
+            plt.axis('equal')
+            plt.axis('off')
     return fig, axis
 
 
