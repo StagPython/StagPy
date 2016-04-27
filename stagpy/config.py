@@ -163,6 +163,7 @@ TIME = OrderedDict((
         Conf(0., True, None, {},
              False, 'specify tminc')),
 ))
+
 PLATES = OrderedDict((
     ('vzcheck',
         Conf(False, True, None, {},
@@ -173,7 +174,11 @@ PLATES = OrderedDict((
     ('dsa',
         Conf(0.05, False, None, {},
              True, 'thickness of sticky air')),
+    ('shrinkcb',
+        Conf(0.5, False, None, {},
+             True, 'color bar shrink factor')),
 ))
+
 VAR = OrderedDict((
 ))
 VERSION = OrderedDict((
