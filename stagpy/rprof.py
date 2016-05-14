@@ -85,13 +85,13 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
     else:
         fig, axe = plt.subplots()
 
-    timename = str(istart) + "_" + str(ilast) + "_" + str(istep)
+    timename = str(istart) + "_" + str(ilast-1) + "_" + str(istep)
     if args.plot_difference:
         concdif = []
         tempdif = []
         wmax = []
 
-    ### this is from http://stackoverflow.com/questions/4805048/how-to-get-different-colored-lines-for-different-plots-in-a-single-figure
+    # this is from http://stackoverflow.com/questions/4805048/how-to-get-different-colored-lines-for-different-plots-in-a-single-figure
     num_plots=(ilast-istart-1)/istep+1
     colormap = plt.cm.winter_r
     plt.gca().set_prop_cycle(cycler('color',[colormap(i) for i in np.linspace(0, 0.9, num_plots)]))
@@ -266,6 +266,72 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                 wma, imint, sigma, timename
     return None
 
+def plotaveragedprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args):
+    """Plot the time averaged profiles 
+
+    quant holds the strings for the x axis annotation and
+    the legends for the additional profiles
+
+    vartuple contains the numbers of the column to be plotted
+    """
+    plt = args.plt
+    istart, ilast, istep = args.timestep
+    lwdth = args.linewidth
+    ftsz = args.fontsize
+    rmin, rmax, rcmb = rbounds
+    linestyles = ('-', '--', 'dotted', ':')
+
+    fig, axe = plt.subplots()
+
+    timename = str(istart) + "_" + str(ilast-1) + "_" + str(istep)
+
+    colormap = plt.cm.winter_r
+
+    chunks = lambda mydata, nbz: [mydata[ii:ii+nbz] for ii in range(0, len(mydata), nbz)]
+
+    # Plot the profiles
+    nztot = int( np.shape(data)[0] / (np.shape(tsteps)[0]) )
+    donnee = np.array(data[:, vartuple], float)
+    donnee_chunk=chunks(donnee,nztot)
+    radius = np.array( chunks(np.array(data[:, 0], float) + rcmb,nztot) )
+    donnee_averaged = np.mean( donnee_chunk , axis = 0 )
+
+    for ii in range(donnee_averaged.shape[1]):
+        pplot = plt.plot(donnee_averaged[:,ii], radius[0,:], linewidth=lwdth,
+                linestyle=linestyles[ii],color='b',label=quant[ii+1])
+
+    plt.ylim([rmin - 0.05, rmax + 0.05])
+    if quant[0] == 'Viscosity':
+        plt.xscale('log')
+    plt.xlabel(quant[0], fontsize=ftsz)
+    plt.ylabel('Coordinate z', fontsize=ftsz)
+    plt.xticks(fontsize=ftsz)
+    plt.yticks(fontsize=ftsz)
+    # legend
+    if len(vartuple)>1:
+       lgd = plt.legend(loc=0,
+                    fontsize=ftsz,
+                    columnspacing=1.0, labelspacing=0.0,
+                    handletextpad=0.1, handlelength=1.5,
+                    fancybox=True, shadow=False)
+                    #borderaxespad=0., mode="expand",
+
+    # Finding averaged v_rms at surface
+    if args.par_nml['boundaries']['air_layer']:
+        dsa = args.par_nml['boundaries']['air_thickness']
+        myarg = np.argmin( abs( radius[0,:] - radius[0,-1] + dsa )) 
+        plt.axhline(y=radius[0,myarg],xmin=0,xmax=plt.xlim()[1],color='k',alpha=0.1)
+    else:
+        myarg=-1
+        
+    if quant[0] == 'Horizontal velocity':
+          vrms_surface = donnee_averaged[myarg,0]
+          plt.title('Averaged horizontal surface velocity: '+str(round(vrms_surface,0)))
+
+    plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + timename + ".pdf",
+                    format='PDF', bbox_inches='tight')
+    plt.close(fig)
+    return None
 
 def rprof_cmd(args):
     """Plot radial profiles"""
@@ -315,7 +381,7 @@ def rprof_cmd(args):
     rprof_data = RprofData(args)
     data, tsteps, nzi = rprof_data.data, rprof_data.tsteps, rprof_data.nzi
 
-    for var in 'tvnc':  # temperature, velo, visco, concentration
+    for var in 'tvunc':  # temperature, vertical velocity, horizontal velocity, viscosity, concentration
         meta = constants.RPROF_VAR_LIST[var]
         if not misc.get_arg(args, meta.arg):
             continue
@@ -330,6 +396,17 @@ def rprof_cmd(args):
             _, _, _, _, imint, sigma, timename = out
         if var == 'c' and args.plot_difference:
             _, _, iminc, timename = out
+
+    for var in 'tvun':  # temperature, vertical velocity, horizontal velocity, viscosity, time averaging and plotting of mean profiles
+        meta = constants.RPROF_VAR_LIST[var]
+        if not misc.get_arg(args, meta.arg):
+            continue
+        labels = [meta.name]
+        cols = [meta.prof_idx]
+        if misc.get_arg(args, meta.min_max):
+            labels.extend(['Mean', 'Minimum', 'Maximum'])
+            cols.extend([meta.prof_idx + 1, meta.prof_idx + 2])
+        plotaveragedprofiles(labels, cols, data, tsteps, nzi, rbounds, args)
 
     if args.plot_difference:
         args.plt.ticklabel_format(style='sci', axis='x')

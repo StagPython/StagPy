@@ -235,7 +235,7 @@ class RprofData:
         tsteps = np.array(timesteps)
         nsteps = tsteps.shape[0]
         data = np.array(data0)
-        # all the processings of timesteps
+        # all the processing of timesteps
         # should be in commands.*_cmd
         # instead of main.py
         # since it could be different between
@@ -287,7 +287,7 @@ class TimeData:
         self.colnames = first.split()
         # suppress two columns from the header.
         # Only temporary since this has been corrected in stag
-        # WARNING: possibly a problem is some columns are added?
+        # WARNING: possibly a problem if some columns are added?
         if len(self.colnames) == 33:
             self.colnames = self.colnames[:28] + self.colnames[30:]
 

@@ -25,6 +25,7 @@ Varr = namedtuple('Varr', ['name', 'arg', 'min_max', 'prof_idx'])
 RPROF_VAR_LIST = OrderedDict((
     ('t', Varr('Temperature', 'plot_temperature', 'plot_minmaxtemp', 1)),
     ('v', Varr('Vertical velocity', 'plot_velocity', 'plot_minmaxvelo', 7)),
+    ('u', Varr('Horizontal velocity', 'plot_velocity', 'plot_minmaxvelo', 10)),
     ('n', Varr('Viscosity', 'plot_viscosity', 'plot_minmaxvisco', 13)),
     ('c', Varr('Concentration', 'plot_concentration', 'plot_minmaxcon', 36)),
     ('g', Varr('Grid', 'plot_grid', None, None)),
