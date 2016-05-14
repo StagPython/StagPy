@@ -328,7 +328,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args):
           vrms_surface = donnee_averaged[myarg,0]
           plt.title('Averaged horizontal surface velocity: '+str(round(vrms_surface,0)))
 
-    plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + timename + ".pdf",
+    plt.savefig("fig_" + "average" + quant[0].replace(' ','_') + ".pdf",
                     format='PDF', bbox_inches='tight')
     plt.close(fig)
     return None
