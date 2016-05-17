@@ -48,9 +48,9 @@ def time_cmd(args):
     if abs(args.tstart) < eps:
         nstart = 0
     else:
-        nstart = np.argmin(abs(args.tstart-data[:, 1]))
+        nstart = np.argmin(abs(args.tstart - data[:, 1]))
 
-    if abs(args.tend)<eps:
+    if abs(args.tend) < eps:
         args.tend = np.amax(data[:, 1])
 
     time = data[nstart:, 1]
@@ -72,7 +72,7 @@ def time_cmd(args):
     plt.plot(time, fbot, 'r', label='Bottom', linewidth=lwdth)
     if args.energy:
         plt.plot(time[1:ntot - 2:], ebalance, 'g', label='Energy balance',
-             linewidth=lwdth)
+                 linewidth=lwdth)
     plt.ylabel('Heat flow', fontsize=ftsz)
     plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
     plt.legend.get_frame().set_facecolor('white')
@@ -92,7 +92,7 @@ def time_cmd(args):
     plt.ylabel('Mean temperature', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,args.tend])
+    plt.xlim([args.tstart, args.tend])
 
     plt.savefig("fig_fluxtime.pdf", format='PDF')
 
