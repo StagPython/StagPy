@@ -140,7 +140,7 @@ def detect_plates_vzcheck(stagdat_t, stagdat_vp, stagdat_h, rprof_data,
 
 
 def detect_plates(args, velocity, age, vrms_surface,
-            file_results, timestep, time):
+                  file_results, timestep, time):
     """detect plates using horizontal velocity"""
     ttransit = 1.78e15  # My
     yearins = 2.16E7
@@ -206,13 +206,13 @@ def detect_plates(args, velocity, age, vrms_surface,
             trench[itrench],
             velocity_trench[itrench],
             agetrench[itrench]
-            ))
+        ))
 
     return trench, ridge, agetrench, dv_trench, dv_ridge
 
 
 def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
-                trench, ridge, agetrench, dv_trench, dv_ridge, 
+                trench, ridge, agetrench, dv_trench, dv_ridge,
                 file_results_subd):
     """handle ploting stuffs"""
     plt = args.plt
@@ -254,7 +254,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     if plot_age:
         age_surface = np.ma.masked_where(
             agefld[indsurf, :] < 0.00001, agefld[indsurf, :])
-        age_surface_dim = age_surface * vrms_surface * ttransit / yearins / 1.e6
+        age_surface_dim =\
+            age_surface * vrms_surface * ttransit / yearins / 1.e6
 
     ph_coord = conc.ph_coord
 
@@ -297,7 +298,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax4.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.set_title(timestep, fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-            transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=args.fontsize)
     # topography
     fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
     topo = np.genfromtxt(fname)
@@ -310,8 +311,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax31 = ax3.twinx()
     ax31.set_ylabel("Topography [km]", fontsize=args.fontsize)
     ax31.plot(topo[:, 0],
-            topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
-            color='black', alpha=0.4)
+              topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
+              color='black', alpha=0.4)
     ax31.set_ylim(topomin, topomax)
     ax31.grid()
     ax3.scatter(trench, dv_trench, c='red')
@@ -339,7 +340,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax1.set_ylim(velocitymin, velocitymax)
     ax1.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-            transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=args.fontsize)
 
     times_subd = []
     age_subd = []
@@ -367,16 +368,16 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         # continent is on the left
         if (continentpos - trench[i]) < 0:
             ax1.annotate('', xy=(trench[i] - distancecont, 2000),
-                            xycoords='data', xytext=(trench[i], 2000),
-                            textcoords='data',
-                            arrowprops=dict(arrowstyle="->", lw="2",
-                                    shrinkA=0, shrinkB=0))
+                         xycoords='data', xytext=(trench[i], 2000),
+                         textcoords='data',
+                         arrowprops=dict(arrowstyle="->", lw="2",
+                                         shrinkA=0, shrinkB=0))
         else:  # continent is on the right
             ax1.annotate('', xy=(trench[i] + distancecont, 2000),
-                            xycoords='data', xytext=(trench[i], 2000),
-                            textcoords='data',
-                            arrowprops=dict(arrowstyle="->", lw="2",
-                                    shrinkA=0, shrinkB=0))
+                         xycoords='data', xytext=(trench[i], 2000),
+                         textcoords='data',
+                         arrowprops=dict(arrowstyle="->", lw="2",
+                                         shrinkA=0, shrinkB=0))
 
     for i in range(len(ridge)):
         ax1.axvline(
@@ -389,11 +390,11 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-                topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
-                color='black')
+             topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
+             color='black')
     ax2.set_xlim(0, 2 * np.pi)
     dtopo = deepcopy(
-            topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.)
+        topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.)
     mask = dtopo > 0
     water = deepcopy(dtopo)
     water[mask] = 0
@@ -424,7 +425,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         ax1.set_ylim(-5000, 5000)
         ax1.set_ylabel("Velocity", fontsize=args.fontsize)
         ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                transform=ax1.transAxes, fontsize=args.fontsize)
+                 transform=ax1.transAxes, fontsize=args.fontsize)
         agemax = 500
         agemin = -50
         ax1.fill_between(
@@ -438,20 +439,20 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             # continent is on the left
             if (ph_cont_subd[i] - trench[i]) < 0:
                 ax1.annotate('', xy=(trench[i] - distance_subd[i], 2000),
-                            xycoords='data', xytext=(trench[i], 2000),
-                            textcoords='data',
-                            arrowprops=dict(arrowstyle="->", lw="2",
-                                            shrinkA=0, shrinkB=0))
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
             else:  # continent is on the right
                 ax1.annotate('', xy=(trench[i] + distance_subd[i], 2000),
-                            xycoords='data', xytext=(trench[i], 2000),
-                            textcoords='data',
-                            arrowprops=dict(arrowstyle="->", lw="2",
-                                            shrinkA=0, shrinkB=0))
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
         for i in range(len(ridge)):
             ax1.axvline(
-                    x=ridge[i], ymin=agemin, ymax=agemax,
-                    color='green', ls='dashed', alpha=0.4)
+                x=ridge[i], ymin=agemin, ymax=agemax,
+                color='green', ls='dashed', alpha=0.4)
 
         ax2.set_ylabel("Age [My]", fontsize=args.fontsize)
         # in dimensions
@@ -483,7 +484,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             ph_trench_subd[isubd],
             ph_cont_subd[isubd],
             age_subd[isubd],
-            ))
+        ))
 
     return None
 
@@ -511,7 +512,8 @@ def plates_cmd(args):
         file_results.write('# it  time  ph_trench vel_trench age_trench\n')
         file_results_subd = open(
             'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep), 'w')
-        file_results_subd.write('#  it      time      distance     ph_trench     ph_cont  age_trench \n')
+        file_results_subd.write(
+            '#  it      time      distance     ph_trench     ph_cont  age_trench \n')
 
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
@@ -562,13 +564,14 @@ def plates_cmd(args):
                 data, tsteps = rprof_data.data, rprof_data.tsteps
                 meta = constants.RPROF_VAR_LIST['u']
                 cols = [meta.prof_idx]
+
                 def chunks(mydata, nbz):
                     """Divide vector mydata into array"""
                     return [mydata[ii:ii + nbz]
                             for ii in range(0, len(mydata), nbz)]
                 nztot = int(np.shape(data)[0] / (np.shape(tsteps)[0]))
                 radius = np.array(chunks(np.array(data[:, 0], float) + rcmb,
-                                        nztot))
+                                         nztot))
                 donnee = np.array(data[:, cols], float)
                 donnee_chunk = chunks(donnee, nztot)
                 donnee_averaged = np.mean(donnee_chunk, axis=0)
@@ -582,7 +585,7 @@ def plates_cmd(args):
             time = temp.ti_ad * vrms_surface * ttransit / yearins / 1.e6
             trenches, ridges, agetrenches, dv_trench, dv_ridge =\
                 detect_plates(args, velocity,
-                            age, vrms_surface, file_results, timestep, time)
+                              age, vrms_surface, file_results, timestep, time)
             plot_plates(args, velocity, temp, conc, age, timestep, time,
                         vrms_surface, trenches, ridges, agetrenches,
                         dv_trench, dv_ridge, file_results_subd)
@@ -591,25 +594,25 @@ def plates_cmd(args):
             fig, axis = plot_scalar(args, viscosity, 'n')
             args.plt.figure(fig.number)
             axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                    transform=axis.transAxes, fontsize=args.fontsize)
+                      transform=axis.transAxes, fontsize=args.fontsize)
             for itr in np.arange(len(trenches)):
                 xxd = (viscosity.rcmb + 1.02) * np.cos(trenches[itr])
                 yyd = (viscosity.rcmb + 1.02) * np.sin(trenches[itr])
                 xxt = (viscosity.rcmb + 1.35) * np.cos(trenches[itr])
                 yyt = (viscosity.rcmb + 1.35) * np.sin(trenches[itr])
                 axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                        arrowprops=dict(facecolor='red', shrink=0.05))
+                              arrowprops=dict(facecolor='red', shrink=0.05))
             for iri in np.arange(len(ridges)):
                 xxd = (viscosity.rcmb + 1.02) * np.cos(ridges[iri])
                 yyd = (viscosity.rcmb + 1.02) * np.sin(ridges[iri])
                 xxt = (viscosity.rcmb + 1.35) * np.cos(ridges[iri])
                 yyt = (viscosity.rcmb + 1.35) * np.sin(ridges[iri])
                 axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                            arrowprops=dict(facecolor='green', shrink=0.05))
+                              arrowprops=dict(facecolor='green', shrink=0.05))
             args.plt.tight_layout()
             args.plt.savefig(
-                    misc.out_name(args, 'n').format(viscosity.step) + '.pdf',
-                    format='PDF')
+                misc.out_name(args, 'n').format(viscosity.step) + '.pdf',
+                format='PDF')
             args.plt.close(fig)
 
     if args.timeprofile and args.vzcheck:

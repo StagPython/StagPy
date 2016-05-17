@@ -53,11 +53,13 @@ def _calc_energy(data, ir0, ir1):  # for args.plot_energy
     qtot = qadv + qcond
     return qtot, qadv, qcond, zgrid
 
+
 def fmttime(tin):
     """Time formatting for labels"""
     a, b = '{:.2e}'.format(tin).split('e')
     b = int(b)
     return r'$t={} \times 10^{{{}}}$'.format(a, b)
+
 
 def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                  ctheoarg, integrate=False):
@@ -86,7 +88,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
     else:
         fig, axe = plt.subplots()
 
-    timename = str(istart) + "_" + str(ilast-1) + "_" + str(istep)
+    timename = str(istart) + "_" + str(ilast - 1) + "_" + str(istep)
     if args.plot_difference:
         concdif = []
         tempdif = []
@@ -96,8 +98,8 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
     # how-to-get-different-colored-lines-for-different-plots-in-a-single-figure
     num_plots = (ilast - istart - 1) / istep + 1
     colormap = plt.cm.winter_r
-    plt.gca().set_prop_cycle(cycler('color',
-                        [colormap(i) for i in np.linspace(0, 0.9, num_plots)]))
+    plt.gca().set_prop_cycle(cycler('color', [colormap(i)
+                             for i in np.linspace(0, 0.9, num_plots)]))
 
     for step in range(istart + 1, ilast + 1, istep):
         # find the indices
@@ -269,6 +271,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                 wma, imint, sigma, timename
     return None
 
+
 def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     """Plot the time averaged profiles
 
@@ -284,7 +287,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     rmin, rmax, rcmb = rbounds
     linestyles = ('-', '--', 'dotted', ':')
 
-    fig = plt.subplots()
+    fig, axe = plt.subplots()
 
     def chunks(mydata, nbz):
         """Divide vector mydata into array"""
@@ -299,7 +302,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
 
     for iid in range(donnee_averaged.shape[1]):
         plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
-                linestyle=linestyles[iid], color='b', label=quant[iid + 1])
+                 linestyle=linestyles[iid], color='b', label=quant[iid + 1])
 
     plt.ylim([rmin - 0.05, rmax + 0.05])
     if quant[0] == 'Viscosity':
@@ -311,9 +314,9 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     # legend
     if len(vartuple) > 1:
         plt.legend(loc=0, fontsize=ftsz,
-                    columnspacing=1.0, labelspacing=0.0,
-                    handletextpad=0.1, handlelength=1.5,
-                    fancybox=True, shadow=False)
+                   columnspacing=1.0, labelspacing=0.0,
+                   handletextpad=0.1, handlelength=1.5,
+                   fancybox=True, shadow=False)
 
     # Finding averaged v_rms at surface
     if args.par_nml['boundaries']['air_layer']:
@@ -327,12 +330,13 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     if quant[0] == 'Horizontal velocity':
         vrms_surface = donnee_averaged[myarg, 0]
         plt.title('Averaged horizontal surface velocity: ' +
-                str(round(vrms_surface, 0)))
+                  str(round(vrms_surface, 0)))
 
     plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + ".pdf",
                 format='PDF', bbox_inches='tight')
     plt.close(fig)
     return None
+
 
 def rprof_cmd(args):
     """Plot radial profiles"""
@@ -421,7 +425,7 @@ def rprof_cmd(args):
                                   'sigma', 'tminC'))
             fmt = '{:12.5e}' * 6
             fich.write(fmt.format(rcmb, k_fe, ra0, tsteps[imint, 2],
-                       sigma, tsteps[iminc, 2]))
+                                  sigma, tsteps[iminc, 2]))
 
     # Plot grid spacing
     if args.plot_grid:
