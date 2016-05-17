@@ -296,7 +296,6 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax1.set_title(timestep,fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time,0)) + ' My',
             transform=ax1.transAxes, fontsize=args.fontsize)
-
     # topography
     fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
     topo = np.genfromtxt(fname)
@@ -408,7 +407,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         ax2.axvline(
             x=ridge[i], ymin=topomin, ymax=topomax,
             color='green', ls='dashed', alpha=0.4)
-    ax1.set_title(timestep,fontsize=args.fontsize)
+    ax1.set_title(timestep, fontsize=args.fontsize)
     figname = misc.out_name(args, 'surftopo').format(temp.step) + '.pdf'
     plt.savefig(figname, format='PDF')
     plt.close()
@@ -468,7 +467,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             ax2.axvline(
                 x=ridge[i], ymin=agemin, ymax=agemax,
                 color='green', ls='dashed', alpha=0.4)
-        ax1.set_title(timestep,fontsize=args.fontsize)
+        ax1.set_title(timestep, fontsize=args.fontsize)
         figname = misc.out_name(args, 'surfage').format(temp.step) + '.pdf'
         plt.savefig(figname, format='PDF')
         plt.close()
@@ -553,13 +552,13 @@ def plates_cmd(args):
             conc = BinData(args, 'c', timestep)
             viscosity = BinData(args, 'n', timestep)
             age = BinData(args, 'a', timestep)
-            rcmb=viscosity.rcmb
+            rcmb = viscosity.rcmb
 
-            if timestep==args.timestep[0]:
-                # calculating averaged horizontal surface velocity 
+            if timestep == args.timestep[0]:
+                # calculating averaged horizontal surface velocity
                 # needed for redimensionalisation
                 # using mean profiles
-                data, tsteps, nzi = rprof_data.data, rprof_data.tsteps, rprof_data.nzi
+                data, tsteps = rprof_data.data, rprof_data.tsteps
                 meta = constants.RPROF_VAR_LIST['u']
                 cols = [meta.prof_idx]
                 chunks = lambda mydata, nbz: [mydata[ii:ii + nbz] \
@@ -567,8 +566,8 @@ def plates_cmd(args):
                 nztot = int( np.shape(data)[0] / (np.shape(tsteps)[0]) )
                 radius = np.array( chunks(np.array(data[:, 0], float) + rcmb, nztot) )
                 donnee = np.array(data[:, cols], float)
-                donnee_chunk = chunks(donnee,nztot)
-                donnee_averaged = np.mean( donnee_chunk , axis = 0 )
+                donnee_chunk = chunks(donnee, nztot)
+                donnee_averaged = np.mean(donnee_chunk, axis = 0)
                 if args.par_nml['boundaries']['air_layer']:
                     dsa = args.par_nml['boundaries']['air_thickness']
                     myarg = np.argmin( abs( radius[0, :] - radius[0, -1] + dsa )) 
