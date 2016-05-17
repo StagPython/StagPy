@@ -8,6 +8,7 @@ import numpy as np
 from math import sqrt
 from .stagdata import TimeData
 
+
 def find_nearest(array, value):
     """Find the data point nearest to value"""
     idx = (np.abs(array - value)).argmin()
@@ -16,7 +17,7 @@ def find_nearest(array, value):
 
 def time_cmd(args):
     """plot temporal series"""
-    eps=1.e-10
+    eps = 1.e-10
     plt = args.plt
 
     lwdth = args.linewidth
@@ -44,19 +45,19 @@ def time_cmd(args):
         coefs = 1.
         volume = 1.
 
-    if abs(args.tstart)<eps:
-        nstart=0
+    if abs(args.tstart) < eps:
+        nstart = 0
     else:
-        nstart=np.argmin(abs(args.tstart-data[:,1]))
+        nstart = np.argmin(abs(args.tstart-data[:, 1]))
 
     if abs(args.tend)<eps:
-        args.tend=np.amax(data[:,1])
+        args.tend = np.amax(data[:, 1])
 
-    time  = data[nstart:, 1]
-    mtemp = data[nstart:, 5] 
-    ftop  = data[nstart:, 2]* coefs
-    fbot  = data[nstart:, 3]* coefb
-    vrms  = data[nstart:, 8]
+    time = data[nstart:, 1]
+    mtemp = data[nstart:, 5]
+    ftop = data[nstart:, 2] * coefs
+    fbot = data[nstart:, 3] * coefb
+    vrms = data[nstart:, 8]
 
     dtdt = (data[2:ntot - 1, 5] - data[0:ntot - 3, 5]) /\
         (data[2:ntot - 1, 1] - data[0:ntot - 3, 1])
@@ -77,7 +78,7 @@ def time_cmd(args):
     plt.legend.get_frame().set_facecolor('white')
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,args.tend])
+    plt.xlim([args.tstart, args.tend])
 
     if args.annottmin:
         plt.annotate('tminT', xy=(args.tmint, 0), xytext=(args.tmint, -10),
@@ -103,7 +104,7 @@ def time_cmd(args):
     plt.ylabel(r'$v_{\rm rms}$', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,args.tend])
+    plt.xlim([args.tstart, args.tend])
 
     plt.subplot(2, 1, 2)
     plt.plot(time, mtemp, 'k', linewidth=lwdth)
@@ -111,7 +112,7 @@ def time_cmd(args):
     plt.ylabel('Mean temperature', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart,args.tend])
+    plt.xlim([args.tstart, args.tend])
 
     plt.savefig("fig_vrmstime.pdf", format='PDF')
 

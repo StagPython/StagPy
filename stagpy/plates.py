@@ -140,7 +140,7 @@ def detect_plates_vzcheck(stagdat_t, stagdat_vp, stagdat_h, rprof_data,
 
 
 def detect_plates(args, velocity, age, vrms_surface,
-        file_results, timestep, time):
+            file_results, timestep, time):
     """detect plates using horizontal velocity"""
     ttransit = 1.78e15  # My
     yearins = 2.16E7
@@ -212,7 +212,8 @@ def detect_plates(args, velocity, age, vrms_surface,
 
 
 def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
-            trench, ridge, agetrench, dv_trench, dv_ridge, file_results_subd):
+                trench, ridge, agetrench, dv_trench, dv_ridge, 
+                file_results_subd):
     """handle ploting stuffs"""
     plt = args.plt
     lwd = args.linewidth
@@ -296,7 +297,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax4.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.set_title(timestep, fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                transform=ax1.transAxes, fontsize=args.fontsize)
+            transform=ax1.transAxes, fontsize=args.fontsize)
     # topography
     fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
     topo = np.genfromtxt(fname)
@@ -309,8 +310,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax31 = ax3.twinx()
     ax31.set_ylabel("Topography [km]", fontsize=args.fontsize)
     ax31.plot(topo[:, 0],
-               topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
-               color='black', alpha=0.4)
+            topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
+            color='black', alpha=0.4)
     ax31.set_ylim(topomin, topomax)
     ax31.grid()
     ax3.scatter(trench, dv_trench, c='red')
@@ -338,7 +339,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax1.set_ylim(velocitymin, velocitymax)
     ax1.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                transform=ax1.transAxes, fontsize=args.fontsize)
+            transform=ax1.transAxes, fontsize=args.fontsize)
 
     times_subd = []
     age_subd = []
@@ -366,16 +367,16 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         # continent is on the left
         if (continentpos - trench[i]) < 0:
             ax1.annotate('', xy=(trench[i] - distancecont, 2000),
-                        xycoords='data', xytext=(trench[i], 2000),
-                        textcoords='data',
-                        arrowprops=dict(arrowstyle="->", lw="2",
-                                        shrinkA=0, shrinkB=0))
+                            xycoords='data', xytext=(trench[i], 2000),
+                            textcoords='data',
+                            arrowprops=dict(arrowstyle="->", lw="2",
+                                    shrinkA=0, shrinkB=0))
         else:  # continent is on the right
             ax1.annotate('', xy=(trench[i] + distancecont, 2000),
-                        xycoords='data', xytext=(trench[i], 2000),
-                        textcoords='data',
-                        arrowprops=dict(arrowstyle="->", lw="2",
-                                        shrinkA=0, shrinkB=0))
+                            xycoords='data', xytext=(trench[i], 2000),
+                            textcoords='data',
+                            arrowprops=dict(arrowstyle="->", lw="2",
+                                    shrinkA=0, shrinkB=0))
 
     for i in range(len(ridge)):
         ax1.axvline(
@@ -386,10 +387,10 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         facecolor='#8B6914', alpha=0.2)
     ax2.set_ylabel("Topography [km]", fontsize=args.fontsize)
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
-            color='black', ls='solid', alpha=0.2)
+                color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-            topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
-            color='black')
+                topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
+                color='black')
     ax2.set_xlim(0, 2 * np.pi)
     dtopo = deepcopy(
             topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.)
@@ -423,7 +424,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         ax1.set_ylim(-5000, 5000)
         ax1.set_ylabel("Velocity", fontsize=args.fontsize)
         ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                    transform=ax1.transAxes, fontsize=args.fontsize)
+                transform=ax1.transAxes, fontsize=args.fontsize)
         agemax = 500
         agemin = -50
         ax1.fill_between(

@@ -293,12 +293,12 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args):
     nztot = int( np.shape(data)[0] / (np.shape(tsteps)[0]) )
     donnee = np.array(data[:, vartuple], float)
     donnee_chunk=chunks(donnee,nztot)
-    radius = np.array( chunks(np.array(data[:, 0], float) + rcmb,nztot) )
-    donnee_averaged = np.mean( donnee_chunk , axis = 0 )
+    radius = np.array(chunks(np.array(data[:, 0], float) + rcmb,nztot))
+    donnee_averaged = np.mean(donnee_chunk , axis=0)
 
     for ii in range(donnee_averaged.shape[1]):
         pplot = plt.plot(donnee_averaged[:,ii], radius[0,:], linewidth=lwdth,
-                linestyle=linestyles[ii],color='b',label=quant[ii+1])
+                linestyle=linestyles[ii], color='b', label=quant[ii + 1])
 
     plt.ylim([rmin - 0.05, rmax + 0.05])
     if quant[0] == 'Viscosity':
@@ -309,27 +309,28 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args):
     plt.yticks(fontsize=ftsz)
     # legend
     if len(vartuple)>1:
-       lgd = plt.legend(loc=0,
-                    fontsize=ftsz,
-                    columnspacing=1.0, labelspacing=0.0,
-                    handletextpad=0.1, handlelength=1.5,
-                    fancybox=True, shadow=False)
-                    #borderaxespad=0., mode="expand",
+        lgd = plt.legend(loc=0,
+                        fontsize=ftsz,
+                        columnspacing=1.0, labelspacing=0.0,
+                        handletextpad=0.1, handlelength=1.5,
+                        fancybox=True, shadow=False)
 
     # Finding averaged v_rms at surface
     if args.par_nml['boundaries']['air_layer']:
         dsa = args.par_nml['boundaries']['air_thickness']
-        myarg = np.argmin( abs( radius[0,:] - radius[0,-1] + dsa )) 
-        plt.axhline(y=radius[0,myarg],xmin=0,xmax=plt.xlim()[1],color='k',alpha=0.1)
+        myarg = np.argmin(abs( radius[0,:] - radius[0,-1] + dsa)) 
+        plt.axhline(y=radius[0,myarg], xmin=0, xmax=plt.xlim()[1],
+                    color='k', alpha=0.1)
     else:
-        myarg=-1
-        
-    if quant[0] == 'Horizontal velocity':
-          vrms_surface = donnee_averaged[myarg,0]
-          plt.title('Averaged horizontal surface velocity: '+str(round(vrms_surface,0)))
+        myarg = -1
 
-    plt.savefig("fig_" + "average" + quant[0].replace(' ','_') + ".pdf",
-                    format='PDF', bbox_inches='tight')
+    if quant[0] == 'Horizontal velocity':
+        vrms_surface = donnee_averaged[myarg, 0]
+        plt.title('Averaged horizontal surface velocity: ' +
+                    str(round(vrms_surface, 0)))
+
+    plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + ".pdf",
+                format='PDF', bbox_inches='tight')
     plt.close(fig)
     return None
 
