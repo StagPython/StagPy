@@ -38,7 +38,7 @@ def plot_scalar(args, stgdat, var):
                                    rasterized=not args.pdf,
                                    shading='gouraud')
         elif var == 'r':  # topography
-            plt.plot(stgdat.ph_coord[:-1], fld[:-1,1] *
+            plt.plot(stgdat.ph_coord[:-1], fld[:-1, 1] *
                      args.par_nml['geometry']['d_dimensional'] / 1000., '-')
             plt.xlim([np.amin(stgdat.ph_coord), np.amax(stgdat.ph_coord)])
             plt.xlabel('Distance')
