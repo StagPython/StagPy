@@ -332,8 +332,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     plt.savefig(figname, format='PDF')
     plt.close()
 
-    # plotting only velocity and topography
-    _, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
+    # plotting velocity and topography
+    fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
     ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
@@ -341,6 +341,23 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax1.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes, fontsize=args.fontsize)
+
+    # plotting velocity and age at surface
+    if plot_age:
+        fig2, (ax3, ax4) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
+        ax3.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
+        ax3.axhline(
+            y=0, xmin=0, xmax=2 * np.pi,
+            color='black', ls='solid', alpha=0.2)
+        ax3.set_ylim(-5000, 5000)
+        ax3.set_ylabel("Velocity", fontsize=args.fontsize)
+        ax3.text(0.95, 1.07, str(round(time, 0)) + ' My',
+                 transform=ax3.transAxes, fontsize=args.fontsize)
+        agemax = 500
+        agemin = -50
+        ax3.fill_between(
+            ph_coord[:-1], continentsall * velocitymax, velocitymin,
+            facecolor='#8B6914', alpha=0.2)
 
     times_subd = []
     age_subd = []
@@ -353,10 +370,20 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             color='red', ls='dashed', alpha=0.4)
         # detection of the distance in between subduction and continent
         ph_coord_noendpoint = ph_coord[:-1]
-        distancecont = min(
-            abs(ph_coord_noendpoint[continentsall == 1] - trench[i]))
-        argdistancecont = np.argmin(
-            abs(ph_coord_noendpoint[continentsall == 1] - trench[i]))
+        # angdistance=2.*np.arcsin(abs(np.sin(0.5*(ph_coord_noendpoint[continentsall == 1]-trench[i]))))
+        # distancecont = min(angdistance)
+        # print(distancecont)
+        angdistance1 = abs(ph_coord_noendpoint[continentsall == 1] - trench[i])
+        angdistance2 = 2. * np.pi - angdistance1
+        angdistance = np.minimum(angdistance1, angdistance2)
+        distancecont = min(angdistance)
+        # print(distancecont)
+        # distancecont = min(
+        #    abs(ph_coord_noendpoint[continentsall == 1] - trench[i]))
+        # print(distancecont)
+        argdistancecont = np.argmin(angdistance)
+        # argdistancecont = np.argmin(
+        #    abs(ph_coord_noendpoint[continentsall == 1] - trench[i]))
         continentpos = ph_coord_noendpoint[continentsall == 1][argdistancecont]
 
         ph_trench_subd.append(trench[i])
@@ -366,18 +393,83 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         times_subd.append(temp.ti_ad)
 
         # continent is on the left
-        if (continentpos - trench[i]) < 0:
-            ax1.annotate('', xy=(trench[i] - distancecont, 2000),
-                         xycoords='data', xytext=(trench[i], 2000),
-                         textcoords='data',
-                         arrowprops=dict(arrowstyle="->", lw="2",
-                                         shrinkA=0, shrinkB=0))
-        else:  # continent is on the right
-            ax1.annotate('', xy=(trench[i] + distancecont, 2000),
-                         xycoords='data', xytext=(trench[i], 2000),
-                         textcoords='data',
-                         arrowprops=dict(arrowstyle="->", lw="2",
-                                         shrinkA=0, shrinkB=0))
+        if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
+            if continentpos - trench[i] < 0:
+                ax1.annotate('', xy=(trench[i] - distancecont, 2000),
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
+            else:  # continent is on the right
+                ax1.annotate('', xy=(trench[i] + distancecont, 2000),
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
+        else:  # distance over boundary
+            if continentpos - trench[i] < 0:
+                ax1.annotate('', xy=(2. * np.pi, 2000),
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="-", lw="2",
+                                             shrinkA=0, shrinkB=0))
+                ax1.annotate('', xy=(continentpos, 2000),
+                             xycoords='data', xytext=(0, 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
+            else:
+                ax1.annotate('', xy=(0, 2000),
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="-", lw="2",
+                                             shrinkA=0, shrinkB=0))
+                ax1.annotate('', xy=(2. * np.pi, 2000),
+                             xycoords='data', xytext=(continentpos, 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
+
+        if plot_age:
+            ax3.axvline(
+                x=trench[i], ymin=agemin, ymax=agemax,
+                color='red', ls='dashed', alpha=0.4)
+            if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
+                if continentpos - trench[i] < 0:
+                    ax3.annotate('', xy=(trench[i] - distancecont, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                else:  # continent is on the right
+                    ax3.annotate('', xy=(trench[i] + distancecont, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+            else:  # distance over boundary
+                if continentpos - trench[i] < 0:
+                    ax3.annotate('', xy=(2. * np.pi, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="-", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                    ax3.annotate('', xy=(continentpos, 2000),
+                                 xycoords='data', xytext=(0, 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                else:
+                    ax3.annotate('', xy=(0, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="-", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                    ax3.annotate('', xy=(2. * np.pi, 2000),
+                                 xycoords='data', xytext=(continentpos, 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
 
     for i in range(len(ridge)):
         ax1.axvline(
@@ -412,74 +504,42 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             color='green', ls='dashed', alpha=0.4)
     ax1.set_title(timestep, fontsize=args.fontsize)
     figname = misc.out_name(args, 'surftopo').format(temp.step) + '.pdf'
-    plt.savefig(figname, format='PDF')
-    plt.close()
+    fig1.savefig(figname, format='PDF')
+    plt.close(fig1)
 
-    # plotting only velocity and age at surface
     if plot_age:
-        _, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-        ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
-        ax1.axhline(
-            y=0, xmin=0, xmax=2 * np.pi,
-            color='black', ls='solid', alpha=0.2)
-        ax1.set_ylim(-5000, 5000)
-        ax1.set_ylabel("Velocity", fontsize=args.fontsize)
-        ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                 transform=ax1.transAxes, fontsize=args.fontsize)
-        agemax = 500
-        agemin = -50
-        ax1.fill_between(
-            ph_coord[:-1], continentsall * velocitymax, velocitymin,
-            facecolor='#8B6914', alpha=0.2)
-        for i in range(len(trench)):
-            ax1.axvline(
-                x=trench[i], ymin=agemin, ymax=agemax,
-                color='red', ls='dashed', alpha=0.4)
-
-            # continent is on the left
-            if (ph_cont_subd[i] - trench[i]) < 0:
-                ax1.annotate('', xy=(trench[i] - distance_subd[i], 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
-            else:  # continent is on the right
-                ax1.annotate('', xy=(trench[i] + distance_subd[i], 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
         for i in range(len(ridge)):
-            ax1.axvline(
+            ax3.axvline(
                 x=ridge[i], ymin=agemin, ymax=agemax,
                 color='green', ls='dashed', alpha=0.4)
 
-        ax2.set_ylabel("Age [My]", fontsize=args.fontsize)
+        ax4.set_ylabel("Age [My]", fontsize=args.fontsize)
         # in dimensions
-        ax2.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
-        ax2.set_xlim(0, 2 * np.pi)
-        ax2.fill_between(
+        ax4.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
+        ax4.set_xlim(0, 2 * np.pi)
+        ax4.fill_between(
             ph_coord[:-1], continentsall * agemax, agemin,
             facecolor='#8B6914', alpha=0.2)
-        ax2.set_ylim(agemin, agemax)
+        ax4.set_ylim(agemin, agemax)
         for i in range(len(trench)):
-            ax2.axvline(
+            ax4.axvline(
                 x=trench[i], ymin=agemin, ymax=agemax,
                 color='red', ls='dashed', alpha=0.4)
         for i in range(len(ridge)):
-            ax2.axvline(
+            ax4.axvline(
                 x=ridge[i], ymin=agemin, ymax=agemax,
                 color='green', ls='dashed', alpha=0.4)
-        ax1.set_title(timestep, fontsize=args.fontsize)
+        ax3.set_title(timestep, fontsize=args.fontsize)
         figname = misc.out_name(args, 'surfage').format(temp.step) + '.pdf'
-        plt.savefig(figname, format='PDF')
-        plt.close()
+        fig2.savefig(figname, format='PDF')
+        plt.close(fig2)
 
     # writing the output into a file, all time steps are in one file
     for isubd in np.arange(len(distance_subd)):
-        file_results_subd.write("%6.0f %11.7f %10.6f %10.6f %10.6f %11.3f\n" % (
+        file_results_subd.write("%6.0f %11.7f %11.3f %10.6f %10.6f %10.6f %11.3f\n" % (
             timestep,
             times_subd[isubd],
+            time,
             distance_subd[isubd],
             ph_trench_subd[isubd],
             ph_cont_subd[isubd],
@@ -513,7 +573,7 @@ def plates_cmd(args):
         file_results_subd = open(
             'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep), 'w')
         file_results_subd.write(
-            '#  it      time      distance     ph_trench     ph_cont  age_trench \n')
+            '#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
 
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
