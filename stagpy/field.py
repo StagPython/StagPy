@@ -26,20 +26,21 @@ def plot_scalar(args, stgdat, var):
 
     fig, axis = plt.subplots(ncols=1)
     if stgdat.geom == 'annulus':
-        if var == 'n': # viscosity
+        if var == 'n':  # viscosity
             surf = axis.pcolormesh(xmesh, ymesh, fld,
                                    norm=args.mpl.colors.LogNorm(),
                                    cmap='jet_r',
                                    rasterized=not args.pdf,
                                    shading='gouraud')
-        elif var == 'd': # density
+        elif var == 'd':  # density
             surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='bwr_r',
                                    vmin=0.96, vmax=1.04,
                                    rasterized=not args.pdf,
                                    shading='gouraud')
-        elif var == 'r': # topography
-            plt.plot(stgdat.ph_coord[:-1],fld[:-1,1]*args.par_nml['geometry']['d_dimensional']/1000.,'-')
-            plt.xlim([np.amin(stgdat.ph_coord),np.amax(stgdat.ph_coord)])
+        elif var == 'r':  # topography
+            plt.plot(stgdat.ph_coord[:-1], fld[:-1,1] *
+                     args.par_nml['geometry']['d_dimensional'] / 1000., '-')
+            plt.xlim([np.amin(stgdat.ph_coord), np.amax(stgdat.ph_coord)])
             plt.xlabel('Distance')
             plt.ylabel('Topography [km]')
         else:
