@@ -103,10 +103,14 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
 
     for step in range(istart + 1, ilast + 1, istep):
         # find the indices
+        # 1 - positions the step within the range of timesteps where
+        # the number of points changes
         ann = sorted(np.append(nzi[:, 0], step))
+        # position of step in that table
         inn = ann.index(step)
+        # total number of points for each range of profile
         nnz = np.multiply(nzi[:, 1], nzi[:, 2])
-
+        # now sum to get the start and end indices for the given profile
         ir0 = np.sum([nnz[0:inn]]) + (step - nzi[inn - 1, 0] - 1) * nzi[inn, 2]
         ir1 = ir0 + nzi[inn, 2] - 1
 

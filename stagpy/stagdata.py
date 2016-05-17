@@ -247,11 +247,12 @@ class RprofData:
             istart = nsteps - 1
         args.timestep = istart, ilast, istep
 
+        # number of points for each profile
         nzp = []
         for iti in range(0, nsteps - 1):
             nzp = np.append(nzp, tsteps[iti + 1, 0] - tsteps[iti, 0] - 1)
-
         nzp = np.append(nzp, lnum - tsteps[nsteps - 1, 0])
+
         nzs = [[0, 0, 0]]
         nzc = 0
         for iti in range(1, nsteps):
@@ -261,10 +262,11 @@ class RprofData:
         if nzp[nsteps - 1] != nzs[-1][1]:
             nzs.append([nsteps, nsteps - nzc, int(nzp[nsteps - 1])])
         nzi = np.array(nzs)
-        self.data = data
-        self.tsteps = tsteps
+        self.data = data # contains the actual profile data
+        self.tsteps = tsteps # line number, timestep number, time for each profile
         self.nzi = nzi
-
+        # stores the profile numbers where number points changes,
+        # number of profiles with that number of points, and number of points
 
 class TimeData:
 
