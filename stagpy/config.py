@@ -90,6 +90,7 @@ FIELD = OrderedDict((
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
 ))
+
 RPROF = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
@@ -98,6 +99,9 @@ RPROF = OrderedDict((
     ('plot_grid',
         Conf(True, False, None, {},
              True, 'plot grid')),
+    ('plot_grid_units',
+        Conf(False, False, None, {},
+             True, 'plot grid with units')),
     ('plot_temperature',
         Conf(True, False, None, {},
              True, 'plot temperature')),

@@ -56,9 +56,9 @@ def _calc_energy(data, ir0, ir1):  # for args.plot_energy
 
 def fmttime(tin):
     """Time formatting for labels"""
-    a, b = '{:.2e}'.format(tin).split('e')
-    b = int(b)
-    return r'$t={} \times 10^{{{}}}$'.format(a, b)
+    aaa, bbb = '{:.2e}'.format(tin).split('e')
+    bbb = int(bbb)
+    return r'$t={} \times 10^{{{}}}$'.format(aaa, bbb)
 
 
 def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
@@ -83,7 +83,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
             """(theta, phi) surface scaling factor"""
             return fct * (rad / rmax)**2
 
-    if quant[0] == 'Grid':
+    if quant[0] == 'Grid' or quant[0] == 'Grid km':
         fig, axe = plt.subplots(2, sharex=True)
     else:
         fig, axe = plt.subplots()
@@ -118,16 +118,21 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
             energy = _calc_energy(data, ir0, ir1)
 
         # Plot the profiles
-        if quant[0] == 'Grid':
+        if quant[0] == 'Grid' or quant[0] == 'Grid km':
             axe[0].plot(data[ir0:ir1, 0], '-ko', label='z')
             axe[0].set_ylabel('z', fontsize=ftsz)
             axe[0].set_xlim([0, len(data[ir0:ir1, 0])])
 
             dzgrid = (np.array(data[ir0 + 1:ir1, 0], np.float) -
                       np.array(data[ir0:ir1 - 1, 0], np.float))
-            axe[1].plot(dzgrid, '-ko', label='dz')
+            if quant[0] == 'Grid km':
+                ddim = args.par_nml['geometry']['d_dimensional'] / 1000.
+                axe[1].plot(dzgrid * ddim, '-ko', label='dz')
+                axe[1].set_ylabel('dz [km]', fontsize=ftsz)
+            else:
+                axe[1].plot(dzgrid, '-ko', label='dz')
+                axe[1].set_ylabel('dz', fontsize=ftsz)
             axe[1].set_xlabel('Cell number', fontsize=ftsz)
-            axe[1].set_ylabel('dz', fontsize=ftsz)
             axe[1].set_xlim([0, len(data[ir0:ir1, 0])])
         else:
             if quant[0] == 'Energy':
@@ -225,6 +230,8 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                 plt.yticks(fontsize=ftsz)
     if quant[0] == 'Grid':
         plt.savefig("Grid" + timename + ".pdf", format='PDF')
+    elif quant[0] == 'Grid km':
+        plt.savefig("Gridkm" + timename + ".pdf", format='PDF')
     else:
         # legend
         lgd = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
@@ -305,7 +312,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     donnee_averaged = np.mean(donnee_chunk, axis=0)
 
     for iid in range(donnee_averaged.shape[1]):
-        if len(vartuple)>1:
+        if len(vartuple) > 1:
             plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
                      linestyle=linestyles[iid], color='b', label=quant[iid + 1])
         else:
@@ -438,6 +445,10 @@ def rprof_cmd(args):
     # Plot grid spacing
     if args.plot_grid:
         plotprofiles(['Grid'], None, data, tsteps, nzi, rbounds,
+                     args, ctheoarg)
+
+    if args.plot_grid_units:
+        plotprofiles(['Grid km'], None, data, tsteps, nzi, rbounds,
                      args, ctheoarg)
 
     # Plot the profiles of vertical advection: total and contributions from up-

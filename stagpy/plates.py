@@ -424,8 +424,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
                              textcoords='data',
                              arrowprops=dict(arrowstyle="-", lw="2",
                                              shrinkA=0, shrinkB=0))
-                ax1.annotate('', xy=(2. * np.pi, 2000),
-                             xycoords='data', xytext=(continentpos, 2000),
+                ax1.annotate('', xy=(continentpos, 2000),
+                             xycoords='data', xytext=(2. * np.pi, 2000),
                              textcoords='data',
                              arrowprops=dict(arrowstyle="->", lw="2",
                                              shrinkA=0, shrinkB=0))
@@ -465,8 +465,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
                                  textcoords='data',
                                  arrowprops=dict(arrowstyle="-", lw="2",
                                                  shrinkA=0, shrinkB=0))
-                    ax3.annotate('', xy=(2. * np.pi, 2000),
-                                 xycoords='data', xytext=(continentpos, 2000),
+                    ax3.annotate('', xy=(continentpos, 2000),
+                                 xycoords='data', xytext=(2. * np.pi, 2000),
                                  textcoords='data',
                                  arrowprops=dict(arrowstyle="->", lw="2",
                                                  shrinkA=0, shrinkB=0))

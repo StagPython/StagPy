@@ -29,6 +29,7 @@ RPROF_VAR_LIST = OrderedDict((
     ('n', Varr('Viscosity', 'plot_viscosity', 'plot_minmaxvisco', 13)),
     ('c', Varr('Concentration', 'plot_concentration', 'plot_minmaxcon', 36)),
     ('g', Varr('Grid', 'plot_grid', None, None)),
+    ('z', Varr('Grid km', 'plot_grid_units', None, None)),
     ('a', Varr('Advection', 'plot_advection', None, None)),
     ('e', Varr('Energy', 'plot_energy', None, None)),
     ('h', Varr('Concentration Theo', 'plot_conctheo', None, None)),
