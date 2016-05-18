@@ -314,7 +314,8 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     for iid in range(donnee_averaged.shape[1]):
         if len(vartuple) > 1:
             plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
-                     linestyle=linestyles[iid], color='b', label=quant[iid + 1])
+                     linestyle=linestyles[iid], color='b',
+                     label=quant[iid + 1])
         else:
             plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
                      linestyle=linestyles[iid], color='b')

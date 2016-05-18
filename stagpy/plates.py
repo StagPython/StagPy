@@ -149,7 +149,10 @@ def detect_plates(args, velocity, age, vrms_surface,
     ph_coord = velocity.ph_coord
     agefld = age.fields['a']
 
-    dsa = args.dsa
+    if args.par_nml['boundaries']['air_layer']:
+        dsa = args.par_nml['boundaries']['air_thickness']
+    else:
+        dsa = 0.
     # we are a bit below the surface; should check if you are in the
     # mechanical/thermal boundary layer
     indsurf = np.argmin(abs((1 - dsa) - velocity.r_coord)) - 4
@@ -219,7 +222,10 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     lwd = args.linewidth
     ttransit = 1.78e15  # My
     yearins = 2.16E7
-    dsa = args.dsa
+    if args.par_nml['boundaries']['air_layer']:
+        dsa = args.par_nml['boundaries']['air_thickness']
+    else:
+        dsa = 0.
     plot_age = True
     velocityfld = velocity.fields['v']
     tempfld = temp.fields['t']
@@ -241,6 +247,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
     # depth to detect the continents
     indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
+
     continents = np.ma.masked_where(
         np.logical_or(concfld[indcont, :-1] < 3, concfld[indcont, :-1] > 4),
         concfld[indcont, :-1])
@@ -370,7 +377,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             color='red', ls='dashed', alpha=0.4)
         # detection of the distance in between subduction and continent
         ph_coord_noendpoint = ph_coord[:-1]
-        # angdistance=2.*np.arcsin(abs(np.sin(0.5*(ph_coord_noendpoint[continentsall == 1]-trench[i]))))
+        # angdistance = 2.*np.arcsin(abs(np.sin(
+        # 0.5 * (ph_coord_noendpoint[continentsall == 1] - trench[i]))))
         # distancecont = min(angdistance)
         # print(distancecont)
         angdistance1 = abs(ph_coord_noendpoint[continentsall == 1] - trench[i])
