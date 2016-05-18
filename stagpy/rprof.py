@@ -305,8 +305,12 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     donnee_averaged = np.mean(donnee_chunk, axis=0)
 
     for iid in range(donnee_averaged.shape[1]):
-        plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
-                 linestyle=linestyles[iid], color='b', label=quant[iid + 1])
+        if len(vartuple)>1:
+            plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
+                     linestyle=linestyles[iid], color='b', label=quant[iid + 1])
+        else:
+            plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
+                     linestyle=linestyles[iid], color='b')
 
     plt.ylim([rmin - 0.05, rmax + 0.05])
     if quant[0] == 'Viscosity':
