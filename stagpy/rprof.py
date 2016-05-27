@@ -207,7 +207,7 @@ def plotprofiles(quant, vartuple, data, tsteps, nzi, rbounds, args,
                 # change the vertical limits
                 plt.ylim([rmin - 0.05, rmax + 0.05])
             if len(vartuple) > 1 and step == ilast and quant[0] != 'Viscosity':
-                    # legends for the additionnal profiles
+                # legends for the additionnal profiles
                 axes = plt.gca()
                 rangex = axes.get_xlim()
                 rangey = axes.get_ylim()
@@ -347,6 +347,13 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
         vrms_surface = donnee_averaged[myarg, 0]
         plt.title('Averaged horizontal surface velocity: ' +
                   str(round(vrms_surface, 0)))
+
+    # horizontal line delimiting continent thickness
+    if args.par_nml['switches']['cont_tracers'] and\
+            quant[0] == 'Viscosity':
+        d_archean = args.par_nml['tracersin']['d_archean']
+        plt.axhline(y=radius[0, myarg]-d_archean, xmin=0, xmax=plt.xlim()[1],
+                    color='#7b68ee', alpha=0.2)
 
     plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + ".pdf",
                 format='PDF', bbox_inches='tight')

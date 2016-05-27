@@ -155,20 +155,23 @@ def detect_plates(args, velocity, age, vrms_surface,
         dsa = 0.
     # we are a bit below the surface; should check if you are in the
     # mechanical/thermal boundary layer
-    indsurf = np.argmin(abs((1 - dsa) - velocity.r_coord)) - 4
+    if args.par_nml['boundaries']['air_layer']:
+        indsurf = np.argmin(abs((1 - dsa) - velocity.r_coord)) - 4
+    else:
+        indsurf = -1
     vphi = velocityfld[:, :, 0]
     vph2 = 0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
     # velocity derivation
     dvph2 = (np.diff(vph2[indsurf, :]) / (ph_coord[0] * 2.))
 
     # prepare stuff to find trenches and ridges
-    myorder_trench = 40
+    myorder_trench = 10
     myorder_ridge = 20  # threshold
 
     # finding trenches
     pom2 = deepcopy(dvph2)
-    maskbigdvel = np.amin(dvph2) * 0.25  # putting threshold
-    pom2[pom2 > maskbigdvel] = maskbigdvel   # user putting threshold
+    maskbigdvel = -20 * vrms_surface  # np.amin(dvph2) * 0.1  #  threshold
+    pom2[pom2 > maskbigdvel] = maskbigdvel   # putting threshold
     argless_dv = argrelextrema(
         pom2, np.less, order=myorder_trench, mode='wrap')[0]
     trench = ph_coord[argless_dv]
@@ -216,7 +219,7 @@ def detect_plates(args, velocity, age, vrms_surface,
 
 def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
                 trench, ridge, agetrench, dv_trench, dv_ridge,
-                file_results_subd):
+                file_results_subd, file_continents):
     """handle ploting stuffs"""
     plt = args.plt
     lwd = args.linewidth
@@ -244,9 +247,14 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     # we are a bit below the surface; delete "-some number" to be just below
     # the surface (that is considered plane here); should check if you are in
     # the mechanical/thermal boundary layer
-    indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
-    # depth to detect the continents
-    indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
+    if args.par_nml['boundaries']['air_layer']:
+        indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
+        # depth to detect the continents
+        indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
+    else:
+        indsurf = -1
+        # depth to detect the continents
+        indcont = -1
 
     continents = np.ma.masked_where(
         np.logical_or(concfld[indcont, :-1] < 3, concfld[indcont, :-1] > 4),
@@ -273,7 +281,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     # dvph2=dvph2/amax(abs(dvph2))  # normalization
 
     # plotting
-    _, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=True, figsize=(10, 12))
+    fig0, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=True, figsize=(10, 12))
     ax1.plot(ph_coord[:-1], concfld[indsurf, :-1],
              color='g', linewidth=lwd, label='Conc')
     ax2.plot(ph_coord[:-1], tempfld[indsurf, :-1],
@@ -337,7 +345,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
 
     figname = misc.out_name(args, 'surf').format(temp.step) + '.pdf'
     plt.savefig(figname, format='PDF')
-    plt.close()
+    plt.close(fig0)
 
     # plotting velocity and topography
     fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
@@ -554,6 +562,12 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             age_subd[isubd],
         ))
 
+    spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+    if args.par_nml['switches']['cont_tracers'] and spherical:
+        file_continents.write("{} {}".format(timestep, time))
+        file_continents.writelines(["%4.3s" % item for item in concfld[indcont, :-1]])
+        file_continents.writelines(["\n"])
+
     return None
 
 
@@ -582,6 +596,12 @@ def plates_cmd(args):
             'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep), 'w')
         file_results_subd.write(
             '#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
+        spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+        if args.par_nml['switches']['cont_tracers'] and spherical:
+            file_continents = open(
+                 'results_continents_{}_{}_{}.dat'.format(*args.timestep), 'w')
+        else:
+            file_continents = None
 
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
@@ -634,7 +654,7 @@ def plates_cmd(args):
                 cols = [meta.prof_idx]
 
                 def chunks(mydata, nbz):
-                    """Divide vector mydata into array"""
+                    """Divide vector mydata into an array"""
                     return [mydata[ii:ii + nbz]
                             for ii in range(0, len(mydata), nbz)]
                 nztot = int(np.shape(data)[0] / (np.shape(tsteps)[0]))
@@ -653,15 +673,21 @@ def plates_cmd(args):
             time = temp.ti_ad * vrms_surface * ttransit / yearins / 1.e6
             trenches, ridges, agetrenches, dv_trench, dv_ridge =\
                 detect_plates(args, velocity,
-                              age, vrms_surface, file_results, timestep, time)
+                              age, vrms_surface,
+                              file_results, timestep, time)
             plot_plates(args, velocity, temp, conc, age, timestep, time,
                         vrms_surface, trenches, ridges, agetrenches,
-                        dv_trench, dv_ridge, file_results_subd)
+                        dv_trench, dv_ridge,
+                        file_results_subd, file_continents)
 
             # plot viscosity field with position of trenches and ridges
-            fig, axis = plot_scalar(args, viscosity, 'n')
+            fig, axis, surf = plot_scalar(args, viscosity, 'n')
+            etamax = args.par_nml['viscosity']['eta_max']
+            surf.set_clim(vmin=1e-2, vmax=etamax)
             args.plt.figure(fig.number)
             axis.text(1., 0.9, str(round(time, 0)) + ' My',
+                      transform=axis.transAxes, fontsize=args.fontsize)
+            axis.text(1., 0.1, str(timestep),
                       transform=axis.transAxes, fontsize=args.fontsize)
             for itr in np.arange(len(trenches)):
                 xxd = (viscosity.rcmb + 1.02) * np.cos(trenches[itr])
@@ -700,3 +726,5 @@ def plates_cmd(args):
     else:
         file_results.close()
         file_results_subd.close()
+        if args.par_nml['switches']['cont_tracers'] and spherical:
+            file_continents.close()

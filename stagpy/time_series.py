@@ -31,6 +31,9 @@ def time_cmd(args):
     colnames, data = time_data.colnames, time_data.data
     ntot = len(data)
 
+    if args.tstart < 0:
+        args.tstart = data[0, 1]
+
     spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
     if spherical:
         rcmb = args.par_nml['geometry']['r_cmb']

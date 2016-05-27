@@ -43,6 +43,11 @@ def plot_scalar(args, stgdat, var):
             plt.xlim([np.amin(stgdat.ph_coord), np.amax(stgdat.ph_coord)])
             plt.xlabel('Distance')
             plt.ylabel('Topography [km]')
+        elif var == 'a':  # age
+            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
+                                   vmin=0.0,
+                                   rasterized=not args.pdf,
+                                   shading='gouraud')
         else:
             surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
                                    rasterized=not args.pdf,
@@ -53,7 +58,7 @@ def plot_scalar(args, stgdat, var):
             cbar.set_label(constants.FIELD_VAR_LIST[var].name)
             plt.axis('equal')
             plt.axis('off')
-    return fig, axis
+    return fig, axis, surf
 
 
 def plot_stream(args, fig, axis, component1, component2):
@@ -76,7 +81,7 @@ def field_cmd(args):
             if misc.get_arg(args, meta.arg):
                 # will read vp many times!
                 stgdat = BinData(args, var, timestep)
-                fig, _ = plot_scalar(args, stgdat, var)
+                fig, _, _ = plot_scalar(args, stgdat, var)
                 args.plt.figure(fig.number)
                 args.plt.tight_layout()
                 args.plt.savefig(
