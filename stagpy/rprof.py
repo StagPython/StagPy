@@ -298,7 +298,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     rmin, rmax, rcmb = rbounds
     linestyles = ('-', '--', 'dotted', ':')
 
-    fig, axe = plt.subplots()
+    fig, ax = plt.subplots()
 
     def chunks(mydata, nbz):
         """Divide vector mydata into array"""
@@ -313,26 +313,42 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
 
     for iid in range(donnee_averaged.shape[1]):
         if len(vartuple) > 1:
-            plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
-                     linestyle=linestyles[iid], color='b',
-                     label=quant[iid + 1])
+            ax.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
+                    linestyle=linestyles[iid], color='b',
+                    label=quant[iid + 1])
         else:
-            plt.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
-                     linestyle=linestyles[iid], color='b')
+            ax.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
+                    linestyle=linestyles[iid], color='b')
 
-    plt.ylim([rmin - 0.05, rmax + 0.05])
+    ax.set_ylim([rmin - 0.05, rmax + 0.05])
+
     if quant[0] == 'Viscosity':
-        plt.xscale('log')
-    plt.xlabel(quant[0], fontsize=ftsz)
-    plt.ylabel('Coordinate z', fontsize=ftsz)
+        ax.set_xscale('log')
+
+    # plot solidus as a function of depth if viscosity reduction due to melting
+    # is applied with linear dependency
+    if quant[0] == 'Temperature' and args.par_nml['viscosity']['eta_melt'] \
+            and args.par_nml['melt']['solidus_function'].lower() == 'linear':
+        tsol0 = args.par_nml['melt']['tsol0']
+        dtsol_dz = args.par_nml['melt']['dtsol_dz']
+        spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+        if spherical:
+            rcmb = args.par_nml['geometry']['r_cmb']
+        else:
+            rcmb = 0.
+        tsol = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :])
+        ax.plot(tsol, radius[0, :], ls='-', color='k', dashes=[4, 3])
+        ax.set_xlim([0, 1.2])
+    ax.set_xlabel(quant[0], fontsize=ftsz)
+    ax.set_ylabel('Coordinate z', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
     # legend
     if len(vartuple) > 1:
-        plt.legend(loc=0, fontsize=ftsz,
-                   columnspacing=1.0, labelspacing=0.0,
-                   handletextpad=0.1, handlelength=1.5,
-                   fancybox=True, shadow=False)
+        ax.legend(loc=0, fontsize=ftsz,
+                  columnspacing=1.0, labelspacing=0.0,
+                  handletextpad=0.1, handlelength=1.5,
+                  fancybox=True, shadow=False)
 
     # Finding averaged v_rms at surface
     if args.par_nml['boundaries']['air_layer']:
@@ -354,6 +370,14 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
         d_archean = args.par_nml['tracersin']['d_archean']
         plt.axhline(y=radius[0, myarg]-d_archean, xmin=0, xmax=plt.xlim()[1],
                     color='#7b68ee', alpha=0.2)
+
+    # display dimensional depth on the left side of the graph
+    ddim = args.par_nml['geometry']['d_dimensional'] / 1000.
+    ax2 = ax.twinx()
+    ax2.set_yticks(ax.get_yticks())
+    ax2.set_yticklabels(np.around(ddim*(1+rcmb-ax.get_yticks()), 0))
+    ax2.set_ylim(ax.get_ylim())
+    ax2.set_ylabel('Depth [km]')
 
     plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + ".pdf",
                 format='PDF', bbox_inches='tight')

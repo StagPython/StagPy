@@ -256,9 +256,21 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         # depth to detect the continents
         indcont = -1
 
-    continents = np.ma.masked_where(
-        np.logical_or(concfld[indcont, :-1] < 3, concfld[indcont, :-1] > 4),
-        concfld[indcont, :-1])
+    if args.par_nml['boundaries']['air_layer'] and not args.par_nml['continents']['proterozoic_belts']:
+        continents = np.ma.masked_where(
+            np.logical_or(concfld[indcont, :-1] < 3, concfld[indcont, :-1] > 4),
+            concfld[indcont, :-1])
+    elif args.par_nml['boundaries']['air_layer'] and args.par_nml['continents']['proterozoic_belts']:
+        continents = np.ma.masked_where(
+            np.logical_or(concfld[indcont, :-1] < 3, concfld[indcont, :-1] > 5),
+            concfld[indcont, :-1])
+    elif args.par_nml['tracersin']['tracers_weakcrust']:
+        continents = np.ma.masked_where(
+            concfld[indcont, :-1] < 3, concfld[indcont, :-1])
+    else:
+        continents = np.ma.masked_where(
+            concfld[indcont, :-1] < 2, concfld[indcont, :-1])
+
     # masked array, only continents are true
     continentsall = continents / continents
     # if(vp.r_coord[indsurf]>1.-dsa):
