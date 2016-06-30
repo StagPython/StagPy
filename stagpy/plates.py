@@ -9,6 +9,7 @@ from .stagdata import BinData, RprofData, TimeData
 from .field import plot_scalar
 from scipy.signal import argrelextrema
 from copy import deepcopy
+import os.path
 
 
 def detect_plates_vzcheck(stagdat_t, stagdat_vp, stagdat_h, rprof_data,
@@ -84,7 +85,7 @@ def detect_plates_vzcheck(stagdat_t, stagdat_vp, stagdat_h, rprof_data,
             break
     if stagnant_lid:
         print('stagnant lid')
-        sys.exit()
+        sys.Exit()
     else:
         # verifying horizontal plate speed and closeness of plates
         dvphi = nphi * [0]
@@ -170,7 +171,7 @@ def detect_plates(args, velocity, age, vrms_surface,
 
     # finding trenches
     pom2 = deepcopy(dvph2)
-    maskbigdvel = -20 * vrms_surface  # np.amin(dvph2) * 0.1  #  threshold
+    maskbigdvel = -10 * vrms_surface  # np.amin(dvph2) * 0.1  #  threshold
     pom2[pom2 > maskbigdvel] = maskbigdvel   # putting threshold
     argless_dv = argrelextrema(
         pom2, np.less, order=myorder_trench, mode='wrap')[0]
@@ -308,12 +309,22 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         ph_coord[:-1], continents, 1., facecolor='#8B6914', alpha=0.2)
     ax2.fill_between(
         ph_coord[:-1], continentsall, 0., facecolor='#8B6914', alpha=0.2)
-    ax2.set_ylim(0, 1)
+
+    if args.par_nml['boundaries']['topT_mode'] == 'iso':
+        tempmin = args.par_nml['boundaries']['topT_val'] * 0.9
+    else:
+        tempmin = 0.0
+    if args.par_nml['boundaries']['botT_mode'] == 'iso':
+        tempmax = args.par_nml['boundaries']['topT_val'] * 0.7
+
+    ax2.set_ylim(tempmin, 0.8)
     ax3.fill_between(
         ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
         round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
+    # ax3.set_ylim(
+    #    round(np.amin(dvph2) * 1.1, 1), round(1.5 * np.amax(dvph2), 1))
     ax3.set_ylim(
-        round(np.amin(dvph2) * 1.1, 1), round(1.5 * np.amax(dvph2), 1))
+        5.*velocitymin, 5.*velocitymax)
     ax4.fill_between(
         ph_coord[:-1], continentsall * velocitymax, velocitymin,
         facecolor='#8B6914', alpha=0.2)
@@ -601,19 +612,29 @@ def plates_cmd(args):
                       for i in args.timestep))
         time, ch2o = timedat.data[:, 1][slc], timedat.data[:, 27][slc]
     else:
-        file_results = open(
-            'results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep), 'w')
-        file_results.write('# it  time  ph_trench vel_trench age_trench\n')
-        file_results_subd = open(
-            'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep), 'w')
-        file_results_subd.write(
-            '#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
-        spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
-        if args.par_nml['switches']['cont_tracers'] and spherical:
-            file_continents = open(
-                 'results_continents_{}_{}_{}.dat'.format(*args.timestep), 'w')
+        if not os.path.exists('results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep)):
+            file_results = open(
+                'results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep),
+                'w')
+            file_results.write('# it  time  ph_trench vel_trench age_trench\n')
+            file_results_subd = open(
+                'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep),
+                'w')
+            file_results_subd.write(
+                '#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
+            spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+            if args.par_nml['switches']['cont_tracers'] and spherical:
+                file_continents = open(
+                     'results_continents_{}_{}_{}.dat'.format(*args.timestep), 'w')
+            else:
+                file_continents = None
         else:
-            file_continents = None
+            print(' *WARNING* ')
+            print(' The files with results',
+                  'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep),
+                  'cannot be overwritten')
+            print(' Exiting the code ')
+            sys.exit()
 
     for timestep in range(*args.timestep):
         velocity = BinData(args, 'v', timestep)
