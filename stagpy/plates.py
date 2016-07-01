@@ -315,9 +315,11 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     else:
         tempmin = 0.0
     if args.par_nml['boundaries']['botT_mode'] == 'iso':
-        tempmax = args.par_nml['boundaries']['topT_val'] * 0.7
+        tempmax = args.par_nml['boundaries']['botT_val'] * 0.7
+    else:
+        tempmax = 0.8
 
-    ax2.set_ylim(tempmin, 0.8)
+    ax2.set_ylim(tempmin, tempmax)
     ax3.fill_between(
         ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
         round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
