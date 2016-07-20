@@ -37,7 +37,7 @@ class BinData:
         """Read n words of 4 or 8 bytes with fmt format.
 
         fmt: 'i' or 'f' (integer or float)
-        4 or 8 bytes: depends on nmagic
+        4 or 8 bytes: depends on header
 
         Return a tuple of elements if more than one element.
 
@@ -57,26 +57,27 @@ class BinData:
     def _catch_header(self):
         """reads header of binary file"""
         self._64bit = False
-        self.nmagic = self._readbin()  # Version
-        if self.nmagic > 8000:  # 64 bits
-            self.nmagic -= 8000
+        magic = self._readbin()
+        if magic > 8000:  # 64 bits
+            magic -= 8000
             self._readbin()  # need to read 4 more bytes
             self._64bit = True
 
         # check nb components
-        if (self.nmagic < 100 and self.nval > 1) \
-                or (self.nmagic > 300 and self.nval == 1):
+        if magic > 100 and magic // 100 != self.nval:
             raise ValueError('wrong number of components in field')
 
+        magic %= 100
+
         # extra ghost point in horizontal direction
-        self.xyp = int((self.nmagic % 100) >= 9 and self.nval == 4)
+        self.xyp = int(magic >= 9 and self.nval == 4)
 
         # total number of values in
         # latitude, longitude and radius directions
         self.nthtot, self.nphtot, self.nrtot = self._readbin(nwords=3)
 
         # number of blocks, 2 for yinyang
-        self.nblocks = self._readbin()
+        self.nblocks = self._readbin() if magic >= 7 else 1
 
         # Aspect ratio
         self.aspect = self._readbin('f', 2)
@@ -84,28 +85,46 @@ class BinData:
 
         # Number of parallel subdomains in the th,ph,r and b directions
         self.nnth, self.nnph, self.nnr = self._readbin(nwords=3)
-        self.nnb = self._readbin()
+        self.nnb = self._readbin() if magic >= 8 else 1
 
-        self.nr2 = self.nrtot * 2 + 1
-        self.rgeom = self._readbin('f', self.nr2)  # r-coordinates
+        # r - coordinates
+        # self.rgeom[0:self.nrtot+1, 0] are edge radial position
+        # self.rgeom[0:self.nrtot, 1] are cell-center radial position
+        if magic >= 2:
+            self.rgeom = np.array(self._readbin('f', self.nrtot * 2 + 1))
+        else:
+            self.rgeom = np.array(range(0, self.nrtot * 2 + 1))\
+                * 0.5 / self.nrtot
+        self.rgeom.resize((self.nrtot + 1, 2))
 
-        self.rcmb = self._readbin('f')  # radius of the cmb
-        self.ti_step = self._readbin()
-        self.ti_ad = self._readbin('f')
-        self.erupta_total = self._readbin('f')
-        self.bot_temp = self._readbin('f')
+        if magic >= 7:
+            self.rcmb = self._readbin('f')  # radius of the cmb
+        else:
+            self.rcmb = self.args.par_nml['geometry']['r_cmb']
+        if magic >= 3:
+            self.ti_step = self._readbin()
+            self.ti_ad = self._readbin('f')
+        else:
+            self.ti_step = 0
+            self.ti_ad = 0
+        self.erupta_total = self._readbin('f') if magic >= 5 else 0
+        self.bot_temp = self._readbin('f') if magic >= 6 else 1
 
-        # theta coordinates
-        self.th_coord = np.array(self._readbin('f', self.nthtot))
-        # force to pi/2 if 2D
-        self.th_coord = np.array(np.pi / 2)
-        # phi coordinates
-        ph_coord = np.array(self._readbin('f', self.nphtot))
-        self._ph_coord = ph_coord
-        # to have continuous field
-        self.ph_coord = np.append(ph_coord, ph_coord[1] - ph_coord[0])
-        # radius coordinates
-        self.r_coord = np.array(self._readbin('f', self.nrtot))
+        if magic >= 4:
+            # theta coordinates
+            self.th_coord = np.array(self._readbin('f', self.nthtot))
+            # force to pi/2 if 2D
+            self.th_coord = np.array(np.pi / 2)
+            # phi coordinates
+            ph_coord = np.array(self._readbin('f', self.nphtot))
+            self._ph_coord = ph_coord
+            # to have continuous field
+            self.ph_coord = np.append(ph_coord, ph_coord[1] - ph_coord[0])
+            # radius coordinates
+            self.r_coord = np.array(self._readbin('f', self.nrtot))
+        else:
+            # could construct them from other info
+            raise ValueError('magic >= 4 expected to get grid geometry')
 
         # create meshgrids
         self.th_mesh, self.ph_mesh, self.r_mesh = np.meshgrid(
