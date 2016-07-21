@@ -330,6 +330,8 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     if quant[0] == 'Temperature' and args.par_nml['viscosity']['eta_melt'] \
             and args.par_nml['melt']['solidus_function'].lower() == 'linear':
         tsol0 = args.par_nml['melt']['tsol0']
+        if args.par_nml['switches']['tracers']:
+            deltaTsol_water = args.par_nml['melt']['deltaTsol_water']
         dtsol_dz = args.par_nml['melt']['dtsol_dz']
         spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
         if spherical:
@@ -337,7 +339,15 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
         else:
             rcmb = 0.
         tsol = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :])
-        ax.plot(tsol, radius[0, :], ls='-', color='k', dashes=[4, 3])
+        if args.par_nml['switches']['tracers']:
+            tsol3 = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :])-deltaTsol_water*0.3
+            tsol5 = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :])-deltaTsol_water*0.6
+
+        ax.plot(tsol, radius[0, :], ls='-', color='k', dashes=[4, 3],label='solidus')
+        if args.par_nml['switches']['tracers']:
+            ax.plot(tsol3, radius[0, :], ls='-', color='g', dashes=[4, 3],label='solidus C_water = 0.45%')
+            ax.plot(tsol5, radius[0, :], ls='-', color='r', dashes=[4, 3],label='solidus C_water = 0.90%')
+
         ax.set_xlim([0, 1.2])
     ax.set_xlabel(quant[0], fontsize=ftsz)
     ax.set_ylabel('Coordinate z', fontsize=ftsz)
@@ -345,7 +355,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     plt.yticks(fontsize=ftsz)
     # legend
     if len(vartuple) > 1:
-        ax.legend(loc=0, fontsize=ftsz,
+        ax.legend(loc='center left', fontsize=ftsz,
                   columnspacing=1.0, labelspacing=0.0,
                   handletextpad=0.1, handlelength=1.5,
                   fancybox=True, shadow=False)
@@ -370,14 +380,6 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
         d_archean = args.par_nml['tracersin']['d_archean']
         plt.axhline(y=radius[0, myarg]-d_archean, xmin=0, xmax=plt.xlim()[1],
                     color='#7b68ee', alpha=0.2)
-
-    # display dimensional depth on the left side of the graph
-    ddim = args.par_nml['geometry']['d_dimensional'] / 1000.
-    ax2 = ax.twinx()
-    ax2.set_yticks(ax.get_yticks())
-    ax2.set_yticklabels(np.around(ddim*(1+rcmb-ax.get_yticks()), 0))
-    ax2.set_ylim(ax.get_ylim())
-    ax2.set_ylabel('Depth [km]')
 
     plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + ".pdf",
                 format='PDF', bbox_inches='tight')
