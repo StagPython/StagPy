@@ -229,12 +229,12 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     """handle ploting stuff"""
     ttransit = 1.78e15  # My
     yearins = 2.16E7
-    
+
     plot_age = True
     dimensions = True
 
     if dimensions:
-        l_scale = args.par_nml['geometry']['d_dimensional'] / 1000. # km
+        l_scale = args.par_nml['geometry']['d_dimensional'] / 1000.  # km
     else:
         l_scale = 1.0
 
@@ -260,9 +260,10 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     agefld = np.vstack([agefld[:, :, 0].T, newline]).T
 
     if args.par_nml['boundaries']['air_layer']:
-        # we are a bit below the surface; delete "-some number" to be just below
-        # the surface (that is considered plane here); should check if you are in
-        # the thermal boundary layer
+        # we are a bit below the surface; delete "-some number"
+        # to be just below
+        # the surface (that is considered plane here); should check if you are
+        # in the thermal boundary layer
         indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
         # depth to detect the continents
         indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
@@ -298,7 +299,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         age_surface_dim =\
             age_surface * vrms_surface * ttransit / yearins / 1.e6
 
-    ph_coord = conc.ph_coord 
+    ph_coord = conc.ph_coord
 
     # velocity
     vphi = velocityfld[:, :, 0]
@@ -335,9 +336,8 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
 
     ax2.set_ylim(tempmin, tempmax)
     ax3.fill_between(
-            ph_coord[:-1], continentsall * round(1.5
-                * np.amax(dvph2), 1),
-        round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
+            ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
+            round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
     ax3.set_ylim(velocitymin, velocitymax)
 
     ax1.set_ylabel("Concentration", fontsize=args.fontsize)
@@ -686,7 +686,8 @@ def plates_cmd(args):
             spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
             if args.par_nml['switches']['cont_tracers'] and spherical:
                 file_continents = open(
-                     'results_continents_{}_{}_{}.dat'.format(*args.timestep), 'w')
+                    'results_continents_{}_{}_{}.dat'.format(*args.timestep),
+                    'w')
             else:
                 file_continents = None
         else:
