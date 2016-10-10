@@ -142,7 +142,7 @@ def detect_plates_vzcheck(stagdat_t, stagdat_vp, stagdat_h, rprof_data,
 
 def detect_plates(args, velocity, age, vrms_surface,
                   file_results, timestep, time):
-    """detect plates using horizontal velocity"""
+    """detect plates using derivative of horizontal velocity"""
     ttransit = 1.78e15  # My
     yearins = 2.16E7
 
@@ -152,26 +152,31 @@ def detect_plates(args, velocity, age, vrms_surface,
 
     if args.par_nml['boundaries']['air_layer']:
         dsa = args.par_nml['boundaries']['air_thickness']
-    else:
-        dsa = 0.
-    # we are a bit below the surface; should check if you are in the
-    # mechanical/thermal boundary layer
-    if args.par_nml['boundaries']['air_layer']:
+        # we are a bit below the surface; should check if you are in the
+        # thermal boundary layer
         indsurf = np.argmin(abs((1 - dsa) - velocity.r_coord)) - 4
     else:
+        dsa = 0.
         indsurf = -1
+
     vphi = velocityfld[:, :, 0]
     vph2 = 0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
     # velocity derivation
     dvph2 = (np.diff(vph2[indsurf, :]) / (ph_coord[0] * 2.))
 
     # prepare stuff to find trenches and ridges
-    myorder_trench = 10
+    if args.par_nml['boundaries']['air_layer']:
+        myorder_trench = 15
+    else:
+        myorder_trench = 10
     myorder_ridge = 20  # threshold
 
     # finding trenches
     pom2 = deepcopy(dvph2)
-    maskbigdvel = -10 * vrms_surface  # np.amin(dvph2) * 0.1  #  threshold
+    if args.par_nml['boundaries']['air_layer']:
+        maskbigdvel = -30 * vrms_surface  # np.amin(dvph2) * 0.1  #  threshold
+    else:
+        maskbigdvel = -10 * vrms_surface  # np.amin(dvph2) * 0.1  #  threshold
     pom2[pom2 > maskbigdvel] = maskbigdvel   # putting threshold
     argless_dv = argrelextrema(
         pom2, np.less, order=myorder_trench, mode='wrap')[0]
@@ -221,16 +226,25 @@ def detect_plates(args, velocity, age, vrms_surface,
 def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
                 trench, ridge, agetrench, dv_trench, dv_ridge,
                 file_results_subd, file_continents):
-    """handle ploting stuffs"""
-    plt = args.plt
-    lwd = args.linewidth
+    """handle ploting stuff"""
     ttransit = 1.78e15  # My
     yearins = 2.16E7
+    
+    plot_age = True
+    dimensions = True
+
+    if dimensions:
+        l_scale = args.par_nml['geometry']['d_dimensional'] / 1000. # km
+    else:
+        l_scale = 1.0
+
     if args.par_nml['boundaries']['air_layer']:
         dsa = args.par_nml['boundaries']['air_thickness']
     else:
         dsa = 0.
-    plot_age = True
+
+    plt = args.plt
+    lwd = args.linewidth
     velocityfld = velocity.fields['v']
     tempfld = temp.fields['t']
     concfld = conc.fields['c']
@@ -245,16 +259,16 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     newline = agefld[:, 0, 0]
     agefld = np.vstack([agefld[:, :, 0].T, newline]).T
 
-    # we are a bit below the surface; delete "-some number" to be just below
-    # the surface (that is considered plane here); should check if you are in
-    # the mechanical/thermal boundary layer
     if args.par_nml['boundaries']['air_layer']:
+        # we are a bit below the surface; delete "-some number" to be just below
+        # the surface (that is considered plane here); should check if you are in
+        # the thermal boundary layer
         indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
         # depth to detect the continents
         indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
     else:
         indsurf = -1
-        # depth to detect the continents
+        # depth to detect continents
         indcont = -1
 
     if args.par_nml['boundaries']['air_layer'] and not args.par_nml['continents']['proterozoic_belts']:
@@ -277,15 +291,14 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     # if(vp.r_coord[indsurf]>1.-dsa):
     #    print 'WARNING lowering index for surface'
     #    indsurf=indsurf-1
-    # if verbose_figures:
-    # age just below the surface
+
     if plot_age:
         age_surface = np.ma.masked_where(
             agefld[indsurf, :] < 0.00001, agefld[indsurf, :])
         age_surface_dim =\
             age_surface * vrms_surface * ttransit / yearins / 1.e6
 
-    ph_coord = conc.ph_coord
+    ph_coord = conc.ph_coord 
 
     # velocity
     vphi = velocityfld[:, :, 0]
@@ -294,17 +307,18 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     # dvph2=dvph2/amax(abs(dvph2))  # normalization
 
     # plotting
-    fig0, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, sharex=True, figsize=(10, 12))
+    fig0, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(12, 8))
     ax1.plot(ph_coord[:-1], concfld[indsurf, :-1],
              color='g', linewidth=lwd, label='Conc')
     ax2.plot(ph_coord[:-1], tempfld[indsurf, :-1],
-             color='m', linewidth=lwd, label='Temp')
-    ax3.plot(ph_coord[:-1] + ph_coord[0], dvph2,
-             color='c', linewidth=lwd, label='dv')
-    ax4.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
+             color='k', linewidth=lwd, label='Temp')
+    ax3.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
 
     velocitymin = -5000
     velocitymax = 5000
+
+    dvelocitymin = -200000
+    dvelocitymax = 100000
     ax1.fill_between(
         ph_coord[:-1], continents, 1., facecolor='#8B6914', alpha=0.2)
     ax2.fill_between(
@@ -315,30 +329,26 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     else:
         tempmin = 0.0
     if args.par_nml['boundaries']['botT_mode'] == 'iso':
-        tempmax = args.par_nml['boundaries']['botT_val'] * 0.7
+        tempmax = args.par_nml['boundaries']['botT_val'] * 0.35
     else:
         tempmax = 0.8
 
     ax2.set_ylim(tempmin, tempmax)
     ax3.fill_between(
-        ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
+            ph_coord[:-1], continentsall * round(1.5
+                * np.amax(dvph2), 1),
         round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
-    # ax3.set_ylim(
-    #    round(np.amin(dvph2) * 1.1, 1), round(1.5 * np.amax(dvph2), 1))
-    ax3.set_ylim(
-        5.*velocitymin, 5.*velocitymax)
-    ax4.fill_between(
-        ph_coord[:-1], continentsall * velocitymax, velocitymin,
-        facecolor='#8B6914', alpha=0.2)
-    ax4.set_ylim(velocitymin, velocitymax)
+    ax3.set_ylim(velocitymin, velocitymax)
 
     ax1.set_ylabel("Concentration", fontsize=args.fontsize)
     ax2.set_ylabel("Temperature", fontsize=args.fontsize)
-    ax3.set_ylabel("dv", fontsize=args.fontsize)
-    ax4.set_ylabel("Velocity", fontsize=args.fontsize)
+    ax3.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.set_title(timestep, fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes, fontsize=args.fontsize)
+    ax1.text(0.01, 1.07, str(round(temp.ti_ad, 4)),
+             transform=ax1.transAxes, fontsize=args.fontsize)
+
     # topography
     fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
     topo = np.genfromtxt(fname)
@@ -346,29 +356,80 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     topo[:, 1] = topo[:, 1] / (1. - dsa)
     topomin = -40
     topomax = 100
+
+    agemin = -50
+    agemax = 500
     # majorLocator = MultipleLocator(20)
 
-    ax31 = ax3.twinx()
-    ax31.set_ylabel("Topography [km]", fontsize=args.fontsize)
-    ax31.plot(topo[:, 0],
-              topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
-              color='black', alpha=0.4)
-    ax31.set_ylim(topomin, topomax)
-    ax31.grid()
-    ax3.scatter(trench, dv_trench, c='red')
-    ax3.scatter(ridge, dv_ridge, c='green')
+    # ax31 = ax3.twinx()
+    # ax31.set_ylabel("Topography [km]", fontsize=args.fontsize)
+    # ax31.plot(topo[:, 0],
+    #          topo[:, 1] * l_scale,
+    #          color='black', alpha=0.4)
+    # ax31.set_ylim(topomin, topomax)
+    # ax31.grid()
+    # ax3.scatter(trench, dv_trench, c='red')
+    # ax3.scatter(ridge, dv_ridge, c='green')
 
     for i in range(len(trench)):
-        ax4.axvline(
+        ax2.axvline(
+            x=trench[i], ymin=velocitymin, ymax=velocitymax,
+            color='red', ls='dashed', alpha=0.4)
+        ax3.axvline(
             x=trench[i], ymin=velocitymin, ymax=velocitymax,
             color='red', ls='dashed', alpha=0.4)
     for i in range(len(ridge)):
-        ax4.axvline(
+        ax2.axvline(
+            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
+            color='green', ls='dashed', alpha=0.4)
+        ax3.axvline(
             x=ridge[i], ymin=velocitymin, ymax=velocitymax,
             color='green', ls='dashed', alpha=0.4)
     ax1.set_xlim(0, 2 * np.pi)
 
-    figname = misc.out_name(args, 'surf').format(temp.step) + '.pdf'
+    figname = misc.out_name(args, 'sveltempconc').format(temp.step) + '.pdf'
+    plt.savefig(figname, format='PDF')
+    plt.close(fig0)
+
+    # plotting velocity and velocity derivative
+    fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
+    ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
+    ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
+                color='black', ls='solid', alpha=0.2)
+    ax1.set_ylabel("Velocity", fontsize=args.fontsize)
+    ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
+             transform=ax1.transAxes, fontsize=args.fontsize)
+    ax2.plot(ph_coord[:-1] + ph_coord[0], dvph2,
+             color='k', linewidth=lwd, label='dv')
+    ax2.set_ylabel("dv", fontsize=args.fontsize)
+
+    for i in range(len(trench)):
+        ax1.axvline(
+            x=trench[i], ymin=velocitymin, ymax=velocitymax,
+            color='red', ls='dashed', alpha=0.4)
+        ax2.axvline(
+            x=trench[i], ymin=velocitymin, ymax=velocitymax,
+            color='red', ls='dashed', alpha=0.4)
+    for i in range(len(ridge)):
+        ax1.axvline(
+            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
+            color='green', ls='dashed', alpha=0.4)
+        ax2.axvline(
+            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
+            color='green', ls='dashed', alpha=0.4)
+    ax1.set_xlim(0, 2 * np.pi)
+    ax1.set_title(timestep, fontsize=args.fontsize)
+
+    ax1.fill_between(
+            ph_coord[:-1], continentsall * velocitymin, velocitymax,
+            facecolor='#8B6914', alpha=0.2)
+    ax1.set_ylim(velocitymin, velocitymax)
+    ax2.fill_between(
+            ph_coord[:-1], continentsall * dvelocitymin, dvelocitymax,
+            facecolor='#8B6914', alpha=0.2)
+    ax2.set_ylim(dvelocitymin, dvelocitymax)
+
+    figname = misc.out_name(args, 'sveldvel').format(temp.step) + '.pdf'
     plt.savefig(figname, format='PDF')
     plt.close(fig0)
 
@@ -389,12 +450,10 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
         ax3.axhline(
             y=0, xmin=0, xmax=2 * np.pi,
             color='black', ls='solid', alpha=0.2)
-        ax3.set_ylim(-5000, 5000)
+        ax3.set_ylim(velocitymin, velocitymax)
         ax3.set_ylabel("Velocity", fontsize=args.fontsize)
         ax3.text(0.95, 1.07, str(round(time, 0)) + ' My',
                  transform=ax3.transAxes, fontsize=args.fontsize)
-        agemax = 500
-        agemin = -50
         ax3.fill_between(
             ph_coord[:-1], continentsall * velocitymax, velocitymin,
             facecolor='#8B6914', alpha=0.2)
@@ -523,11 +582,11 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-             topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.,
+             topo[:, 1] * l_scale,
              color='black')
     ax2.set_xlim(0, 2 * np.pi)
     dtopo = deepcopy(
-        topo[:, 1] * args.par_nml['geometry']['d_dimensional'] / 1000.)
+        topo[:, 1] * l_scale)
     mask = dtopo > 0
     water = deepcopy(dtopo)
     water[mask] = 0
@@ -544,7 +603,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
             x=ridge[i], ymin=topomin, ymax=topomax,
             color='green', ls='dashed', alpha=0.4)
     ax1.set_title(timestep, fontsize=args.fontsize)
-    figname = misc.out_name(args, 'surftopo').format(temp.step) + '.pdf'
+    figname = misc.out_name(args, 'sveltopo').format(temp.step) + '.pdf'
     fig1.savefig(figname, format='PDF')
     plt.close(fig1)
 
@@ -554,7 +613,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
                 x=ridge[i], ymin=agemin, ymax=agemax,
                 color='green', ls='dashed', alpha=0.4)
 
-        ax4.set_ylabel("Age [My]", fontsize=args.fontsize)
+        ax4.set_ylabel("Seafloor age [My]", fontsize=args.fontsize)
         # in dimensions
         ax4.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
         ax4.set_xlim(0, 2 * np.pi)
@@ -571,7 +630,7 @@ def plot_plates(args, velocity, temp, conc, age, timestep, time, vrms_surface,
                 x=ridge[i], ymin=agemin, ymax=agemax,
                 color='green', ls='dashed', alpha=0.4)
         ax3.set_title(timestep, fontsize=args.fontsize)
-        figname = misc.out_name(args, 'surfage').format(temp.step) + '.pdf'
+        figname = misc.out_name(args, 'svelage').format(temp.step) + '.pdf'
         fig2.savefig(figname, format='PDF')
         plt.close(fig2)
 

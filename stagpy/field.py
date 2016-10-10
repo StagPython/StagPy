@@ -4,7 +4,6 @@ import numpy as np
 from . import constants, misc
 from .stagdata import BinData
 
-
 def plot_scalar(args, stgdat, var):
     """var: one of the key of constants.FIELD_VAR_LIST"""
     plt = args.plt
@@ -12,6 +11,9 @@ def plot_scalar(args, stgdat, var):
         fld = stgdat.calc_stream()
     else:
         fld = stgdat.fields[var]
+    
+    #test = ma.masked_where(fld2<3,fld2) # plotting continents, to-do
+    #test = test/test # plotting continents, to-do
 
     # adding a row at the end to have continuous field
     if stgdat.geom == 'annulus':
@@ -32,6 +34,9 @@ def plot_scalar(args, stgdat, var):
                                    cmap='jet_r',
                                    rasterized=not args.pdf,
                                    shading='gouraud')
+
+            # cmap=plt.cm.ocean # continent plotting, to-do
+            # cmap.set_over('m') # continent plotting, to-do
         elif var == 'd':  # density
             surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='bwr_r',
                                    vmin=0.96, vmax=1.04,

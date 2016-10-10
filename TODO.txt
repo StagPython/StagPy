@@ -1,3 +1,4 @@
 + Cartesian geometry
-+ Ying-Yang geometry
++ 3D Ying-Yang geometry - hdf5 - panda table
 + Read Tracers
++ Plot continents with different color together with viscosity when needed
