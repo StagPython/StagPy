@@ -72,34 +72,40 @@ class BinData:
         # extra ghost point in horizontal direction
         self.xyp = int(magic >= 9 and self.nval == 4)
 
-        # total number of values in
-        # latitude, longitude and radius directions
-        self.nthtot, self.nphtot, self.nrtot = self._readbin(nwords=3)
+        # total number of values in relevant space basis
+        # (e1, e2, e3) = (theta, phi, radius) in spherical geometry
+        #              = (x, y, z)            in cartesian geometry
+        self.nts = np.array(self._readbin(nwords=3))
 
-        # number of blocks, 2 for yinyang
-        self.nblocks = self._readbin() if magic >= 7 else 1
+        # number of blocks, 2 for yinyang or cubed sphere
+        self.ntb = self._readbin() if magic >= 7 else 1
 
         # Aspect ratio
-        self.aspect = self._readbin('f', 2)
-        self.aspect = np.array(self.aspect)
+        self.aspect = np.array(self._readbin('f', 2))
 
-        # Number of parallel subdomains in the th,ph,r and b directions
-        self.nnth, self.nnph, self.nnr = self._readbin(nwords=3)
-        self.nnb = self._readbin() if magic >= 8 else 1
+        # Number of parallel subdomains
+        self.ncs = np.array(self._readbin(nwords=3))  # (e1, e2, e3) space
+        self.ncb = self._readbin() if magic >= 8 else 1  # blocks
 
         # r - coordinates
         # self.rgeom[0:self.nrtot+1, 0] are edge radial position
         # self.rgeom[0:self.nrtot, 1] are cell-center radial position
         if magic >= 2:
-            self.rgeom = np.array(self._readbin('f', self.nrtot * 2 + 1))
+            self.rgeom = np.array(self._readbin('f', self.nts[2] * 2 + 1))
         else:
-            self.rgeom = np.array(range(0, self.nrtot * 2 + 1))\
+            self.rgeom = np.array(range(0, self.nts[2] * 2 + 1))\
                 * 0.5 / self.nrtot
-        self.rgeom.resize((self.nrtot + 1, 2))
+        self.rgeom.resize((self.nts[2] + 1, 2))
 
         if magic >= 7:
             self.rcmb = self._readbin('f')  # radius of the cmb
+            if self.rcmb == -1:
+                self.geometry = 'cartesian'  # need true geometry descriptor
+            else:
+                self.geometry = 'curvilinear'
         else:
+            # can't tell anything about geometry...
+            # need to infer it from par
             self.rcmb = self.args.par_nml['geometry']['r_cmb']
         if magic >= 3:
             self.ti_step = self._readbin()
@@ -111,91 +117,111 @@ class BinData:
         self.bot_temp = self._readbin('f') if magic >= 6 else 1
 
         if magic >= 4:
-            # theta coordinates
-            self.th_coord = np.array(self._readbin('f', self.nthtot))
-            # force to pi/2 if 2D
-            self.th_coord = np.array(np.pi / 2)
-            # phi coordinates
-            ph_coord = np.array(self._readbin('f', self.nphtot))
-            self._ph_coord = ph_coord
-            # to have continuous field
-            self.ph_coord = np.append(ph_coord, ph_coord[1] - ph_coord[0])
-            # radius coordinates
-            self.r_coord = np.array(self._readbin('f', self.nrtot))
+            e1_coord = np.array(self._readbin('f', self.nts[0]))
+            e2_coord = np.array(self._readbin('f', self.nts[1]))
+            e3_coord = np.array(self._readbin('f', self.nts[2]))
         else:
             # could construct them from other info
             raise ValueError('magic >= 4 expected to get grid geometry')
 
-        # create meshgrids
-        self.th_mesh, self.ph_mesh, self.r_mesh = np.meshgrid(
-            self.th_coord, self.ph_coord, self.r_coord + self.rcmb,
-            indexing='ij')
+        if self.rcmb == -1:
+            # cartesian
+            self.nxtot = self.nts[0]
+            self.nytot = self.nts[1]
+            self.nztot = self.nts[2]
+            self.x_coord = e1_coord
+            self.y_coord = e2_coord
+            self.z_coord = e3_coord
 
-        # compute cartesian coordinates
-        # z along rotation axis at theta=0
-        # x at th=90, phi=0
-        # y at th=90, phi=90
-        self.x_mesh = self.r_mesh * np.cos(self.ph_mesh) * np.sin(self.th_mesh)
-        self.y_mesh = self.r_mesh * np.sin(self.ph_mesh) * np.sin(self.th_mesh)
-        self.z_mesh = self.r_mesh * np.cos(self.th_mesh)
+            self.x_mesh, self.y_mesh, self.z_mesh = np.meshgrid(
+                self.x_coord, self.y_coord, self.z_coord, indexing='ij')
+        else:
+            # spherical
+            self.nthtot = self.nts[0]
+            self.nphtot = self.nts[1]
+            self.nrtot = self.nts[2]
+            self.th_coord = e1_coord
+            self.ph_coord = e2_coord
+            self.r_coord = e3_coord
+            if self.nts[0] == 1:
+                # one point in theta: spherical annulus
+                self.th_coord = np.array(np.pi / 2)
+                self._ph_coord = e2_coord
+                # to have continuous field
+                self.ph_coord = np.append(e2_coord, e2_coord[1] - e2_coord[0])
+
+            th_mesh, ph_mesh, r_mesh = np.meshgrid(
+                self.th_coord, self.ph_coord, self.r_coord + self.rcmb,
+                indexing='ij')
+
+            # compute cartesian coordinates
+            # z along rotation axis at theta=0
+            # x at th=90, phi=0
+            # y at th=90, phi=90
+            self.x_mesh = r_mesh * np.cos(ph_mesh) * np.sin(th_mesh)
+            self.y_mesh = r_mesh * np.sin(ph_mesh) * np.sin(th_mesh)
+            self.z_mesh = r_mesh * np.cos(th_mesh)
 
     def _readfile(self):
         """read scalar/vector fields"""
-        # compute nth, nph, nr and nb PER CPU
-        nth = self.nthtot // self.nnth
-        nph = self.nphtot // self.nnph
-        nrd = self.nrtot // self.nnr
-        nbk = self.nblocks // self.nnb
+        # compute number of points in (e1, e2, e3) directions PER CPU
+        ne1, ne2, ne3 = self.nts // self.ncs
+        # compute number of blocks per cpu
+        nbk = self.ntb // self.ncb
         # the number of values per 'read' block
-        npi = (nth + self.xyp) * (nph + self.xyp) * nrd * nbk * self.nval
+        npi = (ne1 + self.xyp) * (ne2 + self.xyp) * ne3 * nbk * self.nval
 
         if self.nval > 1:
             self.scalefac = self._readbin('f')
         else:
             self.scalefac = 1
 
-        # flds should be construct with the "normal" indexing order th, ph, r
-        # there shouldn't be a need to transpose in plot_scalar
-        dim_fields = (self.nblocks, self.nrtot,
-                      self.nphtot + self.xyp, self.nthtot + self.xyp)
+        # flds should be constructed with the "normal" indexing
+        # order (e1, e2, e3).
+        # There shouldn't be a need to transpose in plot_scalar.
+        dim_fields = (self.ntb, self.nts[2],
+                      self.nts[1] + self.xyp, self.nts[0] + self.xyp)
 
         flds = []
         for _ in range(self.nval):
             flds.append(np.zeros(dim_fields))
 
         # loop over parallel subdomains
-        for ibc in np.arange(self.nnb):
-            for irc in np.arange(self.nnr):
-                for iphc in np.arange(self.nnph):
-                    for ithc in np.arange(self.nnth):
+        for icbk in np.arange(self.ncb):
+            for ice3 in np.arange(self.ncs[2]):
+                for ice2 in np.arange(self.ncs[1]):
+                    for ice1 in np.arange(self.ncs[0]):
                         # read the data for this CPU
                         file_content = self._readbin('f', npi)
                         data_cpu = np.array(file_content) * self.scalefac
 
                         # Create a 3D matrix from these data
                         data_cpu_3d = data_cpu.reshape(
-                            (nbk, nrd, nph + self.xyp,
-                             nth + self.xyp, self.nval))
+                            (nbk, ne3, ne2 + self.xyp,
+                             ne1 + self.xyp, self.nval))
 
                         # Add local 3D matrix to global matrix
-                        sth = ithc * nth
-                        eth = ithc * nth + nth + self.xyp
-                        sph = iphc * nph
-                        eph = iphc * nph + nph + self.xyp
-                        srd = irc * nrd
-                        erd = irc * nrd + nrd
-                        snb = ibc * nbk
-                        enb = ibc * nbk + nbk
+                        se1 = ice1 * ne1
+                        ee1 = ice1 * ne1 + ne1 + self.xyp
+                        se2 = ice2 * ne2
+                        ee2 = ice2 * ne2 + ne2 + self.xyp
+                        se3 = ice3 * ne3
+                        ee3 = ice3 * ne3 + ne3
+                        sbk = icbk * nbk
+                        ebk = icbk * nbk + nbk
 
                         for idx, fld in enumerate(flds):
-                            fld[snb:enb, srd:erd, sph:eph, sth:eth] = \
+                            fld[sbk:ebk, se3:ee3, se2:ee2, se1:ee1] = \
                                 data_cpu_3d[:, :, :, :, idx]
 
         self.fields = {}
         fld_names = ['u', 'v', 'w', 'p'] if self.par_type == 'vp' \
             else [self.var]
         for fld_name, fld in zip(fld_names, flds):
-            self.fields[fld_name] = fld[0, :, :, :]
+            if self.ntb == 1:
+                self.fields[fld_name] = fld[0, :, :, :]
+            else:
+                self.fields[fld_name] = fld[:, :, :, :]
 
     def calc_stream(self):
         """computes and returns the stream function
@@ -214,8 +240,7 @@ class BinData:
             integrate.cumtrapz(v_r[0, 0:nph - 1], self._ph_coord)
         stream[0, 0] = 0
         # use r coordinates where vphi is defined
-        rcoord = self.rcmb + np.array(
-            self.rgeom[0:np.shape(self.rgeom)[0] - 1:2])
+        rcoord = self.rcmb + self.rgeom[0:self.nrtot, 1]
         for iph in range(0, np.shape(vph2)[1] - 1):
             stream[1:n_r, iph] = stream[0, iph] + \
                 integrate.cumtrapz(vph2[:, iph], rcoord)  # integrate on r
