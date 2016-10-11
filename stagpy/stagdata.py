@@ -94,7 +94,7 @@ class BinData:
             self.rgeom = np.array(self._readbin('f', self.nts[2] * 2 + 1))
         else:
             self.rgeom = np.array(range(0, self.nts[2] * 2 + 1))\
-                * 0.5 / self.nrtot
+                * 0.5 / self.nts[2]
         self.rgeom.resize((self.nts[2] + 1, 2))
 
         if magic >= 7:
