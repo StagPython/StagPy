@@ -20,6 +20,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, 'config')
 Conf = namedtuple('ConfigEntry',
                   ['default', 'cmd_arg', 'shortname', 'kwargs',
                    'conf_arg', 'help_string'])
+
 CORE = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),
@@ -44,6 +45,12 @@ CORE = OrderedDict((
     ('useseaborn', Conf(True, False, None, {},
                         True, 'use or not seaborn')),
 ))
+
+SCALING = OrderedDict((
+     ('yearins' , Conf(2.16E7 , False, None, {}, True, 'Year in seconds')),
+     ('ttransit', Conf(1.78E15, False, None, {}, True, 'Transit time in My')),
+))
+
 FIELD = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
@@ -86,6 +93,12 @@ FIELD = OrderedDict((
     ('plot_age',
         Conf(False, False, None, {},
              True, 'age scalar field')),
+    ('plot_stress',
+        Conf(False, False, None, {},
+             True, 'second invariant of stress scalar field')),
+    ('plot_strainrate',
+        Conf(False, False, None, {},
+             True, 'strain rate scalar field')),
     ('shrinkcb',
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
@@ -182,8 +195,10 @@ PLATES = OrderedDict((
 
 VAR = OrderedDict((
 ))
+
 VERSION = OrderedDict((
 ))
+
 CONFIG = OrderedDict((
     ('create',
         Conf(None, True, None, {'action': 'store_true'},
@@ -224,6 +239,7 @@ SUB_CMDS = OrderedDict((
     ('config', Sub(CONFIG, False, config_cmd,
                    'configuration handling')),
 ))
+
 DummySub = namedtuple('DummySub', ['conf_dict'])
 DUMMY_CMDS = OrderedDict((
     ('core', DummySub(CORE)),
