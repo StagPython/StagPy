@@ -46,7 +46,6 @@ def plates_cmd(args):
     misc.plot_backend(args)
     plates.plates_cmd(args)
 
-
 def var_cmd(_):
     """display a list of available variables"""
     print('field:')
@@ -56,7 +55,6 @@ def var_cmd(_):
     print('rprof:')
     print(*('{}: {}'.format(v, m.name)
           for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
-
 
 def version_cmd(_):
     """print current version"""

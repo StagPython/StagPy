@@ -14,11 +14,13 @@ FIELD_VAR_LIST = OrderedDict((
     ('r', Varf('cs', 'Topography', 'plot_topography')),
     ('h', Varf('wtr', 'Water', 'plot_water')),
     ('a', Varf('age', 'Age', 'plot_age')),
+    ('s', Varf('str', 'Stress', 'plot_stress')),
+    ('e', Varf('ed', 'Strain rate', 'plot_strainrate')),
     ('u', Varf('vp', 'x Velocity', 'plot_xvelo')),
     ('v', Varf('vp', 'y Velocity', 'plot_yvelo')),
     ('w', Varf('vp', 'z Velocity', 'plot_zvelo')),
     ('p', Varf('vp', 'Pressure', 'plot_pressure')),
-    ('s', Varf('vp', 'Stream function', 'plot_stream')),
+    ('l', Varf('vp', 'Stream function', 'plot_stream')),
 ))
 
 Varr = namedtuple('Varr', ['name', 'arg', 'min_max', 'prof_idx'])

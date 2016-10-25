@@ -7,7 +7,7 @@ from .stagdata import BinData
 def plot_scalar(args, stgdat, var):
     """var: one of the key of constants.FIELD_VAR_LIST"""
     plt = args.plt
-    if var == 's':
+    if var == 'l':
         fld = stgdat.calc_stream()
     else:
         fld = stgdat.fields[var]
@@ -18,7 +18,7 @@ def plot_scalar(args, stgdat, var):
     # adding a row at the end to have continuous field
     if stgdat.geom == 'annulus':
         if stgdat.par_type == 'vp':
-            if var != 's':
+            if var != 'l':
                 fld = fld[:, :, 0].T
         else:
             newline = fld[:, 0, 0]
@@ -40,6 +40,16 @@ def plot_scalar(args, stgdat, var):
         elif var == 'd':  # density
             surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='bwr_r',
                                    vmin=0.96, vmax=1.04,
+                                   rasterized=not args.pdf,
+                                   shading='gouraud')
+        elif var == 's':  # second invariant of stress
+            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='Reds',
+                                   vmin=500, vmax=20000,
+                                   rasterized=not args.pdf,
+                                   shading='gouraud')
+        elif var == 'e':  # strain rate
+            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='Reds',
+                                   vmin=500, vmax=20000,
                                    rasterized=not args.pdf,
                                    shading='gouraud')
         elif var == 'r':  # topography
