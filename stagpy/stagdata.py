@@ -27,7 +27,7 @@ class BinData:
 
         # name of the file to read
         self.fullname = misc.stag_file(args, self.par_type, timestep)
-        self.nval = 4 if self.par_type == 'vp' else 1
+        self.nval = 4 if (self.par_type == 'vp' or self.par_type == 'sx') else 1
 
         with open(self.fullname, 'rb') as self._fid:
             self._catch_header()
@@ -215,8 +215,12 @@ class BinData:
                                 data_cpu_3d[:, :, :, :, idx]
 
         self.fields = {}
-        fld_names = ['u', 'v', 'w', 'p'] if self.par_type == 'vp' \
-            else [self.var]
+        if self.par_type == 'vp':
+            fld_names = ['u', 'v', 'w', 'p'] 
+        elif self.par_type == 'sx':
+            fld_names = ['sx', 'sy', 'sx'] 
+        else: 
+            fld_names = [self.var]
         for fld_name, fld in zip(fld_names, flds):
             if self.ntb == 1:
                 self.fields[fld_name] = fld[0, :, :, :]

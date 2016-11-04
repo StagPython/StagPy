@@ -43,7 +43,7 @@ def plot_scalar(args, stgdat, var):
                                    rasterized=not args.pdf,
                                    shading='gouraud')
         elif var == 's':  # second invariant of stress
-            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='Reds',
+            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='gnuplot2_r',
                                    vmin=500, vmax=20000,
                                    rasterized=not args.pdf,
                                    shading='gouraud')

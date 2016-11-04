@@ -15,6 +15,7 @@ FIELD_VAR_LIST = OrderedDict((
     ('h', Varf('wtr', 'Water', 'plot_water')),
     ('a', Varf('age', 'Age', 'plot_age')),
     ('s', Varf('str', 'Stress', 'plot_stress')),
+    ('x', Varf('sx', 'Principal deviatoric stress', 'plot_deviatoric_stress')),
     ('e', Varf('ed', 'Strain rate', 'plot_strainrate')),
     ('u', Varf('vp', 'x Velocity', 'plot_xvelo')),
     ('v', Varf('vp', 'y Velocity', 'plot_yvelo')),
@@ -37,4 +38,15 @@ RPROF_VAR_LIST = OrderedDict((
     ('h', Varr('Concentration Theo', 'plot_conctheo', None, None)),
     ('i', Varr('Init overturn', 'plot_overturn_init', None, None)),
     ('d', Varr('Difference', 'plot_difference', None, None)),
+))
+
+Varp = namedtuple('Varp', ['par', 'name', 'arg'])
+PLATES_VAR_LIST = OrderedDict((
+    ('c', Varp('c', 'Composition', 'plot_composition')),
+    ('n', Varp('eta', 'Viscosity', 'plot_viscosity')),
+    ('r', Varp('cs', 'Topography', 'plot_topography')),
+    ('a', Varp('age', 'Age', 'plot_age')),
+    ('s', Varp('str', 'Stress', 'plot_stress')),
+    ('x', Varp('sx', 'Principal deviatoric stress', 'plot_deviatoric_stress')),
+    ('e', Varp('ed', 'Strain rate', 'plot_strainrate')),
 ))

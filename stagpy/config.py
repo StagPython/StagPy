@@ -96,6 +96,9 @@ FIELD = OrderedDict((
     ('plot_stress',
         Conf(False, False, None, {},
              True, 'second invariant of stress scalar field')),
+    ('plot_deviatoric_stress',
+        Conf(False, False, None, {},
+             True, 'principal deviatoric stress')),
     ('plot_strainrate',
         Conf(False, False, None, {},
              True, 'strain rate scalar field')),
@@ -103,6 +106,10 @@ FIELD = OrderedDict((
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
 ))
+
+Conf = namedtuple('ConfigEntry',
+                  ['default', 'cmd_arg', 'shortname', 'kwargs',
+                   'conf_arg', 'help_string'])
 
 RPROF = OrderedDict((
     ('plot',
@@ -181,7 +188,15 @@ TIME = OrderedDict((
              False, 'specify tminc')),
 ))
 
+Conf = namedtuple('ConfigEntry',
+                  ['default', 'cmd_arg', 'shortname', 'kwargs',
+                   'conf_arg', 'help_string'])
+
 PLATES = OrderedDict((
+    ('plot',
+        Conf(None, True, 'o',
+             {'nargs': '?', 'const': '', 'type': str},
+             False, 'specify which variable to plot')),
     ('vzcheck',
         Conf(False, True, None, {},
              True, 'activate Colin\'s version with vz checking')),
@@ -191,6 +206,9 @@ PLATES = OrderedDict((
     ('shrinkcb',
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
+    ('zoom',
+        Conf(0.0, True, None, {},
+             True, 'Zoom around surface')),
 ))
 
 VAR = OrderedDict((

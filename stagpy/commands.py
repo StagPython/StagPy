@@ -44,6 +44,9 @@ def plates_cmd(args):
     """plate analysis"""
     misc.parse_timesteps(args)
     misc.plot_backend(args)
+    if args.plot is not None:
+        for var, meta in constants.PLATES_VAR_LIST.items():
+            misc.set_arg(args, meta.arg, var in args.plot)
     plates.plates_cmd(args)
 
 def var_cmd(_):
@@ -55,6 +58,10 @@ def var_cmd(_):
     print('rprof:')
     print(*('{}: {}'.format(v, m.name)
           for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
+    print()
+    print('plates:')
+    print(*('{}: {}'.format(v, m.name)
+          for v, m in constants.PLATES_VAR_LIST.items()), sep='\n')
 
 def version_cmd(_):
     """print current version"""
