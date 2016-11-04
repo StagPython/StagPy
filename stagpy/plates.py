@@ -249,7 +249,8 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     tempfld = temp.fields['t']
     concfld = conc.fields['c']
     agefld = age.fields['a']
-    stressfld = stress.fields['s']
+    if args.plot_stress:
+        stressfld = stress.fields['s']
 
     # if stgdat.par_type == 'vp':
     #     fld = fld[:, :, 0]
@@ -275,11 +276,13 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
 
     if args.par_nml['boundaries']['air_layer'] and not args.par_nml['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
-            np.logical_or(concfld[indcont, :-1] < 3, concfld[indcont, :-1] > 4),
+            np.logical_or(concfld[indcont, :-1] < 3,
+                          concfld[indcont, :-1] > 4),
             concfld[indcont, :-1])
     elif args.par_nml['boundaries']['air_layer'] and args.par_nml['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
-            np.logical_or(concfld[indcont, :-1] < 3, concfld[indcont, :-1] > 5),
+            np.logical_or(concfld[indcont, :-1] < 3,
+                          concfld[indcont, :-1] > 5),
             concfld[indcont, :-1])
     elif args.par_nml['tracersin']['tracers_weakcrust']:
         continents = np.ma.masked_where(
@@ -337,8 +340,8 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
 
     ax2.set_ylim(tempmin, tempmax)
     ax3.fill_between(
-            ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
-            round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
+        ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
+        round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
     ax3.set_ylim(velocitymin, velocitymax)
 
     ax1.set_ylabel("Concentration", fontsize=args.fontsize)
@@ -361,8 +364,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     agemin = -50
     agemax = 500
 
-    stressmin = -2000
-    stressmax = 60000
     # majorLocator = MultipleLocator(20)
 
     # ax31 = ax3.twinx()
@@ -427,61 +428,64 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     ax1.set_title(timestep, fontsize=args.fontsize)
 
     ax1.fill_between(
-            ph_coord[:-1], continentsall * velocitymin, velocitymax,
-            facecolor='#8B6914', alpha=0.2)
+        ph_coord[:-1], continentsall * velocitymin, velocitymax,
+        facecolor='#8B6914', alpha=0.2)
     ax1.set_ylim(velocitymin, velocitymax)
     ax2.fill_between(
-            ph_coord[:-1], continentsall * dvelocitymin, dvelocitymax,
-            facecolor='#8B6914', alpha=0.2)
+        ph_coord[:-1], continentsall * dvelocitymin, dvelocitymax,
+        facecolor='#8B6914', alpha=0.2)
     ax2.set_ylim(dvelocitymin, dvelocitymax)
 
     figname = misc.out_name(args, 'sveldvel').format(temp.step) + '.pdf'
     plt.savefig(figname, format='PDF')
     plt.close(fig0)
 
-    # plotting velocity and second invariant of stress 
-    fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
-    ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
-                color='black', ls='solid', alpha=0.2)
-    ax1.set_ylabel("Velocity", fontsize=args.fontsize)
-    ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=args.fontsize)
-    ax1.text(0.01, 1.07, str(round(temp.ti_ad, 4)),
-             transform=ax1.transAxes, fontsize=args.fontsize)
-    ax2.plot(ph_coord[:-1], stressfld[indsurf, :],
-             color='k', linewidth=lwd, label='Stress')
-    ax2.set_ylim(stressmin, stressmax)
-    ax2.set_ylabel("Stress", fontsize=args.fontsize)
+    # plotting velocity and second invariant of stress
+    if args.plot_stress:
+        stressmin = -2000
+        stressmax = 60000
+        fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
+        ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
+        ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
+                    color='black', ls='solid', alpha=0.2)
+        ax1.set_ylabel("Velocity", fontsize=args.fontsize)
+        ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
+                 transform=ax1.transAxes, fontsize=args.fontsize)
+        ax1.text(0.01, 1.07, str(round(temp.ti_ad, 4)),
+                 transform=ax1.transAxes, fontsize=args.fontsize)
+        ax2.plot(ph_coord[:-1], stressfld[indsurf, :],
+                 color='k', linewidth=lwd, label='Stress')
+        ax2.set_ylim(stressmin, stressmax)
+        ax2.set_ylabel("Stress", fontsize=args.fontsize)
 
-    for i in range(len(trench)):
-        ax1.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-        ax2.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-    for i in range(len(ridge)):
-        ax1.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
-        ax2.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
-    ax1.set_xlim(0, 2 * np.pi)
-    ax1.set_title(timestep, fontsize=args.fontsize)
+        for i in range(len(trench)):
+            ax1.axvline(
+                x=trench[i], ymin=velocitymin, ymax=velocitymax,
+                color='red', ls='dashed', alpha=0.4)
+            ax2.axvline(
+                x=trench[i], ymin=velocitymin, ymax=velocitymax,
+                color='red', ls='dashed', alpha=0.4)
+        for i in range(len(ridge)):
+            ax1.axvline(
+                x=ridge[i], ymin=velocitymin, ymax=velocitymax,
+                color='green', ls='dashed', alpha=0.4)
+            ax2.axvline(
+                x=ridge[i], ymin=velocitymin, ymax=velocitymax,
+                color='green', ls='dashed', alpha=0.4)
+        ax1.set_xlim(0, 2 * np.pi)
+        ax1.set_title(timestep, fontsize=args.fontsize)
 
-    ax1.fill_between(
+        ax1.fill_between(
             ph_coord[:-1], continentsall * velocitymin, velocitymax,
             facecolor='#8B6914', alpha=0.2)
-    ax1.set_ylim(velocitymin, velocitymax)
-    ax2.fill_between(
+        ax1.set_ylim(velocitymin, velocitymax)
+        ax2.fill_between(
             ph_coord[:-1], continentsall * dvelocitymin, dvelocitymax,
             facecolor='#8B6914', alpha=0.2)
 
-    figname = misc.out_name(args, 'svelstress').format(temp.step) + '.pdf'
-    plt.savefig(figname, format='PDF')
-    plt.close(fig0)
+        figname = misc.out_name(args, 'svelstress').format(temp.step) + '.pdf'
+        plt.savefig(figname, format='PDF')
+        plt.close(fig0)
 
     # plotting velocity and topography
     fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
@@ -715,12 +719,12 @@ def plates_cmd(args):
     if not args.vzcheck:
         ttransit = 1.78e15  # My; Earth transit time
         yearins = 2.16E7
-        viscosity_ref = 5.86E22 # Pa.s
+        viscosity_ref = 5.86E22  # Pa.s
         kappa = 1.0e-6   # m^2/2
-        mantle = 2890000.0 # m
-    
-        #print(args)
-        #print(args.yearins)
+        mantle = 2890000.0  # m
+
+        # print(args)
+        # print(args.yearins)
 
         if not os.path.exists('results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep)):
             file_results = open(
@@ -732,7 +736,8 @@ def plates_cmd(args):
                 'w')
             file_results_subd.write(
                 '#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
-            spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+            spherical = args.par_nml['geometry'][
+                'shape'].lower() == 'spherical'
             if args.par_nml['switches']['cont_tracers'] and spherical:
                 file_continents = open(
                     'results_continents_{}_{}_{}.dat'.format(*args.timestep),
@@ -759,13 +764,17 @@ def plates_cmd(args):
             newline = viscosityfld[:, 0, 0]
             viscosityfld = np.vstack([viscosityfld[:, :, 0].T, newline])
             age = BinData(args, 'a', timestep)
-            stress = BinData(args, 's', timestep)
-            stressfld = stress.fields['s']
-            newline = stressfld[:, 0, 0]
-            stressfld = np.vstack([stressfld[:, :, 0].T, newline])
-            stressdim = stress
-            stressdim.fields['s'] = stressdim.fields['s'] * kappa * viscosity_ref / mantle**2 / 1.e6
             rcmb = viscosity.rcmb
+            if args.plot_stress:
+                stress = BinData(args, 's', timestep)
+                stressfld = stress.fields['s']
+                newline = stressfld[:, 0, 0]
+                stressfld = np.vstack([stressfld[:, :, 0].T, newline])
+                stressdim = stress
+                stressdim.fields['s'] = stressdim.fields[
+                    's'] * kappa * viscosity_ref / mantle**2 / 1.e6
+            else:
+                stress = []
 
             if timestep == args.timestep[0]:
                 # calculating averaged horizontal surface velocity
@@ -806,8 +815,9 @@ def plates_cmd(args):
             concfld = conc.fields['c']
             newline = concfld[:, 0, 0]
             concfld = np.vstack([concfld[:, :, 0].T, newline])
-            continentsfld = np.ma.masked_where(concfld<3,concfld) # plotting continents, to-do
-            continentsfld = continentsfld/continentsfld 
+            continentsfld = np.ma.masked_where(
+                concfld < 3, concfld)  # plotting continents, to-do
+            continentsfld = continentsfld / continentsfld
 
             # plot viscosity field with position of trenches and ridges
             fig, axis, surf = plot_scalar(args, viscosity, 'n')
@@ -818,13 +828,13 @@ def plates_cmd(args):
 
             # plotting continents
             xmesh, ymesh = conc.x_mesh[0, :, :], conc.y_mesh[0, :, :]
-            surf2=axis.pcolormesh(xmesh,ymesh,continentsfld,
-                            rasterized=not args.pdf, cmap='cool_r',vmin=0,vmax=0,
-                            shading='goaround')
-            cmap2=args.plt.cm.ocean
+            surf2 = axis.pcolormesh(xmesh, ymesh, continentsfld,
+                                    rasterized=not args.pdf, cmap='cool_r', vmin=0, vmax=0,
+                                    shading='goaround')
+            cmap2 = args.plt.cm.ocean
             cmap2.set_over('m')
-            
-            # Annotation with time and step 
+
+            # Annotation with time and step
             axis.text(1., 0.9, str(round(time, 0)) + ' My',
                       transform=axis.transAxes, fontsize=args.fontsize)
             axis.text(1., 0.1, str(timestep),
@@ -852,49 +862,49 @@ def plates_cmd(args):
                 misc.out_name(args, 'n').format(viscosity.step) + '.pdf',
                 format='PDF')
 
-            # Zoom 
-            if args.zoom>0.00001:
-                if (args.zoom>315. and args.zoom<45):
-                    ladd=0.1
-                    radd=0.05
-                    uadd=0.8
-                    dadd=0.8
-                elif (args.zoom>45. and args.zoom<135):
-                    ladd=0.8
-                    radd=0.8
-                    uadd=0.05
-                    dadd=0.1
-                elif (args.zoom>135. and args.zoom<225):
-                    ladd=0.05
-                    radd=0.1
-                    uadd=0.8
-                    dadd=0.8
+            # Zoom
+            if args.zoom > 0.00001:
+                if (args.zoom > 315. and args.zoom < 45):
+                    ladd = 0.1
+                    radd = 0.05
+                    uadd = 0.8
+                    dadd = 0.8
+                elif (args.zoom > 45. and args.zoom < 135):
+                    ladd = 0.8
+                    radd = 0.8
+                    uadd = 0.05
+                    dadd = 0.1
+                elif (args.zoom > 135. and args.zoom < 225):
+                    ladd = 0.05
+                    radd = 0.1
+                    uadd = 0.8
+                    dadd = 0.8
                 else:
-                    ladd=0.8
-                    radd=0.8
-                    uadd=0.1
-                    dadd=0.05
-                xzoom=(viscosity.rcmb+1) * np.cos(args.zoom/180.*np.pi)
-                yzoom=(viscosity.rcmb+1) * np.sin(args.zoom/180.*np.pi)
-                axis.set_xlim(xzoom-ladd, xzoom+radd)
-                axis.set_ylim(yzoom-dadd, yzoom+uadd)
+                    ladd = 0.8
+                    radd = 0.8
+                    uadd = 0.1
+                    dadd = 0.05
+                xzoom = (viscosity.rcmb + 1) * np.cos(args.zoom / 180. * np.pi)
+                yzoom = (viscosity.rcmb + 1) * np.sin(args.zoom / 180. * np.pi)
+                axis.set_xlim(xzoom - ladd, xzoom + radd)
+                axis.set_ylim(yzoom - dadd, yzoom + uadd)
                 args.plt.savefig(
                     misc.out_name(args, 'nzoom').format(viscosity.step) + '.pdf',
                     format='PDF')
             args.plt.close(fig)
 
             # plot stress field with position of trenches and ridges
-            if misc.get_arg(args,'plot_stress'):
+            if args.plot_stress:
                 constants.FIELD_VAR_LIST['s'] = constants.FIELD_VAR_LIST['s']._replace(name='Stress [MPa]')
                 fig, axis, surf = plot_scalar(args, stressdim, 's')
                 surf.set_clim(vmin=0, vmax=300)
                 args.plt.figure(fig.number)
 
-                # Annotation with time and step 
+                # Annotation with time and step
                 axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                      transform=axis.transAxes, fontsize=args.fontsize)
+                          transform=axis.transAxes, fontsize=args.fontsize)
                 axis.text(1., 0.1, str(timestep),
-                      transform=axis.transAxes, fontsize=args.fontsize)
+                          transform=axis.transAxes, fontsize=args.fontsize)
 
                 # Put arrow where ridges and trenches are
                 for itr in np.arange(len(trenches)):
@@ -903,14 +913,14 @@ def plates_cmd(args):
                     xxt = (viscosity.rcmb + 1.35) * np.cos(trenches[itr])  # arrow end
                     yyt = (viscosity.rcmb + 1.35) * np.sin(trenches[itr])  # arrow end
                     axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                              arrowprops=dict(facecolor='red', shrink=0.05))
+                                  arrowprops=dict(facecolor='red', shrink=0.05))
                 for iri in np.arange(len(ridges)):
                     xxd = (viscosity.rcmb + 1.02) * np.cos(ridges[iri])
                     yyd = (viscosity.rcmb + 1.02) * np.sin(ridges[iri])
                     xxt = (viscosity.rcmb + 1.35) * np.cos(ridges[iri])
                     yyt = (viscosity.rcmb + 1.35) * np.sin(ridges[iri])
                     axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                              arrowprops=dict(facecolor='green', shrink=0.05))
+                                  arrowprops=dict(facecolor='green', shrink=0.05))
 
                 # Save figure
                 args.plt.tight_layout()
@@ -918,54 +928,57 @@ def plates_cmd(args):
                     misc.out_name(args, 's').format(viscosity.step) + '.pdf',
                     format='PDF')
 
-                # Zoom 
-                if args.zoom>0.00001:
-                    axis.set_xlim(xzoom-ladd, xzoom+radd)
-                    axis.set_ylim(yzoom-dadd, yzoom+uadd)
+                # Zoom
+                if args.zoom > 0.00001:
+                    axis.set_xlim(xzoom - ladd, xzoom + radd)
+                    axis.set_ylim(yzoom - dadd, yzoom + uadd)
                     args.plt.savefig(
                         misc.out_name(args, 'szoom').format(viscosity.step) + '.pdf',
                         format='PDF')
                 args.plt.close(fig)
 
-                # calculate stresses in the lithosphere 
+                # calculate stresses in the lithosphere
 
-            # TODO plotting velocity vectors does not work when using Cartesian coordinates
-            vphi=velocity.fields['v'][:,:,0]
-            vr=velocity.fields['w'][:,:,0]
+            # TODO plotting velocity vectors does not work when using Cartesian
+            # coordinates
+            vphi = velocity.fields['v'][:, :, 0]
+            vr = velocity.fields['w'][:, :, 0]
             r_mesh, ph_mesh = np.meshgrid(
-                    velocity.r_coord + velocity.rcmb, velocity.ph_coord,
+                velocity.r_coord + velocity.rcmb, velocity.ph_coord,
                 indexing='ij')
-            velx= -vphi*np.sin(ph_mesh) + vr*np.cos(ph_mesh)
-            vely= vphi*np.cos(ph_mesh)  + vr*np.sin(ph_mesh)
+            velx = -vphi * np.sin(ph_mesh) + vr * np.cos(ph_mesh)
+            vely = vphi * np.cos(ph_mesh) + vr * np.sin(ph_mesh)
             xmesh, ymesh = velocity.x_mesh[0, :, :], velocity.y_mesh[0, :, :]
             plt = args.plt
 
             #fig, axis = plt.subplots(ncols=1)
             #fig, axis, surf = plot_scalar(args, viscosity, 'n')
-            #axis.quiver(xmesh[::10,::10],ymesh[::10,::10],velx[::10,::10],vely[::10,::10])
-            #plt.savefig('test.pdf')
+            # axis.quiver(xmesh[::10,::10],ymesh[::10,::10],velx[::10,::10],vely[::10,::10])
+            # plt.savefig('test.pdf')
 
-            # plotting f* everything one more time to get the velocity vectors on top of the viscosity
-            fig= plt.figure()
-            axis=fig.add_subplot(111, polar=True)
-            #print(np.shape(ph_mesh),np.shape(viscosityfld))
-            surf=axis.pcolormesh(ph_mesh,r_mesh,viscosityfld.T,
-                            norm=args.mpl.colors.LogNorm(),
-                            cmap='jet_r',
-                            rasterized=not args.pdf,
-                            shading='goaround')
+            # plotting f* everything one more time to get the velocity vectors
+            # on top of the viscosity
+            fig = plt.figure()
+            axis = fig.add_subplot(111, polar=True)
+            # print(np.shape(ph_mesh),np.shape(viscosityfld))
+            surf = axis.pcolormesh(ph_mesh, r_mesh, viscosityfld.T,
+                                   norm=args.mpl.colors.LogNorm(),
+                                   cmap='jet_r',
+                                   rasterized=not args.pdf,
+                                   shading='goaround')
             surf.set_clim(vmin=1e-2, vmax=etamax)
 
             # plotting continents
-            surf2=axis.pcolormesh(ph_mesh,r_mesh,continentsfld.T,
-                            rasterized=not args.pdf, cmap='cool_r',vmin=0,vmax=0,
-                            shading='goaround')
-            cmap2=plt.cm.ocean
+            surf2 = axis.pcolormesh(ph_mesh, r_mesh, continentsfld.T,
+                                    rasterized=not args.pdf, cmap='cool_r',
+				    vmin=0, vmax=0,
+                                    shading='goaround')
+            cmap2 = plt.cm.ocean
             cmap2.set_over('m')
 
             # plotting velocity
-            step=np.int(np.size(ph_mesh[0,:])/100.)
-            #print(step)
+            step = np.int(np.size(ph_mesh[0, :]) / 100.)
+            # print(step)
             axis.quiver(ph_mesh[::step,::step],r_mesh[::step,::step],velx[::step,::step],vely[::step,::step])
             axis.set_frame_on(False)
             axis.axes.get_xaxis().set_visible(False)
@@ -997,30 +1010,31 @@ def plates_cmd(args):
                 format='PDF')
             args.plt.close(fig)
 
-            # plotting the principal deviatoric stress field 
-            if misc.get_arg(args,'plot_deviatoric_stress'):
+            # plotting the principal deviatoric stress field
+            if args.plot_deviatoric_stress:
                 stressvec = BinData(args, 'x', timestep)
-                fig= plt.figure()
-                axis=fig.add_subplot(111, polar=True)
-                surf=axis.pcolormesh(ph_mesh,r_mesh,stressfld.T,
-                            cmap='Reds',
-                            rasterized=not args.pdf,
-                            shading='goaround')
+                fig = plt.figure()
+                axis = fig.add_subplot(111, polar=True)
+                surf = axis.pcolormesh(ph_mesh, r_mesh, stressfld.T,
+                                       cmap='Reds',
+                                       rasterized=not args.pdf,
+                                       shading='goaround')
                 surf.set_clim(vmin=500, vmax=20000)
 
                 # plotting continents
-                surf2=axis.pcolormesh(ph_mesh,r_mesh,continentsfld.T,
-                            rasterized=not args.pdf, cmap='cool_r',vmin=0,vmax=0,
-                            shading='goaround')
-                cmap2=plt.cm.ocean
+                surf2 = axis.pcolormesh(ph_mesh, r_mesh, continentsfld.T,
+                                        rasterized=not args.pdf, cmap='cool_r',
+					vmin=0,vmax=0,
+                                        shading='goaround')
+                cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
 
-                # plotting principal deviatoric stress 
-                sphi=stressvec.fields['sx'][:,:,0]
-                sr=stressvec.fields['sy'][:,:,0]
-                stressx= -sphi*np.sin(ph_mesh) + sr*np.cos(ph_mesh)
-                stressy= sphi*np.cos(ph_mesh)  + sr*np.sin(ph_mesh)
-                step=np.int(np.size(ph_mesh[0,:])/100.)
+                # plotting principal deviatoric stress
+                sphi = stressvec.fields['sx'][:, :, 0]
+                sr = stressvec.fields['sy'][:, :, 0]
+                stressx = -sphi * np.sin(ph_mesh) + sr * np.cos(ph_mesh)
+                stressy = sphi * np.cos(ph_mesh) + sr * np.sin(ph_mesh)
+                step = np.int(np.size(ph_mesh[0, :]) / 100.)
                 #print(step)
                 axis.quiver(ph_mesh[::step,::step],r_mesh[::step,::step],stressx[::step,::step],stressy[::step,::step])
                 axis.set_frame_on(False)
@@ -1030,29 +1044,29 @@ def plates_cmd(args):
                 cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
 
                 axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                      transform=axis.transAxes, fontsize=args.fontsize)
+                          transform=axis.transAxes, fontsize=args.fontsize)
                 axis.text(1., 0.1, str(timestep),
-                      transform=axis.transAxes, fontsize=args.fontsize)
+                          transform=axis.transAxes, fontsize=args.fontsize)
                 for itr in np.arange(len(trenches)):
                     xxd = trenches[itr]  # arrow begin
                     yyd = viscosity.rcmb + 1.02  # arrow begin
                     xxt = trenches[itr]  # arrow end
                     yyt = viscosity.rcmb + 1.35  # arrow end
                     axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                              arrowprops=dict(facecolor='red', shrink=0.05))
+                                  arrowprops=dict(facecolor='red', shrink=0.05))
                 for iri in np.arange(len(ridges)):
                     xxd = ridges[iri]
                     yyd = viscosity.rcmb + 1.02
                     xxt = ridges[iri]
                     yyt = viscosity.rcmb + 1.35
                     axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                              arrowprops=dict(facecolor='green', shrink=0.05))
+                                  arrowprops=dict(facecolor='green', shrink=0.05))
                 args.plt.tight_layout()
                 args.plt.savefig(
                     misc.out_name(args, 'sx').format(viscosity.step) + '.pdf',
                     format='PDF')
                 args.plt.close(fig)
-            
+
         file_results.close()
         file_results_subd.close()
         if args.par_nml['switches']['cont_tracers'] and spherical:
@@ -1100,12 +1114,12 @@ def plates_cmd(args):
 
             nb_plates.append(len(limits))
             plt.close(timestep)
-        
+
         if args.timeprofile:
             for i in range(2, len(nb_plates) - 3):
                 nb_plates[i] = (nb_plates[i - 2] + nb_plates[i - 1] +
-                            nb_plates[i] + nb_plates[i + 1] +
-                            nb_plates[i + 2]) / 5
+                                nb_plates[i] + nb_plates[i + 1] +
+                                nb_plates[i + 2]) / 5
             plt.figure(-1)
             plt.subplot(121)
             plt.axis([time[0], time[-1], 0, np.max(nb_plates)])
@@ -1115,4 +1129,3 @@ def plates_cmd(args):
             plt.savefig('plates_{}_{}_{}.pdf'.format(*args.timestep),
                         format='PDF')
             plt.close(-1)
-
