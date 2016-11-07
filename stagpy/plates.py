@@ -148,7 +148,10 @@ def detect_plates(args, velocity, age, vrms_surface,
 
     velocityfld = velocity.fields['v']
     ph_coord = velocity.ph_coord
-    agefld = age.fields['a']
+    if args.plot_age:
+        agefld = age.fields['a']
+    else:
+        agefld = []
 
     if args.par_nml['boundaries']['air_layer']:
         dsa = args.par_nml['boundaries']['air_thickness']
@@ -205,10 +208,13 @@ def detect_plates(args, velocity, age, vrms_surface,
             arggreat_dv = np.delete(arggreat_dv, np.array(argdel))
 
     dv_ridge = dvph2[arggreat_dv]
-    age_surface = np.ma.masked_where(agefld[indsurf, :] < 0.00001,
-                                     agefld[indsurf, :])
-    age_surface_dim = age_surface * vrms_surface * ttransit / yearins / 1.e6
-    agetrench = age_surface_dim[argless_dv]  # age at the trench
+    if args.plot_age:
+        age_surface = np.ma.masked_where(agefld[indsurf, :] < 0.00001,
+                                         agefld[indsurf, :])
+        age_surface_dim = age_surface * vrms_surface * ttransit / yearins / 1.e6
+        agetrench = age_surface_dim[argless_dv]  # age at the trench
+    else:
+        agetrench = np.zeros(len(argless_dv))
 
     # writing the output into a file, all time steps are in one file
     for itrench in np.arange(len(trench)):
@@ -248,7 +254,10 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     velocityfld = velocity.fields['v']
     tempfld = temp.fields['t']
     concfld = conc.fields['c']
-    agefld = age.fields['a']
+    if args.plot_age:
+        agefld = age.fields['a']
+        newline = agefld[:, 0, 0]
+        agefld = np.vstack([agefld[:, :, 0].T, newline]).T
     if args.plot_stress:
         stressfld = stress.fields['s']
 
@@ -258,8 +267,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     tempfld = np.vstack([tempfld[:, :, 0].T, newline]).T
     newline = concfld[:, 0, 0]
     concfld = np.vstack([concfld[:, :, 0].T, newline]).T
-    newline = agefld[:, 0, 0]
-    agefld = np.vstack([agefld[:, :, 0].T, newline]).T
 
     if args.par_nml['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
@@ -363,18 +370,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
 
     agemin = -50
     agemax = 500
-
-    # majorLocator = MultipleLocator(20)
-
-    # ax31 = ax3.twinx()
-    # ax31.set_ylabel("Topography [km]", fontsize=args.fontsize)
-    # ax31.plot(topo[:, 0],
-    #          topo[:, 1] * l_scale,
-    #          color='black', alpha=0.4)
-    # ax31.set_ylim(topomin, topomax)
-    # ax31.grid()
-    # ax3.scatter(trench, dv_trench, c='red')
-    # ax3.scatter(ridge, dv_ridge, c='green')
 
     for i in range(len(trench)):
         ax2.axvline(
@@ -763,8 +758,11 @@ def plates_cmd(args):
             viscosityfld = viscosity.fields['n']
             newline = viscosityfld[:, 0, 0]
             viscosityfld = np.vstack([viscosityfld[:, :, 0].T, newline])
-            age = BinData(args, 'a', timestep)
             rcmb = viscosity.rcmb
+            if args.plot_age:
+                age = BinData(args, 'a', timestep)
+            else:
+                age = []
             if args.plot_stress:
                 stress = BinData(args, 's', timestep)
                 stressfld = stress.fields['s']
@@ -877,8 +875,14 @@ def plates_cmd(args):
                 format='PDF')
 
             # Zoom
-            if args.zoom >= 0.:
-                if (args.zoom > 315. and args.zoom <= 45):
+            if args.zoom is not None:
+                print(args.zoom)
+                if (args.zoom > 360 or args.zoom < 0):
+                    print(' *WARNING* ')
+                    print('Zoom angle should be positive and less than 360 deg')
+                    print(' Exiting the code ')
+                    sys.exit()
+                if (args.zoom > 315. or args.zoom <= 45):
                     ladd = 0.1
                     radd = 0.05
                     uadd = 0.8
@@ -943,7 +947,7 @@ def plates_cmd(args):
                     format='PDF')
 
                 # Zoom
-                if args.zoom > 0.00001:
+                if args.zoom is not None:
                     axis.set_xlim(xzoom - ladd, xzoom + radd)
                     axis.set_ylim(yzoom - dadd, yzoom + uadd)
                     args.plt.savefig(
@@ -952,6 +956,7 @@ def plates_cmd(args):
                 args.plt.close(fig)
 
                 # calculate stresses in the lithosphere
+
 
             # plotting the principal deviatoric stress field
             if args.plot_deviatoric_stress:
