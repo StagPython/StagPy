@@ -47,8 +47,10 @@ CORE = OrderedDict((
 ))
 
 SCALING = OrderedDict((
-     ('yearins' , Conf(2.16E7 , False, None, {}, True, 'Year in seconds')),
-     ('ttransit', Conf(1.78E15, False, None, {}, True, 'Transit time in My')),
+    ('yearins', Conf(2.16e7, False, None, {},
+                     True, 'Year in seconds')),
+    ('ttransit', Conf(1.78e15, False, None, {},
+                      True, 'Transit time in My')),
 ))
 
 FIELD = OrderedDict((

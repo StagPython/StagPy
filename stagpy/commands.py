@@ -49,6 +49,7 @@ def plates_cmd(args):
             misc.set_arg(args, meta.arg, var in args.plot)
     plates.plates_cmd(args)
 
+
 def var_cmd(_):
     """display a list of available variables"""
     print('field:')
@@ -62,6 +63,7 @@ def var_cmd(_):
     print('plates:')
     print(*('{}: {}'.format(v, m.name)
           for v, m in constants.PLATES_VAR_LIST.items()), sep='\n')
+
 
 def version_cmd(_):
     """print current version"""
