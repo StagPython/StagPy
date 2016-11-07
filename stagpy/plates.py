@@ -230,7 +230,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     ttransit = 1.78e15  # My
     yearins = 2.16E7
 
-    plot_age = True
+    plot_age = args.plot_age
     dimensions = True
 
     if dimensions:
@@ -825,6 +825,7 @@ def plates_cmd(args):
             surf.set_clim(vmin=1e-2, vmax=etamax)
 
             args.plt.figure(fig.number)
+            plt = args.plt
 
             # plotting continents
             xmesh, ymesh = conc.x_mesh[0, :, :], conc.y_mesh[0, :, :]
@@ -833,6 +834,19 @@ def plates_cmd(args):
                                     shading='goaround')
             cmap2 = args.plt.cm.ocean
             cmap2.set_over('m')
+
+            # plotting velocity vectors
+            vphi = velocity.fields['v'][:, :, 0]
+            vr = velocity.fields['w'][:, :, 0]
+            r_mesh, ph_mesh = np.meshgrid(
+                velocity.r_coord + velocity.rcmb, velocity.ph_coord,
+                indexing='ij')
+            velx = -vphi * np.sin(ph_mesh) + vr * np.cos(ph_mesh)
+            vely = vphi * np.cos(ph_mesh) + vr * np.sin(ph_mesh)
+            # xmesh, ymesh = velocity.x_mesh[0, :, :], velocity.y_mesh[0, :, :]
+            step = np.int(np.size(ph_mesh[0, :]) / 100.)
+            axis.quiver(xmesh[::step, ::step], ymesh[::step, ::step],
+                        velx[::step, ::step].T, vely[::step, ::step].T)
 
             # Annotation with time and step
             axis.text(1., 0.9, str(round(time, 0)) + ' My',
@@ -859,22 +873,22 @@ def plates_cmd(args):
             # Save figure
             args.plt.tight_layout()
             args.plt.savefig(
-                misc.out_name(args, 'n').format(viscosity.step) + '.pdf',
+                misc.out_name(args, 'eta').format(viscosity.step) + '.pdf',
                 format='PDF')
 
             # Zoom
-            if args.zoom > 0.00001:
-                if (args.zoom > 315. and args.zoom < 45):
+            if args.zoom >= 0.:
+                if (args.zoom > 315. and args.zoom <= 45):
                     ladd = 0.1
                     radd = 0.05
                     uadd = 0.8
                     dadd = 0.8
-                elif (args.zoom > 45. and args.zoom < 135):
+                elif (args.zoom > 45. and args.zoom <= 135):
                     ladd = 0.8
                     radd = 0.8
                     uadd = 0.05
                     dadd = 0.1
-                elif (args.zoom > 135. and args.zoom < 225):
+                elif (args.zoom > 135. and args.zoom <= 225):
                     ladd = 0.05
                     radd = 0.1
                     uadd = 0.8
@@ -889,7 +903,7 @@ def plates_cmd(args):
                 axis.set_xlim(xzoom - ladd, xzoom + radd)
                 axis.set_ylim(yzoom - dadd, yzoom + uadd)
                 args.plt.savefig(
-                    misc.out_name(args, 'nzoom').format(viscosity.step) + '.pdf',
+                    misc.out_name(args, 'etazoom').format(viscosity.step) + '.pdf',
                     format='PDF')
             args.plt.close(fig)
 
@@ -939,94 +953,21 @@ def plates_cmd(args):
 
                 # calculate stresses in the lithosphere
 
-            # TODO plotting velocity vectors does not work when using Cartesian
-            # coordinates
-            vphi = velocity.fields['v'][:, :, 0]
-            vr = velocity.fields['w'][:, :, 0]
-            r_mesh, ph_mesh = np.meshgrid(
-                velocity.r_coord + velocity.rcmb, velocity.ph_coord,
-                indexing='ij')
-            velx = -vphi * np.sin(ph_mesh) + vr * np.cos(ph_mesh)
-            vely = vphi * np.cos(ph_mesh) + vr * np.sin(ph_mesh)
-            xmesh, ymesh = velocity.x_mesh[0, :, :], velocity.y_mesh[0, :, :]
-            plt = args.plt
-
-            #fig, axis = plt.subplots(ncols=1)
-            #fig, axis, surf = plot_scalar(args, viscosity, 'n')
-            # axis.quiver(xmesh[::10,::10],ymesh[::10,::10],velx[::10,::10],vely[::10,::10])
-            # plt.savefig('test.pdf')
-
-            # plotting f* everything one more time to get the velocity vectors
-            # on top of the viscosity
-            fig = plt.figure()
-            axis = fig.add_subplot(111, polar=True)
-            # print(np.shape(ph_mesh),np.shape(viscosityfld))
-            surf = axis.pcolormesh(ph_mesh, r_mesh, viscosityfld.T,
-                                   norm=args.mpl.colors.LogNorm(),
-                                   cmap='jet_r',
-                                   rasterized=not args.pdf,
-                                   shading='goaround')
-            surf.set_clim(vmin=1e-2, vmax=etamax)
-
-            # plotting continents
-            surf2 = axis.pcolormesh(ph_mesh, r_mesh, continentsfld.T,
-                                    rasterized=not args.pdf, cmap='cool_r',
-                                    vmin=0, vmax=0,
-                                    shading='goaround')
-            cmap2 = plt.cm.ocean
-            cmap2.set_over('m')
-
-            # plotting velocity
-            step = np.int(np.size(ph_mesh[0, :]) / 100.)
-            # print(step)
-            axis.quiver(ph_mesh[::step,::step],r_mesh[::step,::step],velx[::step,::step],vely[::step,::step])
-            axis.set_frame_on(False)
-            axis.axes.get_xaxis().set_visible(False)
-            axis.axes.get_yaxis().set_visible(False)
-            cbar = plt.colorbar(surf, shrink=args.shrinkcb)
-            cbar.set_label(constants.FIELD_VAR_LIST['n'].name)
-
-            axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                      transform=axis.transAxes, fontsize=args.fontsize)
-            axis.text(1., 0.1, str(timestep),
-                      transform=axis.transAxes, fontsize=args.fontsize)
-            for itr in np.arange(len(trenches)):
-                xxd = trenches[itr]  # arrow begin
-                yyd = viscosity.rcmb + 1.02  # arrow begin
-                xxt = trenches[itr]  # arrow end
-                yyt = viscosity.rcmb + 1.35  # arrow end
-                axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                              arrowprops=dict(facecolor='red', shrink=0.05))
-            for iri in np.arange(len(ridges)):
-                xxd = ridges[iri]
-                yyd = viscosity.rcmb + 1.02
-                xxt = ridges[iri]
-                yyt = viscosity.rcmb + 1.35
-                axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                              arrowprops=dict(facecolor='green', shrink=0.05))
-            args.plt.tight_layout()
-            args.plt.savefig(
-                misc.out_name(args, 'eta').format(viscosity.step) + '.pdf',
-                format='PDF')
-            args.plt.close(fig)
-
             # plotting the principal deviatoric stress field
             if args.plot_deviatoric_stress:
+                fig, axis, surf = plot_scalar(args, stressdim, 's')
+                surf.set_clim(vmin=0, vmax=300)
+                args.plt.figure(fig.number)
+
                 stressvec = BinData(args, 'x', timestep)
-                fig = plt.figure()
-                axis = fig.add_subplot(111, polar=True)
-                surf = axis.pcolormesh(ph_mesh, r_mesh, stressfld.T,
-                                       cmap='Reds',
-                                       rasterized=not args.pdf,
-                                       shading='goaround')
-                surf.set_clim(vmin=500, vmax=20000)
 
                 # plotting continents
-                surf2 = axis.pcolormesh(ph_mesh, r_mesh, continentsfld.T,
+                xmesh, ymesh = conc.x_mesh[0, :, :], conc.y_mesh[0, :, :]
+                surf2 = axis.pcolormesh(xmesh, ymesh, continentsfld,
                                         rasterized=not args.pdf, cmap='cool_r',
                                         vmin=0, vmax=0,
                                         shading='goaround')
-                cmap2 = plt.cm.ocean
+                cmap2 = args.plt.cm.ocean
                 cmap2.set_over('m')
 
                 # plotting principal deviatoric stress
@@ -1035,32 +976,34 @@ def plates_cmd(args):
                 stressx = -sphi * np.sin(ph_mesh) + sr * np.cos(ph_mesh)
                 stressy = sphi * np.cos(ph_mesh) + sr * np.sin(ph_mesh)
                 step = np.int(np.size(ph_mesh[0, :]) / 100.)
-                #print(step)
-                axis.quiver(ph_mesh[::step,::step],r_mesh[::step,::step],stressx[::step,::step],stressy[::step,::step])
-                axis.set_frame_on(False)
-                axis.axes.get_xaxis().set_visible(False)
-                axis.axes.get_yaxis().set_visible(False)
+                # xmesh, ymesh = sphi.x_mesh[0, :, :], sr.y_mesh[0, :, :]
+                axis.quiver(xmesh[::step, ::step], ymesh[::step, ::step],
+                            stressx[::step, ::step].T, stressy[::step, ::step].T)
                 cbar = plt.colorbar(surf, shrink=args.shrinkcb)
                 cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
 
+                # Annotation with time and step
                 axis.text(1., 0.9, str(round(time, 0)) + ' My',
                           transform=axis.transAxes, fontsize=args.fontsize)
                 axis.text(1., 0.1, str(timestep),
                           transform=axis.transAxes, fontsize=args.fontsize)
+
+                # Put arrow where ridges and trenches are
                 for itr in np.arange(len(trenches)):
-                    xxd = trenches[itr]  # arrow begin
-                    yyd = viscosity.rcmb + 1.02  # arrow begin
-                    xxt = trenches[itr]  # arrow end
-                    yyt = viscosity.rcmb + 1.35  # arrow end
+                    xxd = (viscosity.rcmb + 1.02) * np.cos(trenches[itr])  # arrow begin
+                    yyd = (viscosity.rcmb + 1.02) * np.sin(trenches[itr])  # arrow begin
+                    xxt = (viscosity.rcmb + 1.35) * np.cos(trenches[itr])  # arrow end
+                    yyt = (viscosity.rcmb + 1.35) * np.sin(trenches[itr])  # arrow end
                     axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
                                   arrowprops=dict(facecolor='red', shrink=0.05))
                 for iri in np.arange(len(ridges)):
-                    xxd = ridges[iri]
-                    yyd = viscosity.rcmb + 1.02
-                    xxt = ridges[iri]
-                    yyt = viscosity.rcmb + 1.35
+                    xxd = (viscosity.rcmb + 1.02) * np.cos(ridges[iri])
+                    yyd = (viscosity.rcmb + 1.02) * np.sin(ridges[iri])
+                    xxt = (viscosity.rcmb + 1.35) * np.cos(ridges[iri])
+                    yyt = (viscosity.rcmb + 1.35) * np.sin(ridges[iri])
                     axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
                                   arrowprops=dict(facecolor='green', shrink=0.05))
+
                 args.plt.tight_layout()
                 args.plt.savefig(
                     misc.out_name(args, 'sx').format(viscosity.step) + '.pdf',

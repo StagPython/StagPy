@@ -231,7 +231,7 @@ PLATES = OrderedDict((
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
     ('zoom',
-        Conf(0.0, True, None, {},
+        Conf(-999., True, None, {},
              True, 'Zoom around surface')),
 ))
 
