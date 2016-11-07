@@ -971,7 +971,7 @@ def plates_cmd(args):
             # plotting continents
             surf2 = axis.pcolormesh(ph_mesh, r_mesh, continentsfld.T,
                                     rasterized=not args.pdf, cmap='cool_r',
-				    vmin=0, vmax=0,
+                                    vmin=0, vmax=0,
                                     shading='goaround')
             cmap2 = plt.cm.ocean
             cmap2.set_over('m')
@@ -1024,7 +1024,7 @@ def plates_cmd(args):
                 # plotting continents
                 surf2 = axis.pcolormesh(ph_mesh, r_mesh, continentsfld.T,
                                         rasterized=not args.pdf, cmap='cool_r',
-					vmin=0,vmax=0,
+                                        vmin=0, vmax=0,
                                         shading='goaround')
                 cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
