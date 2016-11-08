@@ -708,28 +708,28 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
     """ calculate stress in the lithosphere """
     plt = args.plt
     lwd = args.linewidth
-    base_lith = temp.rcmb + 1 - 0.105 
+    base_lith = temp.rcmb + 1 - 0.105
 
-    tempfld = temp.fields['t'][:,:,0].T
-    stressfld = stress.fields['s'][:,:,0].T
+    tempfld = temp.fields['t'][:, :, 0].T
+    stressfld = stress.fields['s'][:, :, 0].T
 
     r_mesh, ph_mesh = np.meshgrid(
-                temp.r_coord + temp.rcmb, temp.ph_coord,
-                indexing='ij')
+        temp.r_coord + temp.rcmb, temp.ph_coord,
+        indexing='ij')
 
-    temp.fields['t'] = np.ma.masked_where(r_mesh[:,:-1].T < base_lith, tempfld)
-    stressfld = np.ma.masked_where(r_mesh[:,:-1].T < base_lith, stressfld)
+    temp.fields['t'] = np.ma.masked_where(r_mesh[:, :-1].T < base_lith, tempfld)
+    stressfld = np.ma.masked_where(r_mesh[:, :-1].T < base_lith, stressfld)
 
     # stress integration over lithosphere
-    stress_lith = np.sum(stressfld, axis = 1)
+    stress_lith = np.sum(stressfld, axis=1)
     ph_coord = stress.ph_coord
 
     # plot stress in the lithosphere
     fig, axis = args.plt.subplots(ncols=1)
     xmesh, ymesh = stress.x_mesh[0, :-1, :], stress.y_mesh[0, :-1, :]
     surf = axis.pcolormesh(xmesh, ymesh, stressfld, cmap='gnuplot2_r',
-                                   rasterized=not args.pdf,
-                                   shading='gouraud')
+                           rasterized=not args.pdf,
+                           shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = plt.colorbar(surf, shrink=args.shrinkcb)
     cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
@@ -797,8 +797,8 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
     ax1.text(0.01, 1.07, str(round(temp.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
 
-    ax2.plot(ph_coord[:-1], stress_lith, 
-            color='k', linewidth=lwd, label='Stress')
+    ax2.plot(ph_coord[:-1], stress_lith,
+             color='k', linewidth=lwd, label='Stress')
     ax2.set_ylabel("Integrated stress [MPa]", fontsize=args.fontsize)
 
     velocitymin = -5000
@@ -835,7 +835,7 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
 
     figname = misc.out_name(args, 'stresslith').format(temp.step) + '.pdf'
     fig0.savefig(figname, format='PDF')
-    
+
     return None
 
 
@@ -1090,9 +1090,8 @@ def plates_cmd(args):
                 args.plt.close(fig)
 
                 # calculate stresses in the lithosphere
-                lithospheric_stress(args, temp, conc, stressdim, velocity, trenches, ridges, 
+                lithospheric_stress(args, temp, conc, stressdim, velocity, trenches, ridges,
                                     timestep, time)
-
 
             # plotting the principal deviatoric stress field
             if args.plot_deviatoric_stress:
