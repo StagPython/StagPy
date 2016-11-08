@@ -357,7 +357,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     ax1.set_title(timestep, fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes, fontsize=args.fontsize)
-    ax1.text(0.01, 1.07, str(round(temp.ti_ad, 4)),
+    ax1.text(0.01, 1.07, str(round(temp.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
 
     # topography
@@ -399,7 +399,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     ax1.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes, fontsize=args.fontsize)
-    ax1.text(0.01, 1.07, str(round(temp.ti_ad, 4)),
+    ax1.text(0.01, 1.07, str(round(temp.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
     ax2.plot(ph_coord[:-1] + ph_coord[0], dvph2,
              color='k', linewidth=lwd, label='dv')
@@ -424,11 +424,11 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
 
     ax1.fill_between(
         ph_coord[:-1], continentsall * velocitymin, velocitymax,
-        facecolor='#8B6914', alpha=0.2)
+        facecolor='#8b6914', alpha=0.2)
     ax1.set_ylim(velocitymin, velocitymax)
     ax2.fill_between(
         ph_coord[:-1], continentsall * dvelocitymin, dvelocitymax,
-        facecolor='#8B6914', alpha=0.2)
+        facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(dvelocitymin, dvelocitymax)
 
     figname = misc.out_name(args, 'sveldvel').format(temp.step) + '.pdf'
@@ -437,8 +437,8 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
 
     # plotting velocity and second invariant of stress
     if args.plot_stress:
-        stressmin = -2000
-        stressmax = 60000
+        stressmin = 0
+        stressmax = 600
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -446,7 +446,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
         ax1.set_ylabel("Velocity", fontsize=args.fontsize)
         ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
                  transform=ax1.transAxes, fontsize=args.fontsize)
-        ax1.text(0.01, 1.07, str(round(temp.ti_ad, 4)),
+        ax1.text(0.01, 1.07, str(round(temp.ti_ad, 8)),
                  transform=ax1.transAxes, fontsize=args.fontsize)
         ax2.plot(ph_coord[:-1], stressfld[indsurf, :],
                  color='k', linewidth=lwd, label='Stress')
@@ -704,6 +704,141 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     return None
 
 
+def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, timestep, time):
+    """ calculate stress in the lithosphere """
+    plt = args.plt
+    lwd = args.linewidth
+    base_lith = temp.rcmb + 1 - 0.105 
+
+    tempfld = temp.fields['t'][:,:,0].T
+    stressfld = stress.fields['s'][:,:,0].T
+
+    r_mesh, ph_mesh = np.meshgrid(
+                temp.r_coord + temp.rcmb, temp.ph_coord,
+                indexing='ij')
+
+    temp.fields['t'] = np.ma.masked_where(r_mesh[:,:-1].T < base_lith, tempfld)
+    stressfld = np.ma.masked_where(r_mesh[:,:-1].T < base_lith, stressfld)
+
+    # stress integration over lithosphere
+    stress_lith = np.sum(stressfld, axis = 1)
+    ph_coord = stress.ph_coord
+
+    # plot stress in the lithosphere
+    fig, axis = args.plt.subplots(ncols=1)
+    xmesh, ymesh = stress.x_mesh[0, :-1, :], stress.y_mesh[0, :-1, :]
+    surf = axis.pcolormesh(xmesh, ymesh, stressfld, cmap='gnuplot2_r',
+                                   rasterized=not args.pdf,
+                                   shading='gouraud')
+    surf.set_clim(vmin=0, vmax=300)
+    cbar = plt.colorbar(surf, shrink=args.shrinkcb)
+    cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
+    plt.axis('equal')
+    plt.axis('off')
+    args.plt.figure(fig.number)
+
+    # Annotation with time and step
+    axis.text(1., 0.9, str(round(time, 0)) + ' My',
+              transform=axis.transAxes, fontsize=args.fontsize)
+    axis.text(1., 0.1, str(timestep),
+              transform=axis.transAxes, fontsize=args.fontsize)
+    args.plt.savefig(
+        misc.out_name(args, 'lith').format(temp.step) + '.pdf',
+        format='PDF')
+
+    # velocity
+    vphi = velocity.fields['v'][:, :, 0]
+    vph2 = 0.5 * (vphi + np.roll(vphi, 1, 1))  # interpolate to the same phi
+
+    # position of continents
+    concfld = conc.fields['c']
+    newline = concfld[:, 0, 0]
+    concfld = np.vstack([concfld[:, :, 0].T, newline]).T
+    if args.par_nml['boundaries']['air_layer']:
+        # we are a bit below the surface; delete "-some number"
+        # to be just below
+        # the surface (that is considered plane here); should check if you are
+        # in the thermal boundary layer
+        indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
+        # depth to detect the continents
+        indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
+    else:
+        indsurf = -1
+        # depth to detect continents
+        indcont = -1
+    if args.par_nml['boundaries']['air_layer'] and not args.par_nml['continents']['proterozoic_belts']:
+        continents = np.ma.masked_where(
+            np.logical_or(concfld[indcont, :-1] < 3,
+                          concfld[indcont, :-1] > 4),
+            concfld[indcont, :-1])
+    elif args.par_nml['boundaries']['air_layer'] and args.par_nml['continents']['proterozoic_belts']:
+        continents = np.ma.masked_where(
+            np.logical_or(concfld[indcont, :-1] < 3,
+                          concfld[indcont, :-1] > 5),
+            concfld[indcont, :-1])
+    elif args.par_nml['tracersin']['tracers_weakcrust']:
+        continents = np.ma.masked_where(
+            concfld[indcont, :-1] < 3, concfld[indcont, :-1])
+    else:
+        continents = np.ma.masked_where(
+            concfld[indcont, :-1] < 2, concfld[indcont, :-1])
+
+    # masked array, only continents are true
+    continentsall = continents / continents
+
+    # plot integrated stress in the lithosphere
+    fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
+    ax1.plot(ph_coord[:-1], vph2[-1, :-1], linewidth=lwd, label='Vel')
+    ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
+                color='black', ls='solid', alpha=0.2)
+    ax1.set_ylabel("Velocity", fontsize=args.fontsize)
+    ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
+             transform=ax1.transAxes, fontsize=args.fontsize)
+    ax1.text(0.01, 1.07, str(round(temp.ti_ad, 8)),
+             transform=ax1.transAxes, fontsize=args.fontsize)
+
+    ax2.plot(ph_coord[:-1], stress_lith, 
+            color='k', linewidth=lwd, label='Stress')
+    ax2.set_ylabel("Integrated stress [MPa]", fontsize=args.fontsize)
+
+    velocitymin = -5000
+    velocitymax = 5000
+
+    stressmin = 0
+    stressmax = 11000
+
+    for i in range(len(trench)):
+        ax1.axvline(
+            x=trench[i], ymin=velocitymin, ymax=velocitymax,
+            color='red', ls='dashed', alpha=0.4)
+        ax2.axvline(
+            x=trench[i], ymin=velocitymin, ymax=velocitymax,
+            color='red', ls='dashed', alpha=0.4)
+    for i in range(len(ridge)):
+        ax1.axvline(
+            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
+            color='green', ls='dashed', alpha=0.4)
+        ax2.axvline(
+            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
+            color='green', ls='dashed', alpha=0.4)
+    ax1.set_xlim(0, 2 * np.pi)
+    ax1.set_title(timestep, fontsize=args.fontsize)
+
+    ax1.fill_between(
+        ph_coord[:-1], continentsall * velocitymin, velocitymax,
+        facecolor='#8b6914', alpha=0.2)
+    ax1.set_ylim(velocitymin, velocitymax)
+    ax2.fill_between(
+        ph_coord[:-1], continentsall * stressmin, stressmax,
+        facecolor='#8b6914', alpha=0.2)
+    ax2.set_ylim(stressmin, stressmax)
+
+    figname = misc.out_name(args, 'stresslith').format(temp.step) + '.pdf'
+    fig0.savefig(figname, format='PDF')
+    
+    return None
+
+
 def plates_cmd(args):
     """find positions of trenches and subductions
 
@@ -876,7 +1011,6 @@ def plates_cmd(args):
 
             # Zoom
             if args.zoom is not None:
-                print(args.zoom)
                 if (args.zoom > 360 or args.zoom < 0):
                     print(' *WARNING* ')
                     print('Zoom angle should be positive and less than 360 deg')
@@ -956,6 +1090,8 @@ def plates_cmd(args):
                 args.plt.close(fig)
 
                 # calculate stresses in the lithosphere
+                lithospheric_stress(args, temp, conc, stressdim, velocity, trenches, ridges, 
+                                    timestep, time)
 
 
             # plotting the principal deviatoric stress field
