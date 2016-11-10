@@ -143,8 +143,6 @@ def detect_plates_vzcheck(stagdat_t, stagdat_vp, stagdat_h, rprof_data,
 def detect_plates(args, velocity, age, vrms_surface,
                   file_results, timestep, time):
     """detect plates using derivative of horizontal velocity"""
-    ttransit = 1.78e15  # My
-    yearins = 2.16E7
 
     velocityfld = velocity.fields['v']
     ph_coord = velocity.ph_coord
@@ -211,7 +209,7 @@ def detect_plates(args, velocity, age, vrms_surface,
     if args.plot_age:
         age_surface = np.ma.masked_where(agefld[indsurf, :] < 0.00001,
                                          agefld[indsurf, :])
-        age_surface_dim = age_surface * vrms_surface * ttransit / yearins / 1.e6
+        age_surface_dim = age_surface * vrms_surface * args.ttransit / args.yearins / 1.e6
         agetrench = age_surface_dim[argless_dv]  # age at the trench
     else:
         agetrench = np.zeros(len(argless_dv))
@@ -233,8 +231,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
                 trench, ridge, agetrench, dv_trench, dv_ridge,
                 file_results_subd, file_continents):
     """handle ploting stuff"""
-    ttransit = 1.78e15  # My
-    yearins = 2.16E7
 
     plot_age = args.plot_age
     dimensions = True
@@ -308,7 +304,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
         age_surface = np.ma.masked_where(
             agefld[indsurf, :] < 0.00001, agefld[indsurf, :])
         age_surface_dim =\
-            age_surface * vrms_surface * ttransit / yearins / 1.e6
+            age_surface * vrms_surface * args.ttransit / args.yearins / 1.e6
 
     ph_coord = conc.ph_coord
 
@@ -847,14 +843,9 @@ def plates_cmd(args):
     """
 
     if not args.vzcheck:
-        ttransit = 1.78e15  # My; Earth transit time
-        yearins = 2.16E7
         viscosity_ref = 5.86E22  # Pa.s
         kappa = 1.0e-6   # m^2/2
         mantle = 2890000.0  # m
-
-        # print(args)
-        # print(args.yearins)
 
         if not os.path.exists('results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep)):
             file_results = open(
@@ -934,7 +925,7 @@ def plates_cmd(args):
                     myarg = -1
                 vrms_surface = donnee_averaged[myarg, 0]
 
-            time = temp.ti_ad * vrms_surface * ttransit / yearins / 1.e6
+            time = temp.ti_ad * vrms_surface * args.ttransit / args.yearins / 1.e6
             trenches, ridges, agetrenches, dv_trench, dv_ridge =\
                 detect_plates(args, velocity,
                               age, vrms_surface,
