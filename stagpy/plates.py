@@ -750,16 +750,14 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
     concfld = conc.fields['c']
     newline = concfld[:, 0, 0]
     concfld = np.vstack([concfld[:, :, 0].T, newline]).T
+
     if args.par_nml['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
         # to be just below
-        # the surface (that is considered plane here); should check if you are
-        # in the thermal boundary layer
-        indsurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
+        dsa = args.par_nml['boundaries']['air_thickness']
         # depth to detect the continents
         indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
     else:
-        indsurf = -1
         # depth to detect continents
         indcont = -1
     if args.par_nml['boundaries']['air_layer'] and not args.par_nml['continents']['proterozoic_belts']:

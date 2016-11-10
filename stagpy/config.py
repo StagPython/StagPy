@@ -433,6 +433,7 @@ def parse_args():
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
     core_parser = add_args(core_parser, CORE)
+    core_parser = add_args(core_parser, SCALING)
     core_parser.set_defaults(name=par_nml['ioin']['output_file_stem'])
 
     for sub_cmd, meta in SUB_CMDS.items():
