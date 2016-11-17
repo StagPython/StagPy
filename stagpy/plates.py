@@ -227,8 +227,25 @@ def detect_plates(args, velocity, age, vrms_surface,
     return trench, ridge, agetrench, dv_trench, dv_ridge
 
 
-def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_surface,
-                trench, ridge, agetrench, dv_trench, dv_ridge,
+def plot_plate_limits(args, fig, axis, ridge, trench, ymin, ymax):
+    """plot lines designating ridges and trenches"""
+
+    args.plt.figure(fig.number)
+    for i in range(len(trench)):
+        axis.axvline(
+            x=trench[i], ymin=ymin, ymax=ymax,
+            color='red', ls='dashed', alpha=0.4)
+    for i in range(len(ridge)):
+        axis.axvline(
+            x=ridge[i], ymin=ymin, ymax=ymax,
+            color='green', ls='dashed', alpha=0.4)
+    axis.set_xlim(0, 2 * np.pi)
+    axis.set_ylim(ymin, ymax)
+
+
+def plot_plates(args, velocity, temp, conc, age, stress, timestep,
+                time, vrms_surface, trench, ridge, agetrench,
+                dv_trench, dv_ridge,
                 file_results_subd, file_continents):
     """handle ploting stuff"""
 
@@ -322,11 +339,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
              color='k', linewidth=lwd, label='Temp')
     ax3.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
 
-    velocitymin = -5000
-    velocitymax = 5000
-
-    dvelocitymin = -250000
-    dvelocitymax = 150000
     ax1.fill_between(
         ph_coord[:-1], continents, 1., facecolor='#8B6914', alpha=0.2)
     ax2.fill_between(
@@ -345,7 +357,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     ax3.fill_between(
         ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
         round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
-    ax3.set_ylim(velocitymin, velocitymax)
+    ax3.set_ylim(args.velocitymin, args.velocitymax)
 
     ax1.set_ylabel("Concentration", fontsize=args.fontsize)
     ax2.set_ylabel("Temperature", fontsize=args.fontsize)
@@ -361,27 +373,9 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     topo = np.genfromtxt(fname)
     # rescaling topography!
     topo[:, 1] = topo[:, 1] / (1. - dsa)
-    topomin = -40
-    topomax = 100
 
-    agemin = -50
-    agemax = 500
-
-    for i in range(len(trench)):
-        ax2.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-        ax3.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-    for i in range(len(ridge)):
-        ax2.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
-        ax3.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
-    ax1.set_xlim(0, 2 * np.pi)
+    plot_plate_limits(args, fig0, ax3, ridge, trench,
+                      args.velocitymin, args.velocitymax)
 
     figname = misc.out_name(args, 'sveltempconc').format(temp.step) + '.pdf'
     plt.savefig(figname, format='PDF')
@@ -401,31 +395,21 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
              color='k', linewidth=lwd, label='dv')
     ax2.set_ylabel("dv", fontsize=args.fontsize)
 
-    for i in range(len(trench)):
-        ax1.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-        ax2.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-    for i in range(len(ridge)):
-        ax1.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
-        ax2.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
+    plot_plate_limits(args, fig0, ax1, ridge, trench,
+                      args.velocitymin, args.velocitymax)
+    plot_plate_limits(args, fig0, ax2, ridge, trench,
+                      args.dvelocitymin, args.dvelocitymax)
     ax1.set_xlim(0, 2 * np.pi)
     ax1.set_title(timestep, fontsize=args.fontsize)
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * velocitymin, velocitymax,
+        ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
         facecolor='#8b6914', alpha=0.2)
-    ax1.set_ylim(velocitymin, velocitymax)
+    ax1.set_ylim(args.velocitymin, args.velocitymax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * dvelocitymin, dvelocitymax,
+        ph_coord[:-1], continentsall * args.dvelocitymin, args.dvelocitymax,
         facecolor='#8b6914', alpha=0.2)
-    ax2.set_ylim(dvelocitymin, dvelocitymax)
+    ax2.set_ylim(args.dvelocitymin, args.dvelocitymax)
 
     figname = misc.out_name(args, 'sveldvel').format(temp.step) + '.pdf'
     plt.savefig(figname, format='PDF')
@@ -433,8 +417,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
 
     # plotting velocity and second invariant of stress
     if args.plot_stress:
-        stressmin = 0
-        stressmax = 600
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -446,32 +428,22 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
                  transform=ax1.transAxes, fontsize=args.fontsize)
         ax2.plot(ph_coord[:-1], stressfld[indsurf, :],
                  color='k', linewidth=lwd, label='Stress')
-        ax2.set_ylim(stressmin, stressmax)
-        ax2.set_ylabel("Stress", fontsize=args.fontsize)
+        ax2.set_ylim(args.stressmin, args.stressmax)
+        ax2.set_ylabel("Stress [MPa]", fontsize=args.fontsize)
 
-        for i in range(len(trench)):
-            ax1.axvline(
-                x=trench[i], ymin=velocitymin, ymax=velocitymax,
-                color='red', ls='dashed', alpha=0.4)
-            ax2.axvline(
-                x=trench[i], ymin=velocitymin, ymax=velocitymax,
-                color='red', ls='dashed', alpha=0.4)
-        for i in range(len(ridge)):
-            ax1.axvline(
-                x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-                color='green', ls='dashed', alpha=0.4)
-            ax2.axvline(
-                x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-                color='green', ls='dashed', alpha=0.4)
+        plot_plate_limits(args, fig0, ax1, ridge, trench,
+                          args.velocitymin, args.velocitymax)
+        plot_plate_limits(args, fig0, ax2, ridge, trench,
+                          args.stressmin, args.stressmax)
         ax1.set_xlim(0, 2 * np.pi)
         ax1.set_title(timestep, fontsize=args.fontsize)
 
         ax1.fill_between(
-            ph_coord[:-1], continentsall * velocitymin, velocitymax,
+            ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
             facecolor='#8B6914', alpha=0.2)
-        ax1.set_ylim(velocitymin, velocitymax)
+        ax1.set_ylim(args.velocitymin, args.velocitymax)
         ax2.fill_between(
-            ph_coord[:-1], continentsall * dvelocitymin, dvelocitymax,
+            ph_coord[:-1], continentsall * args.dvelocitymin, args.dvelocitymax,
             facecolor='#8B6914', alpha=0.2)
 
         figname = misc.out_name(args, 'svelstress').format(temp.step) + '.pdf'
@@ -483,10 +455,12 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
-    ax1.set_ylim(velocitymin, velocitymax)
+    ax1.set_ylim(args.velocitymin, args.velocitymax)
     ax1.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes, fontsize=args.fontsize)
+    plot_plate_limits(args, fig1, ax1, ridge, trench,
+                      args.velocitymin, args.velocitymax)
 
     # plotting velocity and age at surface
     if plot_age:
@@ -495,13 +469,15 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
         ax3.axhline(
             y=0, xmin=0, xmax=2 * np.pi,
             color='black', ls='solid', alpha=0.2)
-        ax3.set_ylim(velocitymin, velocitymax)
+        ax3.set_ylim(args.velocitymin, args.velocitymax)
         ax3.set_ylabel("Velocity", fontsize=args.fontsize)
         ax3.text(0.95, 1.07, str(round(time, 0)) + ' My',
                  transform=ax3.transAxes, fontsize=args.fontsize)
         ax3.fill_between(
-            ph_coord[:-1], continentsall * velocitymax, velocitymin,
+            ph_coord[:-1], continentsall * args.velocitymax, args.velocitymin,
             facecolor='#8B6914', alpha=0.2)
+        plot_plate_limits(args, fig2, ax3, ridge, trench,
+                          args.velocitymin, args.velocitymax)
 
     times_subd = []
     age_subd = []
@@ -509,9 +485,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     ph_trench_subd = []
     ph_cont_subd = []
     for i in range(len(trench)):
-        ax1.axvline(
-            x=trench[i], ymin=topomin, ymax=topomax,
-            color='red', ls='dashed', alpha=0.4)
         # detection of the distance in between subduction and continent
         ph_coord_noendpoint = ph_coord[:-1]
         # angdistance = 2.*np.arcsin(abs(np.sin(
@@ -576,9 +549,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
                                              shrinkA=0, shrinkB=0))
 
         if plot_age:
-            ax3.axvline(
-                x=trench[i], ymin=agemin, ymax=agemax,
-                color='red', ls='dashed', alpha=0.4)
             if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
                 if continentpos - trench[i] < 0:
                     ax3.annotate('', xy=(trench[i] - distancecont, 2000),
@@ -616,12 +586,8 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
                                  arrowprops=dict(arrowstyle="->", lw="2",
                                                  shrinkA=0, shrinkB=0))
 
-    for i in range(len(ridge)):
-        ax1.axvline(
-            x=ridge[i], ymin=topomin, ymax=topomax,
-            color='green', ls='dashed', alpha=0.4)
     ax1.fill_between(
-        ph_coord[:-1], continentsall * velocitymin, velocitymax,
+        ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
         facecolor='#8B6914', alpha=0.2)
     ax2.set_ylabel("Topography [km]", fontsize=args.fontsize)
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -635,45 +601,28 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep, time, vrms_su
     mask = dtopo > 0
     water = deepcopy(dtopo)
     water[mask] = 0
-    ax2.set_ylim(topomin, topomax)
+    ax2.set_ylim(args.topomin, args.topomax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * topomax, topomin,
+        ph_coord[:-1], continentsall * args.topomax, args.topomin,
         facecolor='#8B6914', alpha=0.2)
-    for i in range(len(trench)):
-        ax2.axvline(
-            x=trench[i], ymin=topomin, ymax=topomax,
-            color='red', ls='dashed', alpha=0.4)
-    for i in range(len(ridge)):
-        ax2.axvline(
-            x=ridge[i], ymin=topomin, ymax=topomax,
-            color='green', ls='dashed', alpha=0.4)
+    plot_plate_limits(args, fig1, ax2, ridge, trench,
+                      args.topomin, args.topomax)
     ax1.set_title(timestep, fontsize=args.fontsize)
     figname = misc.out_name(args, 'sveltopo').format(temp.step) + '.pdf'
     fig1.savefig(figname, format='PDF')
     plt.close(fig1)
 
     if plot_age:
-        for i in range(len(ridge)):
-            ax3.axvline(
-                x=ridge[i], ymin=agemin, ymax=agemax,
-                color='green', ls='dashed', alpha=0.4)
-
         ax4.set_ylabel("Seafloor age [My]", fontsize=args.fontsize)
         # in dimensions
         ax4.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
         ax4.set_xlim(0, 2 * np.pi)
         ax4.fill_between(
-            ph_coord[:-1], continentsall * agemax, agemin,
+            ph_coord[:-1], continentsall * args.agemax, args.agemin,
             facecolor='#8B6914', alpha=0.2)
-        ax4.set_ylim(agemin, agemax)
-        for i in range(len(trench)):
-            ax4.axvline(
-                x=trench[i], ymin=agemin, ymax=agemax,
-                color='red', ls='dashed', alpha=0.4)
-        for i in range(len(ridge)):
-            ax4.axvline(
-                x=ridge[i], ymin=agemin, ymax=agemax,
-                color='green', ls='dashed', alpha=0.4)
+        ax4.set_ylim(args.agemin, args.agemax)
+        plot_plate_limits(args, fig2, ax4, ridge, trench,
+                          args.agemin, args.agemax)
         ax3.set_title(timestep, fontsize=args.fontsize)
         figname = misc.out_name(args, 'svelage').format(temp.step) + '.pdf'
         fig2.savefig(figname, format='PDF')
@@ -716,8 +665,11 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
     temp.fields['t'] = np.ma.masked_where(r_mesh[:, :-1].T < base_lith, tempfld)
     stressfld = np.ma.masked_where(r_mesh[:, :-1].T < base_lith, stressfld)
 
-    # stress integration over lithosphere
-    stress_lith = np.sum(stressfld, axis=1)
+    # stress integration in the lithosphere
+    ddim = args.par_nml['geometry']['d_dimensional']
+    dzm = np.array((stress.r_coord[1:]-stress.r_coord[:-1]) * ddim)
+    # dzlith=(dzm[stress.r_coord[1:]>(base_lith-stress.rcmb)])
+    stress_lith = np.sum((stressfld[:, 1:]*dzm.T) / 1e6, axis=1)
     ph_coord = stress.ph_coord
 
     # plot stress in the lithosphere
@@ -793,41 +745,25 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
 
     ax2.plot(ph_coord[:-1], stress_lith,
              color='k', linewidth=lwd, label='Stress')
-    ax2.set_ylabel("Integrated stress [MPa]", fontsize=args.fontsize)
+    ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]", fontsize=args.fontsize)
 
-    velocitymin = -5000
-    velocitymax = 5000
-
-    stressmin = 0
-    stressmax = 11000
-
-    for i in range(len(trench)):
-        ax1.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-        ax2.axvline(
-            x=trench[i], ymin=velocitymin, ymax=velocitymax,
-            color='red', ls='dashed', alpha=0.4)
-    for i in range(len(ridge)):
-        ax1.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
-        ax2.axvline(
-            x=ridge[i], ymin=velocitymin, ymax=velocitymax,
-            color='green', ls='dashed', alpha=0.4)
+    plot_plate_limits(args, fig0, ax1, ridge, trench,
+                      args.velocitymin, args.velocitymax)
+    plot_plate_limits(args, fig0, ax2, ridge, trench,
+                      args.stressmin, args.lstressmax)
     ax1.set_xlim(0, 2 * np.pi)
     ax1.set_title(timestep, fontsize=args.fontsize)
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * velocitymin, velocitymax,
+        ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
         facecolor='#8b6914', alpha=0.2)
-    ax1.set_ylim(velocitymin, velocitymax)
+    ax1.set_ylim(args.velocitymin, args.velocitymax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * stressmin, stressmax,
+        ph_coord[:-1], continentsall * args.stressmin, args.lstressmax,
         facecolor='#8b6914', alpha=0.2)
-    ax2.set_ylim(stressmin, stressmax)
+    ax2.set_ylim(args.stressmin, args.lstressmax)
 
-    figname = misc.out_name(args, 'stresslith').format(temp.step) + '.pdf'
+    figname = misc.out_name(args, 'svelslith').format(temp.step) + '.pdf'
     fig0.savefig(figname, format='PDF')
 
     return None
@@ -1100,8 +1036,8 @@ def plates_cmd(args):
                 cmap2.set_over('m')
 
                 # plotting principal deviatoric stress
-                sphi = stressvec.fields['sx'][:, :, 0]
-                sr = stressvec.fields['sy'][:, :, 0]
+                sphi = stressvec.fields['sy'][:, :, 0]
+                sr = stressvec.fields['sz'][:, :, 0]
                 stressx = -sphi * np.sin(ph_mesh) + sr * np.cos(ph_mesh)
                 stressy = sphi * np.cos(ph_mesh) + sr * np.sin(ph_mesh)
                 step = np.int(np.size(ph_mesh[0, :]) / 100.)

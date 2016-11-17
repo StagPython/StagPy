@@ -53,6 +53,31 @@ SCALING = OrderedDict((
                       True, 'Transit time in My')),
 ))
 
+PLOTTING = OrderedDict((
+    ('topomin', Conf(-40, False, None, {},
+                     True, 'Min range for topography plots')),
+    ('topomax', Conf(100, False, None, {},
+                      True, 'Max range for topography plots')),
+    ('agemin', Conf(-50, False, None, {},
+                     True, 'Min range for age plots')),
+    ('agemax', Conf(500, False, None, {},
+                      True, 'Max range for age plots')),
+    ('velocitymin', Conf(-5000, False, None, {},
+                     True, 'Min range for velocity plots')),
+    ('velocitymax', Conf(5000, False, None, {},
+                      True, 'Max range for velocity plots')),
+    ('dvelocitymin', Conf(-250000, False, None, {},
+                     True, 'Min range for velocity derivative plots')),
+    ('dvelocitymax', Conf(150000, False, None, {},
+                      True, 'Max range for velocity derivative plots')),
+    ('stressmin', Conf(0, False, None, {},
+                     True, 'Min range for stress plots')),
+    ('stressmax', Conf(800, False, None, {},
+                      True, 'Max range for stress plots')),
+    ('lstressmax', Conf(50, False, None, {},
+                      True, 'Max range for lithospheric stress plots')),
+))
+
 FIELD = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
@@ -434,6 +459,7 @@ def parse_args():
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
     core_parser = add_args(core_parser, CORE)
     core_parser = add_args(core_parser, SCALING)
+    core_parser = add_args(core_parser, PLOTTING)
     core_parser.set_defaults(name=par_nml['ioin']['output_file_stem'])
 
     for sub_cmd, meta in SUB_CMDS.items():
