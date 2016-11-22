@@ -298,7 +298,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     rmin, rmax, rcmb = rbounds
     linestyles = ('-', '--', 'dotted', ':')
 
-    fig, ax = plt.subplots()
+    fig, axis = plt.subplots()
 
     def chunks(mydata, nbz):
         """Divide vector mydata into array"""
@@ -313,17 +313,17 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
 
     for iid in range(donnee_averaged.shape[1]):
         if len(vartuple) > 1:
-            ax.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
+            axis.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
                     linestyle=linestyles[iid], color='b',
                     label=quant[iid + 1])
         else:
-            ax.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
+            axis.plot(donnee_averaged[:, iid], radius[0, :], linewidth=lwdth,
                     linestyle=linestyles[iid], color='b')
 
-    ax.set_ylim([rmin - 0.05, rmax + 0.05])
+    axis.set_ylim([rmin - 0.05, rmax + 0.05])
 
     if quant[0] == 'Viscosity':
-        ax.set_xscale('log')
+        axis.set_xscale('log')
 
     # plot solidus as a function of depth if viscosity reduction due to melting
     # is applied with linear dependency
@@ -331,7 +331,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
             and args.par_nml['melt']['solidus_function'].lower() == 'linear':
         tsol0 = args.par_nml['melt']['tsol0']
         if args.par_nml['switches']['tracers']:
-            deltaTsol_water = args.par_nml['melt']['deltaTsol_water']
+            deltatsol_water = args.par_nml['melt']['deltaTsol_water']
         dtsol_dz = args.par_nml['melt']['dtsol_dz']
         spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
         if spherical:
@@ -340,22 +340,27 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
             rcmb = 0.
         tsol = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :])
         if args.par_nml['switches']['tracers']:
-            tsol3 = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :])-deltaTsol_water*0.3
-            tsol5 = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :])-deltaTsol_water*0.6
+            tsol3 = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :]) - \
+                deltatsol_water * 0.3
+            tsol5 = tsol0 + dtsol_dz * (rcmb + 1. - radius[0, :]) - \
+                deltatsol_water * 0.6
 
-        ax.plot(tsol, radius[0, :], ls='-', color='k', dashes=[4, 3],label='solidus')
+        axis.plot(tsol, radius[0, :], ls='-', color='k', dashes=[4, 3],
+                  label='solidus')
         if args.par_nml['switches']['tracers']:
-            ax.plot(tsol3, radius[0, :], ls='-', color='g', dashes=[4, 3],label='solidus C_water = 0.45%')
-            ax.plot(tsol5, radius[0, :], ls='-', color='r', dashes=[4, 3],label='solidus C_water = 0.90%')
+            axis.plot(tsol3, radius[0, :], ls='-', color='g', dashes=[4, 3],
+                      label='solidus C_water = 0.45%')
+            axis.plot(tsol5, radius[0, :], ls='-', color='r', dashes=[4, 3],
+                      label='solidus C_water = 0.90%')
 
-        ax.set_xlim([0, 1.2])
-    ax.set_xlabel(quant[0], fontsize=ftsz)
-    ax.set_ylabel('Coordinate z', fontsize=ftsz)
+        axis.set_xlim([0, 1.2])
+    axis.set_xlabel(quant[0], fontsize=ftsz)
+    axis.set_ylabel('Coordinate z', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
     plt.yticks(fontsize=ftsz)
     # legend
     if len(vartuple) > 1:
-        ax.legend(loc='center left', fontsize=ftsz,
+        axis.legend(loc='center left', fontsize=ftsz,
                   columnspacing=1.0, labelspacing=0.0,
                   handletextpad=0.1, handlelength=1.5,
                   fancybox=True, shadow=False)
@@ -378,7 +383,7 @@ def plotaveragedprofiles(quant, vartuple, data, tsteps, rbounds, args):
     if args.par_nml['switches']['cont_tracers'] and\
             quant[0] == 'Viscosity':
         d_archean = args.par_nml['tracersin']['d_archean']
-        plt.axhline(y=radius[0, myarg]-d_archean, xmin=0, xmax=plt.xlim()[1],
+        plt.axhline(y=radius[0, myarg] - d_archean, xmin=0, xmax=plt.xlim()[1],
                     color='#7b68ee', alpha=0.2)
 
     plt.savefig("fig_" + "average" + quant[0].replace(' ', '_') + ".pdf",

@@ -4,6 +4,7 @@ import numpy as np
 from . import constants, misc
 from .stagdata import BinData
 
+
 def plot_scalar(args, stgdat, var):
     """var: one of the key of constants.FIELD_VAR_LIST"""
     plt = args.plt
@@ -11,9 +12,6 @@ def plot_scalar(args, stgdat, var):
         fld = stgdat.calc_stream()
     else:
         fld = stgdat.fields[var]
-    
-    #test = ma.masked_where(fld2<3,fld2) # plotting continents, to-do
-    #test = test/test # plotting continents, to-do
 
     # adding a row at the end to have continuous field
     if stgdat.geom == 'annulus':

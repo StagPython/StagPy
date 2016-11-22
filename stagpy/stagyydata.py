@@ -317,7 +317,7 @@ class _Step:
     @property
     def irsnap(self):
         """Radial snap corresponding to time step"""
-        _ = self.sdat.rprof
+        self.sdat.rprof
         if self._irsnap is UNDETERMINED:
             self._irsnap = None
         return self._irsnap
@@ -333,7 +333,7 @@ class _Step:
     @property
     def itsnap(self):
         """Time info entry corresponding to time step"""
-        _ = self.sdat.tseries
+        self.sdat.tseries
         if self._itsnap is UNDETERMINED:
             self._itsnap = None
         return self._itsnap
@@ -437,6 +437,7 @@ class StagyyData:
     """Offer a generic interface to StagYY output data"""
 
     def __init__(self, args):
+        """Generic lazy StagYY output data accessors"""
         # currently, args used to find name of files.
         # This module should be independant of args.
         # Only parameters should be path and par_dflt,

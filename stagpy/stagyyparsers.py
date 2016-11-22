@@ -202,11 +202,11 @@ def fields(fieldfile, only_header=False, only_istep=False):
             # data from file is transposed to obtained a field
             # array indexed with (x, y, z, block), as in StagYY
             flds[:,
-                 icpu[3]*npc[0]:(icpu[3]+1)*npc[0]+header['xyp'],  # x
-                 icpu[2]*npc[1]:(icpu[2]+1)*npc[1]+header['xyp'],  # y
-                 icpu[1]*npc[2]:(icpu[1]+1)*npc[2],  # z
-                 icpu[0]*nbk:(icpu[0]+1)*nbk  # block
-                ] = np.transpose(data_cpu.reshape(
+                 icpu[3] * npc[0]:(icpu[3] + 1) * npc[0] + header['xyp'],  # x
+                 icpu[2] * npc[1]:(icpu[2] + 1) * npc[1] + header['xyp'],  # y
+                 icpu[1] * npc[2]:(icpu[1] + 1) * npc[2],  # z
+                 icpu[0] * nbk:(icpu[0] + 1) * nbk  # block
+                 ] = np.transpose(data_cpu.reshape(
                     (nbk, npc[2], npc[1] + header['xyp'],
                      npc[0] + header['xyp'], nval)))
     return header, flds

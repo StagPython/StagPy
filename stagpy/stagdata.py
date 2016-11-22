@@ -216,10 +216,10 @@ class BinData:
 
         self.fields = {}
         if self.par_type == 'vp':
-            fld_names = ['u', 'v', 'w', 'p'] 
+            fld_names = ['u', 'v', 'w', 'p']
         elif self.par_type == 'sx':
-            fld_names = ['sx', 'sy', 'sz', 'x'] 
-        else: 
+            fld_names = ['sx', 'sy', 'sz', 'x']
+        else:
             fld_names = [self.var]
         for fld_name, fld in zip(fld_names, flds):
             if self.ntb == 1:
