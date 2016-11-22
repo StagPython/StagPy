@@ -291,8 +291,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
         indcont = np.argmin(abs((1 - dsa) - np.array(velocity.r_coord))) - 10
     else:
         indsurf = -1
-        # depth to detect continents
-        indcont = -1
+        indcont = -1  # depth to detect continents
 
     if args.par_nml['boundaries']['air_layer'] and not args.par_nml['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
@@ -372,7 +371,8 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
     fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
     topo = np.genfromtxt(fname)
     # rescaling topography!
-    topo[:, 1] = topo[:, 1] / (1. - dsa)
+    if args.par_nml['boundaries']['air_layer']:
+        topo[:, 1] = topo[:, 1] / (1. - dsa)
 
     plot_plate_limits(args, fig0, ax3, ridge, trench,
                       args.velocitymin, args.velocitymax)
@@ -548,44 +548,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
                              arrowprops=dict(arrowstyle="->", lw="2",
                                              shrinkA=0, shrinkB=0))
 
-        if plot_age:
-            if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
-                if continentpos - trench[i] < 0:
-                    ax3.annotate('', xy=(trench[i] - distancecont, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                else:  # continent is on the right
-                    ax3.annotate('', xy=(trench[i] + distancecont, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-            else:  # distance over boundary
-                if continentpos - trench[i] < 0:
-                    ax3.annotate('', xy=(2. * np.pi, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="-", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                    ax3.annotate('', xy=(continentpos, 2000),
-                                 xycoords='data', xytext=(0, 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                else:
-                    ax3.annotate('', xy=(0, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="-", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                    ax3.annotate('', xy=(continentpos, 2000),
-                                 xycoords='data', xytext=(2. * np.pi, 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-
     ax1.fill_between(
         ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
         facecolor='#8B6914', alpha=0.2)
@@ -596,11 +558,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
              topo[:, 1] * l_scale,
              color='black')
     ax2.set_xlim(0, 2 * np.pi)
-    dtopo = deepcopy(
-        topo[:, 1] * l_scale)
-    mask = dtopo > 0
-    water = deepcopy(dtopo)
-    water[mask] = 0
     ax2.set_ylim(args.topomin, args.topomax)
     ax2.fill_between(
         ph_coord[:-1], continentsall * args.topomax, args.topomin,
@@ -769,6 +726,50 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
     return None
 
 
+def open_files(args):
+    global file_results
+    global file_results_subd
+    global file_continents
+    if not os.path.exists('results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep)):
+        file_results = open(
+            'results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep),
+            'w')
+        file_results.write('# it  time  ph_trench vel_trench age_trench\n')
+        file_results_subd = open(
+            'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep),
+            'w')
+        file_results_subd.write(
+            '#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
+        spherical = args.par_nml['geometry'][
+            'shape'].lower() == 'spherical'
+        if args.par_nml['switches']['cont_tracers'] and spherical:
+            file_continents = open(
+                'results_continents_{}_{}_{}.dat'.format(*args.timestep),
+                'w')
+        else:
+            file_continents = None
+    else:
+        print(' *WARNING* ')
+        print(' The files with results',
+              'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep),
+              'cannot be overwritten')
+        print(' Exiting the code ')
+        sys.exit()
+
+    return None
+
+
+def close_files(args):
+    file_results.close()
+    file_results_subd.close()
+    spherical = args.par_nml['geometry'][
+                'shape'].lower() == 'spherical'
+    if args.par_nml['switches']['cont_tracers'] and spherical:
+        file_continents.close()
+
+    return None
+
+
 def plates_cmd(args):
     """find positions of trenches and subductions
 
@@ -777,36 +778,7 @@ def plates_cmd(args):
     """
 
     if not args.vzcheck:
-        viscosity_ref = 5.86E22  # Pa.s
-        kappa = 1.0e-6   # m^2/2
-        mantle = 2890000.0  # m
-
-        if not os.path.exists('results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep)):
-            file_results = open(
-                'results_plate_velocity_{}_{}_{}.dat'.format(*args.timestep),
-                'w')
-            file_results.write('# it  time  ph_trench vel_trench age_trench\n')
-            file_results_subd = open(
-                'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep),
-                'w')
-            file_results_subd.write(
-                '#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
-            spherical = args.par_nml['geometry'][
-                'shape'].lower() == 'spherical'
-            if args.par_nml['switches']['cont_tracers'] and spherical:
-                file_continents = open(
-                    'results_continents_{}_{}_{}.dat'.format(*args.timestep),
-                    'w')
-            else:
-                file_continents = None
-        else:
-            print(' *WARNING* ')
-            print(' The files with results',
-                  'results_distance_subd_{}_{}_{}.dat'.format(*args.timestep),
-                  'cannot be overwritten')
-            print(' Exiting the code ')
-            sys.exit()
-
+        open_files(args)
         for timestep in range(*args.timestep):
             print('Treating timestep', timestep)
 
@@ -829,8 +801,8 @@ def plates_cmd(args):
                 newline = stressfld[:, 0, 0]
                 stressfld = np.vstack([stressfld[:, :, 0].T, newline])
                 stressdim = stress
-                stressdim.fields['s'] = stressdim.fields[
-                    's'] * kappa * viscosity_ref / mantle**2 / 1.e6
+                stressdim.fields['s'] = stressdim.fields['s'] * \
+                    args.kappa * args.viscosity_ref / args.mantle**2 / 1.e6
             else:
                 stress = []
 
@@ -1075,10 +1047,7 @@ def plates_cmd(args):
                     format='PDF')
                 args.plt.close(fig)
 
-        file_results.close()
-        file_results_subd.close()
-        if args.par_nml['switches']['cont_tracers'] and spherical:
-            file_continents.close()
+        close_files(args)
 
     if args.vzcheck:
         seuil_memz = 0

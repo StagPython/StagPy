@@ -51,6 +51,12 @@ SCALING = OrderedDict((
                      True, 'Year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
                       True, 'Transit time in My')),
+    ('kappa', Conf(1.0e-6, False, None, {},
+                      True, 'Earth mantle thermal diffusivity m2/s')),
+    ('mantle', Conf(2890.0e3, False, None, {},
+                      True, 'Thickness of Earth mantle m')),
+    ('viscosity_ref', Conf(5.86e22, False, None, {},
+                      True, 'Reference viscosity Pa s')),
 ))
 
 PLOTTING = OrderedDict((
