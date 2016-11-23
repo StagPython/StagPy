@@ -895,8 +895,7 @@ def plates_cmd(args):
                 if args.zoom is not None:
                     if args.zoom > 360 or args.zoom < 0:
                         print(' *WARNING* ')
-                        print('Zoom angle should be positive 
-                              and less than 360 deg')
+                        print('Zoom angle should be positive and less than 360 deg')
                         print(' Exiting the code ')
                         sys.exit()
                     if args.zoom > 315. or args.zoom <= 45:
