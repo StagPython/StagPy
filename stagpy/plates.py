@@ -227,23 +227,23 @@ def detect_plates(args, velocity, age, vrms_surface,
     return trench, ridge, agetrench, dv_trench, dv_ridge
 
 
-def plot_plate_limits(args, fig, ax, ridge, trench, ymin, ymax):
+def plot_plate_limits(args, fig, axis, ridge, trench, ymin, ymax):
     """plot lines designating ridges and trenches"""
 
     args.plt.figure(fig.number)
     for i in range(len(trench)):
-        ax.axvline(
+        axis.axvline(
             x=trench[i], ymin=ymin, ymax=ymax,
             color='red', ls='dashed', alpha=0.4)
     for i in range(len(ridge)):
-        ax.axvline(
+        axis.axvline(
             x=ridge[i], ymin=ymin, ymax=ymax,
             color='green', ls='dashed', alpha=0.4)
-    ax.set_xlim(0, 2 * np.pi)
-    ax.set_ylim(ymin, ymax)
+    axis.set_xlim(0, 2 * np.pi)
+    axis.set_ylim(ymin, ymax)
 
 
-def plot_plate_limits2D(args, fig, ax, ridge, trench):
+def plot_plate_limits_field(args, fig, ax, ridge, trench):
     """plot arrows designating ridges and trenches in 2D field plots"""
 
     args.plt.figure(fig.number)
@@ -835,8 +835,8 @@ def plates_cmd(args):
                     detect_plates(args, velocity,
                                   age, vrms_surface,
                                   fids, timestep, time)
-                plot_plates(args, velocity, temp, conc, age, stress, timestep, time,
-                            vrms_surface, trenches, ridges, agetrenches,
+                plot_plates(args, velocity, temp, conc, age, stress, timestep,
+                            time, vrms_surface, trenches, ridges, agetrenches,
                             dv_trench, dv_ridge, fids)
 
                 # prepare for continent plotting
@@ -848,7 +848,7 @@ def plates_cmd(args):
                 continentsfld = continentsfld / continentsfld
 
                 # plot viscosity field with position of trenches and ridges
-                fig, ax, surf = plot_scalar(args, viscosity, 'n')
+                fig, axis, surf = plot_scalar(args, viscosity, 'n')
                 etamax = args.par_nml['viscosity']['eta_max']
                 surf.set_clim(vmin=1e-2, vmax=etamax)
 
@@ -857,62 +857,63 @@ def plates_cmd(args):
 
                 # plotting continents
                 xmesh, ymesh = conc.x_mesh[0, :, :], conc.y_mesh[0, :, :]
-                surf2 = ax.pcolormesh(xmesh, ymesh, continentsfld,
-                                      rasterized=not args.pdf, cmap='cool_r', vmin=0, vmax=0,
-                                      shading='goaround')
+                surf2 = axis.pcolormesh(xmesh, ymesh, continentsfld,
+                                        rasterized=not args.pdf, cmap='cool_r',
+                                        vmin=0, vmax=0, shading='goaround')
                 cmap2 = args.plt.cm.ocean
                 cmap2.set_over('m')
 
                 # plotting velocity vectors
                 vphi = velocity.fields['v'][:, :, 0]
-                vr = velocity.fields['w'][:, :, 0]
+                velr = velocity.fields['w'][:, :, 0]
                 r_mesh, ph_mesh = np.meshgrid(
                     velocity.r_coord + velocity.rcmb, velocity.ph_coord,
                     indexing='ij')
-                velx = -vphi * np.sin(ph_mesh) + vr * np.cos(ph_mesh)
-                vely = vphi * np.cos(ph_mesh) + vr * np.sin(ph_mesh)
+                velx = -vphi * np.sin(ph_mesh) + velr * np.cos(ph_mesh)
+                vely = vphi * np.cos(ph_mesh) + velr * np.sin(ph_mesh)
                 # xmesh, ymesh = velocity.x_mesh[0, :, :], velocity.y_mesh[0, :, :]
                 step = np.int(np.size(ph_mesh[0, :]) / 100.)
-                ax.quiver(xmesh[::step, ::step], ymesh[::step, ::step],
-                          velx[::step, ::step].T, vely[::step, ::step].T)
+                axis.quiver(xmesh[::step, ::step], ymesh[::step, ::step],
+                            velx[::step, ::step].T, vely[::step, ::step].T)
 
                 # Annotation with time and step
-                ax.text(1., 0.9, str(round(time, 0)) + ' My',
-                        transform=ax.transAxes, fontsize=args.fontsize)
-                ax.text(1., 0.1, str(timestep),
-                        transform=ax.transAxes, fontsize=args.fontsize)
+                axis.text(1., 0.9, str(round(time, 0)) + ' My',
+                          transform=axis.transAxes, fontsize=args.fontsize)
+                axis.text(1., 0.1, str(timestep),
+                          transform=axis.transAxes, fontsize=args.fontsize)
 
                 # Put arrow where ridges and trenches are
-                plot_plate_limits2D(args, fig, ax, ridges, trenches)
+                plot_plate_limits_field(args, fig, axis, ridges, trenches)
 
                 # Save figure
                 args.plt.tight_layout()
                 args.plt.savefig(
-                    misc.out_name(args, 'eta').format(viscosity.step) + '.pdf',
-                    format='PDF')
+                    misc.out_name(args, 'eta').format(viscosity.step) 
+                    + '.pdf', format='PDF')
 
                 # Zoom
                 if args.zoom is not None:
-                    if (args.zoom > 360 or args.zoom < 0):
+                    if args.zoom > 360 or args.zoom < 0:
                         print(' *WARNING* ')
-                        print('Zoom angle should be positive and less than 360 deg')
+                        print('Zoom angle should be positive 
+                              and less than 360 deg')
                         print(' Exiting the code ')
                         sys.exit()
-                    if (args.zoom > 315. or args.zoom <= 45):
+                    if args.zoom > 315. or args.zoom <= 45:
                         ladd, radd, uadd, dadd = 0.1, 0.05, 0.8, 0.8
-                    elif (args.zoom > 45. and args.zoom <= 135):
+                    elif args.zoom > 45. and args.zoom <= 135:
                         ladd, radd, uadd, dadd = 0.8, 0.8, 0.05, 0.1
-                    elif (args.zoom > 135. and args.zoom <= 225):
+                    elif args.zoom > 135. and args.zoom <= 225:
                         ladd, radd, uadd, dadd = 0.05, 0.1, 0.8, 0.8
                     else:
                         ladd, radd, uadd, dadd = 0.8, 0.8, 0.1, 0.05
-                    xzoom = (viscosity.rcmb + 1) * np.cos(args.zoom / 180. * np.pi)
-                    yzoom = (viscosity.rcmb + 1) * np.sin(args.zoom / 180. * np.pi)
-                    ax.set_xlim(xzoom - ladd, xzoom + radd)
-                    ax.set_ylim(yzoom - dadd, yzoom + uadd)
+                    xzoom = (rcmb + 1) * np.cos(args.zoom / 180. * np.pi)
+                    yzoom = (rcmb + 1) * np.sin(args.zoom / 180. * np.pi)
+                    axis.set_xlim(xzoom - ladd, xzoom + radd)
+                    axis.set_ylim(yzoom - dadd, yzoom + uadd)
                     args.plt.savefig(
-                        misc.out_name(args, 'etazoom').format(viscosity.step) + '.pdf',
-                        format='PDF')
+                        misc.out_name(args, 'etazoom').format(viscosity.step)
+                        + '.pdf', format='PDF')
                 args.plt.close(fig)
 
                 # plot stress field with position of trenches and ridges
@@ -929,13 +930,13 @@ def plates_cmd(args):
                               transform=axis.transAxes, fontsize=args.fontsize)
 
                     # Put arrow where ridges and trenches are
-                    plot_plate_limits2D(args, fig, axis, ridges, trenches)
+                    plot_plate_limits_field(args, fig, axis, ridges, trenches)
 
                     # Save figure
                     args.plt.tight_layout()
                     args.plt.savefig(
-                        misc.out_name(args, 's').format(viscosity.step) + '.pdf',
-                        format='PDF')
+                        misc.out_name(args, 's').format(viscosity.step)
+                        + '.pdf', format='PDF')
 
                     # Zoom
                     if args.zoom is not None:
@@ -947,7 +948,8 @@ def plates_cmd(args):
                     args.plt.close(fig)
 
                     # calculate stresses in the lithosphere
-                    lithospheric_stress(args, temp, conc, stressdim, velocity, trenches, ridges,
+                    lithospheric_stress(args, temp, conc, stressdim,
+                                        velocity, trenches, ridges,
                                         timestep, time)
 
                 # plotting the principal deviatoric stress field
@@ -961,8 +963,8 @@ def plates_cmd(args):
                     # plotting continents
                     xmesh, ymesh = conc.x_mesh[0, :, :], conc.y_mesh[0, :, :]
                     surf2 = axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                            rasterized=not args.pdf, cmap='cool_r',
-                                            vmin=0, vmax=0,
+                                            rasterized=not args.pdf, 
+                                            cmap='cool_r', vmin=0, vmax=0,
                                             shading='goaround')
                     cmap2 = args.plt.cm.ocean
                     cmap2.set_over('m')
@@ -975,7 +977,8 @@ def plates_cmd(args):
                     step = np.int(np.size(ph_mesh[0, :]) / 100.)
                     # xmesh, ymesh = sphi.x_mesh[0, :, :], sr.y_mesh[0, :, :]
                     axis.quiver(xmesh[::step, ::step], ymesh[::step, ::step],
-                                stressx[::step, ::step].T, stressy[::step, ::step].T)
+                                stressx[::step, ::step].T, 
+                                stressy[::step, ::step].T)
                     cbar = plt.colorbar(surf, shrink=args.shrinkcb)
                     cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
 
@@ -986,12 +989,12 @@ def plates_cmd(args):
                               transform=axis.transAxes, fontsize=args.fontsize)
 
                     # Put arrow where ridges and trenches are
-                    plot_plate_limits2D(args, fig, axis, ridges, trenches)
+                    plot_plate_limits_field(args, fig, axis, ridges, trenches)
 
                     args.plt.tight_layout()
                     args.plt.savefig(
-                        misc.out_name(args, 'sx').format(viscosity.step) + '.pdf',
-                        format='PDF')
+                        misc.out_name(args, 'sx').format(viscosity.step) +
+                        '.pdf', format='PDF')
                     args.plt.close(fig)
 
     if args.vzcheck:
