@@ -1,0 +1,87 @@
+&switches
+/
+
+&geometry
+    shape = 'spherical'
+    r_cmb = 1.19
+    nxtot = 1
+    nytot = 256
+    nztot = 32
+    aspect_ratio = 1.0, 8.0
+    zspacing_mode = 'constant'
+/
+
+&refstate
+    ra0 = 1.e4
+    rh = 0.0
+    tref_surf = 1.0
+/
+
+&boundaries
+    x_bc = 'ww'
+    y_bc = 'ww'
+    topt_mode = 'iso'
+    topt_val = 0.0
+    bott_mode = 'iso'
+    bott_val = 1.0
+    topv_mode = 'free-slip'
+    botv_mode = 'free-slip'
+/
+
+&t_init
+    imode_t = 'conductive'
+    amp_t = 0.05
+    t0_init = 0.5
+    blthick = 0.03
+/
+
+&timein
+    iord = 2
+    nsteps = 3000
+    nwrite = 30
+    alpha_adv = 0.6
+    alpha_diff = 0.6
+    advection_scheme = 'TVD'
+/
+
+&viscosity
+    ietalaw = 0
+/
+
+&iteration
+    errmax = 0.001
+    relax_kernel = 'direct'
+/
+
+&multi
+/
+
+&compin
+/
+
+&phase
+/
+
+&melt
+/
+
+&continents
+/
+
+&tracersin
+/
+
+&grainsize
+/
+
+&plot
+/
+
+&ioin
+    use_hdf5 = .false.
+    hdf5_input_folder = '+hdf5'
+    hdf5_output_folder = '+hdf5'
+    output_file_stem = '+op/test'
+    t_write = .true.
+    vp_write = .true.
+/
