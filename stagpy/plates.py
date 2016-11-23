@@ -165,6 +165,9 @@ def detect_plates(args, velocity, age, vrms_surface,
     # velocity derivation
     dvph2 = (np.diff(vph2[indsurf, :]) / (ph_coord[0] * 2.))
 
+    io_surface(timestep, time, fids[6], dvph2)
+    io_surface(timestep, time, fids[7], vph2[indsurf, :-1])
+
     # prepare stuff to find trenches and ridges
     if args.par_nml['boundaries']['air_layer']:
         myorder_trench = 15
@@ -269,7 +272,7 @@ def plot_plate_limits_field(args, fig, ax, ridge, trench):
 
 
 def plot_plates(args, velocity, temp, conc, age, stress, timestep,
-                time, vrms_surface, trench, ridge, agetrench,
+                time, vrms_surface, trench, ridge, agetrench, topo,
                 dv_trench, dv_ridge, fids):
     """handle ploting stuff"""
 
@@ -390,13 +393,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
              transform=ax1.transAxes, fontsize=args.fontsize)
     ax1.text(0.01, 1.07, str(round(temp.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
-
-    # topography
-    fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
-    topo = np.genfromtxt(fname)
-    # rescaling topography!
-    if args.par_nml['boundaries']['air_layer']:
-        topo[:, 1] = topo[:, 1] / (1. - dsa)
 
     plot_plate_limits(args, fig0, ax3, ridge, trench,
                       args.velocitymin, args.velocitymax)
@@ -621,13 +617,13 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
             age_subd[isubd],
         ))
 
-    spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
-    if args.par_nml['switches']['cont_tracers'] and spherical:
-        fids[2].write("{} {}".format(timestep, time))
-        fids[2].writelines(["%4.3s" % item for item in concfld[indcont, :-1]])
-        fids[2].writelines(["\n"])
-
     return None
+
+
+def io_surface(timestep, time, fid, fld):
+    fid.write("{} {}".format(timestep, time))
+    fid.writelines(["%10.2e" % item for item in fld[:]])
+    fid.writelines(["\n"])
 
 
 def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, timestep, time):
@@ -767,13 +763,23 @@ def plates_cmd(args):
             print(' Exiting the code ')
             sys.exit()
 
-        fids = [0 for _ in range(3)]
+        fids = [0 for _ in range(8)]
         with open('results_plate_velocity_{}_{}_{}.dat'.format(
                 *args.timestep), 'w') as fids[0],\
                 open('results_distance_subd_{}_{}_{}.dat'.format(
                 *args.timestep), 'w') as fids[1],\
                 open('results_continents_{}_{}_{}.dat'.format(
-                *args.timestep), 'w') as fids[2]:
+                *args.timestep), 'w') as fids[2],\
+                open('results_flux_{}_{}_{}.dat'.format(
+                *args.timestep), 'w') as fids[3],\
+                open('results_topography_{}_{}_{}.dat'.format(
+                *args.timestep), 'w') as fids[4],\
+                open('results_age_{}_{}_{}.dat'.format(
+                *args.timestep), 'w') as fids[5],\
+                open('results_velderiv_{}_{}_{}.dat'.format(
+                *args.timestep), 'w') as fids[6],\
+                open('results_velocity_{}_{}_{}.dat'.format(
+                *args.timestep), 'w') as fids[7]:
 
             fids[0].write('#  it  time  ph_trench vel_trench age_trench\n')
             fids[1].write('#  it      time   time [My]   distance     ph_trench     ph_cont  age_trench [My] \n')
@@ -830,6 +836,19 @@ def plates_cmd(args):
                         myarg = -1
                     vrms_surface = donnee_averaged[myarg, 0]
 
+                    if args.par_nml['boundaries']['air_layer']:
+                        dsa = args.par_nml['boundaries']['air_thickness']
+                        isurf = np.argmin(abs((1 - dsa) - temp.r_coord)) - 4
+                    else:
+                        isurf = -1
+
+                # topography
+                fname = misc.stag_file(args, 'sc', timestep=temp.step, suffix='.dat')
+                topo = np.genfromtxt(fname)
+                # rescaling topography!
+                if args.par_nml['boundaries']['air_layer']:
+                    topo[:, 1] = topo[:, 1] / (1. - dsa)
+
                 time = temp.ti_ad * vrms_surface * args.ttransit / args.yearins / 1.e6
                 trenches, ridges, agetrenches, dv_trench, dv_ridge =\
                     detect_plates(args, velocity,
@@ -837,7 +856,7 @@ def plates_cmd(args):
                                   fids, timestep, time)
                 plot_plates(args, velocity, temp, conc, age, stress, timestep,
                             time, vrms_surface, trenches, ridges, agetrenches,
-                            dv_trench, dv_ridge, fids)
+                            topo, dv_trench, dv_ridge, fids)
 
                 # prepare for continent plotting
                 concfld = conc.fields['c']
@@ -846,6 +865,15 @@ def plates_cmd(args):
                 continentsfld = np.ma.masked_where(
                     concfld < 3, concfld)  # plotting continents, to-do
                 continentsfld = continentsfld / continentsfld
+
+                io_surface(timestep, time, fids[2], concfld[:-1, isurf])
+                tgrad = (temp.fields['t'][isurf-1, :] -
+                         temp.fields['t'][isurf, :]) / \
+                        (temp.r_coord[isurf] - temp.r_coord[isurf - 1])
+                io_surface(timestep, time, fids[3], tgrad[:, 0])
+                io_surface(timestep, time, fids[4], topo[:, 1])
+                if args.plot_age:
+                    io_surface(timestep, time, fids[5], age.fields['a'][isurf, :])
 
                 # plot viscosity field with position of trenches and ridges
                 fig, axis, surf = plot_scalar(args, viscosity, 'n')
@@ -888,8 +916,8 @@ def plates_cmd(args):
                 # Save figure
                 args.plt.tight_layout()
                 args.plt.savefig(
-                    misc.out_name(args, 'eta').format(viscosity.step) 
-                    + '.pdf', format='PDF')
+                    misc.out_name(args, 'eta').format(viscosity.step) +
+                    '.pdf', format='PDF')
 
                 # Zoom
                 if args.zoom is not None:
@@ -911,8 +939,8 @@ def plates_cmd(args):
                     axis.set_xlim(xzoom - ladd, xzoom + radd)
                     axis.set_ylim(yzoom - dadd, yzoom + uadd)
                     args.plt.savefig(
-                        misc.out_name(args, 'etazoom').format(viscosity.step)
-                        + '.pdf', format='PDF')
+                        misc.out_name(args, 'etazoom').format(viscosity.step) +
+                        '.pdf', format='PDF')
                 args.plt.close(fig)
 
                 # plot stress field with position of trenches and ridges
@@ -934,8 +962,8 @@ def plates_cmd(args):
                     # Save figure
                     args.plt.tight_layout()
                     args.plt.savefig(
-                        misc.out_name(args, 's').format(viscosity.step)
-                        + '.pdf', format='PDF')
+                        misc.out_name(args, 's').format(viscosity.step) +
+                        '.pdf', format='PDF')
 
                     # Zoom
                     if args.zoom is not None:
@@ -962,7 +990,7 @@ def plates_cmd(args):
                     # plotting continents
                     xmesh, ymesh = conc.x_mesh[0, :, :], conc.y_mesh[0, :, :]
                     surf2 = axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                            rasterized=not args.pdf, 
+                                            rasterized=not args.pdf,
                                             cmap='cool_r', vmin=0, vmax=0,
                                             shading='goaround')
                     cmap2 = args.plt.cm.ocean
@@ -976,7 +1004,7 @@ def plates_cmd(args):
                     step = np.int(np.size(ph_mesh[0, :]) / 100.)
                     # xmesh, ymesh = sphi.x_mesh[0, :, :], sr.y_mesh[0, :, :]
                     axis.quiver(xmesh[::step, ::step], ymesh[::step, ::step],
-                                stressx[::step, ::step].T, 
+                                stressx[::step, ::step].T,
                                 stressy[::step, ::step].T)
                     cbar = plt.colorbar(surf, shrink=args.shrinkcb)
                     cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
