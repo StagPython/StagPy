@@ -363,6 +363,7 @@ class _Steps(dict):
 
     def __init__(self, sdat):
         self.sdat = sdat
+        self._last = UNDETERMINED
         super().__init__()
 
     def __setitem__(self, key, value):
@@ -391,6 +392,13 @@ class _Steps(dict):
         if not self.__contains__(istep):
             super().__setitem__(istep, _Step(istep, self.sdat))
         return super().__getitem__(istep)
+
+    @property
+    def last(self):
+        if self._last is UNDETERMINED:
+            # not necessarily the last one...
+            self._last = self.tseries[-1, 0]
+        return self._last
 
 
 class _Snaps(_Steps):
@@ -428,6 +436,17 @@ class _Snaps(_Steps):
         """Make the isnap <-> istep link"""
         self._isteps.insert(isnap, istep)
         self.sdat.steps[istep].isnap = isnap
+
+    @property
+    def last(self):
+        if self._last is UNDETERMINED:
+            self._last = None
+            for isnap in range(99999, -1, -1):
+                istep = self[isnap].istep
+                if istep is not None:
+                    self._last = isnap
+                    break
+        return self._last
 
 
 class StagyyData:
