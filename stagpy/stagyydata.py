@@ -395,10 +395,11 @@ class _Steps(dict):
 
     @property
     def last(self):
+        """Last timestep available"""
         if self._last is UNDETERMINED:
             # not necessarily the last one...
             self._last = self.tseries[-1, 0]
-        return self._last
+        return self[self._last]
 
 
 class _Snaps(_Steps):
@@ -439,6 +440,7 @@ class _Snaps(_Steps):
 
     @property
     def last(self):
+        """Last snapshot available"""
         if self._last is UNDETERMINED:
             self._last = None
             for isnap in range(99999, -1, -1):
@@ -446,7 +448,7 @@ class _Snaps(_Steps):
                 if istep is not None:
                     self._last = isnap
                     break
-        return self._last
+        return self[self._last]
 
 
 class StagyyData:
