@@ -210,8 +210,7 @@ class _Fields(dict):
         """Header info from bin file"""
         if self._header is UNDETERMINED:
             self._header = None
-            for par in set(item.par
-                           for item in constants.FIELD_VAR_LIST.values()):
+            for par in self.step.sdat.scan:
                 fieldfile = self.step.sdat.filename(par, self.step.isnap)
                 header = stagyyparsers.fields(fieldfile, only_header=True)
                 if header is not None:
@@ -416,8 +415,7 @@ class _Snaps(_Steps):
     def __missing__(self, isnap):
         istep = self._isteps.get_istep(isnap)  # need handling of negative num
         if istep is UNDETERMINED:
-            for par in set(item.par
-                           for item in constants.FIELD_VAR_LIST.values()):
+            for par in self.sdat.scan:
                 fieldfile = self.sdat.filename(par, isnap)
                 istep = stagyyparsers.fields(fieldfile, only_istep=True)
                 if istep is not None:
@@ -450,6 +448,9 @@ class StagyyData:
         # of using command line options
         self.args = args
         self.par = args.par_nml
+        self.scan = set.intersection(
+            set(args.scan.split(',')),
+            set(item.par for item in constants.FIELD_VAR_LIST.values()))
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self._tseries = UNDETERMINED
