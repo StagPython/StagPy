@@ -277,12 +277,6 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
     """handle ploting stuff"""
 
     plot_age = args.plot_age
-    dimensions = True
-
-    if dimensions:
-        l_scale = args.par_nml['geometry']['d_dimensional'] / 1000.  # km
-    else:
-        l_scale = 1.0
 
     if args.par_nml['boundaries']['air_layer']:
         dsa = args.par_nml['boundaries']['air_thickness']
@@ -470,7 +464,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
         plt.savefig(figname, format='PDF')
         plt.close(fig0)
 
-    # plotting velocity and topography
+    # plotting velocity
     fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
     ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -575,7 +569,7 @@ def plot_plates(args, velocity, temp, conc, age, stress, timestep,
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-             topo[:, 1] * l_scale,
+             topo[:, 1] * args.mantle,
              color='black')
     ax2.set_xlim(0, 2 * np.pi)
     ax2.set_ylim(args.topomin, args.topomax)
@@ -670,6 +664,7 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
     args.plt.savefig(
         misc.out_name(args, 'lith').format(temp.step) + '.pdf',
         format='PDF')
+    args.plt.close(fig)
 
     # velocity
     vphi = velocity.fields['v'][:, :, 0]
@@ -742,6 +737,7 @@ def lithospheric_stress(args, temp, conc, stress, velocity, trench, ridge, times
 
     figname = misc.out_name(args, 'svelslith').format(temp.step) + '.pdf'
     fig0.savefig(figname, format='PDF')
+    args.plt.close(fig0)
 
     return None
 
