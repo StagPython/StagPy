@@ -372,8 +372,8 @@ class _Steps(dict):
     def __getitem__(self, key):
         try:
             # slice
-            start = key.start or 0
-            stop = key.stop  # or -1
+            start = self._valid_idx(key.start or 0)
+            stop = self._valid_idx(key.stop or -1)
             step = key.step or 1
             return (super(self.__class__, self).__getitem__(k)
                     for k in range(start, stop, step))
@@ -384,21 +384,27 @@ class _Steps(dict):
         if istep is None:  # if called for nonexistent snap
             return _EmptyStep()
         try:
-            istep = int(istep)
+            istep = self._valid_idx(int(istep))
         except ValueError:
             raise ValueError('Time step should be an integer value')
-        if istep < 0:  # need handling of negative num
+        if istep < 0:
             raise ValueError('Time step should be positive')
         if not self.__contains__(istep):
             super().__setitem__(istep, _Step(istep, self.sdat))
         return super().__getitem__(istep)
+
+    def _valid_idx(self, idx):
+        """Return positive index"""
+        if idx < 0:
+            idx += self.last.istep + 1
+        return idx
 
     @property
     def last(self):
         """Last timestep available"""
         if self._last is UNDETERMINED:
             # not necessarily the last one...
-            self._last = self.tseries[-1, 0]
+            self._last = self.sdat.tseries[-1, 0]
         return self[self._last]
 
 
@@ -413,8 +419,8 @@ class _Snaps(_Steps):
     def __getitem__(self, key):
         try:
             # slice
-            start = key.start or 0
-            stop = key.stop  # or -1
+            start = self._valid_idx(key.start or 0)
+            stop = self._valid_idx(key.stop or -1)
             step = key.step or 1
             return (self.__missing__(k)
                     for k in range(start, stop, step))
@@ -422,7 +428,8 @@ class _Snaps(_Steps):
             return self.__missing__(key)
 
     def __missing__(self, isnap):
-        istep = self._isteps.get_istep(isnap)  # need handling of negative num
+        isnap = self._valid_idx(isnap)
+        istep = self._isteps.get_istep(isnap)
         if istep is UNDETERMINED:
             for par in self.sdat.scan:
                 fieldfile = self.sdat.filename(par, isnap)
@@ -437,6 +444,12 @@ class _Snaps(_Steps):
         """Make the isnap <-> istep link"""
         self._isteps.insert(isnap, istep)
         self.sdat.steps[istep].isnap = isnap
+
+    def _valid_idx(self, idx):
+        """Return positive index"""
+        if idx < 0:
+            idx += self.last.isnap + 1
+        return idx
 
     @property
     def last(self):
