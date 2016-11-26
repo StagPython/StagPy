@@ -316,7 +316,7 @@ class _Step:
     @property
     def irsnap(self):
         """Radial snap corresponding to time step"""
-        self.sdat.rprof
+        _ = self.sdat.rprof
         if self._irsnap is UNDETERMINED:
             self._irsnap = None
         return self._irsnap
@@ -332,7 +332,7 @@ class _Step:
     @property
     def itsnap(self):
         """Time info entry corresponding to time step"""
-        self.sdat.tseries
+        _ = self.sdat.tseries
         if self._itsnap is UNDETERMINED:
             self._itsnap = None
         return self._itsnap

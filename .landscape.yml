@@ -5,6 +5,9 @@ python-targets:
     - 3
 pep8:
     full: true
+pylint:
+    options:
+        dummy-variables-rgx: '^_$'
 max-line-length: 80
 autodetect: true
 ignore-paths:
