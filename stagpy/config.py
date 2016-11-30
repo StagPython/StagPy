@@ -430,6 +430,34 @@ def add_args(parser, conf_dict):
     return parser
 
 
+def _steps_to_slices(args):
+    """parse timesteps and snapshots arguments and return slices"""
+    if args.timesteps is None and args.snapshots is None:
+        # default to the last snap
+        args.snapshots = slice(-1, None, None)
+        return None
+    elif args.snapshots is not None:
+        # snapshots take precedence over timesteps
+        # if both are defined
+        args.timesteps = None
+        steps = args.snapshots
+    else:
+        steps = args.timesteps
+    steps = steps.split(':')
+    steps[0] = int(steps[0]) if steps[0] else None
+    if len(steps) == 1:
+        steps.append(steps[0] + 1)
+    steps[1] = int(steps[1]) if steps[1] else None
+    if len(steps) != 3:
+        steps = steps[0:2] + [1]
+    steps[2] = int(steps[2]) if steps[2] else None
+    steps = slice(*steps)
+    if args.snapshots is not None:
+        args.snapshots = steps
+    else:
+        args.timesteps = steps
+
+
 def parse_args():
     """Parse cmd line arguments"""
     # get path from config file before
@@ -486,5 +514,9 @@ def parse_args():
 
     argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
+    try:
+        _steps_to_slices(args)
+    except AttributeError:
+        pass
     args.par_nml = par_nml
     return args

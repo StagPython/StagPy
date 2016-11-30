@@ -373,7 +373,11 @@ class _Steps(dict):
         try:
             # slice
             start = self._valid_idx(key.start or 0)
-            stop = self._valid_idx(key.stop or -1)
+            if key.stop is None:
+                # include last step
+                stop = self._valid_idx(-1) + 1
+            else:
+                stop = self._valid_idx(key.stop)
             step = key.step or 1
             return (super(self.__class__, self).__getitem__(k)
                     for k in range(start, stop, step))
@@ -420,7 +424,11 @@ class _Snaps(_Steps):
         try:
             # slice
             start = self._valid_idx(key.start or 0)
-            stop = self._valid_idx(key.stop or -1)
+            if key.stop is None:
+                # include last step
+                stop = self._valid_idx(-1) + 1
+            else:
+                stop = self._valid_idx(key.stop)
             step = key.step or 1
             return (self.__missing__(k)
                     for k in range(start, stop, step))
