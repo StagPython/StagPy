@@ -193,7 +193,10 @@ class _Fields(dict):
             raise ValueError("Unknown field variable: '{}'".format(name))
         par_type = constants.FIELD_VAR_LIST[name].par
         fieldfile = self.step.sdat.filename(par_type, self.step.isnap)
-        header, fields = stagyyparsers.fields(fieldfile)
+        parsed_data = stagyyparsers.fields(fieldfile)
+        if parsed_data is None:
+            return None
+        header, fields = parsed_data
         self._header = header
         if par_type == 'vp':
             fld_names = ['u', 'v', 'w', 'p']
@@ -201,6 +204,11 @@ class _Fields(dict):
             fld_names = ['sx', 'sy', 'sz', 'x']
         else:
             fld_names = [name]  # wrong for some stuff like stream func
+        if name not in fld_names:
+            # could use a function for fields not in a file (such as stream)
+            # if can't call it, assume this is the name of the field file
+            print("'{}' field computation not available".format(name))
+            return None
         for fld_name, fld in zip(fld_names, fields):
             self[fld_name] = fld
         return self[name]
@@ -217,7 +225,10 @@ class _Fields(dict):
                     self._header = header
                     break
         if self._geom is UNDETERMINED:
-            self._geom = _Geometry(self._header, self.step.sdat.par)
+            if self._header is None:
+                self._geom = None
+            else:
+                self._geom = _Geometry(self._header, self.step.sdat.par)
         return self._geom
 
 
