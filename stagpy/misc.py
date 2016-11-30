@@ -98,6 +98,14 @@ def parse_timesteps(args):
     args.timestep = list(map(int, tstp))
 
 
+def steps_gen(sdat, args):
+    """Return generator over relevant snapshots or timesteps"""
+    if args.snapshots is not None:
+        return sdat.snaps[args.snapshots]
+    else:
+        return sdat.steps[args.timesteps]
+
+
 def plot_backend(args):
     """import matplotlib and seaborn"""
     mpl = importlib.import_module('matplotlib')
