@@ -6,7 +6,7 @@ Date: 2015/11/27
 
 import numpy as np
 from math import sqrt
-from .stagdata import TimeData
+from .stagyydata import StagyyData
 
 
 def find_nearest(array, value):
@@ -27,8 +27,8 @@ def time_cmd(args):
     rah = args.par_nml['refstate']['Rh']
     botpphase = args.par_nml['boundaries']['BotPphase']
 
-    time_data = TimeData(args)
-    colnames, data = time_data.colnames, time_data.data
+    sdat = StagyyData(args)
+    data = sdat.tseries
     ntot = len(data)
 
     if args.tstart < 0:
@@ -149,7 +149,7 @@ def time_cmd(args):
     ch1 = np.where(time == (find_nearest(time, coords[0][0])))
 
     print('Statistics computed from t =' + str(time[ch1[0][0]]))
-    for num in range(2, len(colnames)):
+    for num in range(2, data.shape[1]):
         moy.append(np.trapz(data[ch1[0][0]:ntot - 1, num],
                             x=time[ch1[0][0]:ntot - 1]) /
                    (time[ntot - 1] - time[ch1[0][0]]))
@@ -157,7 +157,9 @@ def time_cmd(args):
                                   moy[num - 2])**2,
                                  x=time[ch1[0][0]:ntot - 1]) /
                         (time[ntot - 1] - time[ch1[0][0]])))
-        print(colnames[num], '=', moy[num - 2], 'pm', rms[num - 2])
+    with open('statistics.dat') as fid:
+        for val, err in np.array([moy, rms]).T:
+            fid.write('{:.5e}   {:.5e}\n'.format(val, err))
     ebal.append(np.trapz(ebalance[ch1[0][0] - 1:ntot - 3],
                          x=time[ch1[0][0]:ntot - 2]) /
                 (time[ntot - 2] - time[ch1[0][0]]))
