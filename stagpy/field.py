@@ -2,69 +2,66 @@
 
 import numpy as np
 from . import constants, misc
-from .stagdata import BinData
+from .stagyydata import StagyyData
 
 
-def plot_scalar(args, stgdat, var):
+def plot_scalar(args, step, var):
     """var: one of the key of constants.FIELD_VAR_LIST"""
     plt = args.plt
     if var == 'l':
-        fld = stgdat.calc_stream()
-    else:
-        fld = stgdat.fields[var]
+        raise ValueError('Stream function plotting unavailable')
 
-    # adding a row at the end to have continuous field
-    if stgdat.geom == 'annulus':
-        if stgdat.par_type == 'vp':
-            if var != 'l':
-                fld = fld[:, :, 0].T
-        else:
-            newline = fld[:, 0, 0]
-            fld = np.vstack([fld[:, :, 0].T, newline])
+    fld = step.fields[var]
+    if step.geom.threed:
+        raise ValueError('plot_scalar only implemented for 2D fields')
 
-    xmesh, ymesh = stgdat.x_mesh[0, :, :], stgdat.y_mesh[0, :, :]
+    if step.geom.twod_xz:
+        xmesh, ymesh = step.geom.x_mesh[:, 0, :], step.geom.z_mesh[:, 0, :]
+        fld = fld[:, 0, :, 0]
+    elif step.geom.cartesian and step.geom.twod_yz:
+        xmesh, ymesh = step.geom.y_mesh[0, :, :], step.geom.z_mesh[0, :, :]
+        fld = fld[0, :, :, 0]
+    else:  # spherical yz
+        xmesh, ymesh = step.geom.x_mesh[0, :, :], step.geom.y_mesh[0, :, :]
+        fld = fld[0, :, :, 0]
 
     fig, axis = plt.subplots(ncols=1)
-    if stgdat.geom == 'annulus':
-        if var == 'n':  # viscosity
-            surf = axis.pcolormesh(xmesh, ymesh, fld,
-                                   norm=args.mpl.colors.LogNorm(),
-                                   cmap='jet_r',
-                                   rasterized=not args.pdf,
-                                   shading='gouraud')
-
-            # cmap=plt.cm.ocean # continent plotting, to-do
-            # cmap.set_over('m') # continent plotting, to-do
-        elif var == 'd':  # density
-            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='bwr_r',
-                                   vmin=0.96, vmax=1.04,
-                                   rasterized=not args.pdf,
-                                   shading='gouraud')
-        elif var == 's':  # second invariant of stress
-            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='gnuplot2_r',
-                                   vmin=500, vmax=20000,
-                                   rasterized=not args.pdf,
-                                   shading='gouraud')
-        elif var == 'e':  # strain rate
-            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='Reds',
-                                   vmin=500, vmax=20000,
-                                   rasterized=not args.pdf,
-                                   shading='gouraud')
-        elif var == 'r':  # topography
-            plt.plot(stgdat.ph_coord[:-1], fld[:-1, 1] *
-                     args.par_nml['geometry']['d_dimensional'] / 1000., '-')
-            plt.xlim([np.amin(stgdat.ph_coord), np.amax(stgdat.ph_coord)])
-            plt.xlabel('Distance')
-            plt.ylabel('Topography [km]')
-        elif var == 'a':  # age
-            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
-                                   vmin=0.0,
-                                   rasterized=not args.pdf,
-                                   shading='gouraud')
-        else:
-            surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
-                                   rasterized=not args.pdf,
-                                   shading='gouraud')
+    if var == 'n':  # viscosity
+        surf = axis.pcolormesh(xmesh, ymesh, fld,
+                               norm=args.mpl.colors.LogNorm(),
+                               cmap='jet_r',
+                               rasterized=not args.pdf,
+                               shading='gouraud')
+    elif var == 'd':  # density
+        surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='bwr_r',
+                               vmin=0.96, vmax=1.04,
+                               rasterized=not args.pdf,
+                               shading='gouraud')
+    elif var == 's':  # second invariant of stress
+        surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='gnuplot2_r',
+                               vmin=500, vmax=20000,
+                               rasterized=not args.pdf,
+                               shading='gouraud')
+    elif var == 'e':  # strain rate
+        surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='Reds',
+                               vmin=500, vmax=20000,
+                               rasterized=not args.pdf,
+                               shading='gouraud')
+    elif var == 'r':  # topography
+        plt.plot(stgdat.ph_coord[:-1], fld[:-1, 1] *
+                 args.par_nml['geometry']['d_dimensional'] / 1000., '-')
+        plt.xlim([np.amin(stgdat.ph_coord), np.amax(stgdat.ph_coord)])
+        plt.xlabel('Distance')
+        plt.ylabel('Topography [km]')
+    elif var == 'a':  # age
+        surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
+                               vmin=0.0,
+                               rasterized=not args.pdf,
+                               shading='gouraud')
+    else:
+        surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
+                               rasterized=not args.pdf,
+                               shading='gouraud')
 
         if var != 'r':
             cbar = plt.colorbar(surf, shrink=args.shrinkcb)
@@ -89,15 +86,18 @@ def plot_stream(args, fig, axis, component1, component2):
 
 def field_cmd(args):
     """extract and plot field data"""
-    for timestep in range(*args.timestep):
+    sdat = StagyyData(args)
+    for step in misc.steps_gen(sdat, args):
         for var, meta in constants.FIELD_VAR_LIST.items():
             if misc.get_arg(args, meta.arg):
-                # will read vp many times!
-                stgdat = BinData(args, var, timestep)
-                fig, _, _ = plot_scalar(args, stgdat, var)
+                if step.fields[var] is None:
+                    print("'{}' field on snap {} not found".format(var,
+                                                                   step.isnap))
+                    continue
+                fig, _, _ = plot_scalar(args, step, var)
                 args.plt.figure(fig.number)
                 args.plt.tight_layout()
                 args.plt.savefig(
-                    misc.out_name(args, var).format(stgdat.step) + '.pdf',
+                    misc.out_name(args, var).format(step.isnap) + '.pdf',
                     format='PDF')
                 args.plt.close(fig)
