@@ -5,23 +5,28 @@ from collections import OrderedDict, namedtuple
 
 CONFIG_DIR = os.path.expanduser('~/.config/stagpy')
 
-Varf = namedtuple('Varf', ['par', 'name', 'arg'])
+Varf = namedtuple('Varf', ['par', 'name', 'arg', 'pcolor_opts'])
 FIELD_VAR_LIST = OrderedDict((
-    ('t', Varf('t', 'Temperature', 'plot_temperature')),
-    ('c', Varf('c', 'Composition', 'plot_composition')),
-    ('n', Varf('eta', 'Viscosity', 'plot_viscosity')),
-    ('d', Varf('rho', 'Density', 'plot_density')),
-    ('r', Varf('cs', 'Topography', 'plot_topography')),
-    ('h', Varf('wtr', 'Water', 'plot_water')),
-    ('a', Varf('age', 'Age', 'plot_age')),
-    ('s', Varf('str', 'Stress', 'plot_stress')),
-    ('x', Varf('sx', 'Principal deviatoric stress', 'plot_deviatoric_stress')),
-    ('e', Varf('ed', 'Strain rate', 'plot_strainrate')),
-    ('u', Varf('vp', 'x Velocity', 'plot_xvelo')),
-    ('v', Varf('vp', 'y Velocity', 'plot_yvelo')),
-    ('w', Varf('vp', 'z Velocity', 'plot_zvelo')),
-    ('p', Varf('vp', 'Pressure', 'plot_pressure')),
-    ('l', Varf('vp', 'Stream function', 'plot_stream')),
+    ('t', Varf('t', 'Temperature', 'plot_temperature', {})),
+    ('c', Varf('c', 'Composition', 'plot_composition', {})),
+    ('n', Varf('eta', 'Viscosity', 'plot_viscosity',
+               {'cmap': 'jet_r'})),
+    ('d', Varf('rho', 'Density', 'plot_density',
+               {'cmap': 'bwr_r', 'vmin': 0.96, 'vmax': 1.04})),
+    ('h', Varf('wtr', 'Water', 'plot_water', {})),
+    ('a', Varf('age', 'Age', 'plot_age',
+               {'vmin': 0})),
+    ('s', Varf('str', 'Stress (second invariant)', 'plot_stress',
+               {'cmap': 'gnuplot2_r', 'vmin': 500, 'vmax': 20000})),
+    ('x', Varf('sx', 'Principal deviatoric stress', 'plot_deviatoric_stress',
+               {})),
+    ('e', Varf('ed', 'Strain rate', 'plot_strainrate',
+               {'cmap': 'Reds', 'vmin': 500, 'vmax': 20000})),
+    ('u', Varf('vp', 'x Velocity', 'plot_xvelo', {})),
+    ('v', Varf('vp', 'y Velocity', 'plot_yvelo', {})),
+    ('w', Varf('vp', 'z Velocity', 'plot_zvelo', {})),
+    ('p', Varf('vp', 'Pressure', 'plot_pressure', {})),
+    ('l', Varf('vp', 'Stream function', 'plot_stream', {})),
 ))
 
 Varr = namedtuple('Varr', ['name', 'arg', 'min_max', 'prof_idx'])
