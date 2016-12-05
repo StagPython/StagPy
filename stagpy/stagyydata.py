@@ -168,7 +168,7 @@ class _Rprof(np.ndarray):  # _TimeSeries also
     def __getitem__(self, key):
         try:
             key = constants.RPROF_VAR_LIST[key].prof_idx
-        except KeyError:
+        except (KeyError, TypeError):
             pass
         return super().__getitem__(key)
 
