@@ -148,10 +148,6 @@ FIELD = OrderedDict((
              True, 'color bar shrink factor')),
 ))
 
-Conf = namedtuple('ConfigEntry',
-                  ['default', 'cmd_arg', 'shortname', 'kwargs',
-                   'conf_arg', 'help_string'])
-
 RPROF = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
@@ -229,10 +225,6 @@ TIME = OrderedDict((
              False, 'specify tminc')),
 ))
 
-Conf = namedtuple('ConfigEntry',
-                  ['default', 'cmd_arg', 'shortname', 'kwargs',
-                   'conf_arg', 'help_string'])
-
 PLATES = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
@@ -271,7 +263,7 @@ PLATES = OrderedDict((
              True, 'color bar shrink factor')),
     ('zoom',
         Conf(None, True, None, {'type': float},
-             True, 'Zoom around surface')),
+             False, 'Zoom around surface')),
 ))
 
 VAR = OrderedDict((
