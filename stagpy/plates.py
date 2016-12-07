@@ -361,7 +361,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
 
     # plotting velocity and velocity derivative
     fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(ph_coord[:-1], vph2[indsurf, :-1], linewidth=lwd, label='Vel')
+    ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax1.set_ylabel("Velocity", fontsize=args.fontsize)
@@ -762,7 +762,7 @@ def plates_cmd(args):
                     (step.geom.r_coord[isurf] - step.geom.r_coord[isurf - 1])
 
                 io_surface(timestep, time, fids[2], concfld[:-1, isurf])
-                io_surface(timestep, time, fids[3], tgrad[:, 0])
+                io_surface(timestep, time, fids[3], tgrad)
                 io_surface(timestep, time, fids[4], topo[:, 1])
                 if args.plot_age:
                     io_surface(timestep, time, fids[5],
