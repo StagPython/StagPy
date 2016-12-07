@@ -169,7 +169,7 @@ def detect_plates(args, step, vrms_surface, fids, time):
     argless_dv = argrelextrema(
         pom2, np.less, order=myorder_trench, mode='wrap')[0]
     trench = ph_coord[argless_dv]
-    velocity_trench = vph2[indsurf, argless_dv]
+    velocity_trench = vph2[argless_dv, indsurf]
     dv_trench = dvph2[argless_dv]
 
     # finding ridges
