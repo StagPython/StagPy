@@ -367,7 +367,7 @@ def rprof_cmd(args):
 
     ctheoarg = None, None
 
-    sdat = StagyyData(args)
+    sdat = StagyyData(args.path, args.scan)
 
     if args.plot_difference:
         # plot time series of difference profiles

@@ -503,22 +503,12 @@ class StagyyData:
 
     """Offer a generic interface to StagYY output data"""
 
-    def __init__(self, args):
+    def __init__(self, path, scan='t'):
         """Generic lazy StagYY output data accessors"""
-        # currently, args used to find name of files.
-        # This module should be independant of args.
-        # Only parameters should be path and par_dflt,
-        #    and par file would be read here.
-        # `name` option of core_parser should be
-        #    removed since it is useless if HDF5
-        #
-        # User-end: dealing with isolated files should
-        # be done by creating a dummy par file instead
-        # of using command line options
-        self.args = args
-        self.par = parfile.readpar(args.path)
+        self.path = path
+        self.par = parfile.readpar(self.path)
         self.scan = set.intersection(
-            set(args.scan.split(',')),
+            set(scan.split(',')),
             set(item.par for item in constants.FIELD_VAR_LIST.values()))
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
@@ -557,7 +547,7 @@ class StagyyData:
         """return name of StagYY out file"""
         if timestep is not None:
             fname += '{:05d}'.format(timestep)
-        fname = os.path.join(self.args.path,
+        fname = os.path.join(self.path,
                              self.par['ioin']['output_file_stem'] +
                              '_' + fname + suffix)
         return fname

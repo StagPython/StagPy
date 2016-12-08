@@ -23,7 +23,7 @@ def time_cmd(args):
     lwdth = args.linewidth
     ftsz = args.fontsize
 
-    sdat = StagyyData(args)
+    sdat = StagyyData(args.path, args.scan)
     data = sdat.tseries
     ntot = len(data)
 
