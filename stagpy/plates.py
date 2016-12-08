@@ -136,8 +136,8 @@ def detect_plates(args, step, vrms_surface, fids, time):
     else:
         agefld = []
 
-    if args.par_nml['boundaries']['air_layer']:
-        dsa = args.par_nml['boundaries']['air_thickness']
+    if step.sdat.par['boundaries']['air_layer']:
+        dsa = step.sdat.par['boundaries']['air_thickness']
         # we are a bit below the surface; should check if you are in the
         # thermal boundary layer
         indsurf = np.argmin(abs((1 - dsa) - step.geom.r_coord)) - 4
@@ -153,7 +153,7 @@ def detect_plates(args, step, vrms_surface, fids, time):
     io_surface(timestep, time, fids[7], vph2[:-1, indsurf])
 
     # prepare stuff to find trenches and ridges
-    if args.par_nml['boundaries']['air_layer']:
+    if step.sdat.par['boundaries']['air_layer']:
         myorder_trench = 15
     else:
         myorder_trench = 10
@@ -161,7 +161,7 @@ def detect_plates(args, step, vrms_surface, fids, time):
 
     # finding trenches
     pom2 = deepcopy(dvph2)
-    if args.par_nml['boundaries']['air_layer']:
+    if step.sdat.par['boundaries']['air_layer']:
         maskbigdvel = -30 * vrms_surface
     else:
         maskbigdvel = -10 * vrms_surface
@@ -253,8 +253,8 @@ def plot_plate_limits_field(args, fig, axis, rcmb, ridges, trenches):
 def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
                 topo, fids):
     """handle ploting stuff"""
-    if args.par_nml['boundaries']['air_layer']:
-        dsa = args.par_nml['boundaries']['air_thickness']
+    if step.sdat.par['boundaries']['air_layer']:
+        dsa = step.sdat.par['boundaries']['air_thickness']
     else:
         dsa = 0.
 
@@ -269,7 +269,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     if args.plot_stress:
         stressfld = step.fields['s'][0, :, :, 0]
 
-    if args.par_nml['boundaries']['air_layer']:
+    if step.sdat.par['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
         # to be just below
         # the surface (that is considered plane here); should check if you are
@@ -281,19 +281,19 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
         indsurf = -1
         indcont = -1  # depth to detect continents
 
-    if args.par_nml['boundaries']['air_layer'] and\
-       not args.par_nml['continents']['proterozoic_belts']:
+    if step.sdat.par['boundaries']['air_layer'] and\
+       not step.sdat.par['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
             np.logical_or(concfld[:-1, indcont] < 3,
                           concfld[:-1, indcont] > 4),
             concfld[:-1, indcont])
-    elif args.par_nml['boundaries']['air_layer'] and\
-         args.par_nml['continents']['proterozoic_belts']:
+    elif step.sdat.par['boundaries']['air_layer'] and\
+         step.sdat.par['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
             np.logical_or(concfld[:-1, indcont] < 3,
                           concfld[:-1, indcont] > 5),
             concfld[:-1, indcont])
-    elif args.par_nml['tracersin']['tracers_weakcrust']:
+    elif step.sdat.par['tracersin']['tracers_weakcrust']:
         continents = np.ma.masked_where(
             concfld[:-1, indcont] < 3, concfld[:-1, indcont])
     else:
@@ -328,12 +328,12 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax2.fill_between(
         ph_coord[:-1], continentsall, 0., facecolor='#8B6914', alpha=0.2)
 
-    if args.par_nml['boundaries']['topT_mode'] == 'iso':
-        tempmin = args.par_nml['boundaries']['topT_val'] * 0.9
+    if step.sdat.par['boundaries']['topT_mode'] == 'iso':
+        tempmin = step.sdat.par['boundaries']['topT_val'] * 0.9
     else:
         tempmin = 0.0
-    if args.par_nml['boundaries']['botT_mode'] == 'iso':
-        tempmax = args.par_nml['boundaries']['botT_val'] * 0.35
+    if step.sdat.par['boundaries']['botT_mode'] == 'iso':
+        tempmax = step.sdat.par['boundaries']['botT_val'] * 0.35
     else:
         tempmax = 0.8
 
@@ -613,28 +613,28 @@ def lithospheric_stress(args, step, trench, ridge, time):
 
     # position of continents
     concfld = step.fields['c'][0, :, :, 0]
-    if args.par_nml['boundaries']['air_layer']:
+    if step.sdat.par['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
         # to be just below
-        dsa = args.par_nml['boundaries']['air_thickness']
+        dsa = step.sdat.par['boundaries']['air_thickness']
         # depth to detect the continents
         indcont = np.argmin(abs((1 - dsa) - step.geom.r_coord)) - 10
     else:
         # depth to detect continents
         indcont = -1
-    if args.par_nml['boundaries']['air_layer'] and\
-            not args.par_nml['continents']['proterozoic_belts']:
+    if step.sdat.par['boundaries']['air_layer'] and\
+            not step.sdat.par['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
             np.logical_or(concfld[:-1, indcont] < 3,
                           concfld[:-1, indcont] > 4),
             concfld[:-1, indcont])
-    elif args.par_nml['boundaries']['air_layer'] and\
-            args.par_nml['continents']['proterozoic_belts']:
+    elif step.sdat.par['boundaries']['air_layer'] and\
+            step.sdat.par['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
             np.logical_or(concfld[:-1, indcont] < 3,
                           concfld[:-1, indcont] > 5),
             concfld[:-1, indcont])
-    elif args.par_nml['tracersin']['tracers_weakcrust']:
+    elif step.sdat.par['tracersin']['tracers_weakcrust']:
         continents = np.ma.masked_where(
             concfld[:-1, indcont] < 3, concfld[:-1, indcont])
     else:
@@ -725,14 +725,14 @@ def plates_cmd(args):
                     uprof_idx = constants.RPROF_VAR_LIST['u'].prof_idx
                     uprof_averaged = np.mean(sdat.rprof[:, uprof_idx], axis=0)
                     radius = sdat.rprof[0, 0] + rcmb
-                    if args.par_nml['boundaries']['air_layer']:
-                        dsa = args.par_nml['boundaries']['air_thickness']
+                    if sdat.par['boundaries']['air_layer']:
+                        dsa = sdat.par['boundaries']['air_thickness']
                         isurf = np.argmin(
                             abs(radius[0, :] - radius[0, -1] + dsa))
                     else:
                         isurf = -1
                     vrms_surface = uprof_averaged[isurf]
-                    if args.par_nml['boundaries']['air_layer']:
+                    if sdat.par['boundaries']['air_layer']:
                         isurf = np.argmin(abs((1 - dsa) - step.geom.r_coord))
                         isurf -= 4  # why different isurf for the rest?
 
@@ -741,7 +741,7 @@ def plates_cmd(args):
                                        suffix='.dat')
                 topo = np.genfromtxt(fname)
                 # rescaling topography!
-                if args.par_nml['boundaries']['air_layer']:
+                if sdat.par['boundaries']['air_layer']:
                     topo[:, 1] = topo[:, 1] / (1. - dsa)
 
                 time = step.geom.ti_ad * vrms_surface *\
@@ -770,7 +770,7 @@ def plates_cmd(args):
 
                 # plot viscosity field with position of trenches and ridges
                 fig, axis, surf = field.plot_scalar(args, step, 'n')
-                etamax = args.par_nml['viscosity']['eta_max']
+                etamax = sdat.par['viscosity']['eta_max']
                 surf.set_clim(vmin=1e-2, vmax=etamax)
 
                 # plotting continents

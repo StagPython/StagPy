@@ -23,20 +23,20 @@ def time_cmd(args):
     lwdth = args.linewidth
     ftsz = args.fontsize
 
-    rab = args.par_nml['refstate']['Ra0']
-    rah = args.par_nml['refstate']['Rh']
-    botpphase = args.par_nml['boundaries']['BotPphase']
-
     sdat = StagyyData(args)
     data = sdat.tseries
     ntot = len(data)
 
+    rab = sdat.par['refstate']['Ra0']
+    rah = sdat.par['refstate']['Rh']
+    botpphase = sdat.par['boundaries']['BotPphase']
+
     if args.tstart < 0:
         args.tstart = data[0, 1]
 
-    spherical = args.par_nml['geometry']['shape'].lower() == 'spherical'
+    spherical = sdat.par['geometry']['shape'].lower() == 'spherical'
     if spherical:
-        rcmb = args.par_nml['geometry']['r_cmb']
+        rcmb = sdat.par['geometry']['r_cmb']
         rmin = rcmb
         rmax = rmin + 1
         coefb = 1  # rb**2*4*pi

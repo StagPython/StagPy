@@ -2,6 +2,7 @@
 
 import f90nml
 import os.path
+import sys
 from .constants import CONFIG_DIR
 
 PAR_DFLT_FILE = os.path.join(CONFIG_DIR, 'par')
@@ -607,16 +608,16 @@ def _read_default():
     return f90nml.read(PAR_DFLT_FILE)
 
 
-def readpar(args):
+def readpar(path):
     """read StagYY par file"""
-    par_file = os.path.join(args.path, 'par')
+    par_file = os.path.join(path, 'par')
     par_dflt = _read_default()
     if os.path.isfile(par_file):
         par_nml = f90nml.read(par_file)
         for section in par_nml:
             par_dflt[section].update(par_nml[section])
     else:
-        if not (args.create or args.update or args.edit):
-            print('no par file found, check path')
+        print('No par file found! Check path.')
+        sys.exit()
     par_nml = par_dflt
     return par_nml

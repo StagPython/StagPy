@@ -12,7 +12,7 @@ import argparse
 import configparser
 import os.path
 import shlex
-from . import commands, parfile
+from . import commands
 from .constants import CONFIG_DIR
 
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'config')
@@ -508,7 +508,6 @@ def parse_args():
 
     try:
         _steps_to_slices(args)
-        args.par_nml = parfile.readpar(args)
     except AttributeError:
         pass
     return args

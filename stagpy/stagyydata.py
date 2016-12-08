@@ -4,7 +4,7 @@ import bisect
 import re
 import os.path
 import numpy as np
-from . import constants, stagyyparsers
+from . import constants, parfile, stagyyparsers
 
 
 UNDETERMINED = object()
@@ -516,7 +516,7 @@ class StagyyData:
         # be done by creating a dummy par file instead
         # of using command line options
         self.args = args
-        self.par = args.par_nml
+        self.par = parfile.readpar(args.path)
         self.scan = set.intersection(
             set(args.scan.split(',')),
             set(item.par for item in constants.FIELD_VAR_LIST.values()))

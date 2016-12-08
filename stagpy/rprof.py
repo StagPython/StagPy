@@ -118,7 +118,7 @@ def plotprofiles(sdat, quant, vartuple, rbounds, args,
 
             dzgrid = rprof[0, 1:] - rprof[0, :-1]
             if quant[0] == 'Grid km':
-                ddim = args.par_nml['geometry']['d_dimensional'] / 1000.
+                ddim = step.sdat.par['geometry']['d_dimensional'] / 1000.
                 axe[1].plot(dzgrid * ddim, '-ko', label='dz')
                 axe[1].set_ylabel('dz [km]', fontsize=ftsz)
             else:
@@ -300,14 +300,14 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
 
     # plot solidus as a function of depth if viscosity reduction due to melting
     # is applied with linear dependency
-    if quant[0] == 'Temperature' and args.par_nml['viscosity']['eta_melt'] \
-            and args.par_nml['melt']['solidus_function'].lower() == 'linear':
-        tsol0 = args.par_nml['melt']['tsol0']
-        if args.par_nml['switches']['tracers']:
-            deltatsol_water = args.par_nml['melt']['deltaTsol_water']
-        dtsol_dz = args.par_nml['melt']['dtsol_dz']
+    if quant[0] == 'Temperature' and sdat.par['viscosity']['eta_melt'] \
+            and sdat.par['melt']['solidus_function'].lower() == 'linear':
+        tsol0 = sdat.par['melt']['tsol0']
+        if sdat.par['switches']['tracers']:
+            deltatsol_water = sdat.par['melt']['deltaTsol_water']
+        dtsol_dz = sdat.par['melt']['dtsol_dz']
         tsol = tsol0 + dtsol_dz * (rcmb + 1. - radius)
-        if args.par_nml['switches']['tracers']:
+        if sdat.par['switches']['tracers']:
             tsol3 = tsol0 + dtsol_dz * (rcmb + 1. - radius) - \
                 deltatsol_water * 0.3
             tsol5 = tsol0 + dtsol_dz * (rcmb + 1. - radius) - \
@@ -315,7 +315,7 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
 
         axis.plot(tsol, radius, ls='-', color='k', dashes=[4, 3],
                   label='solidus')
-        if args.par_nml['switches']['tracers']:
+        if sdat.par['switches']['tracers']:
             axis.plot(tsol3, radius, ls='-', color='g', dashes=[4, 3],
                       label='solidus C_water = 0.45%')
             axis.plot(tsol5, radius, ls='-', color='r', dashes=[4, 3],
@@ -334,8 +334,8 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
                     fancybox=True, shadow=False)
 
     # Finding averaged v_rms at surface
-    if args.par_nml['boundaries']['air_layer']:
-        dsa = args.par_nml['boundaries']['air_thickness']
+    if sdat.par['boundaries']['air_layer']:
+        dsa = sdat.par['boundaries']['air_thickness']
         irsurf = np.argmin(abs(radius - radius[-1] + dsa))
         plt.axhline(y=radius[irsurf], xmin=0, xmax=plt.xlim()[1],
                     color='k', alpha=0.1)
@@ -348,9 +348,9 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
                   str(round(vrms_surface, 0)))
 
     # horizontal line delimiting continent thickness
-    if args.par_nml['switches']['cont_tracers'] and\
+    if sdat.par['switches']['cont_tracers'] and\
             quant[0] == 'Viscosity':
-        d_archean = args.par_nml['tracersin']['d_archean']
+        d_archean = sdat.par['tracersin']['d_archean']
         plt.axhline(y=radius[irsurf] - d_archean, xmin=0, xmax=plt.xlim()[1],
                     color='#7b68ee', alpha=0.2)
 
@@ -367,14 +367,14 @@ def rprof_cmd(args):
 
     ctheoarg = None, None
 
+    sdat = StagyyData(args)
+
     if args.plot_difference:
         # plot time series of difference profiles
         # initialize the plot here
         figd, axax = args.plt.subplots(3, sharex=True)
-        ra0 = args.par_nml['refstate']['ra0']
+        ra0 = sdat.par['refstate']['ra0']
         ctheoarg = axax, None
-
-    sdat = StagyyData(args)
 
     # parameters for the theoretical composition profiles
     # could change over time!
@@ -384,9 +384,9 @@ def rprof_cmd(args):
     rbounds = rmin, rmax, rcmb
 
     if args.plot_conctheo:
-        xieut = args.par_nml['tracersin']['fe_eut']
-        k_fe = args.par_nml['tracersin']['k_fe']
-        xi0l = args.par_nml['tracersin']['fe_cont']
+        xieut = sdat.par['tracersin']['fe_eut']
+        k_fe = sdat.par['tracersin']['k_fe']
+        xi0l = sdat.par['tracersin']['fe_cont']
         xi0s = k_fe * xi0l
         xired = xi0l / xieut
         rsup = (rmax**3 - xired**(1 / (1 - k_fe)) *
