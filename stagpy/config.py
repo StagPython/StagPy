@@ -367,6 +367,7 @@ def _report_missing_config(config_out):
 
 def create_config():
     """Create config file"""
+    makedirs(CONFIG_DIR, exist_ok=True)
     config_parser = configparser.ConfigParser()
     for sub_cmd, meta in DUMMY_CMDS.items():
         config_parser.add_section(sub_cmd)
@@ -481,12 +482,6 @@ def _steps_to_slices(args):
 
 def parse_args():
     """Parse cmd line arguments"""
-    makedirs(CONFIG_DIR, exist_ok=True)
-    try:
-        config_out = read_config()
-    except:
-        config_out = None
-
     main_parser = _build_parser()
     argcomplete.autocomplete(main_parser)
     args = main_parser.parse_args()
@@ -495,6 +490,11 @@ def parse_args():
         args.create = False
         args.edit = False
         args.update = False
+
+    try:
+        config_out = read_config()
+    except configparser.Error:
+        config_out = None
 
     if not args.create or args.edit:
         if config_out is None:
