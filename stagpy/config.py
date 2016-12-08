@@ -5,7 +5,7 @@ and deal with the config file
 """
 
 from collections import OrderedDict, namedtuple
-from os import mkdir
+from os import makedirs
 from subprocess import call
 import argcomplete
 import argparse
@@ -286,6 +286,8 @@ CONFIG = OrderedDict((
 
 def config_cmd(args):
     """sub command config"""
+    if not (args.create or args.update or args.edit):
+        args.update = True
     if args.create or args.update:
         create_config()
     if args.edit:
@@ -327,6 +329,7 @@ def _read_section(config_parser, sub_cmd, meta):
     read section corresponding to the sub command sub_cmd
     and set meta.conf_dict default values to the read values
     """
+    config_content = []
     missing_opts = []
     for opt, meta_opt in meta.conf_dict.items():
         if not config_parser.has_option(sub_cmd, opt):
@@ -341,8 +344,25 @@ def _read_section(config_parser, sub_cmd, meta):
             dflt = config_parser.getint(sub_cmd, opt)
         else:
             dflt = config_parser.get(sub_cmd, opt)
-        _set_conf_default(meta.conf_dict, opt, dflt)
-    return missing_opts
+        config_content.append((meta.conf_dict, opt, dflt))
+    return config_content, missing_opts
+
+
+def _report_missing_config(config_out):
+    """Print list of missing entries in config file"""
+    _, missing_opts, missing_sections = config_out
+    need_update = False
+    for sub_cmd, missing in missing_opts.items():
+        if missing:
+            print('WARNING! Missing options in {} section of config file:'.
+                  format(sub_cmd), *missing, sep='\n', end='\n\n')
+            need_update = True
+    if missing_sections:
+        print('WARNING! Missing sections in config file:', *missing_sections,
+              sep='\n', end='\n\n')
+        need_update = True
+    if need_update:
+        print('Run stagpy config --update to update config file', end='\n\n')
 
 
 def create_config():
@@ -357,33 +377,23 @@ def create_config():
         config_parser.write(out_stream)
 
 
-def read_config(args):
+def read_config():
     """Read config file and set conf_dict as needed"""
     if not os.path.isfile(CONFIG_FILE):
-        if not args.update:
-            print('Config file {} not found.'.format(CONFIG_FILE))
-            print('Run stagpy config --create')
         return
     config_parser = configparser.ConfigParser()
     config_parser.read(CONFIG_FILE)
+    config_content = []
     missing_sections = []
+    missing_opts = {}
     for sub_cmd, meta in DUMMY_CMDS.items():
         if not config_parser.has_section(sub_cmd):
             missing_sections.append(sub_cmd)
             continue
-        missing_opts = _read_section(config_parser, sub_cmd, meta)
-        if missing_opts and not args.update:
-            print('WARNING! Missing options in {} section of config file:'.
-                  format(sub_cmd))
-            print(*missing_opts)
-            print()
-    if missing_sections and not args.update:
-        print('WARNING! Missing sections in config file:')
-        print(*missing_sections)
-        print()
-    if (missing_sections or missing_opts) and not args.update:
-        print('Run stagpy config --update to update config file')
-        print()
+        content, missing_opts[sub_cmd] = _read_section(config_parser, sub_cmd,
+                                                       meta)
+        config_content.extend(content)
+    return config_content, missing_opts, missing_sections
 
 
 class Toggle(argparse.Action):
@@ -418,6 +428,29 @@ def add_args(parser, conf_dict):
     return parser
 
 
+def _build_parser():
+    """Return complete parser"""
+    main_parser = argparse.ArgumentParser(
+        description='read and process StagYY binary data')
+    main_parser.set_defaults(func=lambda _: print('stagpy -h for usage'))
+    subparsers = main_parser.add_subparsers()
+
+    core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
+    core_parser = add_args(core_parser, CORE)
+    core_parser = add_args(core_parser, SCALING)
+    core_parser = add_args(core_parser, PLOTTING)
+
+    for sub_cmd, meta in SUB_CMDS.items():
+        kwargs = {'prefix_chars': '+-', 'help': meta.help_string}
+        if meta.use_core:
+            kwargs.update(parents=[core_parser])
+        dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
+        dummy_parser = add_args(dummy_parser, meta.conf_dict)
+        dummy_parser.set_defaults(func=meta.func)
+
+    return main_parser
+
+
 def _steps_to_slices(args):
     """parse timesteps and snapshots arguments and return slices"""
     if args.timesteps is None and args.snapshots is None:
@@ -448,63 +481,36 @@ def _steps_to_slices(args):
 
 def parse_args():
     """Parse cmd line arguments"""
-    # get path from config file before
-    if not os.path.isdir(CONFIG_DIR):
-        mkdir(CONFIG_DIR)
-    dummy_parser = argparse.ArgumentParser(add_help=False)
-    _, remainder = dummy_parser.parse_known_args()
-    keep_cmd_path = '-p' in remainder or '--path' in remainder
-    dummy_parser = add_args(dummy_parser, {'path': CORE['path']})
-    args, remainder = dummy_parser.parse_known_args()
-    cmd_path = args.path
-    _set_conf_default(CORE, 'path', args.path)
-    if 'config' in remainder:
-        dummy_sub = dummy_parser.add_subparsers()
-        dummy_conf = dummy_sub.add_parser('config', add_help=False)
-        dummy_conf = add_args(dummy_conf, CONFIG)
-        args, _ = dummy_parser.parse_known_args()
-    else:
+    makedirs(CONFIG_DIR, exist_ok=True)
+    try:
+        config_out = read_config()
+    except:
+        config_out = None
+
+    main_parser = _build_parser()
+    argcomplete.autocomplete(main_parser)
+    args = main_parser.parse_args()
+
+    if args.func is not config_cmd:
         args.create = False
         args.edit = False
         args.update = False
-    if not (args.create or args.edit):
-        try:
-            read_config(args)
-        except:
-            print('ERROR while reading config file')
-            print('Run stagpy config --create to obtain a new config file')
-            print('=' * 26)
-            raise
-    if keep_cmd_path:
-        args.path = cmd_path
-        _set_conf_default(CORE, 'path', args.path)
-    par_nml = parfile.readpar(args)
 
-    main_parser = argparse.ArgumentParser(
-        description='read and process StagYY binary data')
-    main_parser = add_args(main_parser, {'path': CORE['path']})
-    main_parser.set_defaults(func=lambda _: print('stagpy -h for usage'))
-    subparsers = main_parser.add_subparsers()
+    if not args.create or args.edit:
+        if config_out is None:
+            print('Unable to read config file {}!'.format(CONFIG_FILE),
+                  'Run stagpy config --create to obtain a new config file.',
+                  '=' * 26, sep='\n')
+        elif config_out and not args.update:
+            _report_missing_config(config_out)
+            for conf_dict, opt, dflt in config_out[0]:
+                _set_conf_default(conf_dict, opt, dflt)
+                main_parser = _build_parser()
+                args = main_parser.parse_args()
 
-    core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
-    core_parser = add_args(core_parser, CORE)
-    core_parser = add_args(core_parser, SCALING)
-    core_parser = add_args(core_parser, PLOTTING)
-    core_parser.set_defaults(name=par_nml['ioin']['output_file_stem'])
-
-    for sub_cmd, meta in SUB_CMDS.items():
-        kwargs = {'prefix_chars': '+-', 'help': meta.help_string}
-        if meta.use_core:
-            kwargs.update(parents=[core_parser])
-        dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-        dummy_parser = add_args(dummy_parser, meta.conf_dict)
-        dummy_parser.set_defaults(func=meta.func)
-
-    argcomplete.autocomplete(main_parser)
-    args = main_parser.parse_args()
     try:
         _steps_to_slices(args)
+        args.par_nml = parfile.readpar(args)
     except AttributeError:
         pass
-    args.par_nml = par_nml
     return args
