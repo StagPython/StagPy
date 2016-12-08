@@ -81,23 +81,6 @@ def parse_line(line, convert=None):
         yield func(val)
 
 
-def parse_timesteps(args):
-    """parse timestep argument"""
-    tstp = args.timestep.split(':')
-    if not tstp[0]:
-        tstp[0] = '0'
-    if len(tstp) == 1:
-        tstp.extend(tstp)
-    if not tstp[1]:
-        tstp[1] = lastfile(args, int(tstp[0]))
-    tstp[1] = int(tstp[1]) + 1
-    if len(tstp) != 3:
-        tstp = tstp[0:2] + [1]
-    if not tstp[2]:
-        tstp[2] = 1
-    args.timestep = list(map(int, tstp))
-
-
 def steps_gen(sdat, args):
     """Return generator over relevant snapshots or timesteps"""
     if args.snapshots is not None:

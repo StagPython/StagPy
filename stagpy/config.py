@@ -30,8 +30,6 @@ CORE = OrderedDict((
                      True, 'StagPy generic output file name')),
     ('geometry', Conf('annulus', True, 'g', {'choices': ['annulus']},
                       True, 'geometry of the domain')),
-    ('timestep', Conf('100', True, None, {},
-                      True, 'timestep slice (deprecated)')),
     ('timesteps', Conf(None, True, 't',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'timesteps slice')),
