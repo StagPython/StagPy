@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 
-def parse_line(line, convert=None):  # remove from misc
+def parse_line(line, convert=None):
     """convert columns of a text line
 
     line values have to be space separated,
@@ -25,7 +25,6 @@ def parse_line(line, convert=None):  # remove from misc
 
 def time_series(timefile):
     """Read temporal series from time.dat"""
-    # remove parse_line from misc
     # could use np.genfromtxt
     if not os.path.isfile(timefile):
         return None
@@ -207,6 +206,6 @@ def fields(fieldfile, only_header=False, only_istep=False):
                  icpu[1] * npc[2]:(icpu[1] + 1) * npc[2],  # z
                  icpu[0] * nbk:(icpu[0] + 1) * nbk  # block
                  ] = np.transpose(data_cpu.reshape(
-                    (nbk, npc[2], npc[1] + header['xyp'],
-                     npc[0] + header['xyp'], nval)))
+                     (nbk, npc[2], npc[1] + header['xyp'],
+                      npc[0] + header['xyp'], nval)))
     return header, flds

@@ -1,7 +1,6 @@
 """miscellaneous definitions"""
 
 import importlib
-from itertools import zip_longest
 import sys
 
 INT_FMT = '{:05d}'
@@ -26,22 +25,6 @@ def set_arg(args, arg, val):
 def get_arg(args, arg):
     """set a cmd line with arg string name"""
     return vars(args)[arg]
-
-
-def parse_line(line, convert=None):
-    """convert columns of a text line
-
-    line values have to be space separated,
-    values are converted to float by default.
-
-    convert argument is a list of functions
-    used to convert the first values.
-    """
-    if convert is None:
-        convert = []
-    line = line.split()
-    for val, func in zip_longest(line, convert[:len(line)], fillvalue=float):
-        yield func(val)
 
 
 def steps_gen(sdat, args):
