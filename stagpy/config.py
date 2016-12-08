@@ -26,8 +26,6 @@ CORE = OrderedDict((
                   True, 'StagYY run directory')),
     ('outname', Conf('stagpy', True, 'n', {},
                      True, 'StagPy generic output file name')),
-    ('geometry', Conf('annulus', True, 'g', {'choices': ['annulus']},
-                      True, 'geometry of the domain')),
     ('timesteps', Conf(None, True, 't',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'timesteps slice')),
