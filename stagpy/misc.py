@@ -2,8 +2,6 @@
 
 import importlib
 from itertools import zip_longest
-from math import ceil
-import os.path
 import sys
 
 INT_FMT = '{:05d}'
@@ -13,24 +11,6 @@ def stop(*msgs):
     """print error message and exit"""
     print('ERROR:', *msgs, file=sys.stderr)
     sys.exit()
-
-
-def _file_name(args, fname):
-    """return full name of StagYY out file"""
-    return os.path.join(args.path, args.name + '_' + fname)
-
-
-def stag_file(args, fname, timestep=None, suffix=''):
-    """return name of StagYY out file if exists
-
-    specify a time step if needed
-    """
-    if timestep is not None:
-        fname = fname + INT_FMT.format(timestep)
-    fname = _file_name(args, fname + suffix)
-    if not os.path.isfile(fname):
-        stop('requested file {} not found'.format(fname))
-    return fname
 
 
 def out_name(args, par_type):
@@ -46,23 +26,6 @@ def set_arg(args, arg, val):
 def get_arg(args, arg):
     """set a cmd line with arg string name"""
     return vars(args)[arg]
-
-
-def lastfile(args, begstep):
-    """look for the last binary file
-
-    research based on temperature files
-    """
-    fmt = _file_name(args, 't' + INT_FMT)
-
-    endstep = 100000
-    while begstep + 1 < endstep:
-        guess = int(ceil((endstep + begstep) / 2))
-        if os.path.isfile(fmt.format(guess)):
-            begstep = guess
-        else:
-            endstep = guess
-    return begstep
 
 
 def parse_line(line, convert=None):

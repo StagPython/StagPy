@@ -555,9 +555,9 @@ class StagyyData:
 
     def filename(self, fname, timestep=None, suffix=''):
         """return name of StagYY out file"""
-        # remove stag_file from misc, also _file_name and lastfile
         if timestep is not None:
             fname += '{:05d}'.format(timestep)
         fname = os.path.join(self.args.path,
-                             self.args.name + '_' + fname + suffix)
+                             self.par['ioin']['output_file_stem'] +
+                             '_' + fname + suffix)
         return fname

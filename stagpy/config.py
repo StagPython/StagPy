@@ -24,8 +24,6 @@ Conf = namedtuple('ConfigEntry',
 CORE = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),
-    ('name', Conf('test', True, None, {},
-                  True, 'StagYY generic output file name')),
     ('outname', Conf('stagpy', True, 'n', {},
                      True, 'StagPy generic output file name')),
     ('geometry', Conf('annulus', True, 'g', {'choices': ['annulus']},
