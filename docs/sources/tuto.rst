@@ -7,7 +7,7 @@ basic instructions on how to use these two flavors of StagPy.
 Read the :doc:`installation instructions <install>` first in order to have
 StagPy available on your system. The rest of this documentation assumes that
 you have installed StagPy and that you can call it from the command line with
-the command ``stagpy``. Command examples all begin with a ``%`` sign,
+the command ``% stagpy``. Command examples all begin with a ``%`` sign,
 representing your command prompt.
 
 Command line tool
@@ -29,15 +29,15 @@ This means a minimal call to StagPy is as follow::
 * ``version``: display the installed version of StagPy;
 * ``config``: configuration handling.
 
-You can run ``stagpy --help`` (or ``stagpy -h``) to display a help message
-describing those subcommands. You can also run ``stagpy <subcommand> --help``
+You can run ``% stagpy --help`` (or ``% stagpy -h``) to display a help message
+describing those subcommands. You can also run ``% stagpy <subcommand> --help``
 to have some help on the available options for one particular sub command.
 
 A simple example would be::
 
     % stagpy field -p path/to/run/ -o tp -s 42
 
-This asks ``stagpy`` to plot the temperature and pressure fields of snapshot 42
+This asks StagPy to plot the temperature and pressure fields of snapshot 42
 of the run lying in ``./path/to/run``. When not specified, the path defaults to
 ``./`` (i.e. the current directory) and the snapshot defaults to the last one
 available. The command ``% stagpy var`` displays the list of fields available
@@ -97,7 +97,7 @@ of by ``StagyyData``.
 
 All output data available in the StagYY run is accessible through this
 interface. ``StagyyData`` is designed a lazy data accessor. This means output
-files are read only when the data they contain is asked for. For exemple, the
+files are read only when the data they contain is asked for. For example, the
 temperature field of the last snapshot isn't read until
 ``sdat.snaps[-1].fields['t']`` is asked for.
 
