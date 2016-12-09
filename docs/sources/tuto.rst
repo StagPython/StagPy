@@ -1,21 +1,22 @@
 Getting started
 ===============
 
-StagPy is primarily designed as a command line tool. This section contains
-instructions to use StagPy *via* the command line.
+StagPy is both a command line tool and Python module. This section contains
+basic instructions on how to use these two flavors of StagPy.
 
 Read the :doc:`installation instructions <install>` first in order to have
 StagPy available on your system. The rest of this documentation assumes that
 you have installed StagPy and that you can call it from the command line with
-the command ``stagpy``.
+the command ``stagpy``. Command examples all begin with a ``%`` sign,
+representing your command prompt.
 
-Subcommands
------------
+Command line tool
+-----------------
 
 The various processing capabilities of StagPy are organized in subcommands.
 This means a minimal call to StagPy is as follow::
 
-    stagpy <subcommand>
+    % stagpy <subcommand>
 
 ``<subcommand>`` can be one of the following:
 
@@ -32,35 +33,71 @@ You can run ``stagpy --help`` (or ``stagpy -h``) to display a help message
 describing those subcommands. You can also run ``stagpy <subcommand> --help``
 to have some help on the available options for one particular sub command.
 
-What StagPy does
+A simple example would be::
+
+    % stagpy field -p path/to/run/ -o tp -s 42
+
+This asks ``stagpy`` to plot the temperature and pressure fields of snapshot 42
+of the run lying in ``./path/to/run``. When not specified, the path defaults to
+``./`` (i.e. the current directory) and the snapshot defaults to the last one
+available. The command ``% stagpy var`` displays the list of fields available
+with the ``-o`` option.
+
+Snapshots and time steps
+------------------------
+
+StagPy allows you to work seamlessly with time steps and snapshots indices.  A
+snapshot index is the number of registered profiles and fields, and a time step
+index is the number of atomic iterations performed in StagYY.
+
+The snapshots option ``-s`` allows you to specify a range of snapshots in a way
+which mimic the slicing syntax: ``begin:end:gap`` (``end`` excluded).
+Similarly, the timesteps option ``-t`` allows you to specify a range of time
+steps. For example, if snapshots are taken every 10 timesteps, ``-t 100:1001``
+is equivalent to ``-s 10:101``.
+
+If the first step/snapshot is not specified, it is set to ``0``. If the final
+step/snapshot is not specified, all available steps/snapshots are processed.
+Negative indices are allowed (meaning a counting from the last step/snapshot
+available). Here are some examples:
+
+* ``-t 100:350`` will process every time steps between 100 and 349;
+* ``-t 201:206:2`` will process time steps 201, 203 and 205;
+* ``-t 201:205:2`` will process time steps 201 and 203;
+* ``-s -10:`` will process the last ten snapshots;
+* ``-s :454`` will process every snapshots from the 0th to the 453rd one;
+* ``-s ::2`` will process every even snapshots.
+
+Python interface
 ----------------
 
-StagPy looks for a StagYY ``par`` file in the current directory. It then reads
-the value of the ``output_file_stem`` entry to determine the location and name
-of the StagYY output files (set to ``test`` if no ``par`` file can be found).
-You can change the directory in which StagYY looks for a ``par`` file by two
-different ways:
+StagPy lets you operate the interface it uses internally to access StagYY
+output data. This allows you to write your own scripts to do some specific
+processings that aren't implemented in StagPy.
 
-* you can change the default behavior in a global way by editing the config
-  file (``stagpy config --edit``) and change the ``core.path`` variable;
-* or you can change the path only for the current run with the ``-p`` option.
+The interface is wrapped in the ``stagpy.stagyydata.StagyyData`` class.
+Instantiating and using this class is rather simple::
 
-Options
--------
+    from stagpy.stagyydata import StagyyData
+    sdat = StagyyData('path/to/run/')
 
-The time step option ``-s`` allows you to specify a range of time steps in a
-way which mimic the slicing syntax: ``begin:end:gap`` (both ends included). If
-the first step is not specified, it is set to ``0``. If the final step is not
-specified, all available time steps are processed. Here are some examples:
+    # vertical velocity profile of last snapshot
+    last_v_prof = sdat.snaps[-1].rprof['v']
 
-* ``-s 100:350`` will process every time steps between 100 and 350;
-* ``-s 201:206:2`` will process time steps 201, 203 and 205;
-* ``-s 201:205:2`` same as previous;
-* ``-s 5682:`` will process every time steps from the 5682nd to the last one;
-* ``-s :453`` will process every time steps from the 0th to the 453rd one;
-* ``-s ::2`` will process every even time steps.
+    # temperature field of the 10000th time step
+    # (will be None if no snapshot is available at this timestep)
+    temp_field = sdat.steps[10000].fields['t']
 
-By default, the temperature, pressure and stream function fields are plotted.
-You can change this with the ``-o`` option (e.g. ``./main.py field -o ps`` to
-plot only the pressure and stream function fields).
+    # iterate through snaps 100, 105, 110... up to the last one
+    for snap in sdat.snaps[100::5]:
+        do_something(snap)
+
+As you can see, the snapshot/time step distinction is automatically taken care
+of by ``StagyyData``.
+
+All output data available in the StagYY run is accessible through this
+interface. ``StagyyData`` is designed a lazy data accessor. This means output
+files are read only when the data they contain is asked for. For exemple, the
+temperature field of the last snapshot isn't read until
+``sdat.snaps[-1].fields['t']`` is asked for.
 
