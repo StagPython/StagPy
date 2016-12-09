@@ -16,6 +16,7 @@ FIELD_VAR_LIST = OrderedDict((
     ('h', Varf('wtr', 'Water', 'plot_water', {})),
     ('a', Varf('age', 'Age', 'plot_age',
                {'vmin': 0})),
+    ('i', Varf('nrc', 'ID of continents', 'plot_continents', {})),
     ('s', Varf('str', 'Stress (second invariant)', 'plot_stress',
                {'cmap': 'gnuplot2_r', 'vmin': 500, 'vmax': 20000})),
     ('x', Varf('sx', 'Principal deviatoric stress', 'plot_deviatoric_stress',
