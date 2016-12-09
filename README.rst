@@ -18,14 +18,11 @@
 StagPy
 ======
 
-StagPy is a Python 3 command line tool to read and process StagYY output files
-to produce high-quality figures.
+StagPy is a command line tool to process the output files of your StagYY
+simulations and produce high-quality figures.
 
-The aim is to have different cases in one file (Cartesian, Spherical Annulus,
-etc).
-
-The code to read the binary output files has been adapted from a matlab version
-initially developed by Boris Kaus.
+This command line tool is built around a generic interface that allows you to
+access StagYY output data directly in a Python script.
 
 You can install StagPy with ``conda`` from the `Anaconda Cloud`__, or with
 ``pip`` from the `Python Package Index`__.
