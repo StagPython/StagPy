@@ -737,8 +737,7 @@ def plates_cmd(args):
                         isurf -= 4  # why different isurf for the rest?
 
                 # topography
-                fname = misc.stag_file(args, 'sc', timestep=timestep,
-                                       suffix='.dat')
+                fname = sdat.filename('sc', timestep=timestep, suffix='.dat')
                 topo = np.genfromtxt(fname)
                 # rescaling topography!
                 if sdat.par['boundaries']['air_layer']:
