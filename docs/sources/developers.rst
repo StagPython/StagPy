@@ -45,6 +45,6 @@ repository and run::
 
     stagpy-git field
 
-Three PDF files with a plot of the temperature, pressure and
-stream function fields should appear.
+Two PDF files with a plot of the temperature and vertical velocity fields
+should appear.
 
