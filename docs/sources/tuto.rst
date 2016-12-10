@@ -43,6 +43,9 @@ of the run lying in ``./path/to/run``. When not specified, the path defaults to
 available. The command ``% stagpy var`` displays the list of fields available
 with the ``-o`` option.
 
+See the :doc:`dedicated section <cli>` for more information on the command line
+interface.
+
 Snapshots and time steps
 ------------------------
 
@@ -100,4 +103,7 @@ interface. ``StagyyData`` is designed a lazy data accessor. This means output
 files are read only when the data they contain is asked for. For example, the
 temperature field of the last snapshot isn't read until
 ``sdat.snaps[-1].fields['t']`` is asked for.
+
+See the :doc:`dedicated section <stagyydata>` for more information on the
+``StagyyData`` class.
 

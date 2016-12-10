@@ -13,6 +13,8 @@ Contents:
 
    sources/install
    sources/tuto
+   sources/stagyydata
+   sources/cli
    sources/developers
    sources/maintainers
 
