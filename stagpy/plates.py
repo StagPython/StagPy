@@ -710,7 +710,7 @@ def plates_cmd(args):
                 timestep = step.isnap
                 istart = timestep if istart is None else istart
                 iend = timestep
-                print('Treating timestep', timestep)
+                print('Treating snapshot', timestep)
 
                 rcmb = step.geom.rcmb
                 if args.plot_stress:
