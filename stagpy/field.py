@@ -5,7 +5,7 @@ from . import constants, misc
 from .stagyydata import StagyyData
 
 
-def plot_scalar(args, step, var):
+def plot_scalar(args, step, var, scaling=None):
     """var: one of the key of constants.FIELD_VAR_LIST"""
     plt = args.plt
 
@@ -22,6 +22,9 @@ def plot_scalar(args, step, var):
     else:  # spherical yz
         xmesh, ymesh = step.geom.x_mesh[0, :, :], step.geom.y_mesh[0, :, :]
         fld = fld[0, :, :, 0]
+
+    if scaling is not None:
+        fld = np.copy(fld) * scaling
 
     fig, axis = plt.subplots(ncols=1)
     extra_opts = {'cmap': 'jet'}
