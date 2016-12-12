@@ -35,13 +35,6 @@ subcommands.
    Range of snapshots that should be processed. Defaults to the last available
    snapshot.
 
-.. option:: --scan <file-list>
-
-   Comma separated list of binary files that should be scanned when looking
-   for the last available snapshot or for the snapshot corresponding to a
-   given timestep. For performance reasons, this defaults to "t" (temperature
-   file).
-
 .. option:: -xkcd, +xkcd
 
     Toggle xkcd plot style. Defaults to disabled.

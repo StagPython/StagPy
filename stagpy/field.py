@@ -56,7 +56,7 @@ def plot_stream(args, fig, axis, component1, component2):
 
 def field_cmd(args):
     """extract and plot field data"""
-    sdat = StagyyData(args.path, args.scan)
+    sdat = StagyyData(args.path)
     for step in misc.steps_gen(sdat, args):
         for var, meta in constants.FIELD_VAR_LIST.items():
             if misc.get_arg(args, meta.arg):

@@ -404,7 +404,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
                  transform=ax1.transAxes, fontsize=args.fontsize)
         ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
                  transform=ax1.transAxes, fontsize=args.fontsize)
-        ax2.plot(ph_coord[:-1], stressfld[:, indsurf],
+        ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf],
                  color='k', linewidth=lwd, label='Stress')
         ax2.set_ylim(args.stressmin, args.stressmax)
         ax2.set_ylabel("Stress [MPa]", fontsize=args.fontsize)
@@ -655,7 +655,7 @@ def lithospheric_stress(args, step, trench, ridge, time):
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
 
-    ax2.plot(ph_coord[:-1], stress_lith,
+    ax2.plot(ph_coord, stress_lith,
              color='k', linewidth=lwd, label='Stress')
     ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]", fontsize=args.fontsize)
 
@@ -686,7 +686,7 @@ def plates_cmd(args):
     uses velocity field (velocity derivation)
     plots the number of plates over a designated lapse of time
     """
-    sdat = StagyyData(args.path, args.scan)
+    sdat = StagyyData(args.path)
     if not args.vzcheck:
         fids = [0 for _ in range(8)]
         tmpf = functools.partial(tempfile.NamedTemporaryFile, mode='w',
