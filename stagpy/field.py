@@ -24,12 +24,12 @@ def plot_scalar(args, step, var):
         fld = fld[0, :, :, 0]
 
     fig, axis = plt.subplots(ncols=1)
-    extra_opts = {} if var != 'n' else {'norm': args.mpl.colors.LogNorm()}
-    surf = axis.pcolormesh(xmesh, ymesh, fld, cmap='jet',
-                           rasterized=not args.pdf,
-                           shading='gouraud',
-                           **constants.FIELD_VAR_LIST[var].pcolor_opts,
-                           **extra_opts)
+    extra_opts = {'cmap': 'jet'}
+    extra_opts.update(constants.FIELD_VAR_LIST[var].pcolor_opts)
+    extra_opts.update({} if var != 'n'
+                      else {'norm': args.mpl.colors.LogNorm()})
+    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not args.pdf,
+                           shading='gouraud', **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=args.shrinkcb)
     cbar.set_label(constants.FIELD_VAR_LIST[var].name)
