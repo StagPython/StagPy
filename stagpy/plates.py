@@ -655,7 +655,7 @@ def lithospheric_stress(args, step, trench, ridge, time):
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
 
-    ax2.plot(ph_coord[:-1], stress_lith,
+    ax2.plot(ph_coord, stress_lith,
              color='k', linewidth=lwd, label='Stress')
     ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]", fontsize=args.fontsize)
 
