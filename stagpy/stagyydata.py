@@ -2,7 +2,7 @@
 
 import bisect
 import re
-import os.path
+import os
 import numpy as np
 from . import constants, parfile, stagyyparsers
 
@@ -233,13 +233,12 @@ class _Fields(dict):
     def geom(self):
         """Header info from bin file"""
         if self._header is UNDETERMINED:
-            self._header = None
-            for par in self.step.sdat.scan:
-                fieldfile = self.step.sdat.filename(par, self.step.isnap)
-                header = stagyyparsers.fields(fieldfile, only_header=True)
-                if header is not None:
-                    self._header = header
-                    break
+            binfiles = self.step.sdat.binfiles_set(self.step.isnap)
+            if binfiles:
+                self._header = stagyyparsers.fields(binfiles.pop(),
+                                                    only_header=True)
+            else:
+                self._header = None
         if self._geom is UNDETERMINED:
             if self._header is None:
                 self._geom = None
@@ -466,13 +465,15 @@ class _Snaps(_Steps):
         isnap = self._valid_idx(isnap)
         istep = self._isteps.get_istep(isnap)
         if istep is UNDETERMINED:
-            for par in self.sdat.scan:
-                fieldfile = self.sdat.filename(par, isnap)
-                istep = stagyyparsers.fields(fieldfile, only_istep=True)
-                if istep is not None:
-                    self.bind(isnap, istep)
-                    return self.sdat.steps[istep]
-            self._isteps.insert(isnap, None)
+            binfiles = self.sdat.binfiles_set(isnap)
+            if binfiles:
+                istep = stagyyparsers.fields(binfiles.pop(), only_istep=True)
+            else:
+                istep = None
+            if istep is not None:
+                self.bind(isnap, istep)
+            else:
+                self._isteps.insert(isnap, None)
         return self.sdat.steps[istep]
 
     def bind(self, isnap, istep):
@@ -491,10 +492,12 @@ class _Snaps(_Steps):
         """Last snapshot available"""
         if self._last is UNDETERMINED:
             self._last = None
-            for isnap in range(99999, -1, -1):
-                istep = self[isnap].istep
-                if istep is not None:
-                    self._last = isnap
+            rgx = re.compile('^([a-zA-Z]+)([0-9]{5})$')
+            pars = set(item.par for item in constants.FIELD_VAR_LIST.values())
+            for fname in sorted(self.sdat.files, reverse=True):
+                match = rgx.match(fname.rsplit('_', 1)[-1])
+                if match is not None and match.group(1) in pars:
+                    self._last = int(match.group(2))
                     break
         return self[self._last]
 
@@ -503,15 +506,13 @@ class StagyyData:
 
     """Offer a generic interface to StagYY output data"""
 
-    def __init__(self, path, scan='t'):
+    def __init__(self, path):
         """Generic lazy StagYY output data accessors"""
         self.path = os.path.expanduser(os.path.expandvars(path))
         self.par = parfile.readpar(self.path)
-        self.scan = set.intersection(
-            set(scan.split(',')),
-            set(item.par for item in constants.FIELD_VAR_LIST.values()))
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
+        self._files = UNDETERMINED
         self._tseries = UNDETERMINED
         self._rprof = UNDETERMINED
 
@@ -543,6 +544,17 @@ class StagyyData:
             self._rprof = _Rprof(data, times, isteps)
         return self._rprof
 
+    @property
+    def files(self):
+        """Set of output binary files"""
+        if self._files is UNDETERMINED:
+            out_dir = os.path.join(
+                self.path,
+                os.path.dirname(self.par['ioin']['output_file_stem']))
+            self._files = set(os.path.join(out_dir, basename)
+                              for basename in os.listdir(out_dir))
+        return self._files
+
     def filename(self, fname, timestep=None, suffix=''):
         """return name of StagYY out file"""
         if timestep is not None:
@@ -551,3 +563,9 @@ class StagyyData:
                              self.par['ioin']['output_file_stem'] +
                              '_' + fname + suffix)
         return fname
+
+    def binfiles_set(self, isnap):
+        """Set of existing binary files at a given snap"""
+        possible_files = set(self.filename(item.par, isnap)
+                             for item in constants.FIELD_VAR_LIST.values())
+        return possible_files & self.files

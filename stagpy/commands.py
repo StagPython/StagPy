@@ -10,14 +10,6 @@ def field_cmd(args):
     if args.plot is not None:
         for var, meta in constants.FIELD_VAR_LIST.items():
             misc.set_arg(args, meta.arg, var in args.plot)
-    useful_scan = set()
-    for item in constants.FIELD_VAR_LIST.values():
-        if misc.get_arg(args, item.arg):
-            useful_scan |= {item.par}
-    args.scan = useful_scan & set(args.scan.split(','))
-    if not args.scan:
-        args.scan = [useful_scan.pop()]
-    args.scan = ','.join(args.scan)
     field.field_cmd(args)
 
 

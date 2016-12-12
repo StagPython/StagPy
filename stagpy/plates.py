@@ -686,7 +686,7 @@ def plates_cmd(args):
     uses velocity field (velocity derivation)
     plots the number of plates over a designated lapse of time
     """
-    sdat = StagyyData(args.path, args.scan)
+    sdat = StagyyData(args.path)
     if not args.vzcheck:
         fids = [0 for _ in range(8)]
         tmpf = functools.partial(tempfile.NamedTemporaryFile, mode='w',

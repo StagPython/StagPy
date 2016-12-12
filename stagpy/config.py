@@ -32,8 +32,6 @@ CORE = OrderedDict((
     ('snapshots', Conf(None, True, 's',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'snapshots slice')),
-    ('scan', Conf('t', True, None, {},
-                  True, 'Comma separated list of field files to scan')),
     ('xkcd', Conf(False, True, None, {},
                   True, 'use the xkcd style')),
     ('pdf', Conf(False, True, None, {},
