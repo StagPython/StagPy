@@ -505,7 +505,7 @@ class StagyyData:
 
     def __init__(self, path, scan='t'):
         """Generic lazy StagYY output data accessors"""
-        self.path = path
+        self.path = os.path.expanduser(os.path.expandvars(path))
         self.par = parfile.readpar(self.path)
         self.scan = set.intersection(
             set(scan.split(',')),
