@@ -264,10 +264,12 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     tempfld = step.fields['t'][0, :, :, 0]
     concfld = step.fields['c'][0, :, :, 0]
     timestep = step.isnap
+
     if args.plot_age:
         agefld = step.fields['a'][0, :, :, 0]
     if args.plot_stress:
         stressfld = step.fields['s'][0, :, :, 0]
+        scale_stress = args.kappa * args.viscosity_ref / args.mantle**2
 
     if step.sdat.par['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
@@ -404,7 +406,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
                  transform=ax1.transAxes, fontsize=args.fontsize)
         ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
                  transform=ax1.transAxes, fontsize=args.fontsize)
-        ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf],
+        ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf] * scale_stress / 1.e6 ,
                  color='k', linewidth=lwd, label='Stress')
         ax2.set_ylim(args.stressmin, args.stressmax)
         ax2.set_ylabel("Stress [MPa]", fontsize=args.fontsize)
@@ -523,7 +525,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-             topo[:, 1] * args.mantle,
+             topo[:, 1] * args.mantle / 1.e3,
              color='black')
     ax2.set_xlim(0, 2 * np.pi)
     ax2.set_ylim(args.topomin, args.topomax)
@@ -578,20 +580,22 @@ def lithospheric_stress(args, step, trench, ridge, time):
     timestep = step.isnap
     lwd = args.linewidth
     base_lith = step.geom.rcmb + 1 - 0.105
+    scale_stress = args.kappa * args.viscosity_ref / args.mantle**2 
+    scale_dist = args.mantle
 
     stressfld = step.fields['s'][0, :, :, 0]
     stressfld = np.ma.masked_where(step.geom.r_mesh[0] < base_lith, stressfld)
 
     # stress integration in the lithosphere
     dzm = (step.geom.r_coord[1:] - step.geom.r_coord[:-1])
-    stress_lith = np.sum((stressfld[:, 1:] * dzm.T) / 1e6, axis=1)
+    stress_lith = np.sum((stressfld[:, 1:] * dzm.T), axis=1)
     ph_coord = step.geom.p_coord  # probably doesn't need alias
 
     # plot stress in the lithosphere
     fig, axis = args.plt.subplots(ncols=1)
-    surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0], stressfld,
-                           cmap='gnuplot2_r', rasterized=not args.pdf,
-                           shading='gouraud')
+    surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0], stressfld *
+                           scale_stress / 1.e6, cmap='gnuplot2_r', 
+                           rasterized=not args.pdf, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = args.plt.colorbar(surf, shrink=args.shrinkcb)
     cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
@@ -655,7 +659,7 @@ def lithospheric_stress(args, step, trench, ridge, time):
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
 
-    ax2.plot(ph_coord, stress_lith,
+    ax2.plot(ph_coord, stress_lith * scale_stress * scale_dist / 1.e12,
              color='k', linewidth=lwd, label='Stress')
     ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]", fontsize=args.fontsize)
 
@@ -714,9 +718,8 @@ def plates_cmd(args):
 
                 rcmb = step.geom.rcmb
                 if args.plot_stress:
-                    # bad design!
-                    step.fields['s'] = step.fields['s'] * \
-                        args.kappa * args.viscosity_ref / args.mantle**2 / 1.e6
+                    scale_stress = args.kappa * \
+                        args.viscosity_ref / args.mantle**2
 
                 if timestep == istart:
                     # same code in rprof!
@@ -836,7 +839,8 @@ def plates_cmd(args):
                     constants.FIELD_VAR_LIST['s'] =\
                         constants.FIELD_VAR_LIST['s']._replace(
                             name='Stress [MPa]')  # Shouldn't be done!
-                    fig, axis, surf = field.plot_scalar(args, step, 's')
+                    fig, axis, surf = field.plot_scalar(args, step, 's',
+                                                        scale_stress / 1.e6)
                     surf.set_clim(vmin=0, vmax=300)
                     args.plt.figure(fig.number)
 
