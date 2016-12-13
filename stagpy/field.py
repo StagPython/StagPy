@@ -38,7 +38,7 @@ def plot_scalar(args, step, var, scaling=None):
     cbar.set_label(constants.FIELD_VAR_LIST[var].name)
     plt.axis('equal')
     plt.axis('off')
-    return fig, axis, surf
+    return fig, axis, surf, cbar
 
 
 def plot_stream(args, fig, axis, component1, component2):
@@ -64,7 +64,7 @@ def field_cmd(args):
                     print("'{}' field on snap {} not found".format(var,
                                                                    step.isnap))
                     continue
-                fig, _, _ = plot_scalar(args, step, var)
+                fig, _, _, _ = plot_scalar(args, step, var)
                 args.plt.figure(fig.number)
                 args.plt.tight_layout()
                 args.plt.savefig(

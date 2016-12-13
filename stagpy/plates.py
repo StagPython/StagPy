@@ -771,7 +771,7 @@ def plates_cmd(args):
                                step.fields['a'][0, :, isurf, 0])
 
                 # plot viscosity field with position of trenches and ridges
-                fig, axis, surf = field.plot_scalar(args, step, 'n')
+                fig, axis, surf, _ = field.plot_scalar(args, step, 'n')
                 etamax = sdat.par['viscosity']['eta_max']
                 surf.set_clim(vmin=1e-2, vmax=etamax)
 
@@ -836,13 +836,10 @@ def plates_cmd(args):
 
                 # plot stress field with position of trenches and ridges
                 if args.plot_stress:
-                    constants.FIELD_VAR_LIST['s'] =\
-                        constants.FIELD_VAR_LIST['s']._replace(
-                            name='Stress [MPa]')  # Shouldn't be done!
-                    fig, axis, surf = field.plot_scalar(args, step, 's',
-                                                        scale_stress / 1.e6)
+                    fig, axis, surf, cbar = field.plot_scalar(
+                        args, step, 's', scale_stress / 1.e6)
                     surf.set_clim(vmin=0, vmax=300)
-                    args.plt.figure(fig.number)
+                    cbar.set_label('Stress [MPa]')
 
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
@@ -874,7 +871,7 @@ def plates_cmd(args):
 
                 # plotting the principal deviatoric stress field
                 if args.plot_deviatoric_stress:
-                    fig, axis, surf = field.plot_scalar(args, step, 's')
+                    fig, axis, surf, _ = field.plot_scalar(args, step, 's')
                     surf.set_clim(vmin=0, vmax=300)
 
                     # plotting continents
