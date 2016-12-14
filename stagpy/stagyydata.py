@@ -66,20 +66,22 @@ class _Geometry:
         # - center of cells coordinates (the current one);
         # - vertices coordinates on which vector fields are determined,
         #   which geometrically contains one more row.
+
+        # add theta, phi / x, y row to have a continuous field
+        if not self.twod_yz:
+            self._coords[0] = np.append(
+                self.t_coord,
+                self.t_coord[-1] + self.t_coord[1] - self.t_coord[0])
+        if not self.twod_xz:
+            self._coords[1] = np.append(
+                self.p_coord,
+                self.p_coord[-1] + self.p_coord[1] - self.p_coord[0])
+
         if self.cartesian:
             self._cart_meshes = np.meshgrid(self.x_coord, self.y_coord,
                                             self.z_coord, indexing='ij')
             self._curv_meshes = (None, None, None)
         else:
-            # add theta / phi row to have a continuous field
-            if not self.twod_yz:
-                self._coords[0] = np.append(
-                    self.t_coord,
-                    self.t_coord[-1] + self.t_coord[1] - self.t_coord[0])
-            if not self.twod_xz:
-                self._coords[1] = np.append(
-                    self.p_coord,
-                    self.p_coord[-1] + self.p_coord[1] - self.p_coord[0])
             if self.twod_yz:
                 self._coords[0] = np.array(np.pi / 2)
             elif self.twod_xz:
@@ -230,7 +232,7 @@ class _Fields(dict):
             print("'{}' field computation not available".format(name))
             return None
         for fld_name, fld in zip(fld_names, fields):
-            if self._header['xyp'] == 0 and self.geom.spherical:
+            if self._header['xyp'] == 0:
                 if not self.geom.twod_yz:
                     newline = (fld[:1, :, :, :] + fld[-1:, :, :, :]) / 2
                 if not self.geom.twod_xz:
