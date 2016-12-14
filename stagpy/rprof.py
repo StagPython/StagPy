@@ -8,7 +8,7 @@ import numpy as np
 from scipy import integrate as itg
 # from cycler import cycler
 from . import constants, misc
-from .stagyydata import StagyyData
+from .stagyydata import StagyyData, NoSnapshotError
 
 
 def _normprof(rrr, func):  # for args.plot_difference
@@ -378,7 +378,11 @@ def rprof_cmd(args):
 
     # parameters for the theoretical composition profiles
     # could change over time!
-    rcmb = max(0, sdat.snaps[-1].geom.rcmb)
+    try:
+        rcmb = sdat.snaps[-1].geom.rcmb
+    except NoSnapshotError:
+        rcmb = sdat.par['geometry']['r_cmb']
+    rcmb = max(0, rcmb)
     rmin = rcmb  # two times the same info...
     rmax = rcmb + 1.
     rbounds = rmin, rmax, rcmb
@@ -455,7 +459,11 @@ def rprof_cmd(args):
         plotprofiles(sdat,
                      ['Advection per unit surface', 'Total', 'down-welling',
                       'Up-welling'], [57, 58, 59], rbounds, args, ctheoarg)
-        if sdat.snaps[-1].geom.spherical:
+        try:
+            spherical = sdat.snaps[-1].geom.spherical
+        except NoSnapshotError:
+            spherical = sdat.par['geometry']['shape'].lower() == 'spherical'
+        if spherical:
             plotprofiles(sdat,
                          ['Total scaled advection', 'Total', 'down-welling',
                           'Up-welling'], [57, 58, 59], rbounds, args,
