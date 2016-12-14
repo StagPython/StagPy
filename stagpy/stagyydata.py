@@ -14,6 +14,16 @@ UNDETERMINED = object()
 # non existent
 
 
+class Error(Exception):
+    """Base class for exceptions raised in this module"""
+    pass
+
+
+class NoSnapshotError(Error):
+    """Raised when last snapshot is required but none exists"""
+    pass
+
+
 class _Geometry:
 
     """Geometry information"""
@@ -499,6 +509,8 @@ class _Snaps(_Steps):
                 if match is not None and match.group(1) in pars:
                     self._last = int(match.group(2))
                     break
+            if self._last is None:
+                raise NoSnapshotError
         return self[self._last]
 
 
