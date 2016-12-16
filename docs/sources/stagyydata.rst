@@ -26,11 +26,11 @@ time step or the ``m-th`` snapshot is done using square brackets::
     sdat.steps[n]
     sdat.snaps[m]
 
-These two expressions each return a ``_Step`` instance. Moreover, if the
+These two expressions each return a :class:`_Step` instance. Moreover, if the
 ``m``-th snapshot was done at the ``n``-th step, both expressions return the
-same ``_Step`` instance. In other words, if for example the 100th snapshot was
-made at the 1000th step, ``sdat.steps[1000] is sdat.snaps[100]`` is true. The
-correspondence between time steps and snapshots is deduced from available
+same :class:`_Step` instance. In other words, if for example the 100th snapshot
+was made at the 1000th step, ``sdat.steps[1000] is sdat.snaps[100]`` is true.
+The correspondence between time steps and snapshots is deduced from available
 binary files.
 
 Generators also, and negative index.
@@ -110,8 +110,8 @@ instance. This attribute is a three dimensional array, with indices in the
 following order: temporal snapshot, variable (such as temperature or grid
 position), radial index.
 
-The radial profile of a given time step can be accessed from a :class:`_Step`
-object, e.g. ``sdat.steps[1000].rprof``.
+The radial profile of a given time step can be accessed from
+:attr:`_Step.rprof` (e.g. ``sdat.steps[1000].rprof``).
 
 Time series
 -----------
@@ -121,13 +121,13 @@ instance. This attribute is a two dimensional array, with indices in the
 following order: temporal snapshot, variable (such as mean temperature or
 advective time).
 
-The temporal data of a given time step can be accessed from a :class:`_Step`
-object, e.g. ``sdat.steps[1000].timeinfo``.
+The temporal data of a given time step can be accessed from
+:attr:`_Step.timeinfo` (e.g. ``sdat.steps[1000].timeinfo``).
 
 Geometry
 --------
 
-Geometry information are read from fields files. :attribute:`_Step.geom` has
+Geometry information are read from fields files. :attr:`_Step.geom` has
 various attributes defining the geometry of the problem.
 
 ``cartesian``, ``curvilinear``, ``cylindrical``, ``spherical`` and ``yinyang``
