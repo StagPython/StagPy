@@ -410,15 +410,9 @@ class _Steps(dict):
     def __getitem__(self, key):
         try:
             # slice
-            start = self._valid_idx(key.start or 0)
-            if key.stop is None:
-                # include last step
-                stop = self._valid_idx(-1) + 1
-            else:
-                stop = self._valid_idx(key.stop)
-            step = key.step or 1
+            idxs = key.indices(self.last.istep + 1)
             return (super(self.__class__, self).__getitem__(k)
-                    for k in range(start, stop, step))
+                    for k in range(*idxs))
         except AttributeError:
             return super().__getitem__(key)
 
@@ -426,20 +420,16 @@ class _Steps(dict):
         if istep is None:  # if called for nonexistent snap
             return _EmptyStep()
         try:
-            istep = self._valid_idx(int(istep))
+            istep = int(istep)
         except ValueError:
             raise ValueError('Time step should be an integer value')
         if istep < 0:
-            raise ValueError('Time step should be positive')
+            istep += self.last.istep + 1
+            if istep < 0:
+                raise ValueError('Time step should be positive')
         if not self.__contains__(istep):
             super().__setitem__(istep, _Step(istep, self.sdat))
         return super().__getitem__(istep)
-
-    def _valid_idx(self, idx):
-        """Return positive index"""
-        if idx < 0:
-            idx += self.last.istep + 1
-        return idx
 
     @property
     def last(self):
@@ -461,20 +451,14 @@ class _Snaps(_Steps):
     def __getitem__(self, key):
         try:
             # slice
-            start = self._valid_idx(key.start or 0)
-            if key.stop is None:
-                # include last step
-                stop = self._valid_idx(-1) + 1
-            else:
-                stop = self._valid_idx(key.stop)
-            step = key.step or 1
-            return (self.__missing__(k)
-                    for k in range(start, stop, step))
+            idxs = key.indices(self.last.isnap + 1)
+            return (self.__missing__(k) for k in range(*idxs))
         except AttributeError:
             return self.__missing__(key)
 
     def __missing__(self, isnap):
-        isnap = self._valid_idx(isnap)
+        if isnap < 0:
+            isnap += self.last.isnap + 1
         istep = self._isteps.get_istep(isnap)
         if istep is UNDETERMINED:
             binfiles = self.sdat.binfiles_set(isnap)
@@ -492,12 +476,6 @@ class _Snaps(_Steps):
         """Make the isnap <-> istep link"""
         self._isteps.insert(isnap, istep)
         self.sdat.steps[istep].isnap = isnap
-
-    def _valid_idx(self, idx):
-        """Return positive index"""
-        if idx < 0:
-            idx += self.last.isnap + 1
-        return idx
 
     @property
     def last(self):
