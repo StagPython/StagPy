@@ -33,7 +33,18 @@ was made at the 1000th step, ``sdat.steps[1000] is sdat.snaps[100]`` is true.
 The correspondence between time steps and snapshots is deduced from available
 binary files.
 
-Generators also, and negative index.
+Negative indices are allowed, ``sdat.steps[-1]`` being the last time step
+(inferred from temporal series information) and ``sdat.snaps[-1]`` being the
+last snapshot (inferred from available binary files).
+
+Finally, ``steps`` and ``snaps`` accessors accept slices. ``sdat.steps[a:b:c]``
+returns the generator ``(sdat.steps[n] for n in range(a, b, c))`` (negative
+indices are also properly taken care of). This is useful to iterate through
+time steps or snapshots. For example, the following code process every even
+snapshot::
+
+    for step in sdat.snaps[::2]:
+        do_something(step)
 
 .. class:: _Step
 
