@@ -145,6 +145,11 @@ various attributes defining the geometry of the problem.
 booleans define the shape of the domain (``curvilinear`` being the opposite of
 ``cartesian``, ``True`` if ``cylindrical`` or ``spherical`` is ``True``).
 
+``twod_xz``, ``twod_yz``, ``twod`` and ``threed`` booleans indicate the number
+of spatial dimensions in the simulation. Note that fields are always four
+dimensional arrays (spatial + blocks) regardless of the actual dimension of the
+domain.
+
 ``nxtot``, ``nytot``, ``nztot``, ``nbtot``, ``nttot``, ``nptot`` and ``nrtot``
 are the total number of points in the various spatial directions. Note that
 ``nttot``, ``nptot`` and ``nrtot`` are the same as ``nxtot``, ``nytot`` and
