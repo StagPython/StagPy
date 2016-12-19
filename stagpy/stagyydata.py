@@ -259,39 +259,6 @@ class _Fields(dict):
         return self._geom
 
 
-class _Indexes:
-
-    """Efficient isnap -> istep correspondance"""
-
-    def __init__(self):
-        """Indexes lie in 400 lists of <=250 tuples"""
-        self._nlst = 400
-        self.isnap = [[] for _ in range(self._nlst)]
-        self.istep = [[] for _ in range(self._nlst)]
-
-    def _isnap_idx(self, isnap):
-        """Return super_idx, idx and if isnap already present"""
-        super_idx = isnap // (100000 // self._nlst)
-        idx = bisect.bisect_left(self.isnap[super_idx], isnap)
-        return super_idx, idx, (idx < len(self.isnap[super_idx]) and
-                                self.isnap[super_idx][idx] == isnap)
-
-    def get_istep(self, isnap):
-        """Return istep corresponding to isnap"""
-        super_idx, idx, present = self._isnap_idx(isnap)
-        if present:
-            return self.istep[super_idx][idx]
-        else:
-            return UNDETERMINED
-
-    def insert(self, isnap, istep):
-        """Inject isnap, istep correspondance"""
-        super_idx, idx, present = self._isnap_idx(isnap)
-        if not present:
-            self.isnap[super_idx].insert(idx, isnap)
-            self.istep[super_idx].insert(idx, istep)
-
-
 class _Step:
 
     """Time step data structure"""
@@ -445,7 +412,7 @@ class _Snaps(_Steps):
     """Implement the .snaps[isnap] accessor"""
 
     def __init__(self, sdat):
-        self._isteps = _Indexes()
+        self._isteps = {}
         super().__init__(sdat)
 
     def __getitem__(self, key):
@@ -459,7 +426,7 @@ class _Snaps(_Steps):
     def __missing__(self, isnap):
         if isnap < 0:
             isnap += self.last.isnap + 1
-        istep = self._isteps.get_istep(isnap)
+        istep = self._isteps.get(isnap, UNDETERMINED)
         if istep is UNDETERMINED:
             binfiles = self.sdat.binfiles_set(isnap)
             if binfiles:
@@ -469,12 +436,12 @@ class _Snaps(_Steps):
             if istep is not None:
                 self.bind(isnap, istep)
             else:
-                self._isteps.insert(isnap, None)
+                self._isteps[isnap] = None
         return self.sdat.steps[istep]
 
     def bind(self, isnap, istep):
         """Make the isnap <-> istep link"""
-        self._isteps.insert(isnap, istep)
+        self._isteps[isnap] = istep
         self.sdat.steps[istep].isnap = isnap
 
     @property
