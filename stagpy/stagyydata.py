@@ -1,6 +1,5 @@
 """Define high level structure StagyyData"""
 
-import bisect
 import re
 import os
 import numpy as np
@@ -15,12 +14,16 @@ UNDETERMINED = object()
 
 
 class Error(Exception):
+
     """Base class for exceptions raised in this module"""
+
     pass
 
 
 class NoSnapshotError(Error):
+
     """Raised when last snapshot is required but none exists"""
+
     pass
 
 
