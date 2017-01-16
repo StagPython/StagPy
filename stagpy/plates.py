@@ -940,7 +940,7 @@ def plates_cmd(args):
             for lim in range(1, len(limits)):
                 sizeplates.append(limits[lim] - limits[lim - 1])
             lim = len(limits) * [max(dvphi)]
-            plt.figure(timestep)
+            plt.figure(step.istep)
             plt.subplot(221)
             plt.axis([0, nphi,
                       np.min(vphi_surf) * 1.2, np.max(vphi_surf) * 1.2])
