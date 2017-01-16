@@ -37,10 +37,10 @@ def _extrap(xpos, xpoints, ypoints):  # for args.plot_difference
 
 def _calc_energy(rprof):  # for args.plot_energy
     """Compute energy balance(r)"""
-    zgrid = rprof[63]
+    zgrid = rprof[0]
     zgrid = np.append(zgrid, 1.)
     dzg = rprof[0, 1:] - rprof[0, :-1]
-    qadv = rprof[60, :-1]
+    qadv = rprof[66, :-1]
     qadv = np.insert(qadv, 0, 0.)
     qadv = np.append(qadv, 0.)
     qcond = (rprof[1, :-1] - rprof[1, 1:]) / dzg
@@ -455,19 +455,19 @@ def rprof_cmd(args):
 
     # Plot the profiles of vertical advection: total and contributions from up-
     # and down-welling currents
+    try:
+        spherical = sdat.snaps[-1].geom.spherical
+    except NoSnapshotError:
+        spherical = sdat.par['geometry']['shape'].lower() == 'spherical'
     if args.plot_advection:
         plotprofiles(sdat,
                      ['Advection per unit surface', 'Total', 'down-welling',
-                      'Up-welling'], [57, 58, 59], rbounds, args, ctheoarg)
-        try:
-            spherical = sdat.snaps[-1].geom.spherical
-        except NoSnapshotError:
-            spherical = sdat.par['geometry']['shape'].lower() == 'spherical'
+                      'Up-welling'], [66, 64, 65], rbounds, args, ctheoarg)
         if spherical:
             plotprofiles(sdat,
                          ['Total scaled advection', 'Total', 'down-welling',
-                          'Up-welling'], [57, 58, 59], rbounds, args,
+                          'Up-welling'], [66, 64, 65], rbounds, args,
                          ctheoarg, integrate=True)
     if args.plot_energy:
         plotprofiles(sdat, ['Energy', 'Total', 'Advection', 'conduction'],
-                     [57, 58, 59], rbounds, args, ctheoarg, integrate=True)
+                     [66, 64, 65], rbounds, args, ctheoarg, integrate=spherical)
