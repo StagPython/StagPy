@@ -40,8 +40,7 @@ def _calc_energy(rprof):  # for args.plot_energy
     zgrid = rprof[0]
     zgrid = np.append(zgrid, 1.)
     dzg = rprof[0, 1:] - rprof[0, :-1]
-    qadv = rprof[66, :-1]
-    qadv = np.insert(qadv, 0, 0.)
+    qadv = rprof[66]
     qadv = np.append(qadv, 0.)
     qcond = (rprof[1, :-1] - rprof[1, 1:]) / dzg
     qcond0 = (1. - rprof[1, 0]) / rprof[0, 0]
