@@ -303,7 +303,8 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
             and sdat.par['melt']['solidus_function'].lower() == 'linear':
         tsol0 = sdat.par['melt']['tsol0']
         if sdat.par['switches']['tracers']:
-            deltatsol_water = sdat.par['melt']['deltaTsol_water']
+            deltatsol_water = sdat.par['melt']['deltaTsol_water_dimensional']
+            deltatsol_water /= sdat.par['refstate']['deltaT_dimensional']
         dtsol_dz = sdat.par['melt']['dtsol_dz']
         tsol = tsol0 + dtsol_dz * (rcmb + 1. - radius)
         if sdat.par['switches']['tracers']:
