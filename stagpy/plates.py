@@ -955,8 +955,8 @@ def plates_cmd(args):
             plt.hist(sizeplates, 10, (0, nphi / 2))
             plt.subplot(224)
             plt.plot(water_profile)
-            plt.savefig('plates' + str(timestep) + '.pdf', format='PDF')
-            plt.close(timestep)
+            plt.savefig('plates' + str(step.isnap) + '.pdf', format='PDF')
+            plt.close(step.istep)
 
             nb_plates.append(len(limits))
 
