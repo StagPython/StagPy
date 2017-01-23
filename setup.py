@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
-from stagpy import __version__
 
 with open('README.rst') as rdm:
     README = rdm.read()
 
 setup(
     name='stagpy',
-    version=__version__,
+    use_scm_version=True,
 
     description='Tool for StagYY output files processing',
     long_description=README,
@@ -33,6 +32,7 @@ setup(
     entry_points = {
         'console_scripts': ['stagpy = stagpy.stagpy:main']
         },
+    setup_requires=['setuptools_scm'],
     install_requires = [
         'numpy',
         'scipy',
@@ -40,8 +40,6 @@ setup(
         'matplotlib',
         'seaborn',
         'argcomplete',
+        'setuptools_scm',
         ],
 )
-
-if 'dev' in __version__:
-    print('UNSTABLE DEVELOPMENT VERSION {}'.format(__version__))

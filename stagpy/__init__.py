@@ -1,3 +1,4 @@
 """define current version"""
+from setuptools_scm import get_version
 
-__version__ = '0.2.2dev'
+__version__ = get_version()

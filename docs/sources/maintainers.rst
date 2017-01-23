@@ -4,10 +4,13 @@ Releasing process
 This section is intended for maintainers of the project. It describes how new
 versions of StagPy are released on PyPI and the Anaconda Cloud.
 
-First, on the master branch, bump the version number in ``stagpy/__init__.py``.
-Commit your change, tag and push::
+Version numbers are tracked with git tags thanks to ``setuptools_scm``. Marking
+a new version merely consists in tagging the ``HEAD`` of the ``master`` branch.
+Please make sure to always provide a patch version number (i.e. use a version
+number with *three* levels such as ``1.0.0`` instead of ``1.0``).
 
-    % git commit -a -m "Bump version number to X.Y.Z"
+::
+
     % git tag -a vX.Y.Z
     % git push --tags
 
@@ -23,7 +26,7 @@ Releasing on PyPI is a two steps process:
     % rm -rf build/ dist/ stagpy.egg-info
 
 The release on the Anaconda cloud will use the package uploaded on PyPI to
-build the conda package. Make sur you have the ``conda-build`` and
+build the conda package. Make sure you have the ``conda-build`` and
 ``anaconda-client`` packages installed in your conda environment. If necessary,
 add the channel ``conda config --add channels amorison``.
 
@@ -40,9 +43,3 @@ add the channel ``conda config --add channels amorison``.
 
 The ``/path/to/stagpy-*.tar.bz2`` is given in the output of the ``conda build``
 command.
-
-Finally, bump the version to a development number (e.g. ``X.Y.Z+1dev``), commit
-and push::
-
-    % git commit -a -m "Bump version number to X.Y.Z+1dev"
-    % git push

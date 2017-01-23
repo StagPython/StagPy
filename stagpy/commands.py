@@ -63,4 +63,4 @@ def var_cmd(_):
 
 def version_cmd(_):
     """print current version"""
-    print('stagpy version: v{}'.format(__version__))
+    print('stagpy version: {}'.format(__version__))
