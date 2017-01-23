@@ -21,8 +21,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
-from stagpy import __version__
-from pkg_resources import safe_version
+from pkg_resources import get_distribution
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
@@ -68,7 +67,7 @@ author = 'Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = safe_version(__version__)
+release = get_distribution('stagpy').version
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
