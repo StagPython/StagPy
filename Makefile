@@ -8,7 +8,7 @@ BLD_DIR=bld
 VENV_DIR=$(BLD_DIR)/venv
 STAGPY=$(VENV_DIR)/bin/stagpy
 VPY=$(VENV_DIR)/bin/python
-VPIP=$(VENV_DIR)/bin/pip
+VPIP=$(VPY) -m pip
 
 COMP=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
 
@@ -56,16 +56,10 @@ $(STAGPY): $(VENV_DIR) $(OBJS)
 	@echo 'Removing useless build files'
 	@-rm -rf stagpy.egg-info
 
-$(VENV_DIR): $(BLD_DIR)/get-pip.py requirements.txt
-	$(PY) -m venv --system-site-packages --without-pip $@
-	$(VPY) -E $< -I
+$(VENV_DIR): requirements.txt
+	$(PY) -m venv --system-site-packages $@
 	$(VPIP) install -I argcomplete
-	$(VPIP) install -r requirements.txt
-
-$(BLD_DIR)/get-pip.py: $(BLD_DIR)
-	@echo 'Dowloading get-pip.py...'
-	@$(PY) downloadgetpip.py $@
-	@echo 'Done'
+	$(VPIP) install -r $<
 
 info: infopath infozsh infobash
 
