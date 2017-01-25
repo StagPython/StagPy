@@ -3,7 +3,6 @@ from functools import partial
 from itertools import product, zip_longest
 import re
 import struct
-import os
 import numpy as np
 
 
@@ -26,9 +25,9 @@ def parse_line(line, convert=None):
 def time_series(timefile):
     """Read temporal series from time.dat"""
     # could use np.genfromtxt
-    if not os.path.isfile(timefile):
+    if not timefile.is_file():
         return None
-    with open(timefile, 'r') as infile:
+    with timefile.open() as infile:
         first = infile.readline()
         data = []
         for line in infile:
@@ -51,13 +50,13 @@ def time_series(timefile):
 
 def rprof(rproffile):
     """Extract radial profiles data"""
-    if not os.path.isfile(rproffile):
+    if not rproffile.is_file():
         return None
     step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')
     data = []
     data_step = []
     line = ' '
-    with open(rproffile) as stream:
+    with rproffile.open() as stream:
         while line[0] != '*':
             line = stream.readline()
         match = step_regex.match(line)
@@ -104,10 +103,10 @@ def _readbin(fid, fmt='i', nwords=1, file64=False):
 def fields(fieldfile, only_header=False, only_istep=False):
     """Extract fields data"""
     # something to skip header?
-    if not os.path.isfile(fieldfile):
+    if not fieldfile.is_file():
         return None
     header = {}
-    with open(fieldfile, 'rb') as fid:
+    with fieldfile.open('rb') as fid:
         readbin = partial(_readbin, fid)
         magic = readbin()
         if magic > 8000:  # 64 bits

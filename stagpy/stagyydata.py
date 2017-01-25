@@ -1,7 +1,8 @@
 """Define high level structure StagyyData"""
 
 import re
-import os
+import pathlib
+from os.path import expanduser, expandvars
 import numpy as np
 from . import constants, parfile, stagyyparsers
 
@@ -455,7 +456,7 @@ class _Snaps(_Steps):
             rgx = re.compile('^([a-zA-Z]+)([0-9]{5})$')
             pars = set(item.par for item in constants.FIELD_VAR_LIST.values())
             for fname in sorted(self.sdat.files, reverse=True):
-                match = rgx.match(fname.rsplit('_', 1)[-1])
+                match = rgx.match(fname.name.rsplit('_', 1)[-1])
                 if match is not None and match.group(1) in pars:
                     self._last = int(match.group(2))
                     break
@@ -470,7 +471,7 @@ class StagyyData:
 
     def __init__(self, path):
         """Generic lazy StagYY output data accessors"""
-        self.path = os.path.expanduser(os.path.expandvars(path))
+        self.path = pathlib.Path(expanduser(expandvars(path)))
         self.par = parfile.readpar(self.path)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
@@ -510,21 +511,17 @@ class StagyyData:
     def files(self):
         """Set of output binary files"""
         if self._files is UNDETERMINED:
-            out_dir = os.path.join(
-                self.path,
-                os.path.dirname(self.par['ioin']['output_file_stem']))
-            self._files = set(os.path.join(out_dir, basename)
-                              for basename in os.listdir(out_dir))
+            out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
+            out_dir = self.path / out_stem.parent
+            self._files = set(out_dir.iterdir())
         return self._files
 
     def filename(self, fname, timestep=None, suffix=''):
         """return name of StagYY out file"""
         if timestep is not None:
             fname += '{:05d}'.format(timestep)
-        fname = os.path.join(self.path,
-                             self.par['ioin']['output_file_stem'] +
-                             '_' + fname + suffix)
-        return fname
+        fname = self.par['ioin']['output_file_stem'] + '_' + fname + suffix
+        return self.path / fname
 
     def binfiles_set(self, isnap):
         """Set of existing binary files at a given snap"""

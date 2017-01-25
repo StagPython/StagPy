@@ -5,17 +5,15 @@ and deal with the config file
 """
 
 from collections import OrderedDict, namedtuple
-from os import makedirs
 from subprocess import call
 import argcomplete
 import argparse
 import configparser
-import os.path
 import shlex
 from . import commands
 from .constants import CONFIG_DIR
 
-CONFIG_FILE = os.path.join(CONFIG_DIR, 'config')
+CONFIG_FILE = CONFIG_DIR / 'config'
 
 Conf = namedtuple('ConfigEntry',
                   ['default', 'cmd_arg', 'shortname', 'kwargs',
@@ -366,23 +364,24 @@ def _report_missing_config(config_out):
 
 def create_config():
     """Create config file"""
-    makedirs(CONFIG_DIR, exist_ok=True)
+    if not CONFIG_DIR.exists():
+        CONFIG_DIR.mkdir(parents=True)
     config_parser = configparser.ConfigParser()
     for sub_cmd, meta in DUMMY_CMDS.items():
         config_parser.add_section(sub_cmd)
         for opt, opt_meta in meta.conf_dict.items():
             if opt_meta.conf_arg:
                 config_parser.set(sub_cmd, opt, str(opt_meta.default))
-    with open(CONFIG_FILE, 'w') as out_stream:
+    with CONFIG_FILE.open('w') as out_stream:
         config_parser.write(out_stream)
 
 
 def read_config():
     """Read config file and set conf_dict as needed"""
-    if not os.path.isfile(CONFIG_FILE):
+    if not CONFIG_FILE.is_file():
         return
     config_parser = configparser.ConfigParser()
-    config_parser.read(CONFIG_FILE)
+    config_parser.read(str(CONFIG_FILE))
     config_content = []
     missing_sections = []
     missing_opts = {}

@@ -1,11 +1,10 @@
 """StagYY par file handling"""
 
 import f90nml
-import os.path
 import sys
 from .constants import CONFIG_DIR
 
-PAR_DFLT_FILE = os.path.join(CONFIG_DIR, 'par')
+PAR_DFLT_FILE = CONFIG_DIR / 'par'
 PAR_DEFAULT = {
     'switches': {
         'verbose': False,
@@ -607,7 +606,7 @@ PAR_DEFAULT = {
 
 def _write_default():
     """create default par file"""
-    if not os.path.isfile(PAR_DFLT_FILE):
+    if not PAR_DFLT_FILE.is_file():
         f90nml.write(PAR_DEFAULT, PAR_DFLT_FILE)
 
 
@@ -619,9 +618,9 @@ def _read_default():
 
 def readpar(path):
     """read StagYY par file"""
-    par_file = os.path.join(path, 'par')
+    par_file = path / 'par'
     par_dflt = _read_default()
-    if os.path.isfile(par_file):
+    if par_file.is_file():
         par_nml = f90nml.read(par_file)
         for section in par_nml:
             par_dflt[section].update(par_nml[section])

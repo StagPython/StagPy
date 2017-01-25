@@ -1,9 +1,11 @@
 """defines some constants"""
 
-import os.path
+import pathlib
 from collections import OrderedDict, namedtuple
+from os.path import expanduser
 
-CONFIG_DIR = os.path.expanduser('~/.config/stagpy')
+HOME_DIR = pathlib.Path(expanduser('~'))
+CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 
 Varf = namedtuple('Varf', ['par', 'name', 'arg', 'pcolor_opts'])
 FIELD_VAR_LIST = OrderedDict((
