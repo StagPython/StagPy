@@ -53,8 +53,6 @@ $(LINK): $(STAGPY)
 
 $(STAGPY): $(VENV_DIR) $(OBJS)
 	$(VPY) -E setup.py develop
-	@echo 'Removing useless build files'
-	@-rm -rf stagpy.egg-info
 
 $(VENV_DIR): requirements.txt
 	$(PY) -m venv --system-site-packages $@
@@ -82,6 +80,7 @@ infobash:
 clean: uninstall
 	@echo 'Removing build files'
 	@-rm -rf $(BLD_DIR)
+	@-rm -rf stagpy.egg-info
 
 uninstall:
 	@echo 'Removing config files...'
