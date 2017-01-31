@@ -607,13 +607,13 @@ PAR_DEFAULT = {
 def _write_default():
     """create default par file"""
     if not PAR_DFLT_FILE.is_file():
-        f90nml.write(PAR_DEFAULT, PAR_DFLT_FILE)
+        f90nml.write(PAR_DEFAULT, str(PAR_DFLT_FILE))
 
 
 def _read_default():
     """read default par file"""
     _write_default()
-    return f90nml.read(PAR_DFLT_FILE)
+    return f90nml.read(str(PAR_DFLT_FILE))
 
 
 def readpar(path):
