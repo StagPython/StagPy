@@ -621,7 +621,7 @@ def readpar(path):
     par_file = path / 'par'
     par_dflt = _read_default()
     if par_file.is_file():
-        par_nml = f90nml.read(par_file)
+        par_nml = f90nml.read(str(par_file))
         for section in par_nml:
             par_dflt[section].update(par_nml[section])
     else:
