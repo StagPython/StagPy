@@ -5,7 +5,7 @@ from . import constants, misc
 from .stagyydata import StagyyData
 
 
-def plot_scalar(args, step, var, scaling=None):
+def plot_scalar(args, step, var, scaling=None, **extra):
     """var: one of the key of constants.FIELD_VAR_LIST"""
     plt = args.plt
 
@@ -31,6 +31,7 @@ def plot_scalar(args, step, var, scaling=None):
     extra_opts.update(constants.FIELD_VAR_LIST[var].pcolor_opts)
     extra_opts.update({} if var != 'n'
                       else {'norm': args.mpl.colors.LogNorm()})
+    extra_opts.update(extra)
     surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not args.pdf,
                            shading='gouraud', **extra_opts)
 
