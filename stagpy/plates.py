@@ -465,59 +465,60 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     distance_subd = []
     ph_trench_subd = []
     ph_cont_subd = []
-    for i in range(len(trench)):  # should enumerate
-        # detection of the distance in between subduction and continent
-        ph_coord_noendpoint = ph_coord[:-1]
-        angdistance1 = abs(ph_coord_noendpoint[continentsall == 1] - trench[i])
-        angdistance2 = 2. * np.pi - angdistance1
-        angdistance = np.minimum(angdistance1, angdistance2)
-        distancecont = min(angdistance)
-        argdistancecont = np.argmin(angdistance)
-        continentpos = ph_coord_noendpoint[continentsall == 1][argdistancecont]
+    if step.sdat.par['switches']['cont_tracers']:
+        for i in range(len(trench)):  # should enumerate
+            # detection of the distance in between subduction and continent
+            ph_coord_noendpoint = ph_coord[:-1]
+            angdistance1 = abs(ph_coord_noendpoint[continentsall == 1] - trench[i])
+            angdistance2 = 2. * np.pi - angdistance1
+            angdistance = np.minimum(angdistance1, angdistance2)
+            distancecont = min(angdistance)
+            argdistancecont = np.argmin(angdistance)
+            continentpos = ph_coord_noendpoint[continentsall == 1][argdistancecont]
 
-        ph_trench_subd.append(trench[i])
-        age_subd.append(agetrench[i])
-        ph_cont_subd.append(continentpos)
-        distance_subd.append(distancecont)
-        times_subd.append(step.geom.ti_ad)
+            ph_trench_subd.append(trench[i])
+            age_subd.append(agetrench[i])
+            ph_cont_subd.append(continentpos)
+            distance_subd.append(distancecont)
+            times_subd.append(step.geom.ti_ad)
 
-        # continent is on the left
-        if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
-            if continentpos - trench[i] < 0:
-                ax1.annotate('', xy=(trench[i] - distancecont, 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
-            else:  # continent is on the right
-                ax1.annotate('', xy=(trench[i] + distancecont, 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
-        else:  # distance over boundary
-            if continentpos - trench[i] < 0:
-                ax1.annotate('', xy=(2. * np.pi, 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="-", lw="2",
-                                             shrinkA=0, shrinkB=0))
-                ax1.annotate('', xy=(continentpos, 2000),
-                             xycoords='data', xytext=(0, 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
-            else:
-                ax1.annotate('', xy=(0, 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="-", lw="2",
-                                             shrinkA=0, shrinkB=0))
-                ax1.annotate('', xy=(continentpos, 2000),
-                             xycoords='data', xytext=(2. * np.pi, 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
+            # continent is on the left
+            if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
+                if continentpos - trench[i] < 0:
+                    ax1.annotate('', xy=(trench[i] - distancecont, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                else:  # continent is on the right
+                    ax1.annotate('', xy=(trench[i] + distancecont, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+            else:  # distance over boundary
+                if continentpos - trench[i] < 0:
+                    ax1.annotate('', xy=(2. * np.pi, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="-", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                    ax1.annotate('', xy=(continentpos, 2000),
+                                 xycoords='data', xytext=(0, 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                else:
+                    ax1.annotate('', xy=(0, 2000),
+                                 xycoords='data', xytext=(trench[i], 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="-", lw="2",
+                                                 shrinkA=0, shrinkB=0))
+                    ax1.annotate('', xy=(continentpos, 2000),
+                                 xycoords='data', xytext=(2. * np.pi, 2000),
+                                 textcoords='data',
+                                 arrowprops=dict(arrowstyle="->", lw="2",
+                                                 shrinkA=0, shrinkB=0))
 
     ax1.fill_between(
         ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
