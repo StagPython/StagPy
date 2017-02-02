@@ -1,5 +1,4 @@
 """Handle configuration of StagPy
-
 Create the cmd line argument parser
 and deal with the config file
 """
@@ -322,7 +321,6 @@ def _set_conf_default(conf_dict, opt, dflt):
 
 def _read_section(config_parser, sub_cmd, meta):
     """read section of config parser
-
     read section corresponding to the sub command sub_cmd
     and set meta.conf_dict default values to the read values
     """

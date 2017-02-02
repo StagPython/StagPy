@@ -227,7 +227,7 @@ class _Fields(dict):
         if par_type == 'vp':
             fld_names = ['u', 'v', 'w', 'p']
         elif par_type == 'sx':
-            fld_names = ['sx', 'sy', 'sz', 'x']
+            fld_names = ['sxi', 'sxj', 'sxk', 'x']
         else:
             fld_names = [name]  # wrong for some stuff like stream func
         if name not in fld_names:

@@ -406,7 +406,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
                  transform=ax1.transAxes, fontsize=args.fontsize)
         ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
                  transform=ax1.transAxes, fontsize=args.fontsize)
-        ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf] * scale_stress / 1.e6 ,
+        ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf] * scale_stress / 1.e6,
                  color='k', linewidth=lwd, label='Stress')
         ax2.set_ylim(args.stressmin, args.stressmax)
         ax2.set_ylabel("Stress [MPa]", fontsize=args.fontsize)
@@ -423,7 +423,8 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
             facecolor='#8B6914', alpha=0.2)
         ax1.set_ylim(args.velocitymin, args.velocitymax)
         ax2.fill_between(
-            ph_coord[:-1], continentsall * args.dvelocitymin, args.dvelocitymax,
+            ph_coord[:-1], continentsall * args.dvelocitymin,
+            args.dvelocitymax,
             facecolor='#8B6914', alpha=0.2)
 
         figname = misc.out_name(args, 'svelstress').format(timestep) + '.pdf'
@@ -580,7 +581,7 @@ def lithospheric_stress(args, step, trench, ridge, time):
     timestep = step.isnap
     lwd = args.linewidth
     base_lith = step.geom.rcmb + 1 - 0.105
-    scale_stress = args.kappa * args.viscosity_ref / args.mantle**2 
+    scale_stress = args.kappa * args.viscosity_ref / args.mantle**2
     scale_dist = args.mantle
 
     stressfld = step.fields['s'][0, :, :, 0]
@@ -593,8 +594,9 @@ def lithospheric_stress(args, step, trench, ridge, time):
 
     # plot stress in the lithosphere
     fig, axis = args.plt.subplots(ncols=1)
-    surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0], stressfld *
-                           scale_stress / 1.e6, cmap='gnuplot2_r', 
+    surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
+                           stressfld * scale_stress / 1.e6,
+                           cmap='gnuplot2_r',
                            rasterized=not args.pdf, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = args.plt.colorbar(surf, shrink=args.shrinkcb)
@@ -871,8 +873,10 @@ def plates_cmd(args):
 
                 # plotting the principal deviatoric stress field
                 if args.plot_deviatoric_stress:
-                    fig, axis, surf, _ = field.plot_scalar(args, step, 's')
-                    surf.set_clim(vmin=0, vmax=300)
+                    fig, axis, surf, _ = field.plot_scalar(args,
+                                                           step, 's',
+                                                           alpha=0.1)
+                    # surf.set_clim(vmin=0, vmax=300)
 
                     # plotting continents
                     axis.pcolormesh(xmesh, ymesh, continentsfld,
@@ -882,15 +886,16 @@ def plates_cmd(args):
                     cmap2.set_over('m')
 
                     # plotting principal deviatoric stress
-                    sphi = step.fields['sy'][0, :, :, 0]
-                    sr = step.fields['sz'][0, :, :, 0]
+                    dummy = step.fields['x'][0, :, :, 0]
+                    sphi = step.fields['sxj'][0, :, :, 0]
+                    sr = step.fields['sxk'][0, :, :, 0]
                     stressx = -sphi * np.sin(ph_mesh) + sr * np.cos(ph_mesh)
                     stressy = sphi * np.cos(ph_mesh) + sr * np.sin(ph_mesh)
-                    dip = step.nptot // 100
+                    dip = step.geom.nptot // 100
                     axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
                                 stressx[::dip, ::dip], stressy[::dip, ::dip])
-                    cbar = args.plt.colorbar(surf, shrink=args.shrinkcb)
-                    cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
+                    # cbar = args.plt.colorbar(surf, shrink=args.shrinkcb)
+                    # cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
 
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
