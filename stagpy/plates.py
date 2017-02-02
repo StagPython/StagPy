@@ -741,7 +741,7 @@ def plates_cmd(args):
 
                 # topography
                 fname = sdat.filename('sc', timestep=timestep, suffix='.dat')
-                topo = np.genfromtxt(fname)
+                topo = np.genfromtxt(str(fname))
                 # rescaling topography!
                 if sdat.par['boundaries']['air_layer']:
                     topo[:, 1] = topo[:, 1] / (1. - dsa)
