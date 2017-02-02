@@ -787,11 +787,15 @@ def plates_cmd(args):
                 cmap2.set_over('m')
 
                 # plotting velocity vectors
-                vphi = step.fields['v'][0, :, :, 0]
-                velr = step.fields['w'][0, :, :, 0]
-                ph_mesh = step.geom.p_mesh[0]
-                velx = -vphi * np.sin(ph_mesh) + velr * np.cos(ph_mesh)
-                vely = vphi * np.cos(ph_mesh) + velr * np.sin(ph_mesh)
+                if step.geom.cartesian:
+                   velx = step.fields['v'][0, :, :, 0]
+                   vely = step.fields['w'][0, :, :, 0]
+                else: # spherical yz
+                   vphi = step.fields['v'][0, :, :, 0]
+                   velr = step.fields['w'][0, :, :, 0]
+                   ph_mesh = step.geom.p_mesh[0]
+                   velx = -vphi * np.sin(ph_mesh) + velr * np.cos(ph_mesh)
+                   vely = vphi * np.cos(ph_mesh) + velr * np.sin(ph_mesh)
                 dip = step.geom.nptot // 100
                 axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
                             velx[::dip, ::dip], vely[::dip, ::dip])

@@ -239,9 +239,10 @@ class _Fields(dict):
             if self._header['xyp'] == 0:
                 if not self.geom.twod_yz:
                     newline = (fld[:1, :, :, :] + fld[-1:, :, :, :]) / 2
+                    fld = np.concatenate((fld, newline), axis=0)
                 if not self.geom.twod_xz:
                     newline = (fld[:, :1, :, :] + fld[:, -1:, :, :]) / 2
-                fld = np.concatenate((fld, newline), axis=1)
+                    fld = np.concatenate((fld, newline), axis=1)
             self[fld_name] = fld
         return self[name]
 
