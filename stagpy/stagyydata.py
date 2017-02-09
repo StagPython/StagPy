@@ -454,10 +454,12 @@ class _Snaps(_Steps):
         """Last snapshot available"""
         if self._last is UNDETERMINED:
             self._last = None
-            rgx = re.compile('^([a-zA-Z]+)([0-9]{5})$')
+            out_stem = re.escape(pathlib.Path(
+                self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
+            rgx = re.compile('^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
             pars = set(item.par for item in constants.FIELD_VAR_LIST.values())
             for fname in sorted(self.sdat.files, reverse=True):
-                match = rgx.match(fname.name.rsplit('_', 1)[-1])
+                match = rgx.match(fname.name)
                 if match is not None and match.group(1) in pars:
                     self._last = int(match.group(2))
                     break
