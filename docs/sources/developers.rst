@@ -13,18 +13,28 @@ basic knowledge to use Git for this project.
 
 .. __: https://git-scm.com/book/en/v2
 
-A ``Makefile`` in the git repository allows you to install StagPy in a virtual
-environment with all the necessary dependencies.  However, installation of
-``numpy`` and ``scipy`` involve heavy building operations, it might be better
-that you (or your system administrator) install it with a package manager such
-as ``homebrew`` on Mac OS or your favorite Linux package manager (or with
-``conda`` if you use it).
-
-The installation process is then fairly simple::
+To get a local copy of your fork of StagPy, clone it (you can use `the SSH
+protocol`__ if you prefer)::
 
     git clone https://github.com/YOUR_USER_NAME/StagPy.git
     cd StagPy
-    make
+
+.. __: https://help.github.com/articles/connecting-to-github-with-ssh/
+
+You can then install the development version in two ways:
+
+1. in a virtual environment, allowing to have the development version alongside
+   the stable one on your system;
+2. as a regular package, allowing you to import the development version of
+   StagPy even from outside the virtual environment.
+
+The second option should only be used if necessary for your purpose.
+
+Installation in a virtual environment
+-------------------------------------
+
+A ``Makefile`` in the git repository allows you to install StagPy in a virtual
+environment with all the necessary dependencies.
 
 The version installed in the virtual environment points directly towards the
 source files. It means that you don't need to run ``make`` again for your
@@ -48,3 +58,26 @@ repository and run::
 Two PDF files with a plot of the temperature and vertical velocity fields
 should appear.
 
+Installation as a regular package
+---------------------------------
+
+You can use the following command to install StagPy as a regular package::
+
+    python3 setup.py develop
+
+You *don't* need to run this command everytime you modify the source files.
+If you want to uninstall the development version, you can run::
+
+    python3 setup.py develop --uninstall
+
+Add the following to your ``.zshrc``::
+
+    autoload bashcompinit
+    bashcompinit
+    eval "$(register-python-argcomplete stagpy)"
+
+or only this line to your ``.bashrc``::
+
+    eval "$(register-python-argcomplete stagpy)"
+
+to enjoy command line completion with zsh and bash.
