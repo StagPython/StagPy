@@ -61,9 +61,13 @@ should appear.
 Installation as a regular package
 ---------------------------------
 
+If you have installed the stable version of StagPy, uninstall it::
+
+    python3 -m pip uninstall stagpy
+
 You can use the following command to install StagPy as a regular package::
 
-    python3 setup.py develop
+    python3 setup.py develop --user
 
 You *don't* need to run this command everytime you modify the source files.
 If you want to uninstall the development version, you can run::
