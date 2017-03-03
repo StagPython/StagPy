@@ -23,6 +23,7 @@ PAR_DEFAULT = {
         'chem_bm1': False,
         'pvk_bm': False,
         'Io_tidal_heating': False,
+        'atmosphere': False,
         'multig_solve': True,
         'plates_analyse': False,
         'dimensional_units': False,
@@ -599,6 +600,13 @@ PAR_DEFAULT = {
         'residue_plot': False,
         'trapercell_plot': False,
         'imgtype': 'png',
+    },
+
+    'postprocessing': {
+    },
+
+    'atm_stuff': {
+        'atm_model': 'simple',
     },
 
 }
