@@ -613,7 +613,10 @@ def _write_default():
 def _read_default():
     """read default par file"""
     _write_default()
-    return f90nml.read(str(PAR_DFLT_FILE))
+    par_conf = f90nml.read(str(PAR_DFLT_FILE))
+    for section in par_conf:
+        PAR_DEFAULT[section].update(par_conf[section])
+    return PAR_DEFAULT
 
 
 def readpar(path):
