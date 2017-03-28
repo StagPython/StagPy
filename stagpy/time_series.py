@@ -27,7 +27,7 @@ def time_cmd(args):
     data = sdat.tseries
     ntot = len(data)
 
-    rab = sdat.par['refstate']['Ra0']
+    rab = sdat.par['refstate']['ra0']
     rah = sdat.par['refstate']['Rh']
     botpphase = sdat.par['boundaries']['BotPphase']
 
