@@ -59,7 +59,47 @@ will plot all the snapshots of t and w on separate figures.
 will plot temperature and pressure snapshots from the third to the
 eighth, every two snapshots.
 
+Profiles
+~~~~~~
 
 Scripts using StagyyData
 --------------------
+Suppose you have a group of directories, each for a given set of
+parameters, and you want to plot the results of all cases on the same
+figure, compute statistics etc. The StagyyData is specially designed
+for that. The following script can be used to make a loglog plot of
+the Nusselt number as function of the Rayleigh number using
+all directories stored where the script is executed::
+
+  #!/usr/bin/env python3
+  """Nu=f(Ra) from a set of stagyy results in different directories"""
+
+  import matplotlib.pyplot as plt
+  from stagpy import stagyydata
+  from pathlib import Path
+
+  ran =[]
+  nun = []
+
+  pwd = Path('.')
+  for rep in pwd.glob('*'):
+      print('In directory ', rep)
+      sdat = stagyydata.StagyyData(rep.name)
+      # get the value of the Rayleigh number
+      ran.append(sdat.par['refstate']['ra0'])
+      # get the last value (-1) of the Nusselt number (column 2)
+      nun.append(sdat.tseries[-1, 2])
+
+  fig = plt.figure()
+  plt.loglog(ran, nun, 'o--')
+  plt.xlabel(r'Rayleigh number')
+  plt.ylabel(r'Nusselt number')
+  plt.savefig('Ra-Nu.pdf')
+  plt.close(fig)
+
+Note that this particular example is only relevant if the solutions
+have all reached a steady-state. In the case where the solution is
+only in statistical steady state, a time average is more relevant. It
+can be computed using the whole sdat.tseries table in each directory.
+
 
