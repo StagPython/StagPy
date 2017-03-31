@@ -15,6 +15,7 @@ Contents:
    sources/tuto
    sources/stagyydata
    sources/cli
+   sources/cookbook
    sources/developers
    sources/maintainers
 
