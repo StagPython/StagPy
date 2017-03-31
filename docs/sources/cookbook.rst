@@ -10,6 +10,7 @@ shell, working in the directory where the StagYY par file is located.
 
 Time series
 ~~~~~~~~~
+
 ::
     % stagpy time
 
