@@ -1,0 +1,99 @@
+&switches
+    try_continue = .false.
+    dimensional_units = .false.
+    tracers = .false.
+/
+
+&geometry
+    shape = 'cartesian'
+    nxtot = 1
+    nytot = 64
+    nztot = 32
+    aspect_ratio = 1.0, 2.0
+    zspacing_mode = 'PowerLaw'
+    npbl = 10
+    kmaxt = 0.5
+    kmaxb = 0.5
+/
+
+&refstate
+    ra0 = 100000.0
+    rh = 0.0
+    tref_surf = 1.0
+/
+
+&boundaries
+    topt_val = 0.0
+    bott_val = 1.0
+    outt_val = 0.0
+    bottomphasechange = .false.
+    topphasechange = .false.
+/
+
+&t_init
+    imode_t = 'bndry_layers'
+    amp_t = 0.01
+    blthick = 0.1
+/
+
+&timein
+    nsteps = 1000
+    nwrite = 200
+    alpha_adv = 0.6
+    alpha_diff = 0.6
+    advection_scheme = 'TVD'
+/
+
+&viscosity
+    ietalaw = 0
+/
+
+&iteration
+    relax_kernel = 'direct'
+/
+
+&multi
+/
+
+&ioin
+    input_format = 'old'
+    output_format = 'old'
+    output_file_stem = 'Op/out'
+    t_write = .true.
+    vp_write = .true.
+    overwrite_old_files = .true.
+/
+
+&compin
+/
+
+&melt
+/
+
+&phase
+/
+
+&continents
+/
+
+&tracersin
+/
+
+&atm_stuff
+/
+
+&postprocessing
+/
+
+&grainsize
+/
+
+&plot
+    npix = 300000
+    plot_file_stem = 'Img/out'
+    dots = .false.
+    auto_t_scale = .true.
+    t_plot = .true.
+    v_plot = .true.
+    eta_plot = .false.
+/
