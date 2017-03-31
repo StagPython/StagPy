@@ -61,9 +61,41 @@ eighth, every two snapshots.
 
 Profiles
 ~~~~~~
+Profiles are accessed using the rprof command::
+
+  % stagpy rprof -o t -s 4:6
+
+In this example, mean temperature profiles of snapshot 4 and 5 are
+plotted on the same graph. The average is also computed on another
+graph.
+
+::
+
+   stagpy rprof -o t -t 500:
+
+plots all mean temperature profiles that have been saved starting from
+time-step 500.
+
+::
+
+   stagpy rprof -o T
+
+plots the last min, mean and max temperature profiles.
+
+::
+
+   stagpy rprof -o g
+
+plots the last snapshot of the grid spacing profile.
+
+
 
 Scripts using StagyyData
 --------------------
+
+Plotting a scalar diagnostic as function of control parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Suppose you have a group of directories, each for a given set of
 parameters, and you want to plot the results of all cases on the same
 figure, compute statistics etc. The StagyyData is specially designed
