@@ -1,6 +1,0 @@
-+ Cartesian geometry
-+ 3D Ying-Yang geometry
-+ Read Tracers
-+ Plot continents with different color together with viscosity when needed
-+ fix using dimensional and non-dimensional units in plots
-+ write hdf5 data outputs that can be read by paraview/visit
