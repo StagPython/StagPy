@@ -282,7 +282,15 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
     fig, axis = plt.subplots()
 
     # assume constant z spacing for the moment
-    rprof_averaged = np.mean(sdat.rprof[:, vartuple], axis=0)
+    rprof_averaged = np.zeros(sdat.rprof[-1, vartuple].shape)
+    nrprof = 0
+    for step in misc.steps_gen(sdat, args):
+        if step.rprof is not None:
+            rprof_averaged += step.rprof[vartuple]
+            nrprof += 1
+    if nrprof == 0:
+        raise ValueError('No rprof data available')
+    rprof_averaged /= nrprof
     radius = sdat.rprof[0, 0]
 
     for prof_id, prof in enumerate(rprof_averaged):
