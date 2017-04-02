@@ -1,51 +1,26 @@
 """Parsers of StagYY output files"""
 from functools import partial
-from itertools import product, zip_longest
+from itertools import product
 import re
 import struct
 import numpy as np
 
 
-def parse_line(line, convert=None):
-    """convert columns of a text line
-
-    line values have to be space separated,
-    values are converted to float by default.
-
-    convert argument is a list of functions
-    used to convert the first values.
-    """
-    if convert is None:
-        convert = []
-    line = line.split()
-    for val, func in zip_longest(line, convert[:len(line)], fillvalue=float):
-        yield func(val)
-
-
 def time_series(timefile):
     """Read temporal series from time.dat"""
-    # could use np.genfromtxt
     if not timefile.is_file():
         return None
-    with timefile.open() as infile:
-        first = infile.readline()
-        data = []
-        for line in infile:
-            step = list(parse_line(line, convert=[int]))
-            # remove useless lines produced when run is restarted
-            while data and step[0] <= data[-1][0]:
-                data.pop()
-            data.append(step)
+    data = np.genfromtxt(timefile, skip_header=1)
 
-    # unused at the moment
-    colnames = first.split()
-    # suppress two columns from the header.
-    # Only temporary since this has been corrected in stag
-    # WARNING: possibly a problem if some columns are added?
-    if len(colnames) == 33:
-        colnames = colnames[:28] + colnames[30:]
+    # detect useless lines produced when run is restarted
+    rows_to_del = []
+    for irow in range(1, len(data)):
+        iprev = irow - 1
+        while data[irow, 0] <= data[iprev, 0]:
+            rows_to_del.append(iprev)
+            iprev -= 1
 
-    return np.array(list(zip_longest(*data, fillvalue=0))).T
+    return np.delete(data, rows_to_del, 0)
 
 
 def rprof(rproffile):
