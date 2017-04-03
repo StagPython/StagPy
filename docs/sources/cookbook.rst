@@ -114,7 +114,7 @@ all directories stored where the script is executed::
   nun = []
 
   pwd = Path('.')
-  for rep in pwd.glob('*'):
+  for rep in pwd.glob('ra-*'):
       print('In directory ', rep)
       sdat = stagyydata.StagyyData(rep.name)
       # get the value of the Rayleigh number
@@ -133,5 +133,45 @@ Note that this particular example is only relevant if the solutions
 have all reached a steady-state. In the case where the solution is
 only in statistical steady state, a time average is more relevant. It
 can be computed using the whole sdat.tseries table in each directory.
+
+Plotting a scalar diagnostic as function of time for several parameter sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instead of plotting just the last value of a diagnostic, or its
+average, you may want to plot its evolution of time for different
+values of the control parameters. Suppose again that several
+directories named ra-* are present in your working directory. The
+following script will plot the RMS velocity (column 8 of the tseries
+table) as function of time for all these directories::
+
+  #!/usr/bin/env python3
+  """Nu=f(Ra) from a set of stagyy results in different directories"""
+
+  import matplotlib.pyplot as plt
+  from stagpy import stagyydata
+  from pathlib import Path
+
+  fig = plt.figure()
+
+  pwd = Path('.')
+  for rep in pwd.glob('ra-*'):
+      print('In directory ', rep)
+      sdat = stagyydata.StagyyData(rep.name)
+      # get the value of the Rayleigh number
+      ra0 = sdat.par['refstate']['ra0']
+      # get the time vector
+      time = sdat.tseries[:, 1]
+      # get the vrms vector
+      vrms = sdat.tseries[:, 8]
+      # plot
+      plt.plot(time, vrms, label=r'$Ra=%1.0e$' % ra0)
+
+  plt.legend()
+  plt.xlabel(r'Time')
+  plt.ylabel(r'RMS velocity')
+  plt.savefig('time-vrms.pdf')
+  plt.close(fig)
+
+
 
 
