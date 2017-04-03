@@ -48,6 +48,17 @@ RPROF_VAR_LIST = OrderedDict((
     ('d', Varr('Difference', 'plot_difference', None, None)),
 ))
 
+RPROF_VAR_NAME = [
+    'z', 'Tmean', 'Tmin', 'Tmax', 'vrms', 'vmin', 'vmax', 'vzabs', 'vzmin',
+    'vzmax', 'vhrms', 'vhmin', 'vhmax', 'etalog', 'etamin', 'etamax', 'elog',
+    'emin', 'emax', 'slog', 'smin', 'smax', 'whrms', 'whmin', 'whmax', 'wzrms',
+    'wzmin', 'wzmax', 'drms', 'dmin', 'dmax', 'enadv', 'endiff', 'enradh',
+    'enviscdiss', 'enadiabh', 'cmean', 'cmin', 'cmax', 'rhomean', 'rhomin',
+    'rhomax', 'airmean', 'airmin', 'airmax', 'primmean', 'primmin', 'primmax',
+    'ccmean', 'ccmin', 'ccmax', 'fmeltmean', 'fmeltmin', 'fmeltmax',
+    'metalmean', 'metalmin', 'metalmax', 'gsmean', 'gsmin', 'gsmax',
+    'viscdisslog', 'viscdissmin', 'viscdissmax', 'advtot', 'advdesc', 'advasc']
+
 TIME_VAR_LIST = ['t', 'ftop', 'fbot', 'Tmin', 'Tmean', 'Tmax', 'vmin', 'vrms',
     'vmax', 'etamin', 'etamean', 'etamax', 'Raeff', 'Nutop', 'Nubot', 'Cmin',
     'Cmean', 'Cmax', 'moltenf_mean', 'moltenf_max', 'erupt_rate', 'erupt_tot',
