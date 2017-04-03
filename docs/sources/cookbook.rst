@@ -150,6 +150,7 @@ table) as function of time for all these directories::
   import matplotlib.pyplot as plt
   from stagpy import stagyydata
   from pathlib import Path
+  from numpy import log10
 
   fig = plt.figure()
 
@@ -164,7 +165,7 @@ table) as function of time for all these directories::
       # get the vrms vector
       vrms = sdat.tseries[:, 8]
       # plot
-      plt.plot(time, vrms, label=r'$Ra=%1.0e$' % ra0)
+      plt.plot(time, vrms, label=r'$Ra=10^{%1d}$' % log10(ra0))
 
   plt.legend()
   plt.xlabel(r'Time')
