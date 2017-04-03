@@ -4,9 +4,10 @@ from itertools import product
 import re
 import struct
 import numpy as np
+import pandas as pd
 
 
-def time_series(timefile):
+def time_series(timefile, colnames):
     """Read temporal series from time.dat"""
     if not timefile.is_file():
         return None
@@ -16,11 +17,15 @@ def time_series(timefile):
     rows_to_del = []
     for irow in range(1, len(data)):
         iprev = irow - 1
-        while data[irow, 0] <= data[iprev, 0]:
+        while int(data[irow, 0]) <= int(data[iprev, 0]):
             rows_to_del.append(iprev)
             iprev -= 1
+    data = np.delete(data, rows_to_del, 0)
+    ncols = data.shape[1] - 1
+    colnames = colnames[:ncols] + list(range(0, ncols - len(colnames)))
 
-    return np.delete(data, rows_to_del, 0)
+    isteps = map(int, data[:, 0])
+    return pd.DataFrame(data[:, 1:], index=isteps, columns=colnames)
 
 
 def rprof(rproffile):

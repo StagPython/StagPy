@@ -274,7 +274,6 @@ class _Step:
         self.fields = _Fields(self)
         self._isnap = UNDETERMINED
         self._irsnap = UNDETERMINED
-        self._itsnap = UNDETERMINED
 
     @property
     def geom(self):
@@ -284,10 +283,10 @@ class _Step:
     @property
     def timeinfo(self):
         """Relevant time series data"""
-        if self.itsnap is None:
-            return None
+        if self.istep in self.sdat.tseries.index:
+            return self.sdat.tseries.loc[self.istep]
         else:
-            return self.sdat.tseries[self.itsnap]
+            return None
 
     @property
     def rprof(self):
@@ -336,22 +335,6 @@ class _Step:
         """Radial snap corresponding to time step"""
         try:
             self._irsnap = int(irsnap)
-        except ValueError:
-            pass
-
-    @property
-    def itsnap(self):
-        """Time info entry corresponding to time step"""
-        _ = self.sdat.tseries
-        if self._itsnap is UNDETERMINED:
-            self._itsnap = None
-        return self._itsnap
-
-    @itsnap.setter
-    def itsnap(self, itsnap):
-        """Time info entry corresponding to time step"""
-        try:
-            self._itsnap = int(itsnap)
         except ValueError:
             pass
 
@@ -408,7 +391,7 @@ class _Steps(dict):
         """Last timestep available"""
         if self._last is UNDETERMINED:
             # not necessarily the last one...
-            self._last = self.sdat.tseries[-1, 0]
+            self._last = self.sdat.tseries.index[-1]
         return self[self._last]
 
 
@@ -487,10 +470,8 @@ class StagyyData:
         """Time series data"""
         if self._tseries is UNDETERMINED:
             timefile = self.filename('time.dat')
-            self._tseries = stagyyparsers.time_series(timefile)
-            for itsnap, timeinfo in enumerate(self._tseries):
-                istep = int(timeinfo[0])
-                self.steps[istep].itsnap = itsnap
+            self._tseries = stagyyparsers.time_series(timefile,
+                constants.TIME_VAR_LIST)
         return self._tseries
 
     @property

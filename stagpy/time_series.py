@@ -9,12 +9,6 @@ from math import sqrt
 from .stagyydata import StagyyData
 
 
-def find_nearest(array, value):
-    """Find the data point nearest to value"""
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
-
-
 def time_cmd(args):
     """plot temporal series"""
     eps = 1.e-10
@@ -24,15 +18,17 @@ def time_cmd(args):
     ftsz = args.fontsize
 
     sdat = StagyyData(args.path)
-    data = sdat.tseries
+    if args.tend < eps:
+        args.tend = sdat.tseries.iloc[-1].loc['t']
+    data = sdat.tseries[args.tstart <= sdat.tseries['t']]
+    data = data[data['t'] <= args.tend]
+    args.tstart = data['t'].iloc[0]
+    args.tend = data['t'].iloc[-1]
     ntot = len(data)
 
     rab = sdat.par['refstate']['ra0']
     rah = sdat.par['refstate']['Rh']
     botpphase = sdat.par['boundaries']['BotPphase']
-
-    if args.tstart < 0:
-        args.tstart = data[0, 1]
 
     spherical = sdat.par['geometry']['shape'].lower() == 'spherical'
     if spherical:
@@ -48,24 +44,14 @@ def time_cmd(args):
         coefs = 1.
         volume = 1.
 
-    if abs(args.tstart) < eps:
-        nstart = 0
-    else:
-        nstart = np.argmin(abs(args.tstart - data[:, 1]))
+    time = data['t'].values
+    mtemp = data['Tmean'].values
+    ftop = data['ftop'].values * coefs
+    fbot = data['fbot'].values * coefb
+    vrms = data['vrms'].values
 
-    if abs(args.tend) < eps:
-        args.tend = np.amax(data[:, 1])
-
-    time = data[nstart:, 1]
-    mtemp = data[nstart:, 5]
-    ftop = data[nstart:, 2] * coefs
-    fbot = data[nstart:, 3] * coefb
-    vrms = data[nstart:, 8]
-
-    dtdt = (data[2:ntot - 1, 5] - data[0:ntot - 3, 5]) /\
-        (data[2:ntot - 1, 1] - data[0:ntot - 3, 1])
-    ebalance = data[1:ntot - 2, 2] * coefs - data[1:ntot - 2, 3] * coefb\
-        - volume * dtdt
+    dtdt = (mtemp[2:] - mtemp[:-2]) / (time[2:] - time[:-2])
+    ebalance = ftop[1:-1] - fbot[1:-1] - volume * dtdt
 
     # -------- TEMPERATURE and FLOW PLOTS
     fig = plt.figure(figsize=(30, 10))
@@ -74,7 +60,7 @@ def time_cmd(args):
     plt.plot(time, ftop, 'b', label='Surface', linewidth=lwdth)
     plt.plot(time, fbot, 'r', label='Bottom', linewidth=lwdth)
     if args.energy:
-        plt.plot(time[1:ntot - 2:], ebalance, 'g', label='Energy balance',
+        plt.plot(time[1:-1], ebalance, 'g', label='Energy balance',
                  linewidth=lwdth)
     plt.ylabel('Heat flow', fontsize=ftsz)
     plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
@@ -123,54 +109,23 @@ def time_cmd(args):
         return None
 
     coords = []
-    print('right click to select starting time of statistics computations')
-
-    def onclick(event):
-        """get position and button from mouse click"""
-        ixc, iyc = event.xdata, event.ydata
-        button = event.button
-        # assign global variable to access outside of function
-        if button == 3:
-            coords.append((ixc, iyc))
-            # Disconnect after 1 clicks
-        if len(coords) == 1:
-            fig.canvas.mpl_disconnect(cid)
-            plt.close(1)
-        return
-
-    # Call click func
-    cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    plt.show()
-
     moy = []
     rms = []
     ebal = []
     rms_ebal = []
-    ch1 = np.where(time == (find_nearest(time, coords[0][0])))
-
-    print('Statistics computed from t =' + str(time[ch1[0][0]]))
-    for num in range(2, data.shape[1]):
-        moy.append(np.trapz(data[ch1[0][0]:ntot - 1, num],
-                            x=time[ch1[0][0]:ntot - 1]) /
-                   (time[ntot - 1] - time[ch1[0][0]]))
-        rms.append(sqrt(np.trapz((data[ch1[0][0]:ntot - 1, num] -
-                                  moy[num - 2])**2,
-                                 x=time[ch1[0][0]:ntot - 1]) /
-                        (time[ntot - 1] - time[ch1[0][0]])))
-    with open('statistics.dat') as fid:
-        for val, err in np.array([moy, rms]).T:
-            fid.write('{:.5e}   {:.5e}\n'.format(val, err))
-    ebal.append(np.trapz(ebalance[ch1[0][0] - 1:ntot - 3],
-                         x=time[ch1[0][0]:ntot - 2]) /
-                (time[ntot - 2] - time[ch1[0][0]]))
-    rms_ebal.append(sqrt(np.trapz(
-                         (ebalance[ch1[0][0] - 1:ntot - 3] - ebal)**2,
-                         x=time[ch1[0][0]:ntot - 2]) /
-                         (time[ntot - 2] - time[ch1[0][0]])))
+    delta_time = time[-1] - time[0]
+    for col in data.columns[1:]:
+        moy.append(np.trapz(data[col], x=time) / delta_time)
+        rms.append(sqrt(np.trapz((data[col] - moy[-1])**2, x=time) /
+                        delta_time))
+    delta_time = time[-2] - time[1]
+    ebal.append(np.trapz(ebalance, x=time[1:-1]) / delta_time)
+    rms_ebal.append(sqrt(np.trapz((ebalance - ebal)**2, x=time[1:-1]) /
+                         delta_time))
     print('Energy balance', ebal, 'pm', rms_ebal)
     results = moy + ebal + rms + rms_ebal
-    with open('Stats.dat', 'w') as out_file:
-        out_file.write("%10.5e %10.5e %10.5e " % (rab, rah, botpphase))
+    with open('statistics.dat', 'w') as out_file:
+        out_file.write("%10.5e %10.5e %10.5e " % (rab, sum(rah), botpphase))
         for item in results:
             out_file.write("%10.5e " % item)
         out_file.write("\n")

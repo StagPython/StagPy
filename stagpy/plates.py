@@ -938,8 +938,8 @@ def plates_cmd(args):
             if step.fields['t'] is None:
                 continue
             if args.timeprofile:
-                time.append(step.timeinfo[1])
-                ch2o.append(step.timeinfo[27])
+                time.append(step.timeinfo.loc['t'])
+                ch2o.append(step.timeinfo.loc[0])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
             plt = args.plt

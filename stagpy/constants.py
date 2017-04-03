@@ -48,6 +48,12 @@ RPROF_VAR_LIST = OrderedDict((
     ('d', Varr('Difference', 'plot_difference', None, None)),
 ))
 
+TIME_VAR_LIST = ['t', 'ftop', 'fbot', 'Tmin', 'Tmean', 'Tmax', 'vmin', 'vrms',
+    'vmax', 'etamin', 'etamean', 'etamax', 'Raeff', 'Nutop', 'Nubot', 'Cmin',
+    'Cmean', 'Cmax', 'moltenf_mean', 'moltenf_max', 'erupt_rate', 'erupt_tot',
+    'erupt_heat', 'entrainment', 'Cmass_error', 'H_int', 'r_ic', 'topT_val',
+    'botT_val']
+
 Varp = namedtuple('Varp', ['par', 'name', 'arg'])
 PLATES_VAR_LIST = OrderedDict((
     ('c', Varp('c', 'Composition', 'plot_composition')),
