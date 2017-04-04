@@ -17,7 +17,7 @@
 /
 
 &refstate
-    ra0 = 1000.0
+    ra0 = 10000.0
     rh = 0.0
     tref_surf = 1.0
 /
