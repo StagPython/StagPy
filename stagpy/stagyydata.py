@@ -420,7 +420,7 @@ class StagyyData:
         if self._rprof is UNDETERMINED:
             rproffile = self.filename('rprof.dat')
             self._rprof = stagyyparsers.rprof(
-                rproffile, constants.RPROF_VAR_NAME)
+                rproffile, list(constants.RPROF_VARS.keys()))
         return self._rprof
 
     @property

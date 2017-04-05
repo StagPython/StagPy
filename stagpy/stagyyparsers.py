@@ -1,7 +1,7 @@
 """Parsers of StagYY output files"""
 from functools import partial
 from itertools import product, repeat
-from operators import itemgetter
+from operator import itemgetter
 import re
 import struct
 import numpy as np
@@ -74,7 +74,7 @@ def rprof(rproffile, colnames):
         id_arr[1].extend(range(n_z))
 
     df_rprof = pd.DataFrame(data, index=id_arr, columns=colnames)
-    df_times = pd.DataFrame(map(itemgetter(1), isteps),
+    df_times = pd.DataFrame(list(map(itemgetter(1), isteps)),
                             index=map(itemgetter(0), isteps))
     return df_rprof, df_times
 

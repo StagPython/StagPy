@@ -3,6 +3,7 @@
 Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/09/11
 """
+from inspect import getdoc
 import math
 import numpy as np
 from scipy import integrate as itg
@@ -305,31 +306,6 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
     if quant[0] == 'Viscosity':
         axis.set_xscale('log')
 
-    # plot solidus as a function of depth if viscosity reduction due to melting
-    # is applied with linear dependency
-    if quant[0] == 'Temperature' and sdat.par['viscosity']['eta_melt'] \
-            and sdat.par['melt']['solidus_function'].lower() == 'linear':
-        tsol0 = sdat.par['melt']['tsol0']
-        if sdat.par['switches']['tracers']:
-            deltatsol_water = sdat.par['melt']['deltaTsol_water_dimensional']
-            deltatsol_water /= sdat.par['refstate']['deltaT_dimensional']
-        dtsol_dz = sdat.par['melt']['dtsol_dz']
-        tsol = tsol0 + dtsol_dz * (rcmb + 1. - radius)
-        if sdat.par['switches']['tracers']:
-            tsol3 = tsol0 + dtsol_dz * (rcmb + 1. - radius) - \
-                deltatsol_water * 0.3
-            tsol5 = tsol0 + dtsol_dz * (rcmb + 1. - radius) - \
-                deltatsol_water * 0.6
-
-        axis.plot(tsol, radius, ls='-', color='k', dashes=[4, 3],
-                  label='solidus')
-        if sdat.par['switches']['tracers']:
-            axis.plot(tsol3, radius, ls='-', color='g', dashes=[4, 3],
-                      label='solidus C_water = 0.45%')
-            axis.plot(tsol5, radius, ls='-', color='r', dashes=[4, 3],
-                      label='solidus C_water = 0.90%')
-
-        axis.set_xlim([0, 1.2])
     axis.set_xlabel(quant[0], fontsize=ftsz)
     axis.set_ylabel('Coordinate z', fontsize=ftsz)
     plt.xticks(fontsize=ftsz)
@@ -367,15 +343,61 @@ def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
     plt.close(fig)
 
 
+def _list_of_vars(arg_plot):
+    """Compute list of list of variables per plot"""
+    lovs = [[var for var in pvars.split(',') if var]
+            for pvars in arg_plot.split('.') if pvars]
+    return [lov for lov in lovs if lov]
+
+
+def get_rprof(step, var):
+    """Return read or computed rprof along with metadata"""
+    if var in step.rprof.columns:
+        rprof = step.rprof[var]
+        if var in constants.RPROF_VARS:
+            meta = constants.RPROF_VARS[var]
+        else:
+            meta = constants.Varr(None, None)
+    elif var in constants.RPROF_VARS_EXTRA:
+        meta = constants.RPROF_VARS_EXTRA[var]
+        rprof = meta.description(step)
+        meta = constants.Varr(getdoc(meta.description), meta.shortname)
+    else:
+        raise ValueError('Unknown rprof variable {}.'.format(var))
+
+    return rprof, meta
+
+
 def rprof_cmd(args):
     """Plot radial profiles"""
-    if not (args.plot_conctheo and args.plot_temperature and
-            args.plot_concentration):
-        args.plot_difference = False
-
-    ctheoarg = None, None
-
     sdat = StagyyData(args.path)
+    lovs = _list_of_vars(args.plot)
+    if not lovs:
+        return
+
+    for step in misc.steps_gen(sdat, args):
+        if step.rprof is None:
+            continue
+        for rplot in lovs:
+            fig, axis = args.plt.subplots()
+            fname = ''
+            xlabel = None
+            for rvar in rplot:
+                fname += rvar + '_'
+                rprof, meta = get_rprof(step, rvar)
+                axis.plot(rprof, step.rprof['r'], label=meta.description)
+                lbl = meta.shortname
+                if xlabel is None:
+                    xlabel = lbl
+                elif xlabel != lbl:
+                    xlabel = ''
+            if xlabel:
+                axis.set_xlabel(r'${}$'.format(xlabel))
+            axis.set_ylabel(r'$r$')
+            axis.legend()
+            fig.savefig('{}{}.pdf'.format(fname, step.istep),
+                        format='PDF', bbox_inches='tight')
+    return
 
     if args.plot_difference:
         # plot time series of difference profiles
@@ -415,14 +437,6 @@ def rprof_cmd(args):
         ctheoarg = ctheoarg[0], initprof
 
     for var in 'tvunc':  # temp, vertical vel, horizontal vel, viscosity, conc
-        meta = constants.RPROF_VAR_LIST[var]
-        if not misc.get_arg(args, meta.arg):
-            continue
-        labels = [meta.name]
-        cols = [meta.prof_idx]
-        if misc.get_arg(args, meta.min_max):
-            labels.extend(['Mean', 'Minimum', 'Maximum'])
-            cols.extend([meta.prof_idx + 1, meta.prof_idx + 2])
         out = plotprofiles(sdat, labels, cols, rbounds, args, ctheoarg)
         if var == 't' and args.plot_difference:
             adv_times, imint, sigma, timename = out
@@ -431,14 +445,6 @@ def rprof_cmd(args):
 
     # time averaging and plotting of radial profiles
     for var in 'tvun':  # temperature, vertical vel, horizontal vel, viscosity
-        meta = constants.RPROF_VAR_LIST[var]
-        if not misc.get_arg(args, meta.arg):
-            continue
-        labels = [meta.name]
-        cols = [meta.prof_idx]
-        if misc.get_arg(args, meta.min_max):
-            labels.extend(['Mean', 'Minimum', 'Maximum'])
-            cols.extend([meta.prof_idx + 1, meta.prof_idx + 2])
         plotaveragedprofiles(sdat, labels, cols, rbounds, args)
 
     if args.plot_difference:
@@ -457,9 +463,6 @@ def rprof_cmd(args):
     # Plot grid spacing
     if args.plot_grid:
         plotprofiles(sdat, ['Grid'], None, rbounds, args, ctheoarg)
-
-    if args.plot_grid_units:
-        plotprofiles(sdat, ['Grid km'], None, rbounds, args, ctheoarg)
 
     # Plot the profiles of vertical advection: total and contributions from up-
     # and down-welling currents
