@@ -266,88 +266,50 @@ def plotprofiles(sdat, quant, vartuple, rbounds, args,
             return adv_times, imint, sigma, timename
 
 
-def plotaveragedprofiles(sdat, quant, vartuple, rbounds, args):
-    """Plot the time averaged profiles
-
-    quant holds the strings for the x axis annotation and
-    the legends for the additional profiles
-
-    vartuple contains the numbers of the column to be plotted
-    """
-    plt = args.plt
-    lwdth = args.linewidth
-    ftsz = args.fontsize
-    _, _, rcmb = rbounds
-    linestyles = ('-', '--', 'dotted', ':')
-
-    fig, axis = plt.subplots()
-
-    # assume constant z spacing for the moment
-    rprof_averaged = np.zeros(sdat.rprof[-1, vartuple].shape)
-    nrprof = 0
-    for step in misc.steps_gen(sdat, args):
-        if step.rprof is not None:
-            rprof_averaged += step.rprof[vartuple]
-            nrprof += 1
-    if nrprof == 0:
-        raise ValueError('No rprof data available')
-    rprof_averaged /= nrprof
-    radius = sdat.rprof[0, 0]
-
-    for prof_id, prof in enumerate(rprof_averaged):
-        if len(vartuple) > 1:
-            axis.plot(prof, radius, linewidth=lwdth,
-                      linestyle=linestyles[prof_id], color='b',
-                      label=quant[prof_id + 1])
-        else:
-            axis.plot(prof, radius, linewidth=lwdth,
-                      linestyle=linestyles[prof_id], color='b')
-
-    if quant[0] == 'Viscosity':
-        axis.set_xscale('log')
-
-    axis.set_xlabel(quant[0], fontsize=ftsz)
-    axis.set_ylabel('Coordinate z', fontsize=ftsz)
-    plt.xticks(fontsize=ftsz)
-    plt.yticks(fontsize=ftsz)
-    # legend
-    if len(vartuple) > 1:
-        axis.legend(loc='center left', fontsize=ftsz,
-                    columnspacing=1.0, labelspacing=0.0,
-                    handletextpad=0.1, handlelength=1.5,
-                    fancybox=True, shadow=False)
-
-    # Finding averaged v_rms at surface
-    if sdat.par['boundaries']['air_layer']:
-        dsa = sdat.par['boundaries']['air_thickness']
-        irsurf = np.argmin(abs(radius - radius[-1] + dsa))
-        plt.axhline(y=radius[irsurf], xmin=0, xmax=plt.xlim()[1],
-                    color='k', alpha=0.1)
-    else:
-        irsurf = -1
-
-    if quant[0] == 'Horizontal velocity':
-        vrms_surface = rprof_averaged[0, irsurf]
-        plt.title('Averaged horizontal surface velocity: ' +
-                  str(round(vrms_surface, 0)))
-
-    # horizontal line delimiting continent thickness
-    if sdat.par['switches']['cont_tracers'] and\
-            quant[0] == 'Viscosity':
-        d_archean = sdat.par['tracersin']['d_archean']
-        plt.axhline(y=radius[irsurf] - d_archean, xmin=0, xmax=plt.xlim()[1],
-                    color='#7b68ee', alpha=0.2)
-
-    plt.savefig('fig_average' + quant[0].replace(' ', '_') + ".pdf",
-                format='PDF', bbox_inches='tight')
-    plt.close(fig)
-
-
 def _list_of_vars(arg_plot):
-    """Compute list of list of variables per plot"""
-    lovs = [[var for var in pvars.split(',') if var]
-            for pvars in arg_plot.split('.') if pvars]
+    """Compute list of variables per plot
+
+    Three nested lists:
+    - variables on the same subplots;
+    - subplots on the same figure;
+    - figures.
+    """
+    lovs = [[[var for var in svars.split(',') if var]
+             for svars in pvars.split('.') if svars]
+            for pvars in arg_plot.split('_') if pvars]
     return [lov for lov in lovs if lov]
+
+
+def _set_of_vars(lovs):
+    """Build set of variables from list"""
+    return set(var for pvars in lovs for svars in pvars for var in svars)
+
+
+def _plot_rprof_list(lovs, rprofs, metas, args, stepstr):
+    """Plot requested profiles"""
+    for vfig in lovs:
+        fig, axes = args.plt.subplots(ncols=len(vfig), sharey=True)
+        axes = [axes] if len(vfig) == 1 else axes
+        fname = ''
+        for iplt, vplt in enumerate(vfig):
+            xlabel = None
+            for rvar in vplt:
+                fname += rvar + '_'
+                axes[iplt].plot(rprofs[rvar], rprofs['r'],
+                                label=metas[rvar].description)
+                lbl = metas[rvar].shortname
+                if xlabel is None:
+                    xlabel = lbl
+                elif xlabel != lbl:
+                    xlabel = ''
+            if xlabel:
+                axes[iplt].set_xlabel(r'${}$'.format(xlabel))
+            if vplt[0][:3] == 'eta':  # list of log variables
+                axes[iplt].set_xscale('log')
+            axes[iplt].legend()
+        axes[0].set_ylabel(r'$r$')
+        fig.savefig('{}{}.pdf'.format(fname, stepstr),
+                    format='PDF', bbox_inches='tight')
 
 
 def get_rprof(step, var):
@@ -368,35 +330,67 @@ def get_rprof(step, var):
     return rprof, meta
 
 
-def rprof_cmd(args):
-    """Plot radial profiles"""
-    sdat = StagyyData(args.path)
-    lovs = _list_of_vars(args.plot)
-    if not lovs:
-        return
+def plot_average(sdat, lovs, args):
+    """Plot time averaged profiles"""
+    sovs = _set_of_vars(lovs)
+    istart = None
+    # assume constant z spacing for the moment
+    ilast = sdat.rprof.index.levels[0][-1]
+    rlast = sdat.rprof.loc[ilast]
+    rprof_averaged = rlast.loc[:, sovs] * 0
+    nprofs = 0
+    metas = {}
+    for step in misc.steps_gen(sdat, args):
+        if step.rprof is None:
+            continue
+        if istart is None:
+            istart = step.istep
+        ilast = step.istep
+        nprofs += 1
+        for rvar in sovs:
+            rprof, meta = get_rprof(step, rvar)
+            rprof_averaged[rvar] += rprof
+            metas[rvar] = meta
+
+    rprof_averaged /= nprofs
+    rprof_averaged['r'] = rlast.loc[:, 'r']
+
+    stepstr = '{}_{}'.format(istart, ilast)
+
+    _plot_rprof_list(lovs, rprof_averaged, metas, args, stepstr)
+
+
+def plot_every_step(sdat, lovs, args):
+    """One plot per time step"""
+    sovs = _set_of_vars(lovs)
 
     for step in misc.steps_gen(sdat, args):
         if step.rprof is None:
             continue
-        for rplot in lovs:
-            fig, axis = args.plt.subplots()
-            fname = ''
-            xlabel = None
-            for rvar in rplot:
-                fname += rvar + '_'
-                rprof, meta = get_rprof(step, rvar)
-                axis.plot(rprof, step.rprof['r'], label=meta.description)
-                lbl = meta.shortname
-                if xlabel is None:
-                    xlabel = lbl
-                elif xlabel != lbl:
-                    xlabel = ''
-            if xlabel:
-                axis.set_xlabel(r'${}$'.format(xlabel))
-            axis.set_ylabel(r'$r$')
-            axis.legend()
-            fig.savefig('{}{}.pdf'.format(fname, step.istep),
-                        format='PDF', bbox_inches='tight')
+        rprofs = {}
+        metas = {}
+        for rvar in sovs:
+            rprof, meta = get_rprof(step, rvar)
+            rprofs[rvar] = rprof
+            metas[rvar] = meta
+        rprofs['r'] = step.rprof.loc[:, 'r']
+        stepstr = str(step.istep)
+
+        _plot_rprof_list(lovs, rprofs, metas, args, stepstr)
+
+
+def rprof_cmd(args):
+    """Plot radial profiles"""
+    sdat = StagyyData(args.path)
+    lovs = _list_of_vars(args.plot)
+    if not lovs or sdat.rprof is None:
+        return
+
+    if args.average:
+        plot_average(sdat, lovs, args)
+    else:
+        plot_every_step(sdat, lovs, args)
+
     return
 
     if args.plot_difference:
@@ -442,10 +436,6 @@ def rprof_cmd(args):
             adv_times, imint, sigma, timename = out
         if var == 'c' and args.plot_difference:
             adv_times, iminc, timename = out
-
-    # time averaging and plotting of radial profiles
-    for var in 'tvun':  # temperature, vertical vel, horizontal vel, viscosity
-        plotaveragedprofiles(sdat, labels, cols, rbounds, args)
 
     if args.plot_difference:
         args.plt.ticklabel_format(style='sci', axis='x')
