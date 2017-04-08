@@ -1,5 +1,6 @@
 """definition of each subcommands"""
 
+from inspect import getdoc
 from . import constants, misc, field, rprof, time_series, plates
 from . import __version__
 
@@ -16,16 +17,6 @@ def field_cmd(args):
 def rprof_cmd(args):
     """plot radial profiles"""
     misc.plot_backend(args)
-    if args.plot is not None:
-        for var, meta in constants.RPROF_VAR_LIST.items():
-            if var in args.plot:
-                misc.set_arg(args, meta.arg, True)
-                misc.set_arg(args, meta.min_max, False)
-            else:
-                misc.set_arg(args, meta.arg, False)
-            if meta.min_max and var.upper() in args.plot:
-                misc.set_arg(args, meta.arg, True)
-                misc.set_arg(args, meta.min_max, True)
     rprof.rprof_cmd(args)
 
 
@@ -53,8 +44,10 @@ def var_cmd(_):
           for v, m in constants.FIELD_VAR_LIST.items()), sep='\n')
     print()
     print('rprof:')
-    print(*('{}: {}'.format(v, m.name)
-          for v, m in constants.RPROF_VAR_LIST.items()), sep='\n')
+    print(*('{}: {}'.format(v, m.description)
+          for v, m in constants.RPROF_VARS.items()), sep='\n')
+    print(*('{}: {}'.format(v, getdoc(m.description))
+          for v, m in constants.RPROF_VARS_EXTRA.items()), sep='\n')
     print()
     print('plates:')
     print(*('{}: {}'.format(v, m.name)

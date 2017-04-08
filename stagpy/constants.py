@@ -3,6 +3,7 @@
 import pathlib
 from collections import OrderedDict, namedtuple
 from os.path import expanduser
+from . import processing
 
 HOME_DIR = pathlib.Path(expanduser('~'))
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
@@ -30,22 +31,6 @@ FIELD_VAR_LIST = OrderedDict((
     ('w', Varf('vp', 'z Velocity', 'plot_zvelo', {})),
     ('p', Varf('vp', 'Pressure', 'plot_pressure', {})),
     ('l', Varf('vp', 'Stream function', 'plot_stream', {})),
-))
-
-Varr = namedtuple('Varr', ['name', 'arg', 'min_max', 'prof_idx'])
-RPROF_VAR_LIST = OrderedDict((
-    ('t', Varr('Temperature', 'plot_temperature', 'plot_minmaxtemp', 1)),
-    ('v', Varr('Vertical velocity', 'plot_velocity', 'plot_minmaxvelo', 7)),
-    ('u', Varr('Horizontal velocity', 'plot_velocity', 'plot_minmaxvelo', 10)),
-    ('n', Varr('Viscosity', 'plot_viscosity', 'plot_minmaxvisco', 13)),
-    ('c', Varr('Concentration', 'plot_concentration', 'plot_minmaxcon', 36)),
-    ('g', Varr('Grid', 'plot_grid', None, None)),
-    ('z', Varr('Grid km', 'plot_grid_units', None, None)),
-    ('a', Varr('Advection', 'plot_advection', None, None)),
-    ('e', Varr('Energy', 'plot_energy', None, None)),
-    ('h', Varr('Concentration Theo', 'plot_conctheo', None, None)),
-    ('i', Varr('Init overturn', 'plot_overturn_init', None, None)),
-    ('d', Varr('Difference', 'plot_difference', None, None)),
 ))
 
 Varr = namedtuple('Varr', ['description', 'shortname'])
@@ -119,6 +104,16 @@ RPROF_VARS = OrderedDict((
 ))
 
 RPROF_VARS_EXTRA = OrderedDict((
+    ('redges', Varr(processing.r_edges, 'r')),
+    ('dr', Varr(processing.delta_r, 'dr')),
+    ('diff', Varr(processing.diff_prof, 'q')),
+    ('diffs', Varr(processing.diffs_prof, 'q')),
+    ('advts', Varr(processing.advts_prof, 'q')),
+    ('advds', Varr(processing.advds_prof, 'q')),
+    ('advas', Varr(processing.advas_prof, 'q')),
+    ('energy', Varr(processing.energy_prof, 'q')),
+    ('ciover', Varr(processing.init_c_overturn, 'c')),
+    ('cfover', Varr(processing.c_overturned, 'c')),
 ))
 
 TIME_VAR_LIST = [

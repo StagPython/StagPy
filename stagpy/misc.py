@@ -35,6 +35,16 @@ def steps_gen(sdat, args):
         return sdat.steps[args.timesteps]
 
 
+def get_rbounds(step):
+    """Radii of boundaries"""
+    if step.geom is not None:
+        rcmb = step.geom.rcmb
+    else:
+        rcmb = step.sdat.par['geometry']['r_cmb']
+    rcmb = max(rcmb, 0)
+    return rcmb, rcmb + 1
+
+
 def plot_backend(args):
     """import matplotlib and seaborn"""
     mpl = importlib.import_module('matplotlib')
