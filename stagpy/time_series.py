@@ -24,7 +24,6 @@ def time_cmd(args):
     data = data[data['t'] <= args.tend]
     args.tstart = data['t'].iloc[0]
     args.tend = data['t'].iloc[-1]
-    ntot = len(data)
 
     rab = sdat.par['refstate']['ra0']
     rah = sdat.par['refstate']['Rh']
@@ -54,7 +53,7 @@ def time_cmd(args):
     ebalance = ftop[1:-1] - fbot[1:-1] - volume * dtdt
 
     # -------- TEMPERATURE and FLOW PLOTS
-    fig = plt.figure(figsize=(30, 10))
+    plt.figure(figsize=(30, 10))
 
     plt.subplot(2, 1, 1)
     plt.plot(time, ftop, 'b', label='Surface', linewidth=lwdth)
@@ -86,7 +85,7 @@ def time_cmd(args):
     plt.savefig("fig_fluxtime.pdf", format='PDF')
 
     # -------- TEMPERATURE and VRMS PLOTS
-    fig = plt.figure(figsize=(30, 10))
+    plt.figure(figsize=(30, 10))
 
     plt.subplot(2, 1, 1)
     plt.plot(time, vrms, 'g', linewidth=lwdth)
@@ -108,7 +107,6 @@ def time_cmd(args):
     if not args.compstat:
         return None
 
-    coords = []
     moy = []
     rms = []
     ebal = []

@@ -68,7 +68,7 @@ def rprof(rproffile, colnames):
     ncols = data.shape[1]
     colnames = colnames[:ncols] + list(range(0, ncols - len(colnames)))
 
-    id_arr = [[],[]]
+    id_arr = [[], []]
     for istep, _, n_z in isteps:
         id_arr[0].extend(repeat(istep, n_z))
         id_arr[1].extend(range(n_z))

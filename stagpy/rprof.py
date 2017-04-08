@@ -4,11 +4,8 @@ Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/09/11
 """
 from inspect import getdoc
-import math
-import numpy as np
-from scipy import integrate as itg
 from . import constants, misc
-from .stagyydata import StagyyData, NoSnapshotError
+from .stagyydata import StagyyData
 
 
 def fmttime(tin):
@@ -126,7 +123,8 @@ def plot_average(sdat, lovs, args):
                 rads[rvar] = rad
 
     rprof_averaged /= nprofs
-    rprof_averaged['r'] = rlast.loc[:, 'r'] + misc.get_rbounds(step)[0]
+    rprof_averaged['r'] = rlast.loc[:, 'r'] + \
+        misc.get_rbounds(sdat.steps[ilast])[0]
 
     stepstr = '{}_{}'.format(istart, ilast)
 
