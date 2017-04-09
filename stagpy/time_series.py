@@ -68,12 +68,6 @@ def time_cmd(args):
     plt.yticks(fontsize=ftsz)
     plt.xlim([args.tstart, args.tend])
 
-    if args.annottmin:
-        plt.annotate('tminT', xy=(args.tmint, 0), xytext=(args.tmint, -10),
-                     arrowprops={'facecolor': 'black'})
-        plt.annotate('tminC', xy=(args.tminc, 0), xytext=(args.tminc, 10),
-                     arrowprops={'facecolor': 'black'})
-
     plt.subplot(2, 1, 2)
     plt.plot(time, mtemp, 'k', linewidth=lwdth)
     plt.xlabel('Time', fontsize=ftsz)

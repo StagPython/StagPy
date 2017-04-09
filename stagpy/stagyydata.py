@@ -412,7 +412,7 @@ class StagyyData:
         if self._tseries is UNDETERMINED:
             timefile = self.filename('time.dat')
             self._tseries = stagyyparsers.time_series(
-                timefile, constants.TIME_VAR_LIST)
+                timefile, list(constants.TIME_VARS.keys()))
         return self._tseries
 
     @property

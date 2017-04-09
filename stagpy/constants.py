@@ -116,12 +116,38 @@ RPROF_VARS_EXTRA = OrderedDict((
     ('cfover', Varr(processing.c_overturned, 'c')),
 ))
 
-TIME_VAR_LIST = [
-    't', 'ftop', 'fbot', 'Tmin', 'Tmean', 'Tmax', 'vmin', 'vrms',
-    'vmax', 'etamin', 'etamean', 'etamax', 'Raeff', 'Nutop', 'Nubot', 'Cmin',
-    'Cmean', 'Cmax', 'moltenf_mean', 'moltenf_max', 'erupt_rate', 'erupt_tot',
-    'erupt_heat', 'entrainment', 'Cmass_error', 'H_int', 'r_ic', 'topT_val',
-    'botT_val']
+Vart = namedtuple('Vart', ['description', 'shortname'])
+TIME_VARS = OrderedDict((
+    ('t', Vart('Time', 't')),
+    ('ftop', Vart('Heat flux at top', 'q')),
+    ('fbot', Vart('Heat flux at bottom', 'q')),
+    ('Tmin', Vart('Min temperature', 'T')),
+    ('Tmean', Vart('Temperature', 'T')),
+    ('Tmax', Vart('Max temperature', 'T')),
+    ('vmin', Vart('Min velocity', 'v')),
+    ('vrms', Vart('rms velocity', 'v')),
+    ('vmax', Vart('Max velocity', 'v')),
+    ('etamin', Vart('Min viscosity', r'\eta')),
+    ('etamean', Vart('Viscosity', r'\eta')),
+    ('etamax', Vart('Max viscosity', r'\eta')),
+    ('Raeff', Vart('Effective Ra', r'\mathrm{Ra}')),
+    ('Nutop', Vart('Nusselt at top', r'\mathrm{Nu}')),
+    ('Nubot', Vart('Nusselt at bot', r'\mathrm{Nu}')),
+    ('Cmin', Vart('Min concentration', 'c')),
+    ('Cmean', Vart('Concentration', 'c')),
+    ('Cmax', Vart('Max concentration', 'c')),
+    ('moltenf_mean', Vart('Molten fraction', 'f')),
+    ('moltenf_max', Vart('Max molten fraction', 'f')),
+    ('erupt_rate', Vart('Eruption rate', 'e')),
+    ('erupt_tot', Vart('Erupta total', 'e')),
+    ('erupt_heat', Vart('Erupta heat', 'e')),
+    ('entrainment', Vart('Entrainment', 'e')),
+    ('Cmass_error', Vart('Error on Cmass', r'\varepsilon')),
+    ('H_int', Vart('Internal heating', 'H')),
+    ('r_ic', Vart('Inner core radius', 'r_{ic}')),
+    ('topT_val', Vart('Temperature at top', 'T')),
+    ('botT_val', Vart('Temperature at bottom', 'T')),
+))
 
 Varp = namedtuple('Varp', ['par', 'name', 'arg'])
 PLATES_VAR_LIST = OrderedDict((

@@ -167,15 +167,6 @@ TIME = OrderedDict((
     ('tend',
         Conf(0., True, None, {},
              False, 'specify end time for the time series')),
-    ('annottmin',
-        Conf(False, True, None, {},
-             True, 'put an arrow at tminc and tmint')),
-    ('tmint',
-        Conf(0., True, None, {},
-             False, 'specify tmint')),
-    ('tminc',
-        Conf(0., True, None, {},
-             False, 'specify tminc')),
 ))
 
 PLATES = OrderedDict((
