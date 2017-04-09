@@ -11,14 +11,13 @@ from .stagyydata import StagyyData
 
 def time_cmd(args):
     """plot temporal series"""
-    eps = 1.e-10
     plt = args.plt
 
     lwdth = args.linewidth
     ftsz = args.fontsize
 
     sdat = StagyyData(args.path)
-    if args.tend < eps:
+    if args.tend is None:
         args.tend = sdat.tseries.iloc[-1].loc['t']
     data = sdat.tseries[args.tstart <= sdat.tseries['t']]
     data = data[data['t'] <= args.tend]

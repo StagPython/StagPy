@@ -162,10 +162,10 @@ TIME = OrderedDict((
         Conf(False, True, None, {},
              True, 'display energy balance in the heat flow plot')),
     ('tstart',
-        Conf(-1., True, None, {},
+        Conf(0., True, None, {},
              False, 'specify beginning for the time series')),
     ('tend',
-        Conf(0., True, None, {},
+        Conf(None, True, None, {'type': float},
              False, 'specify end time for the time series')),
 ))
 
