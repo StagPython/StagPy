@@ -27,6 +27,25 @@ def get_arg(args, arg):
     return vars(args)[arg]
 
 
+def list_of_vars(arg_plot):
+    """Compute list of variables per plot
+
+    Three nested lists:
+    - variables on the same subplots;
+    - subplots on the same figure;
+    - figures.
+    """
+    lovs = [[[var for var in svars.split(',') if var]
+             for svars in pvars.split('.') if svars]
+            for pvars in arg_plot.split('_') if pvars]
+    return [lov for lov in lovs if lov]
+
+
+def set_of_vars(lovs):
+    """Build set of variables from list"""
+    return set(var for pvars in lovs for svars in pvars for var in svars)
+
+
 def steps_gen(sdat, args):
     """Return generator over relevant snapshots or timesteps"""
     if args.snapshots is not None:

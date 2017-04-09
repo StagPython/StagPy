@@ -15,25 +15,6 @@ def fmttime(tin):
     return r'$t={} \times 10^{{{}}}$'.format(aaa, bbb)
 
 
-def _list_of_vars(arg_plot):
-    """Compute list of variables per plot
-
-    Three nested lists:
-    - variables on the same subplots;
-    - subplots on the same figure;
-    - figures.
-    """
-    lovs = [[[var for var in svars.split(',') if var]
-             for svars in pvars.split('.') if svars]
-            for pvars in arg_plot.split('_') if pvars]
-    return [lov for lov in lovs if lov]
-
-
-def _set_of_vars(lovs):
-    """Build set of variables from list"""
-    return set(var for pvars in lovs for svars in pvars for var in svars)
-
-
 def _plot_rprof_list(lovs, rprofs, metas, args, stepstr, rads=None):
     """Plot requested profiles"""
     if rads is None:
@@ -99,7 +80,7 @@ def plot_grid(step, args):
 
 def plot_average(sdat, lovs, args):
     """Plot time averaged profiles"""
-    sovs = _set_of_vars(lovs)
+    sovs = misc.set_of_vars(lovs)
     istart = None
     # assume constant z spacing for the moment
     ilast = sdat.rprof.index.levels[0][-1]
@@ -133,7 +114,7 @@ def plot_average(sdat, lovs, args):
 
 def plot_every_step(sdat, lovs, args):
     """One plot per time step"""
-    sovs = _set_of_vars(lovs)
+    sovs = misc.set_of_vars(lovs)
 
     for step in misc.steps_gen(sdat, args):
         if step.rprof is None:
@@ -163,7 +144,7 @@ def rprof_cmd(args):
         for step in misc.steps_gen(sdat, args):
             plot_grid(step, args)
 
-    lovs = _list_of_vars(args.plot)
+    lovs = misc.list_of_vars(args.plot)
     if not lovs:
         return
 
