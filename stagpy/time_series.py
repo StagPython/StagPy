@@ -7,6 +7,7 @@ Date: 2015/11/27
 import numpy as np
 from math import sqrt
 from .stagyydata import StagyyData
+from . import constants
 
 
 def time_cmd(args):
@@ -18,36 +19,22 @@ def time_cmd(args):
 
     sdat = StagyyData(args.path)
     data = sdat.tseries_between(args.tstart, args.tend)
-    args.tstart = data['t'].iloc[0]
-    args.tend = data['t'].iloc[-1]
 
     rab = sdat.par['refstate']['ra0']
     rah = sdat.par['refstate']['Rh']
     botpphase = sdat.par['boundaries']['BotPphase']
 
-    spherical = sdat.par['geometry']['shape'].lower() == 'spherical'
-    if spherical:
-        rcmb = sdat.par['geometry']['r_cmb']
-        rmin = rcmb
-        rmax = rmin + 1
-        coefb = 1  # rb**2*4*pi
-        coefs = (rmax / rmin)**2  # *4*pi
-        volume = rmin * (1 - (rmax / rmin)**3) / 3  # *4*pi/3
-    else:
-        rcmb = 0.
-        coefb = 1.
-        coefs = 1.
-        volume = 1.
-
     time = data['t'].values
     mtemp = data['Tmean'].values
-    ftop = data['ftop'].values * coefs
-    fbot = data['fbot'].values * coefb
+    ftop = data['Nutop'].values
+    fbot = data['Nubot'].values
     vrms = data['vrms'].values
 
-    dtdt = (mtemp[2:] - mtemp[:-2]) / (time[2:] - time[:-2])
-    ebalance = ftop[1:-1] - fbot[1:-1] - volume * dtdt
+    ebalance_func = constants.TIME_VARS_EXTRA['ebalance'].description
+    ebalance, _ = ebalance_func(sdat, args.tstart, args.tend)
 
+    args.tstart = time[0]
+    args.tend = time[-1]
     # -------- TEMPERATURE and FLOW PLOTS
     plt.figure(figsize=(30, 10))
 

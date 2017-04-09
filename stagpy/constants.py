@@ -149,6 +149,11 @@ TIME_VARS = OrderedDict((
     ('botT_val', Vart('Temperature at bottom', 'T')),
 ))
 
+TIME_VARS_EXTRA = OrderedDict((
+    ('dTdt', Vart(processing.dt_dt, r'dT/dt')),
+    ('ebalance', Vart(processing.ebalance, r'\mathrm{Nu}')),
+))
+
 Varp = namedtuple('Varp', ['par', 'name', 'arg'])
 PLATES_VAR_LIST = OrderedDict((
     ('c', Varp('c', 'Composition', 'plot_composition')),

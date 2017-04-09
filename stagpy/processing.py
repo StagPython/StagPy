@@ -4,6 +4,32 @@ import numpy as np
 from . import misc
 
 
+def dt_dt(sdat, tstart=0., tend=None):
+    """Derivative of temperature"""
+    tseries = sdat.tseries_between(tstart, tend)
+    time = tseries['t'].values
+    temp = tseries['Tmean'].values
+    dtdt = (temp[2:] - temp[:-2]) / (time[2:] - time[:-2])
+    return dtdt, time[1:-1]
+
+
+def ebalance(sdat, tstart=0., tend=None):
+    """Energy balance"""
+    tseries = sdat.tseries_between(tstart, tend)
+    rbot, rtop = misc.get_rbounds(sdat.steps.last)
+    if rbot != 0:  # spherical
+        coefsurf = (rtop / rbot)**2
+        volume = rbot * (1 - (rtop / rbot)**3) / 3
+    else:
+        coefsurf = 1.
+        volume = 1.
+    dtdt, time = dt_dt(sdat, tstart, tend)
+    ftop = tseries['ftop'].values * coefsurf
+    fbot = tseries['fbot'].values
+    ebal = ftop[1:-1] - fbot[1:-1] - volume * dtdt
+    return ebal, time
+
+
 def r_edges(step):
     """Cell border"""
     rbot, rtop = misc.get_rbounds(step)
