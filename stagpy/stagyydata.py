@@ -442,6 +442,41 @@ class StagyyData:
             self._files = set(out_dir.iterdir())
         return self._files
 
+    def tseries_between(self, tstart=0., tend=None):
+        """Time series data between requested times"""
+        if self.tseries is None:
+            return None
+
+        ndat = self.tseries.shape[0]
+
+        if tstart <= 0.:
+            istart = 0
+        else:
+            igm = 0
+            igp = ndat - 1
+            while igp - igm > 1:
+                istart = igm + (igp - igm) // 2
+                if self.tseries.iloc[istart]['t'] >= tstart:
+                    igp = istart
+                else:
+                    igm = istart
+            istart = igp
+
+        if tend is None:
+            iend = None
+        else:
+            igm = 0
+            igp = ndat - 1
+            while igp - igm > 1:
+                iend = igm + (igp - igm) // 2
+                if self.tseries.iloc[iend]['t'] > tend:
+                    igp = iend
+                else:
+                    igm = iend
+            iend = igm + 1
+
+        return self.tseries.iloc[istart:iend]
+
     def filename(self, fname, timestep=None, suffix=''):
         """return name of StagYY out file"""
         if timestep is not None:

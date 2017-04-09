@@ -17,10 +17,7 @@ def time_cmd(args):
     ftsz = args.fontsize
 
     sdat = StagyyData(args.path)
-    if args.tend is None:
-        args.tend = sdat.tseries.iloc[-1].loc['t']
-    data = sdat.tseries[args.tstart <= sdat.tseries['t']]
-    data = data[data['t'] <= args.tend]
+    data = sdat.tseries_between(args.tstart, args.tend)
     args.tstart = data['t'].iloc[0]
     args.tend = data['t'].iloc[-1]
 
