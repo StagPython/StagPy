@@ -1,6 +1,11 @@
 # PYTHON_ARGCOMPLETE_OK
-"""Makes stagpy/ callable"""
+"""The stagpy module is callable"""
 
-from .stagpy import main
+from . import config
+
+def main():
+    """StagPy entry point"""
+    args = config.parse_args()
+    args.func(args)
 
 main()
