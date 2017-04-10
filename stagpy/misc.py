@@ -17,6 +17,13 @@ def out_name(args, par_type):
     return args.outname + '_' + par_type + INT_FMT
 
 
+def fmttime(tin):
+    """Time formatting for labels"""
+    aaa, bbb = '{:.2e}'.format(tin).split('e')
+    bbb = int(bbb)
+    return r'$t={} \times 10^{{{}}}$'.format(aaa, bbb)
+
+
 def set_arg(args, arg, val):
     """set a cmd line with arg string name"""
     vars(args)[arg] = val
