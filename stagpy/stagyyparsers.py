@@ -1,12 +1,14 @@
 """Parsers of StagYY output files"""
 from functools import partial
-from itertools import product
+from itertools import product, repeat
+from operator import itemgetter
 import re
 import struct
 import numpy as np
+import pandas as pd
 
 
-def time_series(timefile):
+def time_series(timefile, colnames):
     """Read temporal series from time.dat"""
     if not timefile.is_file():
         return None
@@ -16,20 +18,26 @@ def time_series(timefile):
     rows_to_del = []
     for irow in range(1, len(data)):
         iprev = irow - 1
-        while data[irow, 0] <= data[iprev, 0]:
+        while int(data[irow, 0]) <= int(data[iprev, 0]):
             rows_to_del.append(iprev)
             iprev -= 1
+    data = np.delete(data, rows_to_del, 0)
+    ncols = data.shape[1] - 1
+    colnames = colnames[:ncols] + list(range(0, ncols - len(colnames)))
 
-    return np.delete(data, rows_to_del, 0)
+    isteps = map(int, data[:, 0])
+    return pd.DataFrame(data[:, 1:], index=isteps, columns=colnames)
 
 
-def rprof(rproffile):
+def rprof(rproffile, colnames):
     """Extract radial profiles data"""
     if not rproffile.is_file():
-        return None
+        return None, None
     step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')
-    data = []
-    data_step = []
+    data = np.genfromtxt(rproffile, comments='*')
+
+    isteps = []  # list of (istep, time, nz)
+    rows_to_del = []
     line = ' '
     with rproffile.open() as stream:
         while line[0] != '*':
@@ -37,20 +45,38 @@ def rprof(rproffile):
         match = step_regex.match(line)
         istep = int(match.group(1))
         time = float(match.group(2))
-        # remove useless lines produced when run is restarted
+        nlines = 0
+        iline = 0
         for line in stream:
             if line[0] == '*':
-                while data and istep <= data[-1][0]:
-                    data.pop()
-                data.append((istep, time, np.array(data_step).T))
-                data_step = []
+                isteps.append((istep, time, nlines))
                 match = step_regex.match(line)
                 istep = int(match.group(1))
                 time = float(match.group(2))
+                nlines = 0
+                # remove useless lines produced when run is restarted
+                nrows_to_del = 0
+                while isteps and istep <= isteps[-1][0]:
+                    nrows_to_del += isteps.pop()[-1]
+                rows_to_del.extend(range(iline - nrows_to_del, iline))
             else:
-                data_step.append(np.fromstring(line, sep=' '))
-        data.append((istep, time, np.array(data_step).T))
-    return data
+                nlines += 1
+                iline += 1
+        isteps.append((istep, time, nlines))
+    data = np.delete(data, rows_to_del, 0)
+
+    ncols = data.shape[1]
+    colnames = colnames[:ncols] + list(range(0, ncols - len(colnames)))
+
+    id_arr = [[], []]
+    for istep, _, n_z in isteps:
+        id_arr[0].extend(repeat(istep, n_z))
+        id_arr[1].extend(range(n_z))
+
+    df_rprof = pd.DataFrame(data, index=id_arr, columns=colnames)
+    df_times = pd.DataFrame(list(map(itemgetter(1), isteps)),
+                            index=map(itemgetter(0), isteps))
+    return df_rprof, df_times
 
 
 def _readbin(fid, fmt='i', nwords=1, file64=False):

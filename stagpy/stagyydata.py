@@ -161,49 +161,6 @@ class _Geometry:
         return self._header[attr]
 
 
-class _Rprof(np.ndarray):  # _TimeSeries also
-
-    """Wrap rprof data"""
-
-    def __new__(cls, data, times, isteps):
-        cls._check_args(data, times, isteps)
-        obj = np.asarray(data).view(cls)
-        return obj
-
-    def __init__(self, data, times, isteps):
-        _Rprof._check_args(data, times, isteps)
-        self._times = times
-        self._isteps = isteps
-
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        self._times = getattr(obj, 'times', [])
-        self._isteps = getattr(obj, 'isteps', [])
-
-    def __getitem__(self, key):
-        try:
-            key = constants.RPROF_VAR_LIST[key].prof_idx
-        except (KeyError, TypeError):
-            pass
-        return super().__getitem__(key)
-
-    @staticmethod
-    def _check_args(data, times, isteps):
-        if not len(data) == len(times) == len(isteps):
-            raise ValueError('Inconsistent lengths in rprof data')
-
-    @property
-    def times(self):
-        """Advective time of each rprof"""
-        return self._times
-
-    @property
-    def isteps(self):
-        """istep of each rprof"""
-        return self._isteps
-
-
 class _Fields(dict):
 
     """Wrap fields of a step"""
@@ -273,8 +230,6 @@ class _Step:
         self.sdat = sdat
         self.fields = _Fields(self)
         self._isnap = UNDETERMINED
-        self._irsnap = UNDETERMINED
-        self._itsnap = UNDETERMINED
 
     @property
     def geom(self):
@@ -284,18 +239,18 @@ class _Step:
     @property
     def timeinfo(self):
         """Relevant time series data"""
-        if self.itsnap is None:
-            return None
+        if self.istep in self.sdat.tseries.index:
+            return self.sdat.tseries.loc[self.istep]
         else:
-            return self.sdat.tseries[self.itsnap]
+            return None
 
     @property
     def rprof(self):
         """Relevant radial profiles data"""
-        if self.irsnap is None:
-            return None
+        if self.istep in self.sdat.rprof.index.levels[0]:
+            return self.sdat.rprof.loc[self.istep]
         else:
-            return self.sdat.rprof[self.irsnap]
+            return None
 
     @property
     def isnap(self):
@@ -320,38 +275,6 @@ class _Step:
         """Fields snap corresponding to time step"""
         try:
             self._isnap = int(isnap)
-        except ValueError:
-            pass
-
-    @property
-    def irsnap(self):
-        """Radial snap corresponding to time step"""
-        _ = self.sdat.rprof
-        if self._irsnap is UNDETERMINED:
-            self._irsnap = None
-        return self._irsnap
-
-    @irsnap.setter
-    def irsnap(self, irsnap):
-        """Radial snap corresponding to time step"""
-        try:
-            self._irsnap = int(irsnap)
-        except ValueError:
-            pass
-
-    @property
-    def itsnap(self):
-        """Time info entry corresponding to time step"""
-        _ = self.sdat.tseries
-        if self._itsnap is UNDETERMINED:
-            self._itsnap = None
-        return self._itsnap
-
-    @itsnap.setter
-    def itsnap(self, itsnap):
-        """Time info entry corresponding to time step"""
-        try:
-            self._itsnap = int(itsnap)
         except ValueError:
             pass
 
@@ -408,7 +331,7 @@ class _Steps(dict):
         """Last timestep available"""
         if self._last is UNDETERMINED:
             # not necessarily the last one...
-            self._last = self.sdat.tseries[-1, 0]
+            self._last = self.sdat.tseries.index[-1]
         return self[self._last]
 
 
@@ -486,28 +409,27 @@ class StagyyData:
         """Time series data"""
         if self._tseries is UNDETERMINED:
             timefile = self.filename('time.dat')
-            self._tseries = stagyyparsers.time_series(timefile)
-            for itsnap, timeinfo in enumerate(self._tseries):
-                istep = int(timeinfo[0])
-                self.steps[istep].itsnap = itsnap
+            self._tseries = stagyyparsers.time_series(
+                timefile, list(constants.TIME_VARS.keys()))
         return self._tseries
+
+    @property
+    def _rprof_and_times(self):
+        if self._rprof is UNDETERMINED:
+            rproffile = self.filename('rprof.dat')
+            self._rprof = stagyyparsers.rprof(
+                rproffile, list(constants.RPROF_VARS.keys()))
+        return self._rprof
 
     @property
     def rprof(self):
         """Radial profiles data"""
-        if self._rprof is UNDETERMINED:
-            rproffile = self.filename('rprof.dat')
-            rprof_data = stagyyparsers.rprof(rproffile)
-            isteps = []
-            times = []
-            data = []
-            for irsnap, (istep, time, prof) in enumerate(rprof_data):
-                self.steps[istep].irsnap = irsnap
-                times.append(time)
-                isteps.append(istep)
-                data.append(prof)
-            self._rprof = _Rprof(data, times, isteps)
-        return self._rprof
+        return self._rprof_and_times[0]
+
+    @property
+    def rtimes(self):
+        """Radial profiles data"""
+        return self._rprof_and_times[1]
 
     @property
     def files(self):
@@ -517,6 +439,41 @@ class StagyyData:
             out_dir = self.path / out_stem.parent
             self._files = set(out_dir.iterdir())
         return self._files
+
+    def tseries_between(self, tstart=0., tend=None):
+        """Time series data between requested times"""
+        if self.tseries is None:
+            return None
+
+        ndat = self.tseries.shape[0]
+
+        if tstart <= 0.:
+            istart = 0
+        else:
+            igm = 0
+            igp = ndat - 1
+            while igp - igm > 1:
+                istart = igm + (igp - igm) // 2
+                if self.tseries.iloc[istart]['t'] >= tstart:
+                    igp = istart
+                else:
+                    igm = istart
+            istart = igp
+
+        if tend is None:
+            iend = None
+        else:
+            igm = 0
+            igp = ndat - 1
+            while igp - igm > 1:
+                iend = igm + (igp - igm) // 2
+                if self.tseries.iloc[iend]['t'] > tend:
+                    igp = iend
+                else:
+                    igm = iend
+            iend = igm + 1
+
+        return self.tseries.iloc[istart:iend]
 
     def filename(self, fname, timestep=None, suffix=''):
         """return name of StagYY out file"""
