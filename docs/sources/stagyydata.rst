@@ -70,18 +70,6 @@ snapshot::
 
       Snapshot index. The relation ``sdat.snaps[n].isnap == n`` is always true.
 
-   .. attribute:: irsnap
-
-      Radial profile index. ``sdat.rprof[step.irsnap]`` and ``step.rprof`` are
-      two views of the same data. Equal to ``None`` if no radial profile
-      exists for this time step.
-
-   .. attribute:: itsnap
-
-      Time series index. ``sdat.tseries[step.itsnap]`` and ``step.timeinfo``
-      are two views of the same data. Equal to ``None`` if no temporal
-      information exists for this time step.
-
    .. attribute:: rprof
 
       Radial profile data of the time step. Equal to ``None`` if no radial
@@ -117,23 +105,57 @@ Radial profiles
 ---------------
 
 Radial profile data are contained in the ``rprof`` attribute of a StagyyData
-instance. This attribute is a three dimensional array, with indices in the
-following order: temporal snapshot, variable (such as temperature or grid
-position), radial index.
+instance. This attribute is a :class:`pandas.DataFrame`. Its :attr:`columns`
+are the names of available variables (such as e.g. ``'Tmean'`` and ``'ftop'``).
+Its :attr:`index` is a 2 levels multi-index, the first level being the time
+step number (:attr:`istep`), and the second level being the cells number (from
+``0`` to ``nz-1``). The list of available variables can be obtained by
+running ``% stagpy var``.
 
 The radial profile of a given time step can be accessed from
-:attr:`_Step.rprof` (e.g. ``sdat.steps[1000].rprof``).
+:attr:`_Step.rprof`. For example, ``sdat.steps[1000].rprof`` is equivalent to
+``sdat.rprof.loc[1000]``. The columns of the obtained dataframe are the
+variable names, and its index is the cells number.
+
+As an example, the following lines are two ways of accessing the horizontal
+average temperature in the bottom cell, at the 1000th timestep::
+
+    # extract rprof data for the 1000th timestep,
+    # and then take the temperature in the bottom cell
+    sdat.rprof.loc[1000].loc[0,'Tmean']
+    # extract the temperature profile for the 1000th timestep,
+    # and then take the bottom cell
+    sdat.rprof.loc[1000,'Tmean'][0]
+
+If the radial profiles of the 1000th timestep are not available, these would
+both result in a ``KeyError``.
 
 Time series
 -----------
 
 Temporal data are contained in the ``tseries`` attribute of a StagyyData
-instance. This attribute is a two dimensional array, with indices in the
-following order: temporal snapshot, variable (such as mean temperature or
-advective time).
+instance. This attribute is a :class:`pandas.DataFrame`. Its :attr:`columns`
+are the names of available variables. Its :attr:`index` is the time steps
+number (:attr:`istep`). The list of available variables can be obtained by
+running ``% stagpy var``.
 
 The temporal data of a given time step can be accessed from
-:attr:`_Step.timeinfo` (e.g. ``sdat.steps[1000].timeinfo``).
+:attr:`_Step.timeinfo`. For example, ``sdat.steps[1000].timeinfo`` is
+equivalent to ``sdat.tseries.loc[1000]``. Both are :class:`pandas.Series`
+indexed by the available variables.
+
+As an example, the following lines are three ways of accessing the average
+temperature at the 1000th timestep::
+
+    # extract time series info available for the 1000th timestep,
+    # and then take the average temperature
+    sdat.steps[1000].timeinfo['Tmean']
+    # extract the temperature time series,
+    # and then take the 1000th timestep
+    sdat.tseries['Tmean'][1000]
+    # direct access to the wanted info
+    sdat.tseries.loc[1000, 'Tmean']
+
 
 Geometry
 --------
