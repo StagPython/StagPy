@@ -1,36 +1,33 @@
 Installation
 ============
 
-You will need Python 3.4 or higher to use StagPy. You can install StagPy with
-``conda`` (you will need Python 3.5) or with ``pip``. Both process are
-described hereafter.
+You will need Python 3.4 or higher to use StagPy. StagPy is available on
+the Python Package Index, via ``pip``.
 
 If Python3 is not installed on your system or you don't have sufficient
 permissions to update it, the simplest way to get it is to install Miniconda_
 or Anaconda_ (Anaconda being Miniconda with a lot of extra modules that can be
 installed in Miniconda later, this choice doesn't matter; pick Miniconda if you
-want a faster and lighter installation). Then, use ``conda`` to install StagPy.
+want a faster and lighter installation). Then, use ``conda`` to install the
+following dependencies::
+
+    % conda install numpy scipy pandas matplotlib seaborn argcomplete setuptools_scm
 
 .. _Miniconda: http://conda.pydata.org/miniconda.html
 .. _Anaconda: https://www.continuum.io/downloads
 
-Installation using ``conda``
-----------------------------
-
-The installation is rather simple::
-
-    conda install -c amorison stagpy
-
-See the `Some setup`_ subsection to enable autocompletion and create your
-config file.
-
 Installation using ``pip``
 --------------------------
 
-If you don't have ``pip`` for Python3 on your system, download the official
-script <https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
+If you don't have ``pip`` for Python3 on your system, use the ``ensurepip``
+module to install it (it is bootstrapped within the Python interpreter)::
 
-You can then install StagPy with the following command::
+    % python3 -m ensurepip --user
+
+In case this doesn't work, download the official script
+<https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
+
+You can then install and/or update StagPy with the following command::
 
     python3 -m pip install -U --user stagpy
 
@@ -61,7 +58,7 @@ Or this to your ``~/.zshrc`` file::
     eval "$(register-python-argcomplete stagpy)"
 
 
-Finally, run the following once to create your config file (at
+Finally, run the following once to create your config file (in
 ``~/.config/stagpy/``)::
 
     stagpy config --create
