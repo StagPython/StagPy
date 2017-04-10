@@ -230,7 +230,6 @@ class _Step:
         self.sdat = sdat
         self.fields = _Fields(self)
         self._isnap = UNDETERMINED
-        self._irsnap = UNDETERMINED
 
     @property
     def geom(self):
