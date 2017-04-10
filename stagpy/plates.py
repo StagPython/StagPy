@@ -738,7 +738,7 @@ def plates_cmd(args):
                         uprof_averaged += step.rprof['vhrms']
                         nprof += 1
                     uprof_averaged /= nprof
-                    radius = rlast['r'].value + rcmb
+                    radius = rlast['r'].values + rcmb
                     if sdat.par['boundaries']['air_layer']:
                         dsa = sdat.par['boundaries']['air_thickness']
                         isurf = np.argmin(abs(radius - radius[-1] + dsa))
