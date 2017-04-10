@@ -9,4 +9,5 @@ def main():
     args = config.parse_args()
     args.func(args)
 
-main()
+if __name__ == '__main__':
+    main()
