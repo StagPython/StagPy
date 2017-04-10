@@ -23,10 +23,9 @@ def _plot_rprof_list(lovs, rprofs, metas, args, stepstr, rads=None):
                 rad = rads[rvar] if rvar in rads else rprofs['r']
                 axes[iplt].plot(rprofs[rvar], rad,
                                 label=metas[rvar].description)
-                lbl = metas[rvar].shortname
                 if xlabel is None:
-                    xlabel = lbl
-                elif xlabel != lbl:
+                    xlabel = metas[rvar].shortname
+                elif xlabel != metas[rvar].shortname:
                     xlabel = ''
             if xlabel:
                 axes[iplt].set_xlabel(r'${}$'.format(xlabel))

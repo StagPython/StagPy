@@ -12,13 +12,11 @@ from .stagyydata import StagyyData
 
 def _plot_time_list(lovs, tseries, metas, args, times=None):
     """Plot requested profiles"""
-    lwdth = args.linewidth
-    ftsz = args.fontsize
     if times is None:
         times = {}
     for vfig in lovs:
         fig, axes = args.plt.subplots(nrows=len(vfig), sharex=True,
-                                      figsize=(30, 5*len(vfig)))
+                                      figsize=(30, 5 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
         fname = ''
         for iplt, vplt in enumerate(vfig):
@@ -28,21 +26,22 @@ def _plot_time_list(lovs, tseries, metas, args, times=None):
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
                                 label=metas[tvar].description,
-                                linewidth=lwdth)
+                                linewidth=args.linewidth)
                 lbl = metas[tvar].shortname
                 if ylabel is None:
                     ylabel = lbl
                 elif ylabel != lbl:
                     ylabel = ''
             if ylabel:
-                axes[iplt].set_ylabel(r'${}$'.format(ylabel), fontsize=ftsz)
+                axes[iplt].set_ylabel(r'${}$'.format(ylabel),
+                                      fontsize=args.fontsize)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
-            axes[iplt].legend(fontsize=ftsz)
-            axes[iplt].tick_params(labelsize=ftsz)
-        axes[-1].set_xlabel(r'$t$', fontsize=ftsz)
+            axes[iplt].legend(fontsize=args.fontsize)
+            axes[iplt].tick_params(labelsize=args.fontsize)
+        axes[-1].set_xlabel(r'$t$', fontsize=args.fontsize)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
-        axes[-1].tick_params(labelsize=ftsz)
+        axes[-1].tick_params(labelsize=args.fontsize)
         fig.savefig('time_{}.pdf'.format(fname[:-1]),
                     format='PDF', bbox_inches='tight')
 

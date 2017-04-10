@@ -29,13 +29,9 @@ def time_series(timefile, colnames):
     return pd.DataFrame(data[:, 1:], index=isteps, columns=colnames)
 
 
-def rprof(rproffile, colnames):
-    """Extract radial profiles data"""
-    if not rproffile.is_file():
-        return None, None
+def _extract_rsnap_isteps(rproffile):
+    """Extract istep and compute list of rows to delete"""
     step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')
-    data = np.genfromtxt(rproffile, comments='*')
-
     isteps = []  # list of (istep, time, nz)
     rows_to_del = []
     line = ' '
@@ -63,6 +59,16 @@ def rprof(rproffile, colnames):
                 nlines += 1
                 iline += 1
         isteps.append((istep, time, nlines))
+    return isteps, rows_to_del
+
+
+def rprof(rproffile, colnames):
+    """Extract radial profiles data"""
+    if not rproffile.is_file():
+        return None, None
+    data = np.genfromtxt(rproffile, comments='*')
+
+    isteps, rows_to_del = _extract_rsnap_isteps(rproffile)
     data = np.delete(data, rows_to_del, 0)
 
     ncols = data.shape[1]

@@ -3,6 +3,7 @@
 
 from . import config
 
+
 def main():
     """StagPy entry point"""
     args = config.parse_args()

@@ -45,22 +45,7 @@ class _Geometry:
         self._curv_meshes = None
         self._shape = {'sph': False, 'cyl': False, 'axi': False,
                        'ntot': list(header['nts']) + [header['ntb']]}
-        shape = self._par['geometry']['shape'].lower()
-        aspect = self._header['aspect']
-        if self.rcmb is not None and self.rcmb >= 0:
-            # curvilinear
-            self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
-                                                   aspect[0] >= np.pi)
-            self._shape['sph'] = not self._shape['cyl']
-        elif self.rcmb is None:
-            header['rcmb'] = self._par['geometry']['r_cmb']
-            if self.rcmb >= 0:
-                if self.twod_xz and shape == 'cylindrical':
-                    self._shape['cyl'] = True
-                elif shape == 'spherical':
-                    self._shape['sph'] = True
-        self._shape['axi'] = self.cartesian and self.twod_xz and \
-            shape == 'axisymmetric'
+        self._init_shape()
 
         self._coords = [header['e1_coord'],
                         header['e2_coord'],
@@ -102,6 +87,25 @@ class _Geometry:
             z_mesh = r_mesh * np.cos(t_mesh)
             self._cart_meshes = (x_mesh, y_mesh, z_mesh)
             self._curv_meshes = (t_mesh, p_mesh, r_mesh)
+
+    def _init_shape(self):
+        """Determine shape of geometry"""
+        shape = self._par['geometry']['shape'].lower()
+        aspect = self._header['aspect']
+        if self.rcmb is not None and self.rcmb >= 0:
+            # curvilinear
+            self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
+                                                   aspect[0] >= np.pi)
+            self._shape['sph'] = not self._shape['cyl']
+        elif self.rcmb is None:
+            self._header['rcmb'] = self._par['geometry']['r_cmb']
+            if self.rcmb >= 0:
+                if self.twod_xz and shape == 'cylindrical':
+                    self._shape['cyl'] = True
+                elif shape == 'spherical':
+                    self._shape['sph'] = True
+        self._shape['axi'] = self.cartesian and self.twod_xz and \
+            shape == 'axisymmetric'
 
     @property
     def cartesian(self):
