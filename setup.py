@@ -37,6 +37,7 @@ setup(
         'numpy',
         'scipy',
         'f90nml',
+        'pandas',
         'matplotlib',
         'seaborn',
         'argcomplete',
