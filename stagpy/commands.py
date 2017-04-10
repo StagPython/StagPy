@@ -22,8 +22,6 @@ def rprof_cmd(args):
 
 def time_cmd(args):
     """plot time series"""
-    if args.compstat:
-        args.matplotback = None
     misc.plot_backend(args)
     time_series.time_cmd(args)
 
