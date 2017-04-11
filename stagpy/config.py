@@ -240,7 +240,7 @@ def config_cmd(args):
     if args.create or args.update:
         create_config()
     if args.edit:
-        call(shlex.split(args.editor + ' ' + CONFIG_FILE))
+        call(shlex.split('{} {}'.format(args.editor, CONFIG_FILE)))
 
 Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func', 'help_string'])
 SUB_CMDS = OrderedDict((
