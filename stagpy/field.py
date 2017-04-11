@@ -65,8 +65,9 @@ def plot_stream(args, fig, axis, component1, component2):
 def field_cmd(args):
     """extract and plot field data"""
     sdat = StagyyData(args.path)
+    lovs = set(var for var in args.plot.split(',') if var)
     for step in misc.steps_gen(sdat, args):
-        for var in args.plot.split(','):
+        for var in lovs:
             if step.fields[var] is None:
                 print("'{}' field on snap {} not found".format(var,
                                                                step.isnap))
