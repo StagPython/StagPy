@@ -130,3 +130,8 @@ def c_overturned(step):
     cinit, rad = init_c_overturn(step)
     radf = (rtop**3 + rbot**3 - rad**3)**(1 / 3)
     return cinit, radf
+
+
+def stream_function(step):
+    """Stream function"""
+    raise NotImplementedError

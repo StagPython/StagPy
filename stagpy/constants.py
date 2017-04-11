@@ -8,29 +8,44 @@ from . import processing
 HOME_DIR = pathlib.Path(expanduser('~'))
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 
-Varf = namedtuple('Varf', ['par', 'name', 'arg', 'pcolor_opts'])
-FIELD_VAR_LIST = OrderedDict((
-    ('t', Varf('t', 'Temperature', 'plot_temperature', {})),
-    ('c', Varf('c', 'Composition', 'plot_composition', {})),
-    ('n', Varf('eta', 'Viscosity', 'plot_viscosity',
-               {'cmap': 'jet_r'})),
-    ('d', Varf('rho', 'Density', 'plot_density',
-               {'cmap': 'bwr_r', 'vmin': 0.96, 'vmax': 1.04})),
-    ('h', Varf('wtr', 'Water', 'plot_water', {})),
-    ('a', Varf('age', 'Age', 'plot_age',
-               {'vmin': 0})),
-    ('i', Varf('nrc', 'ID of continents', 'plot_continents', {})),
-    ('s', Varf('str', 'Stress (second invariant)', 'plot_stress',
-               {'cmap': 'gnuplot2_r', 'vmin': 500, 'vmax': 20000})),
-    ('x', Varf('sx', 'Principal deviatoric stress', 'plot_deviatoric_stress',
-               {})),
-    ('e', Varf('ed', 'Strain rate', 'plot_strainrate',
-               {'cmap': 'Reds', 'vmin': 500, 'vmax': 20000})),
-    ('u', Varf('vp', 'x Velocity', 'plot_xvelo', {})),
-    ('v', Varf('vp', 'y Velocity', 'plot_yvelo', {})),
-    ('w', Varf('vp', 'z Velocity', 'plot_zvelo', {})),
-    ('p', Varf('vp', 'Pressure', 'plot_pressure', {})),
-    ('l', Varf('vp', 'Stream function', 'plot_stream', {})),
+Varf = namedtuple('Varf', ['description', 'shortname', 'popts'])
+FIELD_VARS = OrderedDict((
+    ('T', Varf('Temperature', 'T', {})),
+    ('v1', Varf('x Velocity', 'u', {})),
+    ('v2', Varf('y Velocity', 'v', {})),
+    ('v3', Varf('z Velocity', 'w', {})),
+    ('p', Varf('Pressure', 'p', {})),
+    ('eta', Varf('Viscosity', r'\eta', {'cmap': 'jet_r'})),
+    ('rho', Varf('Density', r'\rho', {'cmap': 'bwr_r'})),
+    ('sII', Varf('Second invariant of stress tensor', r'\sigma_{II}',
+                 {'cmap': 'gnuplot2_r'})),
+    ('sx1', Varf('1st comp. of principal stress eigenvector', 'x_1', {})),
+    ('sx2', Varf('2nd comp. of principal stress eigenvector', 'x_2', {})),
+    ('sx3', Varf('3rd comp. of principal stress eigenvector', 'x_3', {})),
+    ('s1val', Varf('Principal stress eigenvalue', r'\sigma_1', {})),
+    ('e', Varf('Strain rate', r'\dot\varepsilon', {'cmap': 'Reds'})),
+    ('c', Varf('Composition', 'c', {})),
+    ('wtr', Varf('Water concentration', r'c_{\rm H_2O}', {})),
+    ('age', Varf('Age', 'a', {})),
+    ('contID', Varf('ID of continents', 'id', {})),
+))
+
+FIELD_VARS_EXTRA = OrderedDict((
+    ('stream', Varf(processing.stream_function, r'\psi', {})),
+))
+
+FIELD_FILES = OrderedDict((
+    ('t', ['T']),
+    ('vp', ['v1', 'v2', 'v3', 'p']),
+    ('c', ['c']),
+    ('eta', ['eta']),
+    ('rho', ['rho']),
+    ('wtr', ['wtr']),
+    ('age', ['age']),
+    ('nrc', ['contID']),
+    ('str', ['sII']),
+    ('sx', ['s1', 's2', 's3', 'sval']),
+    ('ed', ['e']),
 ))
 
 Varr = namedtuple('Varr', ['description', 'shortname'])

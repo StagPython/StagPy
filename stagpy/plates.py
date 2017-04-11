@@ -16,10 +16,10 @@ from .stagyydata import StagyyData
 
 def detect_plates_vzcheck(step, seuil_memz):
     """detect plates and check with vz and plate size"""
-    v_z = step.fields['w'][0, :, :, 0]
-    v_x = step.fields['v'][0, :, :, 0]
-    h2o = step.fields['h'][0, :, :, 0]
-    tcell = step.fields['t'][0, :, :, 0]
+    v_z = step.fields['v3'][0, :, :, 0]
+    v_x = step.fields['v2'][0, :, :, 0]
+    h2o = step.fields['wtr'][0, :, :, 0]
+    tcell = step.fields['T'][0, :, :, 0]
     n_z = step.geom.nztot
     nphi = step.geom.nptot  # -1? should be OK, ghost not included
     rcmb = max(0, step.geom.rcmb)
@@ -129,10 +129,10 @@ def detect_plates_vzcheck(step, seuil_memz):
 def detect_plates(args, step, vrms_surface, fids, time):
     """detect plates using derivative of horizontal velocity"""
     timestep = step.isnap
-    vphi = step.fields['v'][0, :, :, 0]
+    vphi = step.fields['v2'][0, :, :, 0]
     ph_coord = step.geom.p_coord
     if args.plot_age:
-        agefld = step.fields['a'][0, :, :, 0]
+        agefld = step.fields['age'][0, :, :, 0]
     else:
         agefld = []
 
@@ -260,15 +260,15 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
 
     plt = args.plt
     lwd = args.linewidth
-    vphi = step.fields['v'][0, :, :, 0]
-    tempfld = step.fields['t'][0, :, :, 0]
+    vphi = step.fields['v2'][0, :, :, 0]
+    tempfld = step.fields['T'][0, :, :, 0]
     concfld = step.fields['c'][0, :, :, 0]
     timestep = step.isnap
 
     if args.plot_age:
-        agefld = step.fields['a'][0, :, :, 0]
+        agefld = step.fields['age'][0, :, :, 0]
     if args.plot_stress:
-        stressfld = step.fields['s'][0, :, :, 0]
+        stressfld = step.fields['sII'][0, :, :, 0]
         scale_stress = args.kappa * args.viscosity_ref / args.mantle**2
 
     if step.sdat.par['boundaries']['air_layer']:
@@ -585,7 +585,7 @@ def lithospheric_stress(args, step, trench, ridge, time):
     scale_stress = args.kappa * args.viscosity_ref / args.mantle**2
     scale_dist = args.mantle
 
-    stressfld = step.fields['s'][0, :, :, 0]
+    stressfld = step.fields['sII'][0, :, :, 0]
     stressfld = np.ma.masked_where(step.geom.r_mesh[0] < base_lith, stressfld)
 
     # stress integration in the lithosphere
@@ -601,7 +601,7 @@ def lithospheric_stress(args, step, trench, ridge, time):
                            rasterized=not args.pdf, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = args.plt.colorbar(surf, shrink=args.shrinkcb)
-    cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
+    cbar.set_label(r'${}$'.format(constants.FIELD_VARS['sII'].shortname))
     args.plt.axis('equal')
     args.plt.axis('off')
     # Annotation with time and step
@@ -615,7 +615,7 @@ def lithospheric_stress(args, step, trench, ridge, time):
     args.plt.close(fig)
 
     # velocity
-    vphi = step.fields['v'][0, :, :, 0]
+    vphi = step.fields['v2'][0, :, :, 0]
     vph2 = 0.5 * (vphi + np.roll(vphi, 1, 0))  # interpolate to the same phi
 
     # position of continents
@@ -712,7 +712,7 @@ def plates_cmd(args):
 
             for step in misc.steps_gen(sdat, args):
                 # could check other fields too
-                if step.fields['t'] is None:
+                if step.fields['T'] is None:
                     continue
                 timestep = step.isnap
                 istart = timestep if istart is None else istart
@@ -769,7 +769,7 @@ def plates_cmd(args):
                     concfld < 3, concfld)  # plotting continents, to-do
                 continentsfld = continentsfld / continentsfld
 
-                temp = step.fields['t'][0, :, :, 0]
+                temp = step.fields['T'][0, :, :, 0]
                 tgrad = (temp[:, isurf - 1] - temp[:, isurf]) /\
                     (step.geom.r_coord[isurf] - step.geom.r_coord[isurf - 1])
 
@@ -778,7 +778,7 @@ def plates_cmd(args):
                 io_surface(timestep, time, fids[4], topo[:, 1])
                 if args.plot_age:
                     io_surface(timestep, time, fids[5],
-                               step.fields['a'][0, :, isurf, 0])
+                               step.fields['age'][0, :, isurf, 0])
 
                 # plot viscosity field with position of trenches and ridges
                 fig, axis, surf, _ = field.plot_scalar(args, step, 'n')
@@ -795,11 +795,11 @@ def plates_cmd(args):
 
                 # plotting velocity vectors
                 if step.geom.cartesian:
-                   velx = step.fields['v'][0, :, :, 0]
-                   vely = step.fields['w'][0, :, :, 0]
+                   velx = step.fields['v2'][0, :, :, 0]
+                   vely = step.fields['v3'][0, :, :, 0]
                 else: # spherical yz
-                   vphi = step.fields['v'][0, :, :, 0]
-                   velr = step.fields['w'][0, :, :, 0]
+                   vphi = step.fields['v2'][0, :, :, 0]
+                   velr = step.fields['v3'][0, :, :, 0]
                    ph_mesh = step.geom.p_mesh[0]
                    velx = -vphi * np.sin(ph_mesh) + velr * np.cos(ph_mesh)
                    vely = vphi * np.cos(ph_mesh) + velr * np.sin(ph_mesh)
@@ -898,16 +898,13 @@ def plates_cmd(args):
                     cmap2.set_over('m')
 
                     # plotting principal deviatoric stress
-                    dummy = step.fields['x'][0, :, :, 0]
-                    sphi = step.fields['sxj'][0, :, :, 0]
-                    sr = step.fields['sxk'][0, :, :, 0]
+                    sphi = step.fields['sx2'][0, :, :, 0]
+                    sr = step.fields['sx3'][0, :, :, 0]
                     stressx = -sphi * np.sin(ph_mesh) + sr * np.cos(ph_mesh)
                     stressy = sphi * np.cos(ph_mesh) + sr * np.sin(ph_mesh)
                     dip = step.geom.nptot // 100
                     axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
                                 stressx[::dip, ::dip], stressy[::dip, ::dip])
-                    # cbar = args.plt.colorbar(surf, shrink=args.shrinkcb)
-                    # cbar.set_label(constants.FIELD_VAR_LIST['s'].name)
 
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
@@ -942,7 +939,7 @@ def plates_cmd(args):
 
         for step in misc.steps_gen(sdat, args):
             # could check other fields too
-            if step.fields['t'] is None:
+            if step.fields['T'] is None:
                 continue
             if args.timeprofile:
                 time.append(step.timeinfo.loc['t'])

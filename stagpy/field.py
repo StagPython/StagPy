@@ -1,15 +1,22 @@
 """plot fields"""
 
+from inspect import getdoc
 import numpy as np
 from . import constants, misc
 from .stagyydata import StagyyData
 
 
 def plot_scalar(args, step, var, scaling=None, **extra):
-    """var: one of the key of constants.FIELD_VAR_LIST"""
+    """Plot scalar field"""
     plt = args.plt
 
     fld = step.fields[var]
+    if var in constants.FIELD_VARS:
+        meta = constants.FIELD_VARS[var]
+    else:
+        meta = constants.FIELD_VARS_EXTRA[var]
+        meta = constants.Varf(getdoc(meta.description),
+                              meta.shortname, meta.popts)
     if step.geom.threed:
         raise ValueError('plot_scalar only implemented for 2D fields')
 
@@ -28,7 +35,7 @@ def plot_scalar(args, step, var, scaling=None, **extra):
 
     fig, axis = plt.subplots(ncols=1)
     extra_opts = {'cmap': 'jet'}
-    extra_opts.update(constants.FIELD_VAR_LIST[var].pcolor_opts)
+    extra_opts.update(meta.popts)
     extra_opts.update({} if var != 'n'
                       else {'norm': args.mpl.colors.LogNorm()})
     extra_opts.update(extra)
@@ -36,7 +43,7 @@ def plot_scalar(args, step, var, scaling=None, **extra):
                            shading='gouraud', **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=args.shrinkcb)
-    cbar.set_label(constants.FIELD_VAR_LIST[var].name)
+    cbar.set_label(r'${}$'.format(meta.shortname))
     plt.axis('equal')
     plt.axis('off')
     return fig, axis, surf, cbar
@@ -59,16 +66,15 @@ def field_cmd(args):
     """extract and plot field data"""
     sdat = StagyyData(args.path)
     for step in misc.steps_gen(sdat, args):
-        for var, meta in constants.FIELD_VAR_LIST.items():
-            if misc.get_arg(args, meta.arg):
-                if step.fields[var] is None:
-                    print("'{}' field on snap {} not found".format(var,
-                                                                   step.isnap))
-                    continue
-                fig, _, _, _ = plot_scalar(args, step, var)
-                args.plt.figure(fig.number)
-                args.plt.tight_layout()
-                args.plt.savefig(
-                    misc.out_name(args, var).format(step.isnap) + '.pdf',
-                    format='PDF')
-                args.plt.close(fig)
+        for var in args.plot.split(','):
+            if step.fields[var] is None:
+                print("'{}' field on snap {} not found".format(var,
+                                                               step.isnap))
+                continue
+            fig, _, _, _ = plot_scalar(args, step, var)
+            args.plt.figure(fig.number)
+            args.plt.tight_layout()
+            args.plt.savefig(
+                misc.out_name(args, var).format(step.isnap) + '.pdf',
+                format='PDF')
+            args.plt.close(fig)
