@@ -17,16 +17,11 @@ The command
 
    % stagpy time
 
-will give you two plots with two subplots each of time series. One has the mean
-temperature at the bottom and the top and bottom heat fluxes at the
-top while the other one shows the mean temperature and the RMS velocity.
-
-::
-
-   % stagpy time +energy
-
-adds a check of the energy balance to the heat flow time series. The
-corresponding line should be zero at all times for a perfect balance.
+will give you by default on figure with two subplots. The first subplot
+contains the time series of the Nusselt number at the top and bottom
+boundaries, with a check of the energy balance. The corresponding line should
+be zero at all times for a perfect balance. The second subplot contains the
+time series of the mean temperature.
 
 ::
 
@@ -34,6 +29,28 @@ corresponding line should be zero at all times for a perfect balance.
 
 will give you the same plots but starting at time 0.02 and ending at
 time 0.03.
+
+::
+
+    % stagpy time -o vrms_Tmin,Tmean,Tmax.dTdt
+
+creates two figures. The first one contains the time series of the rms
+velocity. The second one contains two subplots, the first one with the time
+series of the minimal, maximal and average temperature; the second one with the
+time derivative of the mean temperature. The variable names can be found by
+running the ``% stagpy var`` command. The variables you want on the same
+subplot are separated by commas ``,``, the variables you want on different
+subplots are separated by dots ``.``, and the variables you want on different
+figures are separated by underscores ``_``.
+
+::
+
+   % stagpy time +compstat --tstart 0.02
+
+will create a file containing the average and standard deviation of the time
+series variables from t=0.02 to the end. This is useful when your system has
+reached a statistical steady state.
+
 
 Snapshots
 ~~~~~~~~
@@ -63,30 +80,31 @@ Profiles
 ~~~~~~
 Profiles are accessed using the rprof command::
 
-  % stagpy rprof -o t -s 4:6
+    % stagpy rprof -s 4:6
 
 In this example, mean temperature profiles of snapshot 4 and 5 are
-plotted on the same graph. The average is also computed on another
-graph.
+plotted on two graph.
 
 ::
 
-   stagpy rprof -o t -t 500:
+    % stagpy rprof -s 4:6 +a
 
-plots all mean temperature profiles that have been saved starting from
-time-step 500.
-
-::
-
-   stagpy rprof -o T
-
-plots the last min, mean and max temperature profiles.
+plots the average radial profiles of snapshots 4 and 5.
 
 ::
 
-   stagpy rprof -o g
+    % stagpy rprof -o Tmin,Tmean,Tmax.vzabs,vhrms -t 500:
 
-plots the last snapshot of the grid spacing profile.
+plots all temperature and velocity profiles that have been saved starting from
+time-step 500. The list of variables you want follow the same logic as time
+series variables.
+
+::
+
+    % stagpy rprof +g -o
+
+plots grid spacing profile for the last snapshot available. The ``-o`` flag
+turns off output of other radial profiles (``Tmean`` by default).
 
 
 
@@ -119,8 +137,8 @@ all directories stored where the script is executed::
       sdat = stagyydata.StagyyData(rep.name)
       # get the value of the Rayleigh number
       ran.append(sdat.par['refstate']['ra0'])
-      # get the last value (-1) of the Nusselt number (column 2)
-      nun.append(sdat.tseries[-1, 2])
+      # get the last value of the Nusselt number
+      nun.append(sdat.steps.last.timeinfo['Nutop'])
 
   fig = plt.figure()
   plt.loglog(ran, nun, 'o--')
@@ -150,6 +168,7 @@ table) as function of time for all these directories::
   import matplotlib.pyplot as plt
   from stagpy import stagyydata
   from pathlib import Path
+  from numpy import log10
 
   fig = plt.figure()
 
@@ -160,18 +179,15 @@ table) as function of time for all these directories::
       # get the value of the Rayleigh number
       ra0 = sdat.par['refstate']['ra0']
       # get the time vector
-      time = sdat.tseries[:, 1]
+      time = sdat.tseries['t']
       # get the vrms vector
-      vrms = sdat.tseries[:, 8]
+      vrms = sdat.tseries['vrms']
       # plot
-      plt.plot(time, vrms, label=r'$Ra=%1.0e$' % ra0)
+      plt.plot(time, vrms, label=r'$Ra=10^{%1d}$' % log10(ra0))
 
   plt.legend()
   plt.xlabel(r'Time')
   plt.ylabel(r'RMS velocity')
   plt.savefig('time-vrms.pdf')
   plt.close(fig)
-
-
-
 

@@ -6,10 +6,6 @@
    :target: http://stagpy.readthedocs.org/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://anaconda.org/amorison/stagpy/badges/version.svg
-   :target: https://anaconda.org/amorison/stagpy
-   :alt: Anaconda Cloud
-
 .. image:: https://badge.fury.io/py/stagpy.svg
    :target: https://badge.fury.io/py/stagpy
    :alt: PyPI Version
@@ -24,13 +20,11 @@ simulations and produce high-quality figures.
 This command line tool is built around a generic interface that allows you to
 access StagYY output data directly in a Python script.
 
-You can install StagPy with ``conda`` from the `Anaconda Cloud`__, or with
-``pip`` from the `Python Package Index`__.
+You can install StagPy with ``pip`` from the `Python Package Index`__.
 
 See `the complete documentation`__ for more information on the installation and
 explanations on how to use StagPy.
 
-.. __: https://anaconda.org/amorison/stagpy
 .. __: https://pypi.python.org/pypi/stagpy
 .. __: http://stagpy.readthedocs.org/en/latest/
 

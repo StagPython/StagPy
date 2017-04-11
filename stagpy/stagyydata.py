@@ -45,22 +45,7 @@ class _Geometry:
         self._curv_meshes = None
         self._shape = {'sph': False, 'cyl': False, 'axi': False,
                        'ntot': list(header['nts']) + [header['ntb']]}
-        shape = self._par['geometry']['shape'].lower()
-        aspect = self._header['aspect']
-        if self.rcmb is not None and self.rcmb >= 0:
-            # curvilinear
-            self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
-                                                   aspect[0] >= np.pi)
-            self._shape['sph'] = not self._shape['cyl']
-        elif self.rcmb is None:
-            header['rcmb'] = self._par['geometry']['r_cmb']
-            if self.rcmb >= 0:
-                if self.twod_xz and shape == 'cylindrical':
-                    self._shape['cyl'] = True
-                elif shape == 'spherical':
-                    self._shape['sph'] = True
-        self._shape['axi'] = self.cartesian and self.twod_xz and \
-            shape == 'axisymmetric'
+        self._init_shape()
 
         self._coords = [header['e1_coord'],
                         header['e2_coord'],
@@ -102,6 +87,25 @@ class _Geometry:
             z_mesh = r_mesh * np.cos(t_mesh)
             self._cart_meshes = (x_mesh, y_mesh, z_mesh)
             self._curv_meshes = (t_mesh, p_mesh, r_mesh)
+
+    def _init_shape(self):
+        """Determine shape of geometry"""
+        shape = self._par['geometry']['shape'].lower()
+        aspect = self._header['aspect']
+        if self.rcmb is not None and self.rcmb >= 0:
+            # curvilinear
+            self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
+                                                   aspect[0] >= np.pi)
+            self._shape['sph'] = not self._shape['cyl']
+        elif self.rcmb is None:
+            self._header['rcmb'] = self._par['geometry']['r_cmb']
+            if self.rcmb >= 0:
+                if self.twod_xz and shape == 'cylindrical':
+                    self._shape['cyl'] = True
+                elif shape == 'spherical':
+                    self._shape['sph'] = True
+        self._shape['axi'] = self.cartesian and self.twod_xz and \
+            shape == 'axisymmetric'
 
     @property
     def cartesian(self):
@@ -159,49 +163,6 @@ class _Geometry:
             if match is not None:
                 return dat['xtypzrb'.index(match.group(1)) // 2]
         return self._header[attr]
-
-
-class _Rprof(np.ndarray):  # _TimeSeries also
-
-    """Wrap rprof data"""
-
-    def __new__(cls, data, times, isteps):
-        cls._check_args(data, times, isteps)
-        obj = np.asarray(data).view(cls)
-        return obj
-
-    def __init__(self, data, times, isteps):
-        _Rprof._check_args(data, times, isteps)
-        self._times = times
-        self._isteps = isteps
-
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        self._times = getattr(obj, 'times', [])
-        self._isteps = getattr(obj, 'isteps', [])
-
-    def __getitem__(self, key):
-        try:
-            key = constants.RPROF_VAR_LIST[key].prof_idx
-        except (KeyError, TypeError):
-            pass
-        return super().__getitem__(key)
-
-    @staticmethod
-    def _check_args(data, times, isteps):
-        if not len(data) == len(times) == len(isteps):
-            raise ValueError('Inconsistent lengths in rprof data')
-
-    @property
-    def times(self):
-        """Advective time of each rprof"""
-        return self._times
-
-    @property
-    def isteps(self):
-        """istep of each rprof"""
-        return self._isteps
 
 
 class _Fields(dict):
@@ -273,8 +234,6 @@ class _Step:
         self.sdat = sdat
         self.fields = _Fields(self)
         self._isnap = UNDETERMINED
-        self._irsnap = UNDETERMINED
-        self._itsnap = UNDETERMINED
 
     @property
     def geom(self):
@@ -284,18 +243,18 @@ class _Step:
     @property
     def timeinfo(self):
         """Relevant time series data"""
-        if self.itsnap is None:
-            return None
+        if self.istep in self.sdat.tseries.index:
+            return self.sdat.tseries.loc[self.istep]
         else:
-            return self.sdat.tseries[self.itsnap]
+            return None
 
     @property
     def rprof(self):
         """Relevant radial profiles data"""
-        if self.irsnap is None:
-            return None
+        if self.istep in self.sdat.rprof.index.levels[0]:
+            return self.sdat.rprof.loc[self.istep]
         else:
-            return self.sdat.rprof[self.irsnap]
+            return None
 
     @property
     def isnap(self):
@@ -320,38 +279,6 @@ class _Step:
         """Fields snap corresponding to time step"""
         try:
             self._isnap = int(isnap)
-        except ValueError:
-            pass
-
-    @property
-    def irsnap(self):
-        """Radial snap corresponding to time step"""
-        _ = self.sdat.rprof
-        if self._irsnap is UNDETERMINED:
-            self._irsnap = None
-        return self._irsnap
-
-    @irsnap.setter
-    def irsnap(self, irsnap):
-        """Radial snap corresponding to time step"""
-        try:
-            self._irsnap = int(irsnap)
-        except ValueError:
-            pass
-
-    @property
-    def itsnap(self):
-        """Time info entry corresponding to time step"""
-        _ = self.sdat.tseries
-        if self._itsnap is UNDETERMINED:
-            self._itsnap = None
-        return self._itsnap
-
-    @itsnap.setter
-    def itsnap(self, itsnap):
-        """Time info entry corresponding to time step"""
-        try:
-            self._itsnap = int(itsnap)
         except ValueError:
             pass
 
@@ -408,7 +335,7 @@ class _Steps(dict):
         """Last timestep available"""
         if self._last is UNDETERMINED:
             # not necessarily the last one...
-            self._last = self.sdat.tseries[-1, 0]
+            self._last = self.sdat.tseries.index[-1]
         return self[self._last]
 
 
@@ -453,17 +380,16 @@ class _Snaps(_Steps):
     def last(self):
         """Last snapshot available"""
         if self._last is UNDETERMINED:
-            self._last = None
+            self._last = -1
             out_stem = re.escape(pathlib.Path(
                 self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
             rgx = re.compile('^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
             pars = set(item.par for item in constants.FIELD_VAR_LIST.values())
-            for fname in sorted(self.sdat.files, reverse=True):
+            for fname in self.sdat.files:
                 match = rgx.match(fname.name)
                 if match is not None and match.group(1) in pars:
-                    self._last = int(match.group(2))
-                    break
-            if self._last is None:
+                    self._last = max(int(match.group(2)), self._last)
+            if self._last < 0:
                 raise NoSnapshotError
         return self[self._last]
 
@@ -487,28 +413,27 @@ class StagyyData:
         """Time series data"""
         if self._tseries is UNDETERMINED:
             timefile = self.filename('time.dat')
-            self._tseries = stagyyparsers.time_series(timefile)
-            for itsnap, timeinfo in enumerate(self._tseries):
-                istep = int(timeinfo[0])
-                self.steps[istep].itsnap = itsnap
+            self._tseries = stagyyparsers.time_series(
+                timefile, list(constants.TIME_VARS.keys()))
         return self._tseries
+
+    @property
+    def _rprof_and_times(self):
+        if self._rprof is UNDETERMINED:
+            rproffile = self.filename('rprof.dat')
+            self._rprof = stagyyparsers.rprof(
+                rproffile, list(constants.RPROF_VARS.keys()))
+        return self._rprof
 
     @property
     def rprof(self):
         """Radial profiles data"""
-        if self._rprof is UNDETERMINED:
-            rproffile = self.filename('rprof.dat')
-            rprof_data = stagyyparsers.rprof(rproffile)
-            isteps = []
-            times = []
-            data = []
-            for irsnap, (istep, time, prof) in enumerate(rprof_data):
-                self.steps[istep].irsnap = irsnap
-                times.append(time)
-                isteps.append(istep)
-                data.append(prof)
-            self._rprof = _Rprof(data, times, isteps)
-        return self._rprof
+        return self._rprof_and_times[0]
+
+    @property
+    def rtimes(self):
+        """Radial profiles data"""
+        return self._rprof_and_times[1]
 
     @property
     def files(self):
@@ -518,6 +443,41 @@ class StagyyData:
             out_dir = self.path / out_stem.parent
             self._files = set(out_dir.iterdir())
         return self._files
+
+    def tseries_between(self, tstart=0., tend=None):
+        """Time series data between requested times"""
+        if self.tseries is None:
+            return None
+
+        ndat = self.tseries.shape[0]
+
+        if tstart <= 0.:
+            istart = 0
+        else:
+            igm = 0
+            igp = ndat - 1
+            while igp - igm > 1:
+                istart = igm + (igp - igm) // 2
+                if self.tseries.iloc[istart]['t'] >= tstart:
+                    igp = istart
+                else:
+                    igm = istart
+            istart = igp
+
+        if tend is None:
+            iend = None
+        else:
+            igm = 0
+            igp = ndat - 1
+            while igp - igm > 1:
+                iend = igm + (igp - igm) // 2
+                if self.tseries.iloc[iend]['t'] > tend:
+                    igp = iend
+                else:
+                    igm = iend
+            iend = igm + 1
+
+        return self.tseries.iloc[istart:iend]
 
     def filename(self, fname, timestep=None, suffix=''):
         """return name of StagYY out file"""

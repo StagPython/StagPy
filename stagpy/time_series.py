@@ -3,174 +3,115 @@
 Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/11/27
 """
-
+from inspect import getdoc
 import numpy as np
 from math import sqrt
+from . import constants, misc
 from .stagyydata import StagyyData
 
 
-def find_nearest(array, value):
-    """Find the data point nearest to value"""
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
+def _plot_time_list(lovs, tseries, metas, args, times=None):
+    """Plot requested profiles"""
+    if times is None:
+        times = {}
+    for vfig in lovs:
+        fig, axes = args.plt.subplots(nrows=len(vfig), sharex=True,
+                                      figsize=(30, 5 * len(vfig)))
+        axes = [axes] if len(vfig) == 1 else axes
+        fname = ''
+        for iplt, vplt in enumerate(vfig):
+            ylabel = None
+            for tvar in vplt:
+                fname += tvar + '_'
+                time = times[tvar] if tvar in times else tseries['t']
+                axes[iplt].plot(time, tseries[tvar],
+                                label=metas[tvar].description,
+                                linewidth=args.linewidth)
+                lbl = metas[tvar].shortname
+                if ylabel is None:
+                    ylabel = lbl
+                elif ylabel != lbl:
+                    ylabel = ''
+            if ylabel:
+                axes[iplt].set_ylabel(r'${}$'.format(ylabel),
+                                      fontsize=args.fontsize)
+            if vplt[0][:3] == 'eta':  # list of log variables
+                axes[iplt].set_yscale('log')
+            axes[iplt].legend(fontsize=args.fontsize)
+            axes[iplt].tick_params(labelsize=args.fontsize)
+        axes[-1].set_xlabel(r'$t$', fontsize=args.fontsize)
+        axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
+        axes[-1].tick_params(labelsize=args.fontsize)
+        fig.savefig('time_{}.pdf'.format(fname[:-1]),
+                    format='PDF', bbox_inches='tight')
+
+
+def get_time_series(sdat, var, tstart, tend):
+    """Return read or computed time series along with metadata"""
+    tseries = sdat.tseries_between(tstart, tend)
+    if var in tseries.columns:
+        series = tseries[var]
+        time = None
+        if var in constants.TIME_VARS:
+            meta = constants.TIME_VARS[var]
+        else:
+            meta = constants.Varr(None, None)
+    elif var in constants.TIME_VARS_EXTRA:
+        meta = constants.TIME_VARS_EXTRA[var]
+        series, time = meta.description(sdat, tstart, tend)
+        meta = constants.Varr(getdoc(meta.description), meta.shortname)
+    else:
+        raise ValueError('Unknown time variable {}.'.format(var))
+
+    return series, time, meta
+
+
+def plot_time_series(sdat, lovs, args):
+    """Plot requested time series"""
+    sovs = misc.set_of_vars(lovs)
+    tseries = {}
+    times = {}
+    metas = {}
+    for tvar in sovs:
+        series, time, meta = get_time_series(sdat, tvar,
+                                             args.tstart, args.tend)
+        tseries[tvar] = series
+        metas[tvar] = meta
+        if time is not None:
+            times[tvar] = time
+    tseries['t'] = sdat.tseries['t']
+
+    _plot_time_list(lovs, tseries, metas, args, times)
+
+
+def compstat(sdat, tstart=0., tend=None):
+    """Compute statistics"""
+    data = sdat.tseries_between(tstart, tend)
+    time = data['t'].values
+
+    moy = []
+    rms = []
+    delta_time = time[-1] - time[0]
+    for col in data.columns[1:]:
+        moy.append(np.trapz(data[col], x=time) / delta_time)
+        rms.append(sqrt(np.trapz((data[col] - moy[-1])**2, x=time) /
+                        delta_time))
+    results = moy + rms
+    with open('statistics.dat', 'w') as out_file:
+        for item in results:
+            out_file.write("%10.5e " % item)
+        out_file.write("\n")
 
 
 def time_cmd(args):
     """plot temporal series"""
-    eps = 1.e-10
-    plt = args.plt
-
-    lwdth = args.linewidth
-    ftsz = args.fontsize
-
     sdat = StagyyData(args.path)
-    data = sdat.tseries
-    ntot = len(data)
-
-    rab = sdat.par['refstate']['ra0']
-    rah = sdat.par['refstate']['Rh']
-    botpphase = sdat.par['boundaries']['BotPphase']
-
-    if args.tstart < 0:
-        args.tstart = data[0, 1]
-
-    spherical = sdat.par['geometry']['shape'].lower() == 'spherical'
-    if spherical:
-        rcmb = sdat.par['geometry']['r_cmb']
-        rmin = rcmb
-        rmax = rmin + 1
-        coefb = 1  # rb**2*4*pi
-        coefs = (rmax / rmin)**2  # *4*pi
-        volume = rmin * (1 - (rmax / rmin)**3) / 3  # *4*pi/3
-    else:
-        rcmb = 0.
-        coefb = 1.
-        coefs = 1.
-        volume = 1.
-
-    if abs(args.tstart) < eps:
-        nstart = 0
-    else:
-        nstart = np.argmin(abs(args.tstart - data[:, 1]))
-
-    if abs(args.tend) < eps:
-        args.tend = np.amax(data[:, 1])
-
-    time = data[nstart:, 1]
-    mtemp = data[nstart:, 5]
-    ftop = data[nstart:, 2] * coefs
-    fbot = data[nstart:, 3] * coefb
-    vrms = data[nstart:, 8]
-
-    dtdt = (data[2:ntot - 1, 5] - data[0:ntot - 3, 5]) /\
-        (data[2:ntot - 1, 1] - data[0:ntot - 3, 1])
-    ebalance = data[1:ntot - 2, 2] * coefs - data[1:ntot - 2, 3] * coefb\
-        - volume * dtdt
-
-    # -------- TEMPERATURE and FLOW PLOTS
-    fig = plt.figure(figsize=(30, 10))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(time, ftop, 'b', label='Surface', linewidth=lwdth)
-    plt.plot(time, fbot, 'r', label='Bottom', linewidth=lwdth)
-    if args.energy:
-        plt.plot(time[1:ntot - 2:], ebalance, 'g', label='Energy balance',
-                 linewidth=lwdth)
-    plt.ylabel('Heat flow', fontsize=ftsz)
-    plt.legend = plt.legend(loc='upper right', shadow=False, fontsize=ftsz)
-    plt.legend.get_frame().set_facecolor('white')
-    plt.xticks(fontsize=ftsz)
-    plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart, args.tend])
-
-    if args.annottmin:
-        plt.annotate('tminT', xy=(args.tmint, 0), xytext=(args.tmint, -10),
-                     arrowprops={'facecolor': 'black'})
-        plt.annotate('tminC', xy=(args.tminc, 0), xytext=(args.tminc, 10),
-                     arrowprops={'facecolor': 'black'})
-
-    plt.subplot(2, 1, 2)
-    plt.plot(time, mtemp, 'k', linewidth=lwdth)
-    plt.xlabel('Time', fontsize=ftsz)
-    plt.ylabel('Mean temperature', fontsize=ftsz)
-    plt.xticks(fontsize=ftsz)
-    plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart, args.tend])
-
-    plt.savefig("fig_fluxtime.pdf", format='PDF')
-
-    # -------- TEMPERATURE and VRMS PLOTS
-    fig = plt.figure(figsize=(30, 10))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(time, vrms, 'g', linewidth=lwdth)
-    plt.ylabel(r'$v_{\rm rms}$', fontsize=ftsz)
-    plt.xticks(fontsize=ftsz)
-    plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart, args.tend])
-
-    plt.subplot(2, 1, 2)
-    plt.plot(time, mtemp, 'k', linewidth=lwdth)
-    plt.xlabel('Time', fontsize=ftsz)
-    plt.ylabel('Mean temperature', fontsize=ftsz)
-    plt.xticks(fontsize=ftsz)
-    plt.yticks(fontsize=ftsz)
-    plt.xlim([args.tstart, args.tend])
-
-    plt.savefig("fig_vrmstime.pdf", format='PDF')
-
-    if not args.compstat:
-        return None
-
-    coords = []
-    print('right click to select starting time of statistics computations')
-
-    def onclick(event):
-        """get position and button from mouse click"""
-        ixc, iyc = event.xdata, event.ydata
-        button = event.button
-        # assign global variable to access outside of function
-        if button == 3:
-            coords.append((ixc, iyc))
-            # Disconnect after 1 clicks
-        if len(coords) == 1:
-            fig.canvas.mpl_disconnect(cid)
-            plt.close(1)
+    if sdat.tseries is None:
         return
 
-    # Call click func
-    cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    plt.show()
+    lovs = misc.list_of_vars(args.plot)
+    if lovs:
+        plot_time_series(sdat, lovs, args)
 
-    moy = []
-    rms = []
-    ebal = []
-    rms_ebal = []
-    ch1 = np.where(time == (find_nearest(time, coords[0][0])))
-
-    print('Statistics computed from t =' + str(time[ch1[0][0]]))
-    for num in range(2, data.shape[1]):
-        moy.append(np.trapz(data[ch1[0][0]:ntot - 1, num],
-                            x=time[ch1[0][0]:ntot - 1]) /
-                   (time[ntot - 1] - time[ch1[0][0]]))
-        rms.append(sqrt(np.trapz((data[ch1[0][0]:ntot - 1, num] -
-                                  moy[num - 2])**2,
-                                 x=time[ch1[0][0]:ntot - 1]) /
-                        (time[ntot - 1] - time[ch1[0][0]])))
-    with open('statistics.dat') as fid:
-        for val, err in np.array([moy, rms]).T:
-            fid.write('{:.5e}   {:.5e}\n'.format(val, err))
-    ebal.append(np.trapz(ebalance[ch1[0][0] - 1:ntot - 3],
-                         x=time[ch1[0][0]:ntot - 2]) /
-                (time[ntot - 2] - time[ch1[0][0]]))
-    rms_ebal.append(sqrt(np.trapz(
-                         (ebalance[ch1[0][0] - 1:ntot - 3] - ebal)**2,
-                         x=time[ch1[0][0]:ntot - 2]) /
-                         (time[ntot - 2] - time[ch1[0][0]])))
-    print('Energy balance', ebal, 'pm', rms_ebal)
-    results = moy + ebal + rms + rms_ebal
-    with open('Stats.dat', 'w') as out_file:
-        out_file.write("%10.5e %10.5e %10.5e " % (rab, rah, botpphase))
-        for item in results:
-            out_file.write("%10.5e " % item)
-        out_file.write("\n")
+    if args.compstat:
+        compstat(sdat, args.tstart, args.tend)

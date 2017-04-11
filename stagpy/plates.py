@@ -728,16 +728,23 @@ def plates_cmd(args):
                     # same code in rprof!
                     # calculating averaged horizontal surface velocity
                     # needed for redimensionalisation
-                    uprof_idx = constants.RPROF_VAR_LIST['u'].prof_idx
-                    uprof_averaged = np.mean(sdat.rprof[:, uprof_idx], axis=0)
-                    radius = sdat.rprof[0, 0] + rcmb
+                    ilast = sdat.rprof.index.levels[0][-1]
+                    rlast = sdat.rprof.loc[ilast]
+                    nprof = 0
+                    uprof_averaged = rlast.loc[:, 'vhrms'] * 0
+                    for step in misc.steps_gen(sdat, args):
+                        if step.rprof is None:
+                            continue
+                        uprof_averaged += step.rprof['vhrms']
+                        nprof += 1
+                    uprof_averaged /= nprof
+                    radius = rlast['r'].values + rcmb
                     if sdat.par['boundaries']['air_layer']:
                         dsa = sdat.par['boundaries']['air_thickness']
-                        isurf = np.argmin(
-                            abs(radius[0, :] - radius[0, -1] + dsa))
+                        isurf = np.argmin(abs(radius - radius[-1] + dsa))
                     else:
                         isurf = -1
-                    vrms_surface = uprof_averaged[isurf]
+                    vrms_surface = uprof_averaged.iloc[isurf]
                     if sdat.par['boundaries']['air_layer']:
                         isurf = np.argmin(abs((1 - dsa) - step.geom.r_coord))
                         isurf -= 4  # why different isurf for the rest?
@@ -938,8 +945,8 @@ def plates_cmd(args):
             if step.fields['t'] is None:
                 continue
             if args.timeprofile:
-                time.append(step.timeinfo[1])
-                ch2o.append(step.timeinfo[27])
+                time.append(step.timeinfo.loc['t'])
+                ch2o.append(step.timeinfo.loc[0])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
             plt = args.plt
