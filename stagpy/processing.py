@@ -1,6 +1,7 @@
 """Various computations"""
 
 import numpy as np
+from scipy import integrate
 from . import misc
 
 
@@ -134,4 +135,37 @@ def c_overturned(step):
 
 def stream_function(step):
     """Stream function"""
-    raise NotImplementedError
+    if step.geom.twod_yz:
+        x_coord = step.geom.y_coord
+        v_x = step.fields['v2'][0, :, :, 0]
+        v_z = step.fields['v3'][0, :, :, 0]
+        shape = (1, v_x.shape[0], v_x.shape[1], 1)
+    elif step.geom.twod_xz and step.geom.cartesian:
+        x_coord = step.geom.x_coord
+        v_x = step.fields['v1'][:, 0, :, 0]
+        v_z = step.fields['v3'][:, 0, :, 0]
+        shape = (v_x.shape[0], 1, v_x.shape[1], 1)
+    else:
+        raise ValueError('Stream function only implemented in '
+                         '2D cartesian and spherical annulus')
+    psi = np.zeros_like(v_x)
+    if step.geom.spherical:  # YZ annulus
+        r_coord = step.geom.r_coord + step.geom.rcmb
+        psi[0, :] = integrate.cumtrapz(r_coord * v_x[0, :],
+                                       x=r_coord,
+                                       initial=0)
+        for i_z, r_pos in enumerate(r_coord):
+            psi[:, i_z] = psi[0, i_z] / r_pos - \
+                integrate.cumtrapz(r_pos * v_z[:, i_z], x=x_coord, initial=0)
+    else:  # assume cartesian geometry
+        psi[0, :] = integrate.cumtrapz(v_x[0, :],
+                                       x=step.geom.z_coord,
+                                       initial=0)
+        for i_z in range(step.geom.nztot):
+            psi[:, i_z] = psi[0, i_z] - integrate.cumtrapz(v_z[:, i_z],
+                                                           x=x_coord,
+                                                           initial=0)
+    if step.geom.twod_xz:
+        psi = - psi
+    psi = np.reshape(psi, shape)
+    return psi
