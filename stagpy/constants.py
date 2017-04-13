@@ -44,7 +44,7 @@ FIELD_FILES = OrderedDict((
     ('age', ['age']),
     ('nrc', ['contID']),
     ('str', ['sII']),
-    ('sx', ['s1', 's2', 's3', 'sval']),
+    ('sx', ['sx1', 'sx2', 'sx3', 's1val']),
     ('ed', ['e']),
 ))
 
