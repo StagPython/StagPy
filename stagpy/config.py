@@ -84,7 +84,7 @@ PLOTTING = OrderedDict((
 
 FIELD = OrderedDict((
     ('plot',
-        Conf('T', True, 'o',
+        Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
              True, ('specify which variables to plot, '
                     'run stagpy var for a list of variables'))),
