@@ -21,6 +21,26 @@ def get_meshes_fld(step, var):
     return xmesh, ymesh, fld
 
 
+def get_meshes_vec(step, var):
+    """Return 2D meshes and vec field components"""
+    if step.geom.twod_xz:
+        xmesh, ymesh = step.geom.x_mesh[:, 0, :], step.geom.z_mesh[:, 0, :]
+        vec1 = step.fields[var + '1'][:, 0, :, 0]
+        vec2 = step.fields[var + '3'][:, 0, :, 0]
+    elif step.geom.cartesian and step.geom.twod_yz:
+        xmesh, ymesh = step.geom.y_mesh[0, :, :], step.geom.z_mesh[0, :, :]
+        vec1 = step.fields[var + '2'][0, :, :, 0]
+        vec2 = step.fields[var + '3'][0, :, :, 0]
+    else:  # spherical yz
+        xmesh, ymesh = step.geom.x_mesh[0, :, :], step.geom.y_mesh[0, :, :]
+        pmesh = step.geom.p_mesh[0, :, :]
+        vec_phi = step.fields[var + '2'][0, :, :, 0]
+        vec_r = step.fields[var + '3'][0, :, :, 0]
+        vec1 = vec_r * np.cos(pmesh) - vec_phi * np.sin(pmesh)
+        vec2 = vec_phi * np.cos(pmesh) + vec_r * np.sin(pmesh)
+    return xmesh, ymesh, vec1, vec2
+
+
 def set_of_vars(arg_plot):
     """List of vars
 
@@ -76,6 +96,15 @@ def plot_iso(axis, step, var):
     axis.contour(xmesh, ymesh, fld, linewidths=1)
 
 
+def plot_vec(axis, step, var):
+    """Plot vector field"""
+    xmesh, ymesh, vec1, vec2 = get_meshes_vec(step, var)
+    dip = step.geom.nztot // 10
+    axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
+                vec1[::dip, ::dip], vec2[::dip, ::dip],
+                linewidths=1)
+
+
 def field_cmd(args):
     """extract and plot field data"""
     sdat = StagyyData(args.path)
@@ -87,8 +116,11 @@ def field_cmd(args):
                                                                step.isnap))
                 continue
             fig, axis, _, _ = plot_scalar(args, step, var[0])
-            if var[1]:
+            if var[1] in constants.FIELD_VARS or\
+                var[1] in constants.FIELD_VARS_EXTRA:
                 plot_iso(axis, step, var[1])
+            elif var[1]:
+                plot_vec(axis, step, var[1])
             oname = '{}_{}'.format(*var) if var[1] else var[0]
             fig.savefig(
                 misc.out_name(args, oname).format(step.isnap) + '.pdf',
