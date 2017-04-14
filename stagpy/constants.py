@@ -23,7 +23,7 @@ FIELD_VARS = OrderedDict((
     ('sx2', Varf('2nd comp. of principal stress eigenvector', 'x_2', {})),
     ('sx3', Varf('3rd comp. of principal stress eigenvector', 'x_3', {})),
     ('s1val', Varf('Principal stress eigenvalue', r'\sigma_1', {})),
-    ('e', Varf('Strain rate', r'\dot\varepsilon', {'cmap': 'Reds'})),
+    ('edot', Varf('Strain rate', r'\dot\varepsilon', {'cmap': 'Reds'})),
     ('c', Varf('Composition', 'c', {})),
     ('wtr', Varf('Water concentration', r'c_{\rm H_2O}', {})),
     ('age', Varf('Age', 'a', {})),
