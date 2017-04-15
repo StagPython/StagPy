@@ -77,7 +77,7 @@ def plot_scalar(args, step, var, scaling=None, **extra):
     fig, axis = plt.subplots(ncols=1)
     extra_opts = {'cmap': 'jet'}
     extra_opts.update(meta.popts)
-    extra_opts.update({} if var != 'n'
+    extra_opts.update({} if var != 'eta'
                       else {'norm': args.mpl.colors.LogNorm()})
     extra_opts.update(extra)
     surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not args.pdf,
