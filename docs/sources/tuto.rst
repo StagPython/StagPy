@@ -67,7 +67,8 @@ available). Here are some examples:
 * ``-t 100:350`` will process every time steps between 100 and 349;
 * ``-t 201:206:2`` will process time steps 201, 203 and 205;
 * ``-t 201:205:2`` will process time steps 201 and 203;
-* ``-s -10:`` will process the last ten snapshots;
+* ``-s=-10:`` will process the last ten snapshots (the equal symbol avoids the
+  ``-10`` to be interpreted as a separated command line argument);
 * ``-s :454`` will process every snapshots from the 0th to the 453rd one;
 * ``-s ::2`` will process every even snapshots.
 
