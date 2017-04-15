@@ -35,7 +35,7 @@ to have some help on the available options for one particular sub command.
 
 A simple example would be::
 
-    % stagpy field -p path/to/run/ -o tp -s 42
+    % stagpy field -p path/to/run/ -o T,p -s 42
 
 This asks StagPy to plot the temperature and pressure fields of snapshot 42
 of the run lying in ``./path/to/run``. When not specified, the path defaults to
@@ -89,7 +89,7 @@ Instantiating and using this class is rather simple::
 
     # temperature field of the 10000th time step
     # (will be None if no snapshot is available at this timestep)
-    temp_field = sdat.steps[10000].fields['t']
+    temp_field = sdat.steps[10000].fields['T']
 
     # iterate through snaps 100, 105, 110... up to the last one
     for snap in sdat.snaps[100::5]:
@@ -102,7 +102,7 @@ All output data available in the StagYY run is accessible through this
 interface. ``StagyyData`` is designed a lazy data accessor. This means output
 files are read only when the data they contain is asked for. For example, the
 temperature field of the last snapshot isn't read until
-``sdat.snaps[-1].fields['t']`` is asked for.
+``sdat.snaps[-1].fields['T']`` is asked for.
 
 See the :doc:`dedicated section <stagyydata>` for more information on the
 ``StagyyData`` class.

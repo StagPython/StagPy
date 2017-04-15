@@ -195,7 +195,7 @@ Scalar and vector fields
 
 Vector and scalar fields are accessible through the ``fields`` attribute of a
 StagyyData instance, using their name as key. For example, the temperature
-field of the 100th snapshot is obtained with ``sdat.snaps[100].fields['t']``.
+field of the 100th snapshot is obtained with ``sdat.snaps[100].fields['T']``.
 Valid names of fields can be obtained by running ``% stagpy var``. Fields are
 four dimensional arrays, with indices in the order x, y, z and block.
 
