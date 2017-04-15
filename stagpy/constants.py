@@ -45,7 +45,7 @@ FIELD_FILES = OrderedDict((
     ('nrc', ['contID']),
     ('str', ['sII']),
     ('sx', ['sx1', 'sx2', 'sx3', 's1val']),
-    ('ed', ['e']),
+    ('ed', ['edot']),
 ))
 
 Varr = namedtuple('Varr', ['description', 'shortname'])
