@@ -781,7 +781,7 @@ def plates_cmd(args):
                                step.fields['age'][0, :, isurf, 0])
 
                 # plot viscosity field with position of trenches and ridges
-                fig, axis, surf, _ = field.plot_scalar(args, step, 'n')
+                fig, axis, surf, _ = field.plot_scalar(args, step, 'eta')
                 etamax = sdat.par['viscosity']['eta_max']
                 surf.set_clim(vmin=1e-2, vmax=etamax)
 
@@ -794,18 +794,7 @@ def plates_cmd(args):
                 cmap2.set_over('m')
 
                 # plotting velocity vectors
-                if step.geom.cartesian:
-                   velx = step.fields['v2'][0, :, :, 0]
-                   vely = step.fields['v3'][0, :, :, 0]
-                else: # spherical yz
-                   vphi = step.fields['v2'][0, :, :, 0]
-                   velr = step.fields['v3'][0, :, :, 0]
-                   ph_mesh = step.geom.p_mesh[0]
-                   velx = -vphi * np.sin(ph_mesh) + velr * np.cos(ph_mesh)
-                   vely = vphi * np.cos(ph_mesh) + velr * np.sin(ph_mesh)
-                dip = step.geom.nptot // 100
-                axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
-                            velx[::dip, ::dip], vely[::dip, ::dip])
+                field.plot_vec(axis, step, 'v')
 
                 # Annotation with time and step
                 axis.text(1., 0.9, str(round(time, 0)) + ' My',
@@ -851,7 +840,7 @@ def plates_cmd(args):
                 # plot stress field with position of trenches and ridges
                 if args.plot_stress:
                     fig, axis, surf, cbar = field.plot_scalar(
-                        args, step, 's', scale_stress / 1.e6)
+                        args, step, 'sII', scale_stress / 1.e6)
                     surf.set_clim(vmin=0, vmax=300)
                     cbar.set_label('Stress [MPa]')
 
@@ -885,10 +874,8 @@ def plates_cmd(args):
 
                 # plotting the principal deviatoric stress field
                 if args.plot_deviatoric_stress:
-                    fig, axis, surf, _ = field.plot_scalar(args,
-                                                           step, 's',
-                                                           alpha=0.1)
-                    # surf.set_clim(vmin=0, vmax=300)
+                    fig, axis, _, _ = field.plot_scalar(args, step, 'sII',
+                                                        alpha=0.1)
 
                     # plotting continents
                     axis.pcolormesh(xmesh, ymesh, continentsfld,
@@ -898,13 +885,7 @@ def plates_cmd(args):
                     cmap2.set_over('m')
 
                     # plotting principal deviatoric stress
-                    sphi = step.fields['sx2'][0, :, :, 0]
-                    sr = step.fields['sx3'][0, :, :, 0]
-                    stressx = -sphi * np.sin(ph_mesh) + sr * np.cos(ph_mesh)
-                    stressy = sphi * np.cos(ph_mesh) + sr * np.sin(ph_mesh)
-                    dip = step.geom.nptot // 100
-                    axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
-                                stressx[::dip, ::dip], stressy[::dip, ::dip])
+                    field.plot_vec(axis, step, 'sx')
 
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
