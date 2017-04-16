@@ -59,22 +59,23 @@ different fields.
 
 ::
 
-   % stagpy field -o t
+   % stagpy field -o T
 
 will plot the last snapshot of the temperature field.
 
 ::
 
-   % stagpy field -s : -o tw
+   % stagpy field -s : -o T,v3
 
-will plot all the snapshots of t and w on separate figures.
+will plot all the snapshots of the temperature and the vertical/radial velocity
+on separate figures.
 
 ::
 
-   % stagpy field -s 3:8:2 -o tp
+   % stagpy field -s 3:8:2 -o T+stream
 
-will plot temperature and pressure snapshots from the third to the
-eighth, every two snapshots.
+will plot the temperature field with isocontours of the stream function from
+the third to the eighth snapshot, every two snapshots.
 
 Profiles
 ~~~~~~

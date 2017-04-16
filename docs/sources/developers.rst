@@ -50,13 +50,13 @@ Source them respectively in ``~/.zshrc`` and ``~/.bashrc`` to enjoy command
 line completion with zsh and bash.  Run ``make info`` to obtain the right
 sourcing commands.
 
-To check that everything work fine, go to the ``data`` directory of the
-repository and run::
+To check that everything works fine, go to any subdirectory of the ``Examples``
+directory of the repository and run::
 
     stagpy-git field
 
-Two PDF files with a plot of the temperature and vertical velocity fields
-should appear.
+This should create a PDF file showing a plot of the temperature field with
+streamlines.
 
 Installation as a regular package
 ---------------------------------

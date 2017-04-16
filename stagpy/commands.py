@@ -8,9 +8,6 @@ from . import __version__
 def field_cmd(args):
     """plot snapshots of fields"""
     misc.plot_backend(args)
-    if args.plot is not None:
-        for var, meta in constants.FIELD_VAR_LIST.items():
-            misc.set_arg(args, meta.arg, var in args.plot)
     field.field_cmd(args)
 
 
@@ -38,8 +35,10 @@ def plates_cmd(args):
 def var_cmd(_):
     """display a list of available variables"""
     print('field:')
-    print(*('{}: {}'.format(v, m.name)
-          for v, m in constants.FIELD_VAR_LIST.items()), sep='\n')
+    print(*('{}: {}'.format(v, m.description)
+          for v, m in constants.FIELD_VARS.items()), sep='\n')
+    print(*('{}: {}'.format(v, getdoc(m.description))
+          for v, m in constants.FIELD_VARS_EXTRA.items()), sep='\n')
     print()
     print('rprof:')
     print(*('{}: {}'.format(v, m.description)

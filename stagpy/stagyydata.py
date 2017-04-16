@@ -176,26 +176,24 @@ class _Fields(dict):
         super().__init__()
 
     def __missing__(self, name):
-        if name not in constants.FIELD_VAR_LIST:
+        if name in constants.FIELD_VARS:
+            filestem = ''
+            for filestem, list_fvar in constants.FIELD_FILES.items():
+                if name in list_fvar:
+                    break
+            fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
+        elif name in constants.FIELD_VARS_EXTRA:
+            self[name] = constants.FIELD_VARS_EXTRA[name].\
+                description(self.step)
+            return self[name]
+        else:
             raise ValueError("Unknown field variable: '{}'".format(name))
-        par_type = constants.FIELD_VAR_LIST[name].par
-        fieldfile = self.step.sdat.filename(par_type, self.step.isnap)
         parsed_data = stagyyparsers.fields(fieldfile)
         if parsed_data is None:
             return None
         header, fields = parsed_data
         self._header = header
-        if par_type == 'vp':
-            fld_names = ['u', 'v', 'w', 'p']
-        elif par_type == 'sx':
-            fld_names = ['sxi', 'sxj', 'sxk', 'x']
-        else:
-            fld_names = [name]  # wrong for some stuff like stream func
-        if name not in fld_names:
-            # could use a function for fields not in a file (such as stream)
-            # if can't call it, assume this is the name of the field file
-            print("'{}' field computation not available".format(name))
-            return None
+        fld_names = constants.FIELD_FILES[filestem]
         for fld_name, fld in zip(fld_names, fields):
             if self._header['xyp'] == 0:
                 if not self.geom.twod_yz:
@@ -384,10 +382,10 @@ class _Snaps(_Steps):
             out_stem = re.escape(pathlib.Path(
                 self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
             rgx = re.compile('^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
-            pars = set(item.par for item in constants.FIELD_VAR_LIST.values())
+            fstems = set(fstem for fstem in constants.FIELD_FILES)
             for fname in self.sdat.files:
                 match = rgx.match(fname.name)
-                if match is not None and match.group(1) in pars:
+                if match is not None and match.group(1) in fstems:
                     self._last = max(int(match.group(2)), self._last)
             if self._last < 0:
                 raise NoSnapshotError
@@ -488,6 +486,6 @@ class StagyyData:
 
     def binfiles_set(self, isnap):
         """Set of existing binary files at a given snap"""
-        possible_files = set(self.filename(item.par, isnap)
-                             for item in constants.FIELD_VAR_LIST.values())
+        possible_files = set(self.filename(fstem, isnap)
+                             for fstem in constants.FIELD_FILES)
         return possible_files & self.files
