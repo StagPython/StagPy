@@ -1,9 +1,9 @@
 # PYTHON_ARGCOMPLETE_OK
 """The stagpy module is callable"""
 
+import importlib
 import signal
 import sys
-from . import config
 
 
 def sigint_handler(*_):
@@ -15,6 +15,7 @@ def sigint_handler(*_):
 def main():
     """StagPy entry point"""
     signal.signal(signal.SIGINT, sigint_handler)
+    config = importlib.import_module('stagpy.config')
     args = config.parse_args()
     args.func(args)
 
