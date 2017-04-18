@@ -1,7 +1,7 @@
 """definition of each subcommands"""
 
 from inspect import getdoc
-from . import constants, misc, field, rprof, time_series, plates
+from . import constants, misc, field, rprof, time_series, plates, stagyydata
 from . import __version__
 
 
@@ -30,6 +30,28 @@ def plates_cmd(args):
         for var, meta in constants.PLATES_VAR_LIST.items():
             misc.set_arg(args, meta.arg, var in args.plot)
     plates.plates_cmd(args)
+
+
+def info_cmd(args):
+    """Print basic information about StagYY run"""
+    sdat = stagyydata.StagyyData(args.path)
+    lsnap = sdat.snaps.last
+    lstep = sdat.steps.last
+    lfields = []
+    for fvar in constants.FIELD_VARS:
+        if lsnap.fields[fvar] is not None:
+            lfields.append(fvar)
+    print('StagYY run in {}'.format(sdat.path))
+    print('Last timestep:',
+          '  istep: {}'.format(lstep.istep),
+          '  time:  {}'.format(lstep.timeinfo['t']),
+          '  <T>:   {}'.format(lstep.timeinfo['Tmean']),
+          sep='\n')
+    print('Last snapshot (istep {}):'.format(lsnap.istep),
+          '  isnap: {}'.format(lsnap.isnap),
+          '  time:  {}'.format(lsnap.timeinfo['t']),
+          '  output fields: {}'.format(','.join(lfields)),
+          sep='\n')
 
 
 def var_cmd(_):

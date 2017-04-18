@@ -163,6 +163,9 @@ PLATES = OrderedDict((
              False, 'Zoom around surface')),
 ))
 
+INFO = OrderedDict((
+))
+
 VAR = OrderedDict((
 ))
 
@@ -204,6 +207,8 @@ SUB_CMDS = OrderedDict((
                  'plot temporal series')),
     ('plates', Sub(PLATES, True, commands.plates_cmd,
                    'plate analysis')),
+    ('info', Sub(INFO, True, commands.info_cmd,
+                 'print basic information about StagYY run')),
     ('var', Sub(VAR, False, commands.var_cmd,
                 'print the list of variables')),
     ('version', Sub(VERSION, False, commands.version_cmd,
