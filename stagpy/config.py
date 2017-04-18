@@ -5,6 +5,7 @@ and deal with the config file
 """
 
 from collections import OrderedDict, namedtuple
+from inspect import getdoc
 from subprocess import call
 import argcomplete
 import argparse
@@ -189,7 +190,7 @@ CONFIG = OrderedDict((
 
 
 def config_cmd(args):
-    """sub command config"""
+    """Configuration handling"""
     if not (args.create or args.update or args.edit):
         args.update = True
     if args.create or args.update:
@@ -197,24 +198,16 @@ def config_cmd(args):
     if args.edit:
         call(shlex.split('{} {}'.format(args.editor, CONFIG_FILE)))
 
-Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func', 'help_string'])
+Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func'])
 SUB_CMDS = OrderedDict((
-    ('field', Sub(FIELD, True, commands.field_cmd,
-                  'plot scalar fields')),
-    ('rprof', Sub(RPROF, True, commands.rprof_cmd,
-                  'plot radial profiles')),
-    ('time', Sub(TIME, True, commands.time_cmd,
-                 'plot temporal series')),
-    ('plates', Sub(PLATES, True, commands.plates_cmd,
-                   'plate analysis')),
-    ('info', Sub(INFO, True, commands.info_cmd,
-                 'print basic information about StagYY run')),
-    ('var', Sub(VAR, False, commands.var_cmd,
-                'print the list of variables')),
-    ('version', Sub(VERSION, False, commands.version_cmd,
-                    'print the version')),
-    ('config', Sub(CONFIG, False, config_cmd,
-                   'configuration handling')),
+    ('field', Sub(FIELD, True, commands.field_cmd)),
+    ('rprof', Sub(RPROF, True, commands.rprof_cmd)),
+    ('time', Sub(TIME, True, commands.time_cmd)),
+    ('plates', Sub(PLATES, True, commands.plates_cmd)),
+    ('info', Sub(INFO, True, commands.info_cmd)),
+    ('var', Sub(VAR, False, commands.var_cmd)),
+    ('version', Sub(VERSION, False, commands.version_cmd)),
+    ('config', Sub(CONFIG, False, config_cmd)),
 ))
 
 DummySub = namedtuple('DummySub', ['conf_dict'])
@@ -349,7 +342,7 @@ def _build_parser():
     core_parser = add_args(core_parser, PLOTTING)
 
     for sub_cmd, meta in SUB_CMDS.items():
-        kwargs = {'prefix_chars': '+-', 'help': meta.help_string}
+        kwargs = {'prefix_chars': '+-', 'help': getdoc(meta.func)}
         if meta.use_core:
             kwargs.update(parents=[core_parser])
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)

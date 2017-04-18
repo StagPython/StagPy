@@ -6,25 +6,25 @@ from . import __version__
 
 
 def field_cmd(args):
-    """plot snapshots of fields"""
+    """Plot scalar and vector fields"""
     misc.plot_backend(args)
     field.field_cmd(args)
 
 
 def rprof_cmd(args):
-    """plot radial profiles"""
+    """Plot radial profiles"""
     misc.plot_backend(args)
     rprof.rprof_cmd(args)
 
 
 def time_cmd(args):
-    """plot time series"""
+    """Plot time series"""
     misc.plot_backend(args)
     time_series.time_cmd(args)
 
 
 def plates_cmd(args):
-    """plate analysis"""
+    """Plate analysis"""
     misc.plot_backend(args)
     if args.plot is not None:
         for var, meta in constants.PLATES_VAR_LIST.items():
@@ -55,7 +55,7 @@ def info_cmd(args):
 
 
 def var_cmd(_):
-    """display a list of available variables"""
+    """Print a list of available variables"""
     print('field:')
     print(*('{}: {}'.format(v, m.description)
           for v, m in constants.FIELD_VARS.items()), sep='\n')
@@ -80,5 +80,5 @@ def var_cmd(_):
 
 
 def version_cmd(_):
-    """print current version"""
+    """Print StagPy version"""
     print('stagpy version: {}'.format(__version__))
