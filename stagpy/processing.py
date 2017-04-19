@@ -155,8 +155,9 @@ def stream_function(step):
                                        x=r_coord,
                                        initial=0)
         for i_z, r_pos in enumerate(r_coord):
-            psi[:, i_z] = psi[0, i_z] / r_pos - \
-                integrate.cumtrapz(r_pos * v_z[:, i_z], x=x_coord, initial=0)
+            psi[:, i_z] = psi[0, i_z] - \
+                integrate.cumtrapz(r_pos**2 * v_z[:, i_z],
+                                   x=x_coord, initial=0)
     else:  # assume cartesian geometry
         psi[0, :] = integrate.cumtrapz(v_x[0, :],
                                        x=step.geom.z_coord,
