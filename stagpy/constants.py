@@ -169,7 +169,7 @@ TIME_VARS_EXTRA = OrderedDict((
     ('ebalance', Vart(processing.ebalance, r'\mathrm{Nu}')),
 ))
 
-Varp = namedtuple('Varp', ['par', 'name', 'arg'])
+Varp = namedtuple('Varp', ['par', 'description', 'arg'])
 PLATES_VAR_LIST = OrderedDict((
     ('c', Varp('c', 'Composition', 'plot_composition')),
     ('n', Varp('eta', 'Viscosity', 'plot_viscosity')),
