@@ -153,10 +153,7 @@ def detect_plates(args, step, vrms_surface, fids, time):
     io_surface(timestep, time, fids[7], vph2[:-1, indsurf])
 
     # prepare stuff to find trenches and ridges
-    if step.sdat.par['boundaries']['air_layer']:
-        myorder_trench = 15
-    else:
-        myorder_trench = 10
+    myorder_trench = 15 if step.sdat.par['boundaries']['air_layer'] else 10
     myorder_ridge = 20  # threshold
 
     # finding trenches
@@ -215,10 +212,8 @@ def detect_plates(args, step, vrms_surface, fids, time):
     return trench, ridge, agetrench, dv_trench, dv_ridge
 
 
-def plot_plate_limits(args, fig, axis, ridges, trenches, ymin, ymax):
+def plot_plate_limits(axis, ridges, trenches, ymin, ymax):
     """plot lines designating ridges and trenches"""
-    args.plt.figure(fig.number)
-    # need for fig and args?
     for trench in trenches:
         axis.axvline(
             x=trench, ymin=ymin, ymax=ymax,
@@ -231,9 +226,8 @@ def plot_plate_limits(args, fig, axis, ridges, trenches, ymin, ymax):
     axis.set_ylim(ymin, ymax)
 
 
-def plot_plate_limits_field(args, fig, axis, rcmb, ridges, trenches):
+def plot_plate_limits_field(axis, rcmb, ridges, trenches):
     """plot arrows designating ridges and trenches in 2D field plots"""
-    args.plt.figure(fig.number)  # need for fig and args? Could use sca.
     for trench in trenches:  # why use index and arange?
         xxd = (rcmb + 1.02) * np.cos(trench)  # arrow begin
         yyd = (rcmb + 1.02) * np.sin(trench)  # arrow begin
@@ -289,8 +283,8 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
             np.logical_or(concfld[:-1, indcont] < 3,
                           concfld[:-1, indcont] > 4),
             concfld[:-1, indcont])
-    elif step.sdat.par['boundaries']['air_layer'] and\
-         step.sdat.par['continents']['proterozoic_belts']:
+    elif (step.sdat.par['boundaries']['air_layer'] and
+          step.sdat.par['continents']['proterozoic_belts']):
         continents = np.ma.masked_where(
             np.logical_or(concfld[:-1, indcont] < 3,
                           concfld[:-1, indcont] > 5),
@@ -354,8 +348,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
              transform=ax1.transAxes, fontsize=args.fontsize)
 
-    plot_plate_limits(args, fig0, ax3, ridge, trench,
-                      args.velocitymin, args.velocitymax)
+    plot_plate_limits(ax3, ridge, trench, args.velocitymin, args.velocitymax)
 
     figname = misc.out_name(args, 'sveltempconc').format(timestep) + '.pdf'
     plt.savefig(figname, format='PDF')
@@ -375,10 +368,8 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
              color='k', linewidth=lwd, label='dv')
     ax2.set_ylabel("dv", fontsize=args.fontsize)
 
-    plot_plate_limits(args, fig0, ax1, ridge, trench,
-                      args.velocitymin, args.velocitymax)
-    plot_plate_limits(args, fig0, ax2, ridge, trench,
-                      args.dvelocitymin, args.dvelocitymax)
+    plot_plate_limits(ax1, ridge, trench, args.velocitymin, args.velocitymax)
+    plot_plate_limits(ax2, ridge, trench, args.dvelocitymin, args.dvelocitymax)
     ax1.set_xlim(0, 2 * np.pi)
     ax1.set_title(timestep, fontsize=args.fontsize)
 
@@ -411,9 +402,9 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
         ax2.set_ylim(args.stressmin, args.stressmax)
         ax2.set_ylabel("Stress [MPa]", fontsize=args.fontsize)
 
-        plot_plate_limits(args, fig0, ax1, ridge, trench,
+        plot_plate_limits(ax1, ridge, trench,
                           args.velocitymin, args.velocitymax)
-        plot_plate_limits(args, fig0, ax2, ridge, trench,
+        plot_plate_limits(ax2, ridge, trench,
                           args.stressmin, args.stressmax)
         ax1.set_xlim(0, 2 * np.pi)
         ax1.set_title(timestep, fontsize=args.fontsize)
@@ -440,8 +431,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax1.set_ylabel("Velocity", fontsize=args.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes, fontsize=args.fontsize)
-    plot_plate_limits(args, fig1, ax1, ridge, trench,
-                      args.velocitymin, args.velocitymax)
+    plot_plate_limits(ax1, ridge, trench, args.velocitymin, args.velocitymax)
 
     # plotting velocity and age at surface
     if args.plot_age:
@@ -457,7 +447,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
         ax3.fill_between(
             ph_coord[:-1], continentsall * args.velocitymax, args.velocitymin,
             facecolor='#8B6914', alpha=0.2)
-        plot_plate_limits(args, fig2, ax3, ridge, trench,
+        plot_plate_limits(ax3, ridge, trench,
                           args.velocitymin, args.velocitymax)
 
     times_subd = []
@@ -468,13 +458,13 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     if step.sdat.par['switches']['cont_tracers']:
         for i in range(len(trench)):  # should enumerate
             # detection of the distance in between subduction and continent
-            ph_coord_noendpoint = ph_coord[:-1]
-            angdistance1 = abs(ph_coord_noendpoint[continentsall == 1] - trench[i])
+            ph_coord_noend = ph_coord[:-1]
+            angdistance1 = abs(ph_coord_noend[continentsall == 1] - trench[i])
             angdistance2 = 2. * np.pi - angdistance1
             angdistance = np.minimum(angdistance1, angdistance2)
             distancecont = min(angdistance)
             argdistancecont = np.argmin(angdistance)
-            continentpos = ph_coord_noendpoint[continentsall == 1][argdistancecont]
+            continentpos = ph_coord_noend[continentsall == 1][argdistancecont]
 
             ph_trench_subd.append(trench[i])
             age_subd.append(agetrench[i])
@@ -534,8 +524,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax2.fill_between(
         ph_coord[:-1], continentsall * args.topomax, args.topomin,
         facecolor='#8B6914', alpha=0.2)
-    plot_plate_limits(args, fig1, ax2, ridge, trench,
-                      args.topomin, args.topomax)
+    plot_plate_limits(ax2, ridge, trench, args.topomin, args.topomax)
     ax1.set_title(timestep, fontsize=args.fontsize)
     figname = misc.out_name(args, 'sveltopo').format(timestep) + '.pdf'
     fig1.savefig(figname, format='PDF')
@@ -550,8 +539,7 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
             ph_coord[:-1], continentsall * args.agemax, args.agemin,
             facecolor='#8B6914', alpha=0.2)
         ax4.set_ylim(args.agemin, args.agemax)
-        plot_plate_limits(args, fig2, ax4, ridge, trench,
-                          args.agemin, args.agemax)
+        plot_plate_limits(ax4, ridge, trench, args.agemin, args.agemax)
         ax3.set_title(timestep, fontsize=args.fontsize)
         figname = misc.out_name(args, 'svelage').format(timestep) + '.pdf'
         fig2.savefig(figname, format='PDF')
@@ -666,10 +654,8 @@ def lithospheric_stress(args, step, trench, ridge, time):
              color='k', linewidth=lwd, label='Stress')
     ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]", fontsize=args.fontsize)
 
-    plot_plate_limits(args, fig0, ax1, ridge, trench,
-                      args.velocitymin, args.velocitymax)
-    plot_plate_limits(args, fig0, ax2, ridge, trench,
-                      args.stressmin, args.lstressmax)
+    plot_plate_limits(ax1, ridge, trench, args.velocitymin, args.velocitymax)
+    plot_plate_limits(ax2, ridge, trench, args.stressmin, args.lstressmax)
     ax1.set_xlim(0, 2 * np.pi)
     ax1.set_title(timestep, fontsize=args.fontsize)
 
@@ -803,8 +789,7 @@ def plates_cmd(args):
                           transform=axis.transAxes, fontsize=args.fontsize)
 
                 # Put arrow where ridges and trenches are
-                plot_plate_limits_field(args, fig, axis, rcmb,
-                                        ridges, trenches)
+                plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                 # Save figure
                 args.plt.tight_layout()
@@ -851,8 +836,7 @@ def plates_cmd(args):
                               transform=axis.transAxes, fontsize=args.fontsize)
 
                     # Put arrow where ridges and trenches are
-                    plot_plate_limits_field(args, fig, axis, rcmb,
-                                            ridges, trenches)
+                    plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                     # Save figure
                     args.plt.tight_layout()
@@ -894,8 +878,7 @@ def plates_cmd(args):
                               transform=axis.transAxes, fontsize=args.fontsize)
 
                     # Put arrow where ridges and trenches are
-                    plot_plate_limits_field(args, fig, axis, rcmb,
-                                            ridges, trenches)
+                    plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                     args.plt.tight_layout()
                     args.plt.savefig(

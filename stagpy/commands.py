@@ -85,7 +85,7 @@ def _layout(dict_vars, dict_vars_extra):
 
     fmt = '|'.join(['{{:{}}}'.format(colw)] * (ncols - 1))
     fmt += '|{}'
-    print(*(fmt.format(*line) for line in lines), sep = '\n')
+    print(*(fmt.format(*line) for line in lines), sep='\n')
 
 
 def var_cmd(_):

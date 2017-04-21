@@ -6,6 +6,11 @@ from . import constants, misc
 from .stagyydata import StagyyData
 
 
+def valid_field_var(var):
+    """Whether a field var is defined"""
+    return var in constants.FIELD_VARS or var in constants.FIELD_VARS_EXTRA
+
+
 def get_meshes_fld(step, var):
     """Return 2D meshes and field"""
     fld = step.fields[var]
@@ -116,8 +121,7 @@ def field_cmd(args):
                                                                step.isnap))
                 continue
             fig, axis, _, _ = plot_scalar(args, step, var[0])
-            if var[1] in constants.FIELD_VARS or\
-                var[1] in constants.FIELD_VARS_EXTRA:
+            if valid_field_var(var[1]):
                 plot_iso(axis, step, var[1])
             elif var[1]:
                 plot_vec(axis, step, var[1])
