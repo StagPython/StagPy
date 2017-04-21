@@ -3,6 +3,7 @@
 from inspect import getdoc
 from itertools import zip_longest
 from math import ceil
+from shutil import get_terminal_size
 from textwrap import TextWrapper
 from . import constants, misc, field, rprof, time_series, plates, stagyydata
 from . import __version__
@@ -61,23 +62,30 @@ def _layout(dict_vars, dict_vars_extra):
     """Print nicely [(var, description)] from *_VARS and *_VARS__EXTRA"""
     desc = [(v, m.description) for v, m in dict_vars.items()]
     desc.extend((v, getdoc(m.description)) for v, m in dict_vars_extra.items())
-    wrapper = TextWrapper(width=26)
+    termw = get_terminal_size().columns
+    ncols = (termw + 1) // 27  # min width of 26
+    colw = (termw + 1) // ncols - 1
+    ncols = min(ncols, len(desc))
+
+    wrapper = TextWrapper(width=colw)
     lines = []
     for varname, description in desc:
         wrapper.subsequent_indent = ' ' * (len(varname) + 2)
         lines.extend(wrapper.wrap('{}: {}'.format(varname, description)))
-    nlines = ceil(len(lines) / 3)
-    isep = nlines
-    while isep < len(lines) and lines[isep][0] == ' ':
-        isep += 1
-    chunk1, lines = lines[:isep], lines[isep:]
-    nlines = ceil(len(lines) / 2)
-    isep = nlines
-    while isep <= len(lines) and lines[isep][0] == ' ':
-        isep += 1
-    cols = zip_longest(chunk1, lines[:isep], lines[isep:], fillvalue='')
-    print(*('{:26}|{:26}|{}'.format(col1, col2, col3)
-          for col1, col2, col3 in cols), sep = '\n')
+
+    chunks = []
+    for rem_col in range(ncols, 1, -1):
+        isep = ceil(len(lines) / rem_col)
+        while isep < len(lines) and lines[isep][0] == ' ':
+            isep += 1
+        chunks.append(lines[:isep])
+        lines = lines[isep:]
+    chunks.append(lines)
+    lines = zip_longest(*chunks, fillvalue='')
+
+    fmt = '|'.join(['{{:{}}}'.format(colw)] * (ncols - 1))
+    fmt += '|{}'
+    print(*(fmt.format(*line) for line in lines), sep = '\n')
 
 
 def var_cmd(_):
