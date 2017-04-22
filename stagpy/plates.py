@@ -31,19 +31,13 @@ def detect_plates_vzcheck(step, seuil_memz):
     water_profile = np.mean(h2o, axis=0)
 
     # calculing tmean
-    tmean = 0
-    for i_r in range(len(radius)):
-        for phi in range(nphi):
-            tmean += (radiusgrid[i_r + 1]**2 -
-                      radiusgrid[i_r] ** 2) * dphi * tcell[phi, i_r]
-    tmean /= (radiusgrid[-1]**2 - rcmb**2)
+    tmean = step.timeinfo.loc['Tmean']
 
     # calculing temperature on the grid and vz_mean/v_rms
-    v_rms = 0
+    v_rms = step.timeinfo.loc['vrms']
     vz_mean = 0
     tgrid = np.zeros((nphi, n_z + 1))
-    for phi in range(nphi):
-        tgrid[phi, 0] = 1
+    tgrid[:, 0] = 1
     for i_z in range(1, n_z):
         for phi in range(nphi):
             tgrid[phi, i_z] = (
@@ -51,9 +45,7 @@ def detect_plates_vzcheck(step, seuil_memz):
                 (radiusgrid[i_z] - radius[i_z - 1]) + tcell[phi, i_z] *
                 (-radiusgrid[i_z] + radius[i_z])) / (radius[i_z] -
                                                      radius[i_z - 1])
-            v_rms += (v_z[phi, i_z]**2 + v_x[phi, i_z]**2) / (nphi * n_z)
             vz_mean += abs(v_z[phi, i_z]) / (nphi * n_z)
-    v_rms = v_rms**0.5
     print(v_rms, vz_mean)
 
     flux_c = n_z * [0]
@@ -128,13 +120,8 @@ def detect_plates_vzcheck(step, seuil_memz):
 
 def detect_plates(args, step, vrms_surface, fids, time):
     """detect plates using derivative of horizontal velocity"""
-    timestep = step.isnap
     vphi = step.fields['v2'][0, :, :, 0]
     ph_coord = step.geom.p_coord
-    if args.plot_age:
-        agefld = step.fields['age'][0, :, :, 0]
-    else:
-        agefld = []
 
     if step.sdat.par['boundaries']['air_layer']:
         dsa = step.sdat.par['boundaries']['air_thickness']
@@ -149,8 +136,8 @@ def detect_plates(args, step, vrms_surface, fids, time):
     # velocity derivation
     dvph2 = (np.diff(vph2[:, indsurf]) / (ph_coord[0] * 2.))
 
-    io_surface(timestep, time, fids[6], dvph2)
-    io_surface(timestep, time, fids[7], vph2[:-1, indsurf])
+    io_surface(step.isnap, time, fids[6], dvph2)
+    io_surface(step.isnap, time, fids[7], vph2[:-1, indsurf])
 
     # prepare stuff to find trenches and ridges
     myorder_trench = 15 if step.sdat.par['boundaries']['air_layer'] else 10
@@ -191,6 +178,7 @@ def detect_plates(args, step, vrms_surface, fids, time):
 
     dv_ridge = dvph2[arggreat_dv]
     if args.plot_age:
+        agefld = step.fields['age'][0, :, :, 0]
         age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
                                          agefld[:, indsurf])
         age_surface_dim = age_surface * vrms_surface *\
@@ -202,7 +190,7 @@ def detect_plates(args, step, vrms_surface, fids, time):
     # writing the output into a file, all time steps are in one file
     for itrench in np.arange(len(trench)):
         fids[0].write("%7.0f %11.7f %10.6f %9.2f %9.2f \n" % (
-            timestep,
+            step.isnap,
             step.geom.ti_ad,
             trench[itrench],
             velocity_trench[itrench],
@@ -228,7 +216,7 @@ def plot_plate_limits(axis, ridges, trenches, ymin, ymax):
 
 def plot_plate_limits_field(axis, rcmb, ridges, trenches):
     """plot arrows designating ridges and trenches in 2D field plots"""
-    for trench in trenches:  # why use index and arange?
+    for trench in trenches:
         xxd = (rcmb + 1.02) * np.cos(trench)  # arrow begin
         yyd = (rcmb + 1.02) * np.sin(trench)  # arrow begin
         xxt = (rcmb + 1.35) * np.cos(trench)  # arrow end
@@ -472,43 +460,28 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
             distance_subd.append(distancecont)
             times_subd.append(step.geom.ti_ad)
 
-            # continent is on the left
             if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
-                if continentpos - trench[i] < 0:
-                    ax1.annotate('', xy=(trench[i] - distancecont, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                else:  # continent is on the right
-                    ax1.annotate('', xy=(trench[i] + distancecont, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
+                if continentpos - trench[i] < 0:  # continent is on the left
+                    distancecont = - distancecont
+                ax1.annotate('', xy=(trench[i] + distancecont, 2000),
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
             else:  # distance over boundary
+                xy_anot, xy_text = 0, 2 * np.pi
                 if continentpos - trench[i] < 0:
-                    ax1.annotate('', xy=(2. * np.pi, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="-", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                    ax1.annotate('', xy=(continentpos, 2000),
-                                 xycoords='data', xytext=(0, 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                else:
-                    ax1.annotate('', xy=(0, 2000),
-                                 xycoords='data', xytext=(trench[i], 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="-", lw="2",
-                                                 shrinkA=0, shrinkB=0))
-                    ax1.annotate('', xy=(continentpos, 2000),
-                                 xycoords='data', xytext=(2. * np.pi, 2000),
-                                 textcoords='data',
-                                 arrowprops=dict(arrowstyle="->", lw="2",
-                                                 shrinkA=0, shrinkB=0))
+                    xy_anot, xy_text = xy_text, xy_anot
+                ax1.annotate('', xy=(xy_anot, 2000),
+                             xycoords='data', xytext=(trench[i], 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="-", lw="2",
+                                             shrinkA=0, shrinkB=0))
+                ax1.annotate('', xy=(continentpos, 2000),
+                             xycoords='data', xytext=(xy_text, 2000),
+                             textcoords='data',
+                             arrowprops=dict(arrowstyle="->", lw="2",
+                                             shrinkA=0, shrinkB=0))
 
     ax1.fill_between(
         ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
