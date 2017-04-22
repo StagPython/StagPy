@@ -126,23 +126,30 @@ all directories stored where the script is executed::
   """Nu=f(Ra) from a set of stagyy results in different directories"""
 
   import matplotlib.pyplot as plt
+  import numpy as np
   from stagpy import stagyydata
   from pathlib import Path
 
-  ran =[]
+  ran = []
   nun = []
 
-  pwd = Path('.')
+  pwd = Path('Examples')
   for rep in pwd.glob('ra-*'):
       print('In directory ', rep)
-      sdat = stagyydata.StagyyData(rep.name)
+      sdat = stagyydata.StagyyData(rep)
       # get the value of the Rayleigh number
       ran.append(sdat.par['refstate']['ra0'])
       # get the last value of the Nusselt number
       nun.append(sdat.steps.last.timeinfo['Nutop'])
 
+  ran = np.array(ran)
+  nun = np.array(nun)
+
+  # sort by Ra#
+  indexes = ran.argsort()
+
   fig = plt.figure()
-  plt.loglog(ran, nun, 'o--')
+  plt.loglog(ran[indexes], nun[indexes], 'o--')
   plt.xlabel(r'Rayleigh number')
   plt.ylabel(r'Nusselt number')
   plt.savefig('Ra-Nu.pdf')
@@ -173,10 +180,10 @@ table) as function of time for all these directories::
 
   fig = plt.figure()
 
-  pwd = Path('.')
+  pwd = Path('Examples/')
   for rep in pwd.glob('ra-*'):
       print('In directory ', rep)
-      sdat = stagyydata.StagyyData(rep.name)
+      sdat = stagyydata.StagyyData(rep)
       # get the value of the Rayleigh number
       ra0 = sdat.par['refstate']['ra0']
       # get the time vector
