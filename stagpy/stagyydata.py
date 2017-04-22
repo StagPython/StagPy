@@ -2,7 +2,6 @@
 
 import re
 import pathlib
-from os.path import expanduser, expandvars
 import numpy as np
 from . import constants, parfile, stagyyparsers
 
@@ -398,7 +397,7 @@ class StagyyData:
 
     def __init__(self, path):
         """Generic lazy StagYY output data accessors"""
-        self.path = pathlib.Path(expanduser(expandvars(path)))
+        self.path = pathlib.Path(path)
         self.par = parfile.readpar(self.path)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)

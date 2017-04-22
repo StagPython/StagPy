@@ -10,7 +10,8 @@ is called ``sdat``. You can create this instance like this::
 
 where ``path/to/run/`` is the path towards the directory containing your run
 (where the ``par`` file is). This path can be absolute or relative to the
-current working directory.
+current working directory. It can be a regular string, or a
+:class:`pathlib.Path` object.
 
 Snapshots and time steps
 ------------------------
