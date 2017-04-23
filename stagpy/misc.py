@@ -1,7 +1,10 @@
 """miscellaneous definitions"""
 
 import importlib
+import os
+import shutil
 import sys
+import tempfile
 
 INT_FMT = '{:05d}'
 
@@ -84,3 +87,55 @@ def plot_backend(args):
         plt.xkcd()
     args.mpl = mpl
     args.plt = plt
+
+
+class InchoateFiles:
+
+    """Context manager handling files whose names are not known yet"""
+
+    def __init__(self, nfiles=1, tmp_prefix=None):
+        """Initialize context object
+
+        nfiles: number of files
+        tmp_prefix: prefix name of temporary files
+        """
+        self._fnames = ['inchoate{}'.format(i) for i in range(nfiles)]
+        self._tmpprefix = tmp_prefix
+        self._fids = []
+
+    @property
+    def fids(self):
+        """List of files id"""
+        return self._fids
+
+    @property
+    def fnames(self):
+        """List of filenames"""
+        return self._fnames
+
+    @fnames.setter
+    def fnames(self, names):
+        """Ensure constant size of fnames"""
+        names = list(names[:len(self._fnames)])
+        self._fnames = names + self._fnames[len(names):]
+
+    def __getitem__(self, idx):
+        return self._fids[idx]
+
+    def __enter__(self):
+        """Create temporary files"""
+        for ifile in range(len(self.fnames)):
+            self._fids.append(
+                tempfile.NamedTemporaryFile(
+                    mode='w', prefix=self._tmpprefix, delete=False))
+        return self
+
+    def __exit__(self, *exc_info):
+        """Give temporary files their final names"""
+        for tmp in self._fids:
+            tmp.close()
+        if exc_info[0] is None:
+            for fname, tmp in zip(self.fnames, self._fids):
+                shutil.copyfile(tmp.name, fname)
+        for tmp in self._fids:
+            os.remove(tmp.name)

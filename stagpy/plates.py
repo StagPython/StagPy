@@ -3,10 +3,7 @@
 Date: 2016/26/01
 """
 from copy import deepcopy
-import functools
-import shutil
 import sys
-import tempfile
 import os.path
 import numpy as np
 from scipy.signal import argrelextrema
@@ -654,21 +651,14 @@ def plates_cmd(args):
     """
     sdat = StagyyData(args.path)
     if not args.vzcheck:
-        fids = [0 for _ in range(8)]
-        tmpf = functools.partial(tempfile.NamedTemporaryFile, mode='w',
-                                 prefix='stagpy', delete=False)
-        fnames = ['plate_velocity', 'distance_subd', 'continents',
-                  'flux', 'topography', 'age',
-                  'velderiv', 'velocity']
-        istart, iend = None, None
-        with tmpf() as fids[0], tmpf() as fids[1], tmpf() as fids[2],\
-             tmpf() as fids[3], tmpf() as fids[4], tmpf() as fids[5],\
-             tmpf() as fids[6], tmpf() as fids[7]:
-
+        with misc.InchoateFiles(8, 'plates') as fids:
+            fids.fnames = ['plate_velocity', 'distance_subd', 'continents',
+                           'flux', 'topography', 'age', 'velderiv', 'velocity']
             fids[0].write('#  it  time  ph_trench vel_trench age_trench\n')
             fids[1].write('#  it      time   time [My]   distance     '
                           'ph_trench     ph_cont  age_trench [My]\n')
 
+            istart, iend = None, None
             for step in misc.steps_gen(sdat, args):
                 # could check other fields too
                 if step.fields['T'] is None:
@@ -859,14 +849,16 @@ def plates_cmd(args):
                         format='PDF')
                     args.plt.close(fig)
 
-        for fname, tmp in zip(fnames, fids):
-            stem = '{}_{}_{}'.format(fname, istart, iend)
+            # determine names of files
+            stem = '{}_{}_{}'.format(fids.fnames[0], istart, iend)
             idx = 0
             fmt = '{}.dat'
             while os.path.isfile(fmt.format(stem, idx)):
                 fmt = '{}_{}.dat'
                 idx += 1
-            shutil.move(tmp.name, fmt.format(stem, idx))
+            fids.fnames = [fmt.format('{}_{}_{}'.format(fname, istart, iend),
+                                      idx)
+                           for fname in fids.fnames]
     else:  # args.vzcheck
         seuil_memz = 0
         nb_plates = []
