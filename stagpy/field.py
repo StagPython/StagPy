@@ -129,3 +129,4 @@ def field_cmd(args):
             fig.savefig(
                 misc.out_name(args, oname).format(step.isnap) + '.pdf',
                 format='PDF', bbox_inches='tight')
+            args.plt.close(fig)

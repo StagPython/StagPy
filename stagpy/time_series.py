@@ -44,6 +44,7 @@ def _plot_time_list(lovs, tseries, metas, args, times=None):
         axes[-1].tick_params(labelsize=args.fontsize)
         fig.savefig('time_{}.pdf'.format(fname[:-1]),
                     format='PDF', bbox_inches='tight')
+        args.plt.close(fig)
 
 
 def get_time_series(sdat, var, tstart, tend):

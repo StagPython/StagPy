@@ -35,6 +35,7 @@ def _plot_rprof_list(lovs, rprofs, metas, args, stepstr, rads=None):
         axes[0].set_ylabel(r'$r$')
         fig.savefig('{}{}.pdf'.format(fname, stepstr),
                     format='PDF', bbox_inches='tight')
+        args.plt.close(fig)
 
 
 def get_rprof(step, var):
@@ -68,6 +69,7 @@ def plot_grid(step, args):
     ax2.set_xlim([-0.5, len(rad) - 0.5])
     ax2.set_xlabel('Cell number')
     fig.savefig('grid_{}.pdf'.format(step.istep))
+    args.plt.close(fig)
 
 
 def plot_average(sdat, lovs, args):
