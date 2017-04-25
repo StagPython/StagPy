@@ -651,6 +651,29 @@ def plates_cmd(args):
     """
     sdat = StagyyData(args.path)
     if not args.vzcheck:
+        # calculating averaged horizontal surface velocity
+        # needed for redimensionalisation
+        ilast = sdat.rprof.index.levels[0][-1]
+        rlast = sdat.rprof.loc[ilast]
+        nprof = 0
+        uprof_averaged = rlast.loc[:, 'vhrms'] * 0
+        for step in misc.steps_gen(sdat, args):
+            if step.rprof is None:
+                continue
+            uprof_averaged += step.rprof['vhrms']
+            nprof += 1
+        uprof_averaged /= nprof
+        radius = rlast['r'].values
+        if sdat.par['boundaries']['air_layer']:
+            dsa = sdat.par['boundaries']['air_thickness']
+            isurf = np.argmin(abs(radius - radius[-1] + dsa))
+        else:
+            isurf = -1
+        vrms_surface = uprof_averaged.iloc[isurf]
+        if sdat.par['boundaries']['air_layer']:
+            isurf = np.argmin(abs((1 - dsa) - radius))
+            isurf -= 4  # why different isurf for the rest?
+
         with misc.InchoateFiles(8, 'plates') as fids:
             fids.fnames = ['plate_velocity', 'distance_subd', 'continents',
                            'flux', 'topography', 'age', 'velderiv', 'velocity']
@@ -672,31 +695,6 @@ def plates_cmd(args):
                 if args.plot_stress:
                     scale_stress = args.kappa * \
                         args.viscosity_ref / args.mantle**2
-
-                if timestep == istart:
-                    # same code in rprof!
-                    # calculating averaged horizontal surface velocity
-                    # needed for redimensionalisation
-                    ilast = sdat.rprof.index.levels[0][-1]
-                    rlast = sdat.rprof.loc[ilast]
-                    nprof = 0
-                    uprof_averaged = rlast.loc[:, 'vhrms'] * 0
-                    for step in misc.steps_gen(sdat, args):
-                        if step.rprof is None:
-                            continue
-                        uprof_averaged += step.rprof['vhrms']
-                        nprof += 1
-                    uprof_averaged /= nprof
-                    radius = rlast['r'].values + rcmb
-                    if sdat.par['boundaries']['air_layer']:
-                        dsa = sdat.par['boundaries']['air_thickness']
-                        isurf = np.argmin(abs(radius - radius[-1] + dsa))
-                    else:
-                        isurf = -1
-                    vrms_surface = uprof_averaged.iloc[isurf]
-                    if sdat.par['boundaries']['air_layer']:
-                        isurf = np.argmin(abs((1 - dsa) - step.geom.r_coord))
-                        isurf -= 4  # why different isurf for the rest?
 
                 # topography
                 fname = sdat.filename('sc', timestep=timestep, suffix='.dat')
