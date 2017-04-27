@@ -54,10 +54,9 @@ $(LINK): $(STAGPY)
 $(STAGPY): $(VENV_DIR) $(OBJS)
 	$(VPY) -E setup.py develop
 
-$(VENV_DIR): requirements.txt
+$(VENV_DIR):
 	$(PY) -m venv --system-site-packages $@
 	$(VPIP) install -I argcomplete
-	$(VPIP) install -r $<
 
 info: infopath infozsh infobash
 
