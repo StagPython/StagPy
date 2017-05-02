@@ -124,10 +124,11 @@ class InchoateFiles:
 
     def __enter__(self):
         """Create temporary files"""
-        for ifile in range(len(self.fnames)):
+        for fname in self.fnames:
+            pfx = fname if self._tmpprefix is None else self._tmpprefix
             self._fids.append(
                 tempfile.NamedTemporaryFile(
-                    mode='w', prefix=self._tmpprefix, delete=False))
+                    mode='w', prefix=pfx, delete=False))
         return self
 
     def __exit__(self, *exc_info):
