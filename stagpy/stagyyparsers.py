@@ -12,28 +12,36 @@ def time_series(timefile, colnames):
     """Read temporal series from time.dat"""
     if not timefile.is_file():
         return None
-    data = np.genfromtxt(timefile, skip_header=1)
+    data = pd.read_csv(timefile, delim_whitespace=True, dtype=str,
+                       header=None, skiprows=1, index_col=0,
+                       engine='c', memory_map=True,
+                       error_bad_lines=False, warn_bad_lines=False)
+    data = data.apply(pd.to_numeric, raw=True, errors='coerce')
 
     # detect useless lines produced when run is restarted
     rows_to_del = []
-    for irow in range(1, len(data)):
+    irow = len(data) - 1
+    while irow > 0:
         iprev = irow - 1
-        while int(data[irow, 0]) <= int(data[iprev, 0]):
+        while iprev >= 0 and data.index[irow] <= data.index[iprev]:
             rows_to_del.append(iprev)
             iprev -= 1
-    data = np.delete(data, rows_to_del, 0)
-    ncols = data.shape[1] - 1
-    colnames = colnames[:ncols] + list(range(0, ncols - len(colnames)))
+        irow = iprev
+    if rows_to_del:
+        rows_to_keep = set(range(len(data))) - set(rows_to_del)
+        data = data.take(list(rows_to_keep), convert=False)
 
-    isteps = map(int, data[:, 0])
-    return pd.DataFrame(data[:, 1:], index=isteps, columns=colnames)
+    ncols = data.shape[1]
+    data.columns = colnames[:ncols] + list(range(0, ncols - len(colnames)))
+
+    return data
 
 
 def _extract_rsnap_isteps(rproffile):
     """Extract istep and compute list of rows to delete"""
     step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')
     isteps = []  # list of (istep, time, nz)
-    rows_to_del = []
+    rows_to_del = set()
     line = ' '
     with rproffile.open() as stream:
         while line[0] != '*':
@@ -54,7 +62,8 @@ def _extract_rsnap_isteps(rproffile):
                 nrows_to_del = 0
                 while isteps and istep <= isteps[-1][0]:
                     nrows_to_del += isteps.pop()[-1]
-                rows_to_del.extend(range(iline - nrows_to_del, iline))
+                rows_to_del = rows_to_del.union(
+                    range(iline - nrows_to_del, iline))
             else:
                 nlines += 1
                 iline += 1
@@ -66,23 +75,30 @@ def rprof(rproffile, colnames):
     """Extract radial profiles data"""
     if not rproffile.is_file():
         return None, None
-    data = np.genfromtxt(rproffile, comments='*')
+    data = pd.read_csv(rproffile, delim_whitespace=True, dtype=str,
+                       header=None, comment='*',
+                       engine='c', memory_map=True,
+                       error_bad_lines=False, warn_bad_lines=False)
+    data = data.apply(pd.to_numeric, raw=True, errors='coerce')
 
     isteps, rows_to_del = _extract_rsnap_isteps(rproffile)
-    data = np.delete(data, rows_to_del, 0)
-
-    ncols = data.shape[1]
-    colnames = colnames[:ncols] + list(range(0, ncols - len(colnames)))
+    if rows_to_del:
+        rows_to_keep = set(range(len(data))) - rows_to_del
+        data = data.take(list(rows_to_keep), convert=False)
 
     id_arr = [[], []]
     for istep, _, n_z in isteps:
         id_arr[0].extend(repeat(istep, n_z))
         id_arr[1].extend(range(n_z))
 
-    df_rprof = pd.DataFrame(data, index=id_arr, columns=colnames)
+    data.index = id_arr
+
+    ncols = data.shape[1]
+    data.columns = colnames[:ncols] + list(range(0, ncols - len(colnames)))
+
     df_times = pd.DataFrame(list(map(itemgetter(1), isteps)),
                             index=map(itemgetter(0), isteps))
-    return df_rprof, df_times
+    return data, df_times
 
 
 def _readbin(fid, fmt='i', nwords=1, file64=False):
