@@ -116,7 +116,7 @@ TIME = OrderedDict((
         Conf(False, True, None, {},
              True, 'compute steady state statistics')),
     ('tstart',
-        Conf(0., True, None, {},
+        Conf(None, True, None, {'type': float},
              False, 'specify beginning for the time series')),
     ('tend',
         Conf(None, True, None, {'type': float},

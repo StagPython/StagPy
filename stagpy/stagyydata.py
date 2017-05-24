@@ -441,14 +441,14 @@ class StagyyData:
             self._files = set(out_dir.iterdir())
         return self._files
 
-    def tseries_between(self, tstart=0., tend=None):
+    def tseries_between(self, tstart=None, tend=None):
         """Time series data between requested times"""
         if self.tseries is None:
             return None
 
         ndat = self.tseries.shape[0]
 
-        if tstart <= 0.:
+        if tstart is None:
             istart = 0
         else:
             igm = 0
