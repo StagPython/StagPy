@@ -80,7 +80,7 @@ def plot_time_series(sdat, lovs, args):
         metas[tvar] = meta
         if time is not None:
             times[tvar] = time
-    tseries['t'] = sdat.tseries['t']
+    tseries['t'] = get_time_series(sdat, 't', args.tstart, args.tend)[0]
 
     _plot_time_list(lovs, tseries, metas, args, times)
 
