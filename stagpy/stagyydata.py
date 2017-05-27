@@ -204,6 +204,15 @@ class _Fields(dict):
             self[fld_name] = fld
         return self[name]
 
+    def __setitem__(self, name, fld):
+        sdat = self.step.sdat
+        col_fld = sdat.collected_fields
+        col_fld.append((self.step.istep, name))
+        while len(col_fld) > sdat.nfields_max > 5:
+            istep, fld_name = col_fld.pop(0)
+            del sdat.steps[istep].fields[fld_name]
+        super().__setitem__(name, fld)
+
     @property
     def geom(self):
         """Header info from bin file"""
@@ -395,12 +404,14 @@ class StagyyData:
 
     """Offer a generic interface to StagYY output data"""
 
-    def __init__(self, path):
+    def __init__(self, path, nfields_max=50):
         """Generic lazy StagYY output data accessors"""
         self.path = pathlib.Path(path)
         self.par = parfile.readpar(self.path)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
+        self.nfields_max = nfields_max
+        self.collected_fields = []
         self._files = UNDETERMINED
         self._tseries = UNDETERMINED
         self._rprof = UNDETERMINED
