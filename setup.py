@@ -35,7 +35,7 @@ setup(
     setup_requires=['setuptools_scm'],
     install_requires = [
         'numpy>=1.12',
-        'scipy>=0.19',
+        'scipy>=0.17',
         'f90nml>=0.21',
         'pandas>=0.20',
         'matplotlib>=2.0',
