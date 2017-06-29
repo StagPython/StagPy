@@ -70,6 +70,8 @@ def get_rbounds(step):
         rcmb = step.geom.rcmb
     else:
         rcmb = step.sdat.par['geometry']['r_cmb']
+        if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
+            rcmb = 0
     rcmb = max(rcmb, 0)
     return rcmb, rcmb + 1
 
