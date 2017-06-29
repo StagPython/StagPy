@@ -406,32 +406,42 @@ class StagyyData:
 
     def __init__(self, path, nfields_max=50):
         """Generic lazy StagYY output data accessors"""
-        self.path = pathlib.Path(path)
-        self.par = parfile.readpar(self.path)
+        self._rundir = {'path': pathlib.Path(path),
+                        'ls': UNDETERMINED}
+        self._stagdat = {'par': parfile.readpar(self.path),
+                         'tseries': UNDETERMINED,
+                         'rprof': UNDETERMINED}
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self.nfields_max = nfields_max
         self.collected_fields = []
-        self._files = UNDETERMINED
-        self._tseries = UNDETERMINED
-        self._rprof = UNDETERMINED
+
+    @property
+    def path(self):
+        """Path of StagYY run directory"""
+        return self._rundir['path']
+
+    @property
+    def par(self):
+        """Content of par file"""
+        return self._stagdat['par']
 
     @property
     def tseries(self):
         """Time series data"""
-        if self._tseries is UNDETERMINED:
+        if self._stagdat['tseries'] is UNDETERMINED:
             timefile = self.filename('time.dat')
-            self._tseries = stagyyparsers.time_series(
+            self._stagdat['tseries'] = stagyyparsers.time_series(
                 timefile, list(constants.TIME_VARS.keys()))
-        return self._tseries
+        return self._stagdat['tseries']
 
     @property
     def _rprof_and_times(self):
-        if self._rprof is UNDETERMINED:
+        if self._stagdat['rprof'] is UNDETERMINED:
             rproffile = self.filename('rprof.dat')
-            self._rprof = stagyyparsers.rprof(
+            self._stagdat['rprof'] = stagyyparsers.rprof(
                 rproffile, list(constants.RPROF_VARS.keys()))
-        return self._rprof
+        return self._stagdat['rprof']
 
     @property
     def rprof(self):
@@ -446,11 +456,11 @@ class StagyyData:
     @property
     def files(self):
         """Set of output binary files"""
-        if self._files is UNDETERMINED:
+        if self._rundir['ls'] is UNDETERMINED:
             out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
             out_dir = self.path / out_stem.parent
-            self._files = set(out_dir.iterdir())
-        return self._files
+            self._rundir['ls'] = set(out_dir.iterdir())
+        return self._rundir['ls']
 
     def tseries_between(self, tstart=None, tend=None):
         """Time series data between requested times"""
