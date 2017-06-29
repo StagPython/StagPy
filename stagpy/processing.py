@@ -5,7 +5,7 @@ from scipy import integrate
 from . import misc
 
 
-def dt_dt(sdat, tstart=0., tend=None):
+def dt_dt(sdat, tstart=None, tend=None):
     """Derivative of temperature"""
     tseries = sdat.tseries_between(tstart, tend)
     time = tseries['t'].values
@@ -14,7 +14,7 @@ def dt_dt(sdat, tstart=0., tend=None):
     return dtdt, time[1:-1]
 
 
-def ebalance(sdat, tstart=0., tend=None):
+def ebalance(sdat, tstart=None, tend=None):
     """Energy balance"""
     tseries = sdat.tseries_between(tstart, tend)
     rbot, rtop = misc.get_rbounds(sdat.steps.last)
