@@ -10,8 +10,8 @@ def dt_dt(sdat, tstart=None, tend=None):
     tseries = sdat.tseries_between(tstart, tend)
     time = tseries['t'].values
     temp = tseries['Tmean'].values
-    dtdt = (temp[2:] - temp[:-2]) / (time[2:] - time[:-2])
-    return dtdt, time[1:-1]
+    dtdt = (temp[1:] - temp[:-1]) / (time[1:] - time[:-1])
+    return dtdt, time[:-1]
 
 
 def ebalance(sdat, tstart=None, tend=None):
@@ -27,7 +27,7 @@ def ebalance(sdat, tstart=None, tend=None):
     dtdt, time = dt_dt(sdat, tstart, tend)
     ftop = tseries['ftop'].values * coefsurf
     fbot = tseries['fbot'].values
-    ebal = ftop[1:-1] - fbot[1:-1] - volume * dtdt
+    ebal = ftop[:-1] - fbot[:-1] - volume * dtdt
     return ebal, time
 
 
