@@ -24,6 +24,9 @@ FIELD_VARS = OrderedDict((
     ('sx3', Varf('3rd comp. of principal stress eigenvector', 'x_3', {})),
     ('s1val', Varf('Principal stress eigenvalue', r'\sigma_1', {})),
     ('edot', Varf('Strain rate', r'\dot\varepsilon', {'cmap': 'Reds'})),
+    ('Tcond1', Varf('x Conductivity', 'k_x', {})),
+    ('Tcond2', Varf('y Conductivity', 'k_y', {})),
+    ('Tcond3', Varf('z Conductivity', 'k_z', {})),
     ('c', Varf('Composition', 'c', {})),
     ('wtr', Varf('Water concentration', r'c_{\rm H_2O}', {})),
     ('age', Varf('Age', 'a', {})),
@@ -46,6 +49,7 @@ FIELD_FILES = OrderedDict((
     ('str', ['sII']),
     ('sx', ['sx1', 'sx2', 'sx3', 's1val']),
     ('ed', ['edot']),
+    ('tcond', ['Tcond1', 'Tcond2', 'Tcond3']),
 ))
 
 Varr = namedtuple('Varr', ['description', 'shortname'])
