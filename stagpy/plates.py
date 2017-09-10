@@ -3,8 +3,8 @@
 Date: 2016/26/01
 """
 from copy import deepcopy
+import pathlib
 import sys
-import os.path
 import numpy as np
 from scipy.signal import argrelextrema
 from . import constants, field, misc
@@ -851,7 +851,7 @@ def plates_cmd(args):
             stem = '{}_{}_{}'.format(fids.fnames[0], istart, iend)
             idx = 0
             fmt = '{}.dat'
-            while os.path.isfile(fmt.format(stem, idx)):
+            while pathlib.Path(fmt.format(stem, idx)).is_file():
                 fmt = '{}_{}.dat'
                 idx += 1
             fids.fnames = [fmt.format('{}_{}_{}'.format(fname, istart, iend),

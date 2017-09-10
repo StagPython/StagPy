@@ -1,7 +1,7 @@
 """miscellaneous definitions"""
 
 import importlib
-import os
+import pathlib
 import shutil
 import sys
 import tempfile
@@ -141,4 +141,4 @@ class InchoateFiles:
             for fname, tmp in zip(self.fnames, self._fids):
                 shutil.copyfile(tmp.name, fname)
         for tmp in self._fids:
-            os.remove(tmp.name)
+            pathlib.Path(tmp.name).unlink()
