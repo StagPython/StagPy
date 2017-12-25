@@ -6,6 +6,7 @@ import re
 import struct
 import numpy as np
 import pandas as pd
+from .error import ParsingError
 
 
 def time_series(timefile, colnames):
@@ -189,7 +190,8 @@ def fields(fieldfile, only_header=False, only_istep=False):
             header['e3_coord'] = readbin('f', header['nts'][2])
         else:
             # could construct them from other info
-            raise ValueError('magic >= 4 expected to get grid geometry')
+            raise ParsingError(fieldfile,
+                               'magic >= 4 expected to get grid geometry')
 
         if only_header:
             return header

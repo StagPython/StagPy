@@ -29,3 +29,12 @@ class NotAvailableError(StagpyError):
     """Raised when a feature is not available yet"""
 
     pass
+
+
+class ParsingError(StagpyError):
+
+    """Raised when a parsing error occurs"""
+
+    def __init__(self, faulty_file, msg):
+        self.file = faulty_file
+        self.msg = msg
