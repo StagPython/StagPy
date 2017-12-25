@@ -14,6 +14,7 @@ class NoSnapshotError(StagpyError):
 
     def __init__(self, sdat):
         self.sdat = sdat
+        super().__init__('no snapshot found for {}'.format(sdat))
 
 
 class NoParFileError(StagpyError):
@@ -22,6 +23,7 @@ class NoParFileError(StagpyError):
 
     def __init__(self, parfile):
         self.parfile = parfile
+        super().__init__('{} file not found'.format(parfile))
 
 
 class NotAvailableError(StagpyError):
@@ -38,6 +40,7 @@ class ParsingError(StagpyError):
     def __init__(self, faulty_file, msg):
         self.file = faulty_file
         self.msg = msg
+        super().__init__(faulty_file, msg)
 
 
 class InvalidTimestepError(StagpyError):
@@ -48,6 +51,7 @@ class InvalidTimestepError(StagpyError):
         self.sdat = sdat
         self.istep = istep
         self.msg = msg
+        super().__init__(sdat, istep, msg)
 
 
 class UnknownVarError(StagpyError):
@@ -56,6 +60,7 @@ class UnknownVarError(StagpyError):
 
     def __init__(self, varname):
         self.varname = varname
+        super().__init__(varname)
 
 
 class UnknownFieldVarError(UnknownVarError):
