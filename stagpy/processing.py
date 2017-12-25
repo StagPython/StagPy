@@ -3,6 +3,7 @@
 import numpy as np
 from scipy import integrate
 from . import misc
+from .error import NotAvailableError
 
 
 def dt_dt(sdat, tstart=None, tend=None):
@@ -146,8 +147,8 @@ def stream_function(step):
         v_z = step.fields['v3'][:, 0, :, 0]
         shape = (v_x.shape[0], 1, v_x.shape[1], 1)
     else:
-        raise ValueError('Stream function only implemented in '
-                         '2D cartesian and spherical annulus')
+        raise NotAvailableError('Stream function only implemented in '
+                                '2D cartesian and spherical annulus')
     psi = np.zeros_like(v_x)
     if step.geom.spherical:  # YZ annulus
         r_coord = step.geom.r_coord + step.geom.rcmb

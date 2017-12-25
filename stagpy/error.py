@@ -22,3 +22,10 @@ class NoParFileError(StagpyError):
 
     def __init__(self, parfile):
         self.parfile = parfile
+
+
+class NotAvailableError(StagpyError):
+
+    """Raised when a feature is not available yet"""
+
+    pass
