@@ -7,6 +7,7 @@ from inspect import getdoc
 import numpy as np
 from math import sqrt
 from . import constants, misc
+from .error import UnknownTimeVarError
 from .stagyydata import StagyyData
 
 
@@ -62,7 +63,7 @@ def get_time_series(sdat, var, tstart, tend):
         series, time = meta.description(sdat, tstart, tend)
         meta = constants.Varr(getdoc(meta.description), meta.shortname)
     else:
-        raise ValueError('Unknown time variable {}.'.format(var))
+        raise UnknownTimeVarError(var)
 
     return series, time, meta
 

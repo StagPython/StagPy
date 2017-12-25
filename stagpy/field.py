@@ -3,6 +3,7 @@
 from inspect import getdoc
 import numpy as np
 from . import constants, misc
+from .error import NotAvailableError
 from .stagyydata import StagyyData
 
 
@@ -72,7 +73,7 @@ def plot_scalar(args, step, var, scaling=None, **extra):
         meta = constants.Varf(getdoc(meta.description),
                               meta.shortname, meta.popts)
     if step.geom.threed:
-        raise ValueError('plot_scalar only implemented for 2D fields')
+        raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
     xmesh, ymesh, fld = get_meshes_fld(step, var)
 

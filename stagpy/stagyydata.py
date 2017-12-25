@@ -3,7 +3,7 @@
 import re
 import pathlib
 import numpy as np
-from . import constants, parfile, stagyyparsers
+from . import constants, error, parfile, stagyyparsers
 
 
 UNDETERMINED = object()
@@ -11,20 +11,6 @@ UNDETERMINED = object()
 # useful to mark stuff as yet undetermined,
 # as opposed to either some value or None if
 # non existent
-
-
-class Error(Exception):
-
-    """Base class for exceptions raised in this module"""
-
-    pass
-
-
-class NoSnapshotError(Error):
-
-    """Raised when last snapshot is required but none exists"""
-
-    pass
 
 
 class _Geometry:
@@ -186,7 +172,7 @@ class _Fields(dict):
                 description(self.step)
             return self[name]
         else:
-            raise ValueError("Unknown field variable: '{}'".format(name))
+            raise error.UnknownFieldVarError(name)
         parsed_data = stagyyparsers.fields(fieldfile)
         if parsed_data is None:
             return None
@@ -327,11 +313,15 @@ class _Steps(dict):
         try:
             istep = int(istep)
         except ValueError:
-            raise ValueError('Time step should be an integer value')
+            raise error.InvalidTimestepError(
+                self.sdat, istep, 'Time step should be an integer value')
         if istep < 0:
             istep += self.last.istep + 1
             if istep < 0:
-                raise ValueError('Time step should be positive')
+                istep -= self.last.istep + 1
+                raise error.InvalidTimestepError(
+                    self.sdat, istep,
+                    'Last istep is {}'.format(self.last.istep))
         if not self.__contains__(istep):
             super().__setitem__(istep, _Step(istep, self.sdat))
         return super().__getitem__(istep)
@@ -396,7 +386,7 @@ class _Snaps(_Steps):
                 if match is not None and match.group(1) in fstems:
                     self._last = max(int(match.group(2)), self._last)
             if self._last < 0:
-                raise NoSnapshotError
+                raise error.NoSnapshotError(self.sdat)
         return self[self._last]
 
 

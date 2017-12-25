@@ -16,8 +16,18 @@ def main():
     """StagPy entry point"""
     signal.signal(signal.SIGINT, sigint_handler)
     config = importlib.import_module('stagpy.config')
-    args = config.parse_args()
-    args.func(args)
+    error = importlib.import_module('stagpy.error')
+    try:
+        args = config.parse_args()
+        args.func(args)
+    except error.StagpyError as err:
+        print('Oops! StagPy encountered the following problem while '
+              'processing your request.',
+              'Please check the path to your simulation and the command line '
+              'arguments.', '',
+              '{}: {}'.format(err.__class__.__name__, err),
+              sep='\n')
+        sys.exit()
 
 if __name__ == '__main__':
     main()
