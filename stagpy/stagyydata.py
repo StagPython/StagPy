@@ -172,7 +172,7 @@ class _Fields(dict):
                 description(self.step)
             return self[name]
         else:
-            raise ValueError("Unknown field variable: '{}'".format(name))
+            raise error.UnknownFieldVarError(name)
         parsed_data = stagyyparsers.fields(fieldfile)
         if parsed_data is None:
             return None

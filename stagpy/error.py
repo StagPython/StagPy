@@ -48,3 +48,32 @@ class InvalidTimestepError(StagpyError):
         self.sdat = sdat
         self.istep = istep
         self.msg = msg
+
+
+class UnknownVarError(StagpyError):
+
+    """Raised when invalid var is requested"""
+
+    def __init__(self, varname):
+        self.varname = varname
+
+
+class UnknownFieldVarError(UnknownVarError):
+
+    """Raised when invalid field var is requested"""
+
+    pass
+
+
+class UnknownRprofVarError(UnknownVarError):
+
+    """Raised when invalid rprof var is requested"""
+
+    pass
+
+
+class UnknownTimeVarError(UnknownVarError):
+
+    """Raised when invalid time var is requested"""
+
+    pass

@@ -5,6 +5,7 @@ Date: 2015/09/11
 """
 from inspect import getdoc
 from . import constants, misc
+from .error import UnknownRprofVarError
 from .stagyydata import StagyyData
 
 
@@ -52,7 +53,7 @@ def get_rprof(step, var):
         rprof, rad = meta.description(step)
         meta = constants.Varr(getdoc(meta.description), meta.shortname)
     else:
-        raise ValueError('Unknown rprof variable {}.'.format(var))
+        raise UnknownRprofVarError(var)
 
     return rprof, rad, meta
 
