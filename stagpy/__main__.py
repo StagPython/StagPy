@@ -24,7 +24,7 @@ def main():
         print('Oops! StagPy encountered the following problem while '
               'processing your request.',
               'Please check the path to your simulation and the command line '
-              'arguments.',
+              'arguments.', '',
               '{}: {}'.format(err.__class__.__name__, err),
               sep='\n')
         sys.exit()
