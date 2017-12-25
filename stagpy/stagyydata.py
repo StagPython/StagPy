@@ -416,6 +416,13 @@ class StagyyData:
         self.nfields_max = nfields_max
         self.collected_fields = []
 
+    def __repr__(self):
+        return 'StagyyData({}, nfields_max={})'.format(
+            repr(self.path), self.nfields_max)
+
+    def __str__(self):
+        return 'StagyyData in {}'.format(self.path)
+
     @property
     def path(self):
         """Path of StagYY run directory"""
