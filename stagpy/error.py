@@ -14,3 +14,11 @@ class NoSnapshotError(StagpyError):
 
     def __init__(self, sdat):
         self.sdat = sdat
+
+
+class NoParFileError(StagpyError):
+
+    """Raised when no par file can be found"""
+
+    def __init__(self, parfile):
+        self.parfile = parfile

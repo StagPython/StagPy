@@ -1,8 +1,8 @@
 """StagYY par file handling"""
 
 import f90nml
-import sys
 from .constants import CONFIG_DIR
+from .error import NoParFileError
 
 PAR_DFLT_FILE = CONFIG_DIR / 'par'
 PAR_DEFAULT = {
@@ -636,7 +636,6 @@ def readpar(path):
         for section in par_nml:
             par_dflt[section].update(par_nml[section])
     else:
-        print('No par file found! Check path.')
-        sys.exit()
+        raise NoParFileError(par_file)
     par_nml = par_dflt
     return par_nml
