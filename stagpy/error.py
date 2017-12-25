@@ -38,3 +38,13 @@ class ParsingError(StagpyError):
     def __init__(self, faulty_file, msg):
         self.file = faulty_file
         self.msg = msg
+
+
+class InvalidTimestepError(StagpyError):
+
+    """Raised when invalid time step is requested"""
+
+    def __init__(self, sdat, istep, msg):
+        self.sdat = sdat
+        self.istep = istep
+        self.msg = msg

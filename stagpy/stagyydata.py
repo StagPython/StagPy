@@ -313,11 +313,15 @@ class _Steps(dict):
         try:
             istep = int(istep)
         except ValueError:
-            raise ValueError('Time step should be an integer value')
+            raise error.InvalidTimestepError(
+                self.sdat, istep, 'Time step should be an integer value')
         if istep < 0:
             istep += self.last.istep + 1
             if istep < 0:
-                raise ValueError('Time step should be positive')
+                istep -= self.last.istep + 1
+                raise error.InvalidTimestepError(
+                    self.sdat, istep,
+                    'Last istep is {}'.format(self.last.istep))
         if not self.__contains__(istep):
             super().__setitem__(istep, _Step(istep, self.sdat))
         return super().__getitem__(istep)
