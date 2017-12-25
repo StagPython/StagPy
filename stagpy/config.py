@@ -20,7 +20,9 @@ Conf = namedtuple('ConfigEntry',
                   ['default', 'cmd_arg', 'shortname', 'kwargs',
                    'conf_arg', 'help_string'])
 
-CORE = OrderedDict((
+CONF_DEF = OrderedDict()
+
+CONF_DEF['core'] = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),
     ('outname', Conf('stagpy', True, 'n', {},
@@ -45,7 +47,7 @@ CORE = OrderedDict((
                         True, 'use or not seaborn')),
 ))
 
-SCALING = OrderedDict((
+CONF_DEF['scaling'] = OrderedDict((
     ('yearins', Conf(3.154e7, False, None, {},
                      True, 'Year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
@@ -58,7 +60,7 @@ SCALING = OrderedDict((
                            True, 'Reference viscosity Pa s')),
 ))
 
-PLOTTING = OrderedDict((
+CONF_DEF['plotting'] = OrderedDict((
     ('topomin', Conf(-40, False, None, {},
                      True, 'Min range for topography plots')),
     ('topomax', Conf(100, False, None, {},
@@ -83,7 +85,7 @@ PLOTTING = OrderedDict((
                         True, 'Max range for lithospheric stress plots')),
 ))
 
-FIELD = OrderedDict((
+CONF_DEF['field'] = OrderedDict((
     ('plot',
         Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
@@ -94,7 +96,7 @@ FIELD = OrderedDict((
              True, 'color bar shrink factor')),
 ))
 
-RPROF = OrderedDict((
+CONF_DEF['rprof'] = OrderedDict((
     ('plot',
         Conf('Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
@@ -107,7 +109,7 @@ RPROF = OrderedDict((
              True, 'Plot grid')),
 ))
 
-TIME = OrderedDict((
+CONF_DEF['time'] = OrderedDict((
     ('plot',
         Conf('Nutop,ebalance,Nubot.Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
@@ -123,7 +125,7 @@ TIME = OrderedDict((
              False, 'specify end time for the time series')),
 ))
 
-PLATES = OrderedDict((
+CONF_DEF['plates'] = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
@@ -164,16 +166,16 @@ PLATES = OrderedDict((
              False, 'Zoom around surface')),
 ))
 
-INFO = OrderedDict((
+CONF_DEF['info'] = OrderedDict((
 ))
 
-VAR = OrderedDict((
+CONF_DEF['var'] = OrderedDict((
 ))
 
-VERSION = OrderedDict((
+CONF_DEF['version'] = OrderedDict((
 ))
 
-CONFIG = OrderedDict((
+CONF_DEF['config'] = OrderedDict((
     ('create',
         Conf(None, True, None, {'action': 'store_true'},
              False, 'create new config file')),
@@ -198,39 +200,33 @@ def config_cmd(args):
     if args.edit:
         call(shlex.split('{} {}'.format(args.editor, CONFIG_FILE)))
 
-Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func'])
+Sub = namedtuple('Sub', ['use_core', 'func'])
 SUB_CMDS = OrderedDict((
-    ('field', Sub(FIELD, True, commands.field_cmd)),
-    ('rprof', Sub(RPROF, True, commands.rprof_cmd)),
-    ('time', Sub(TIME, True, commands.time_cmd)),
-    ('plates', Sub(PLATES, True, commands.plates_cmd)),
-    ('info', Sub(INFO, True, commands.info_cmd)),
-    ('var', Sub(VAR, False, commands.var_cmd)),
-    ('version', Sub(VERSION, False, commands.version_cmd)),
-    ('config', Sub(CONFIG, False, config_cmd)),
+    ('field', Sub(True, commands.field_cmd)),
+    ('rprof', Sub(True, commands.rprof_cmd)),
+    ('time', Sub(True, commands.time_cmd)),
+    ('plates', Sub(True, commands.plates_cmd)),
+    ('info', Sub(True, commands.info_cmd)),
+    ('var', Sub(False, commands.var_cmd)),
+    ('version', Sub(False, commands.version_cmd)),
+    ('config', Sub(False, config_cmd)),
 ))
 
-DummySub = namedtuple('DummySub', ['conf_dict'])
-DUMMY_CMDS = OrderedDict((
-    ('core', DummySub(CORE)),
-))
-DUMMY_CMDS.update(SUB_CMDS)
+
+def _set_conf_default(sub, opt, dflt):
+    """Set default value of option"""
+    CONF_DEF[sub][opt] = CONF_DEF[sub][opt]._replace(default=dflt)
 
 
-def _set_conf_default(conf_dict, opt, dflt):
-    """set default value of option in conf_dict"""
-    conf_dict[opt] = conf_dict[opt]._replace(default=dflt)
-
-
-def _read_section(config_parser, sub_cmd, meta):
+def _read_section(config_parser, sub_cmd):
     """read section of config parser
 
     read section corresponding to the sub command sub_cmd
-    and set meta.conf_dict default values to the read values
+    and set default values to the read values
     """
     config_content = []
     missing_opts = []
-    for opt, meta_opt in meta.conf_dict.items():
+    for opt, meta_opt in CONF_DEF[sub_cmd].items():
         if not config_parser.has_option(sub_cmd, opt):
             if meta_opt.conf_arg:
                 missing_opts.append(opt)
@@ -243,7 +239,7 @@ def _read_section(config_parser, sub_cmd, meta):
             dflt = config_parser.getint(sub_cmd, opt)
         else:
             dflt = config_parser.get(sub_cmd, opt)
-        config_content.append((meta.conf_dict, opt, dflt))
+        config_content.append((sub_cmd, opt, dflt))
     return config_content, missing_opts
 
 
@@ -269,9 +265,9 @@ def create_config():
     if not CONFIG_DIR.exists():
         CONFIG_DIR.mkdir(parents=True)
     config_parser = configparser.ConfigParser()
-    for sub_cmd, meta in DUMMY_CMDS.items():
+    for sub_cmd, entries in CONF_DEF.items():
         config_parser.add_section(sub_cmd)
-        for opt, opt_meta in meta.conf_dict.items():
+        for opt, opt_meta in entries.items():
             if opt_meta.conf_arg:
                 config_parser.set(sub_cmd, opt, str(opt_meta.default))
     with CONFIG_FILE.open('w') as out_stream:
@@ -279,7 +275,7 @@ def create_config():
 
 
 def read_config():
-    """Read config file and set conf_dict as needed"""
+    """Read config file and set default values"""
     if not CONFIG_FILE.is_file():
         return
     config_parser = configparser.ConfigParser()
@@ -287,12 +283,11 @@ def read_config():
     config_content = []
     missing_sections = []
     missing_opts = {}
-    for sub_cmd, meta in DUMMY_CMDS.items():
+    for sub_cmd in CONF_DEF:
         if not config_parser.has_section(sub_cmd):
             missing_sections.append(sub_cmd)
             continue
-        content, missing_opts[sub_cmd] = _read_section(config_parser, sub_cmd,
-                                                       meta)
+        content, missing_opts[sub_cmd] = _read_section(config_parser, sub_cmd)
         config_content.extend(content)
     return config_content, missing_opts, missing_sections
 
@@ -306,9 +301,9 @@ class Toggle(argparse.Action):
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
 
 
-def add_args(parser, conf_dict):
+def add_args(parser, entries):
     """Add arguments to a parser"""
-    for arg, conf in conf_dict.items():
+    for arg, conf in entries.items():
         if not conf.cmd_arg:
             continue
         if isinstance(conf.default, bool):
@@ -325,7 +320,7 @@ def add_args(parser, conf_dict):
                 names.append('-{}'.format(conf.shortname))
         conf.kwargs.update(help=conf.help_string)
         parser.add_argument(*names, **conf.kwargs)
-    parser.set_defaults(**{a: c.default for a, c in conf_dict.items()})
+    parser.set_defaults(**{a: c.default for a, c in entries.items()})
     return parser
 
 
@@ -337,16 +332,16 @@ def _build_parser():
     subparsers = main_parser.add_subparsers()
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
-    core_parser = add_args(core_parser, CORE)
-    core_parser = add_args(core_parser, SCALING)
-    core_parser = add_args(core_parser, PLOTTING)
+    for sub in CONF_DEF:
+        if sub not in SUB_CMDS:
+            core_parser = add_args(core_parser, CONF_DEF[sub])
 
     for sub_cmd, meta in SUB_CMDS.items():
         kwargs = {'prefix_chars': '+-', 'help': getdoc(meta.func)}
         if meta.use_core:
             kwargs.update(parents=[core_parser])
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-        dummy_parser = add_args(dummy_parser, meta.conf_dict)
+        dummy_parser = add_args(dummy_parser, CONF_DEF[sub_cmd])
         dummy_parser.set_defaults(func=meta.func)
 
     return main_parser
@@ -403,8 +398,8 @@ def parse_args():
                   '=' * 26, sep='\n')
         elif config_out and not args.update:
             _report_missing_config(config_out)
-            for conf_dict, opt, dflt in config_out[0]:
-                _set_conf_default(conf_dict, opt, dflt)
+            for sub, opt, dflt in config_out[0]:
+                _set_conf_default(sub, opt, dflt)
                 main_parser = _build_parser()
                 args = main_parser.parse_args()
 
