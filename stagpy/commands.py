@@ -7,40 +7,37 @@ from shutil import get_terminal_size
 from subprocess import call
 from textwrap import TextWrapper
 import shlex
-from . import config, constants, misc, __version__
+from . import conf, config, constants, misc, __version__
 from . import field, rprof, time_series, plates, stagyydata
 
 
-def field_cmd(args):
+def field_cmd():
     """Plot scalar and vector fields"""
-    misc.plot_backend(args)
-    field.field_cmd(args)
+    misc.plot_backend()
+    field.field_cmd()
 
 
-def rprof_cmd(args):
+def rprof_cmd():
     """Plot radial profiles"""
-    misc.plot_backend(args)
-    rprof.rprof_cmd(args)
+    misc.plot_backend()
+    rprof.rprof_cmd()
 
 
-def time_cmd(args):
+def time_cmd():
     """Plot time series"""
-    misc.plot_backend(args)
-    time_series.time_cmd(args)
+    misc.plot_backend()
+    time_series.time_cmd()
 
 
-def plates_cmd(args):
+def plates_cmd():
     """Plate analysis"""
-    misc.plot_backend(args)
-    if args.plot is not None:
-        for var, meta in constants.PLATES_VAR_LIST.items():
-            misc.set_arg(args, meta.arg, var in args.plot)
-    plates.plates_cmd(args)
+    misc.plot_backend()
+    plates.plates_cmd()
 
 
-def info_cmd(args):
+def info_cmd():
     """Print basic information about StagYY run"""
-    sdat = stagyydata.StagyyData(args.path)
+    sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps.last
     lstep = sdat.steps.last
     lfields = []
@@ -90,7 +87,7 @@ def _layout(dict_vars, dict_vars_extra):
     print(*(fmt.format(*line) for line in lines), sep='\n')
 
 
-def var_cmd(_):
+def var_cmd():
     """Print a list of available variables"""
     print('field:')
     _layout(constants.FIELD_VARS, constants.FIELD_VARS_EXTRA)
@@ -105,16 +102,17 @@ def var_cmd(_):
     _layout(constants.PLATES_VAR_LIST, {})
 
 
-def version_cmd(_):
+def version_cmd():
     """Print StagPy version"""
     print('stagpy version: {}'.format(__version__))
 
 
-def config_cmd(args):
+def config_cmd():
     """Configuration handling"""
-    if not (args.create or args.update or args.edit):
-        args.update = True
-    if args.create or args.update:
+    if not (conf.config.create or conf.config.update or conf.config.edit):
+        conf.config.update = True
+    if conf.config.create or conf.config.update:
         config.create_config()
-    if args.edit:
-        call(shlex.split('{} {}'.format(args.editor, config.CONFIG_FILE)))
+    if conf.config.edit:
+        call(shlex.split('{} {}'.format(conf.config.editor,
+                                        config.CONFIG_FILE)))

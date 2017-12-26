@@ -15,11 +15,10 @@ def sigint_handler(*_):
 def main():
     """StagPy entry point"""
     signal.signal(signal.SIGINT, sigint_handler)
-    args_mod = importlib.import_module('stagpy.args')
+    args = importlib.import_module('stagpy.args')
     error = importlib.import_module('stagpy.error')
     try:
-        args = args_mod.parse_args()
-        args.func(args)
+        args.parse_args()()
     except error.StagpyError as err:
         print('Oops! StagPy encountered the following problem while '
               'processing your request.',

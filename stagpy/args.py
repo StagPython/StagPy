@@ -48,7 +48,8 @@ def add_args(subconf, parser, entries):
                 names.append('-{}'.format(meta.shortname))
         meta.kwargs.update(help=meta.help_string)
         parser.add_argument(*names, **meta.kwargs)
-    parser.set_defaults(**{a: subconf[a] for a in entries})
+    parser.set_defaults(**{a: subconf[a]
+                           for a, m in entries.items() if m.cmd_arg})
     return parser
 
 
@@ -75,19 +76,19 @@ def _build_parser():
     return main_parser
 
 
-def _steps_to_slices(args):
+def _steps_to_slices():
     """parse timesteps and snapshots arguments and return slices"""
-    if args.timesteps is None and args.snapshots is None:
+    if conf.core.timesteps is None and conf.core.snapshots is None:
         # default to the last snap
-        args.snapshots = slice(-1, None, None)
+        conf.core.snapshots = slice(-1, None, None)
         return None
-    elif args.snapshots is not None:
+    elif conf.core.snapshots is not None:
         # snapshots take precedence over timesteps
         # if both are defined
-        args.timesteps = None
-        steps = args.snapshots
+        conf.core.timesteps = None
+        steps = conf.core.snapshots
     else:
-        steps = args.timesteps
+        steps = conf.core.timesteps
     steps = steps.split(':')
     steps[0] = int(steps[0]) if steps[0] else None
     if len(steps) == 1:
@@ -97,10 +98,10 @@ def _steps_to_slices(args):
         steps = steps[0:2] + [1]
     steps[2] = int(steps[2]) if steps[2] else None
     steps = slice(*steps)
-    if args.snapshots is not None:
-        args.snapshots = steps
+    if conf.core.snapshots is not None:
+        conf.core.snapshots = steps
     else:
-        args.timesteps = steps
+        conf.core.timesteps = steps
 
 
 def _update_subconf(cmd_args, sub):
@@ -137,7 +138,7 @@ def parse_args():
     _update_subconf(cmd_args, sub_cmd)
 
     try:
-        _steps_to_slices(cmd_args)
+        _steps_to_slices()
     except AttributeError:
         pass
-    return cmd_args
+    return cmd_args.func
