@@ -5,22 +5,21 @@ and deal with the config file
 """
 
 from collections import OrderedDict, namedtuple
-from inspect import getdoc
-from subprocess import call
-import argcomplete
-import argparse
+from os.path import expanduser
 import configparser
-import shlex
-from . import commands
-from .constants import CONFIG_DIR
+import pathlib
 
+HOME_DIR = pathlib.Path(expanduser('~'))
+CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 CONFIG_FILE = CONFIG_DIR / 'config'
 
 Conf = namedtuple('ConfigEntry',
                   ['default', 'cmd_arg', 'shortname', 'kwargs',
                    'conf_arg', 'help_string'])
 
-CORE = OrderedDict((
+CONF_DEF = OrderedDict()
+
+CONF_DEF['core'] = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),
     ('outname', Conf('stagpy', True, 'n', {},
@@ -45,7 +44,7 @@ CORE = OrderedDict((
                         True, 'use or not seaborn')),
 ))
 
-SCALING = OrderedDict((
+CONF_DEF['scaling'] = OrderedDict((
     ('yearins', Conf(3.154e7, False, None, {},
                      True, 'Year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
@@ -58,7 +57,7 @@ SCALING = OrderedDict((
                            True, 'Reference viscosity Pa s')),
 ))
 
-PLOTTING = OrderedDict((
+CONF_DEF['plotting'] = OrderedDict((
     ('topomin', Conf(-40, False, None, {},
                      True, 'Min range for topography plots')),
     ('topomax', Conf(100, False, None, {},
@@ -83,7 +82,7 @@ PLOTTING = OrderedDict((
                         True, 'Max range for lithospheric stress plots')),
 ))
 
-FIELD = OrderedDict((
+CONF_DEF['field'] = OrderedDict((
     ('plot',
         Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
@@ -94,7 +93,7 @@ FIELD = OrderedDict((
              True, 'color bar shrink factor')),
 ))
 
-RPROF = OrderedDict((
+CONF_DEF['rprof'] = OrderedDict((
     ('plot',
         Conf('Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
@@ -107,7 +106,7 @@ RPROF = OrderedDict((
              True, 'Plot grid')),
 ))
 
-TIME = OrderedDict((
+CONF_DEF['time'] = OrderedDict((
     ('plot',
         Conf('Nutop,ebalance,Nubot.Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
@@ -123,7 +122,7 @@ TIME = OrderedDict((
              False, 'specify end time for the time series')),
 ))
 
-PLATES = OrderedDict((
+CONF_DEF['plates'] = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
@@ -164,16 +163,16 @@ PLATES = OrderedDict((
              False, 'Zoom around surface')),
 ))
 
-INFO = OrderedDict((
+CONF_DEF['info'] = OrderedDict((
 ))
 
-VAR = OrderedDict((
+CONF_DEF['var'] = OrderedDict((
 ))
 
-VERSION = OrderedDict((
+CONF_DEF['version'] = OrderedDict((
 ))
 
-CONFIG = OrderedDict((
+CONF_DEF['config'] = OrderedDict((
     ('create',
         Conf(None, True, None, {'action': 'store_true'},
              False, 'create new config file')),
@@ -189,227 +188,119 @@ CONFIG = OrderedDict((
 ))
 
 
-def config_cmd(args):
-    """Configuration handling"""
-    if not (args.create or args.update or args.edit):
-        args.update = True
-    if args.create or args.update:
-        create_config()
-    if args.edit:
-        call(shlex.split('{} {}'.format(args.editor, CONFIG_FILE)))
-
-Sub = namedtuple('Sub', ['conf_dict', 'use_core', 'func'])
-SUB_CMDS = OrderedDict((
-    ('field', Sub(FIELD, True, commands.field_cmd)),
-    ('rprof', Sub(RPROF, True, commands.rprof_cmd)),
-    ('time', Sub(TIME, True, commands.time_cmd)),
-    ('plates', Sub(PLATES, True, commands.plates_cmd)),
-    ('info', Sub(INFO, True, commands.info_cmd)),
-    ('var', Sub(VAR, False, commands.var_cmd)),
-    ('version', Sub(VERSION, False, commands.version_cmd)),
-    ('config', Sub(CONFIG, False, config_cmd)),
-))
-
-DummySub = namedtuple('DummySub', ['conf_dict'])
-DUMMY_CMDS = OrderedDict((
-    ('core', DummySub(CORE)),
-))
-DUMMY_CMDS.update(SUB_CMDS)
-
-
-def _set_conf_default(conf_dict, opt, dflt):
-    """set default value of option in conf_dict"""
-    conf_dict[opt] = conf_dict[opt]._replace(default=dflt)
-
-
-def _read_section(config_parser, sub_cmd, meta):
-    """read section of config parser
-
-    read section corresponding to the sub command sub_cmd
-    and set meta.conf_dict default values to the read values
-    """
-    config_content = []
-    missing_opts = []
-    for opt, meta_opt in meta.conf_dict.items():
-        if not config_parser.has_option(sub_cmd, opt):
-            if meta_opt.conf_arg:
-                missing_opts.append(opt)
-            continue
-        if isinstance(meta_opt.default, bool):
-            dflt = config_parser.getboolean(sub_cmd, opt)
-        elif isinstance(meta_opt.default, float):
-            dflt = config_parser.getfloat(sub_cmd, opt)
-        elif isinstance(meta_opt.default, int):
-            dflt = config_parser.getint(sub_cmd, opt)
-        else:
-            dflt = config_parser.get(sub_cmd, opt)
-        config_content.append((meta.conf_dict, opt, dflt))
-    return config_content, missing_opts
-
-
-def _report_missing_config(config_out):
-    """Print list of missing entries in config file"""
-    _, missing_opts, missing_sections = config_out
-    need_update = False
-    for sub_cmd, missing in missing_opts.items():
-        if missing:
-            print('WARNING! Missing options in {} section of config file:'.
-                  format(sub_cmd), *missing, sep='\n', end='\n\n')
-            need_update = True
-    if missing_sections:
-        print('WARNING! Missing sections in config file:', *missing_sections,
-              sep='\n', end='\n\n')
-        need_update = True
-    if need_update:
-        print('Run stagpy config --update to update config file', end='\n\n')
-
-
 def create_config():
     """Create config file"""
     if not CONFIG_DIR.exists():
         CONFIG_DIR.mkdir(parents=True)
     config_parser = configparser.ConfigParser()
-    for sub_cmd, meta in DUMMY_CMDS.items():
+    for sub_cmd, entries in CONF_DEF.items():
         config_parser.add_section(sub_cmd)
-        for opt, opt_meta in meta.conf_dict.items():
+        for opt, opt_meta in entries.items():
             if opt_meta.conf_arg:
                 config_parser.set(sub_cmd, opt, str(opt_meta.default))
     with CONFIG_FILE.open('w') as out_stream:
         config_parser.write(out_stream)
 
 
-def read_config():
-    """Read config file and set conf_dict as needed"""
-    if not CONFIG_FILE.is_file():
-        return
-    config_parser = configparser.ConfigParser()
-    config_parser.read(str(CONFIG_FILE))
-    config_content = []
-    missing_sections = []
-    missing_opts = {}
-    for sub_cmd, meta in DUMMY_CMDS.items():
-        if not config_parser.has_section(sub_cmd):
-            missing_sections.append(sub_cmd)
-            continue
-        content, missing_opts[sub_cmd] = _read_section(config_parser, sub_cmd,
-                                                       meta)
-        config_content.extend(content)
-    return config_content, missing_opts, missing_sections
+class _SubConfig:
+
+    """Hold options for a single subcommand"""
+
+    def __init__(self, parent, name, entries):
+        self._parent = parent
+        self._name = name
+        for opt, meta in entries.items():
+            self[opt] = meta.default
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def read_section(self):
+        """Read section of config parser
+
+        read section corresponding to the sub command
+        and set options accordingly
+        """
+        missing_opts = []
+        config_parser = self._parent.config_parser
+        for opt, meta_opt in CONF_DEF[self._name].items():
+            if not meta_opt.conf_arg:
+                continue
+            if not config_parser.has_option(self._name, opt):
+                missing_opts.append(opt)
+                continue
+            if isinstance(meta_opt.default, bool):
+                dflt = config_parser.getboolean(self._name, opt)
+            elif isinstance(meta_opt.default, float):
+                dflt = config_parser.getfloat(self._name, opt)
+            elif isinstance(meta_opt.default, int):
+                dflt = config_parser.getint(self._name, opt)
+            else:
+                dflt = config_parser.get(self._name, opt)
+            self[opt] = dflt
+        return missing_opts
 
 
-class Toggle(argparse.Action):
+class StagpyConfiguration:
 
-    """argparse Action to store True/False to a +/-arg"""
+    """Hold StagPy configuration options"""
 
-    def __call__(self, parser, namespace, values, option_string=None):
-        """set args attribute with True/False"""
-        setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
-
-
-def add_args(parser, conf_dict):
-    """Add arguments to a parser"""
-    for arg, conf in conf_dict.items():
-        if not conf.cmd_arg:
-            continue
-        if isinstance(conf.default, bool):
-            conf.kwargs.update(action=Toggle, nargs=0)
-            names = ['-{}'.format(arg), '+{}'.format(arg)]
-            if conf.shortname is not None:
-                names.append('-{}'.format(conf.shortname))
-                names.append('+{}'.format(conf.shortname))
+    def __init__(self, config_file=CONFIG_FILE):
+        """Config is set with default values and updated with config_file"""
+        for sub, entries in CONF_DEF.items():
+            self[sub] = _SubConfig(self, sub, entries)
+        self.config_parser = configparser.ConfigParser()
+        if config_file is not None:
+            self.config_file = pathlib.Path(config_file)
+            self._missing_parsing = self.read_config()
         else:
-            if conf.default is not None:
-                conf.kwargs.setdefault('type', type(conf.default))
-            names = ['--{}'.format(arg)]
-            if conf.shortname is not None:
-                names.append('-{}'.format(conf.shortname))
-        conf.kwargs.update(help=conf.help_string)
-        parser.add_argument(*names, **conf.kwargs)
-    parser.set_defaults(**{a: c.default for a, c in conf_dict.items()})
-    return parser
+            self.config_file = None
+            self._missing_parsing = {}, []
 
+    def __getitem__(self, key):
+        return getattr(self, key)
 
-def _build_parser():
-    """Return complete parser"""
-    main_parser = argparse.ArgumentParser(
-        description='read and process StagYY binary data')
-    main_parser.set_defaults(func=lambda _: print('stagpy -h for usage'))
-    subparsers = main_parser.add_subparsers()
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
 
-    core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
-    core_parser = add_args(core_parser, CORE)
-    core_parser = add_args(core_parser, SCALING)
-    core_parser = add_args(core_parser, PLOTTING)
+    def read_config(self):
+        """Read config file and set config values accordingly"""
+        if not self.config_file.is_file():
+            return None, None
+        try:
+            self.config_parser.read(str(self.config_file))
+        except configparser.Error:
+            return None, None
+        missing_sections = []
+        missing_opts = {}
+        for sub in CONF_DEF:
+            if not self.config_parser.has_section(sub):
+                missing_sections.append(sub)
+                continue
+            missing_opts[sub] = self[sub].read_section()
+        return missing_opts, missing_sections
 
-    for sub_cmd, meta in SUB_CMDS.items():
-        kwargs = {'prefix_chars': '+-', 'help': getdoc(meta.func)}
-        if meta.use_core:
-            kwargs.update(parents=[core_parser])
-        dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-        dummy_parser = add_args(dummy_parser, meta.conf_dict)
-        dummy_parser.set_defaults(func=meta.func)
-
-    return main_parser
-
-
-def _steps_to_slices(args):
-    """parse timesteps and snapshots arguments and return slices"""
-    if args.timesteps is None and args.snapshots is None:
-        # default to the last snap
-        args.snapshots = slice(-1, None, None)
-        return None
-    elif args.snapshots is not None:
-        # snapshots take precedence over timesteps
-        # if both are defined
-        args.timesteps = None
-        steps = args.snapshots
-    else:
-        steps = args.timesteps
-    steps = steps.split(':')
-    steps[0] = int(steps[0]) if steps[0] else None
-    if len(steps) == 1:
-        steps.append(steps[0] + 1)
-    steps[1] = int(steps[1]) if steps[1] else None
-    if len(steps) != 3:
-        steps = steps[0:2] + [1]
-    steps[2] = int(steps[2]) if steps[2] else None
-    steps = slice(*steps)
-    if args.snapshots is not None:
-        args.snapshots = steps
-    else:
-        args.timesteps = steps
-
-
-def parse_args():
-    """Parse cmd line arguments"""
-    main_parser = _build_parser()
-    argcomplete.autocomplete(main_parser)
-    args = main_parser.parse_args()
-
-    if args.func is not config_cmd:
-        args.create = False
-        args.edit = False
-        args.update = False
-
-    try:
-        config_out = read_config()
-    except configparser.Error:
-        config_out = None
-
-    if not args.create or args.edit:
-        if config_out is None:
+    def report_parsing_problems(self):
+        """Output message about parsing problems"""
+        missing_opts, missing_sections = self._missing_parsing
+        need_update = False
+        if missing_opts is None or missing_sections is None:
             print('Unable to read config file {}!'.format(CONFIG_FILE),
                   'Run stagpy config --create to obtain a new config file.',
                   '=' * 26, sep='\n')
-        elif config_out and not args.update:
-            _report_missing_config(config_out)
-            for conf_dict, opt, dflt in config_out[0]:
-                _set_conf_default(conf_dict, opt, dflt)
-                main_parser = _build_parser()
-                args = main_parser.parse_args()
-
-    try:
-        _steps_to_slices(args)
-    except AttributeError:
-        pass
-    return args
+            return
+        for sub_cmd, missing in missing_opts.items():
+            if missing:
+                print('WARNING! Missing options in {} section of config file:'.
+                      format(sub_cmd), *missing, sep='\n', end='\n\n')
+                need_update = True
+        if missing_sections:
+            print('WARNING! Missing sections in config file:',
+                  *missing_sections, sep='\n', end='\n\n')
+            need_update = True
+        if need_update:
+            print('Run stagpy config --update to update config file',
+                  end='\n\n')

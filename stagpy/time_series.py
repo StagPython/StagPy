@@ -6,18 +6,19 @@ Date: 2015/11/27
 from inspect import getdoc
 import numpy as np
 from math import sqrt
-from . import constants, misc
+import matplotlib.pyplot as plt
+from . import conf, misc, phyvars
 from .error import UnknownTimeVarError
 from .stagyydata import StagyyData
 
 
-def _plot_time_list(lovs, tseries, metas, args, times=None):
+def _plot_time_list(lovs, tseries, metas, times=None):
     """Plot requested profiles"""
     if times is None:
         times = {}
     for vfig in lovs:
-        fig, axes = args.plt.subplots(nrows=len(vfig), sharex=True,
-                                      figsize=(30, 5 * len(vfig)))
+        fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
+                                 figsize=(30, 5 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
         fname = ''
         for iplt, vplt in enumerate(vfig):
@@ -27,7 +28,7 @@ def _plot_time_list(lovs, tseries, metas, args, times=None):
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
                                 label=metas[tvar].description,
-                                linewidth=args.linewidth)
+                                linewidth=conf.core.linewidth)
                 lbl = metas[tvar].shortname
                 if ylabel is None:
                     ylabel = lbl
@@ -35,17 +36,17 @@ def _plot_time_list(lovs, tseries, metas, args, times=None):
                     ylabel = ''
             if ylabel:
                 axes[iplt].set_ylabel(r'${}$'.format(ylabel),
-                                      fontsize=args.fontsize)
+                                      fontsize=conf.core.fontsize)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
-            axes[iplt].legend(fontsize=args.fontsize)
-            axes[iplt].tick_params(labelsize=args.fontsize)
-        axes[-1].set_xlabel(r'$t$', fontsize=args.fontsize)
+            axes[iplt].legend(fontsize=conf.core.fontsize)
+            axes[iplt].tick_params(labelsize=conf.core.fontsize)
+        axes[-1].set_xlabel(r'$t$', fontsize=conf.core.fontsize)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
-        axes[-1].tick_params(labelsize=args.fontsize)
+        axes[-1].tick_params(labelsize=conf.core.fontsize)
         fig.savefig('time_{}.pdf'.format(fname[:-1]),
                     format='PDF', bbox_inches='tight')
-        args.plt.close(fig)
+        plt.close(fig)
 
 
 def get_time_series(sdat, var, tstart, tend):
@@ -54,36 +55,37 @@ def get_time_series(sdat, var, tstart, tend):
     if var in tseries.columns:
         series = tseries[var]
         time = None
-        if var in constants.TIME_VARS:
-            meta = constants.TIME_VARS[var]
+        if var in phyvars.TIME:
+            meta = phyvars.TIME[var]
         else:
-            meta = constants.Varr(None, None)
-    elif var in constants.TIME_VARS_EXTRA:
-        meta = constants.TIME_VARS_EXTRA[var]
+            meta = phyvars.Varr(None, None)
+    elif var in phyvars.TIME_EXTRA:
+        meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
-        meta = constants.Varr(getdoc(meta.description), meta.shortname)
+        meta = phyvars.Vart(getdoc(meta.description), meta.shortname)
     else:
         raise UnknownTimeVarError(var)
 
     return series, time, meta
 
 
-def plot_time_series(sdat, lovs, args):
+def plot_time_series(sdat, lovs):
     """Plot requested time series"""
     sovs = misc.set_of_vars(lovs)
     tseries = {}
     times = {}
     metas = {}
     for tvar in sovs:
-        series, time, meta = get_time_series(sdat, tvar,
-                                             args.tstart, args.tend)
+        series, time, meta = get_time_series(
+            sdat, tvar, conf.time.tstart, conf.time.tend)
         tseries[tvar] = series
         metas[tvar] = meta
         if time is not None:
             times[tvar] = time
-    tseries['t'] = get_time_series(sdat, 't', args.tstart, args.tend)[0]
+    tseries['t'] = get_time_series(
+        sdat, 't', conf.time.tstart, conf.time.tend)[0]
 
-    _plot_time_list(lovs, tseries, metas, args, times)
+    _plot_time_list(lovs, tseries, metas, times)
 
 
 def compstat(sdat, tstart=0., tend=None):
@@ -105,15 +107,15 @@ def compstat(sdat, tstart=0., tend=None):
         out_file.write("\n")
 
 
-def time_cmd(args):
-    """plot temporal series"""
-    sdat = StagyyData(args.path)
+def time_cmd():
+    """Plot time series"""
+    sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return
 
-    lovs = misc.list_of_vars(args.plot)
+    lovs = misc.list_of_vars(conf.time.plot)
     if lovs:
-        plot_time_series(sdat, lovs, args)
+        plot_time_series(sdat, lovs)
 
-    if args.compstat:
-        compstat(sdat, args.tstart, args.tend)
+    if conf.time.compstat:
+        compstat(sdat, conf.time.tstart, conf.time.tend)

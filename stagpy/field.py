@@ -2,14 +2,16 @@
 
 from inspect import getdoc
 import numpy as np
-from . import constants, misc
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from . import conf, misc, phyvars
 from .error import NotAvailableError
 from .stagyydata import StagyyData
 
 
 def valid_field_var(var):
     """Whether a field var is defined"""
-    return var in constants.FIELD_VARS or var in constants.FIELD_VARS_EXTRA
+    return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
 
 def get_meshes_fld(step, var):
@@ -62,16 +64,14 @@ def set_of_vars(arg_plot):
     return sovs
 
 
-def plot_scalar(args, step, var, scaling=None, **extra):
+def plot_scalar(step, var, scaling=None, **extra):
     """Plot scalar field"""
-    plt = args.plt
-
-    if var in constants.FIELD_VARS:
-        meta = constants.FIELD_VARS[var]
+    if var in phyvars.FIELD:
+        meta = phyvars.FIELD[var]
     else:
-        meta = constants.FIELD_VARS_EXTRA[var]
-        meta = constants.Varf(getdoc(meta.description),
-                              meta.shortname, meta.popts)
+        meta = phyvars.FIELD_EXTRA[var]
+        meta = phyvars.Varf(getdoc(meta.description),
+                            meta.shortname, meta.popts)
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
@@ -84,12 +84,12 @@ def plot_scalar(args, step, var, scaling=None, **extra):
     extra_opts = {'cmap': 'jet'}
     extra_opts.update(meta.popts)
     extra_opts.update({} if var != 'eta'
-                      else {'norm': args.mpl.colors.LogNorm()})
+                      else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)
-    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not args.pdf,
+    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not conf.core.pdf,
                            shading='gouraud', **extra_opts)
 
-    cbar = plt.colorbar(surf, shrink=args.shrinkcb)
+    cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
     cbar.set_label(r'${}$'.format(meta.shortname))
     plt.axis('equal')
     plt.axis('off')
@@ -111,23 +111,23 @@ def plot_vec(axis, step, var):
                 linewidths=1)
 
 
-def field_cmd(args):
-    """extract and plot field data"""
-    sdat = StagyyData(args.path)
-    sovs = set_of_vars(args.plot)
-    for step in misc.steps_gen(sdat, args):
+def field_cmd():
+    """Plot scalar and vector fields"""
+    sdat = StagyyData(conf.core.path)
+    sovs = set_of_vars(conf.field.plot)
+    for step in misc.steps_gen(sdat):
         for var in sovs:
             if step.fields[var[0]] is None:
                 print("'{}' field on snap {} not found".format(var,
                                                                step.isnap))
                 continue
-            fig, axis, _, _ = plot_scalar(args, step, var[0])
+            fig, axis, _, _ = plot_scalar(step, var[0])
             if valid_field_var(var[1]):
                 plot_iso(axis, step, var[1])
             elif var[1]:
                 plot_vec(axis, step, var[1])
             oname = '{}_{}'.format(*var) if var[1] else var[0]
             fig.savefig(
-                misc.out_name(args, oname).format(step.isnap) + '.pdf',
+                misc.out_name(oname).format(step.isnap) + '.pdf',
                 format='PDF', bbox_inches='tight')
-            args.plt.close(fig)
+            plt.close(fig)

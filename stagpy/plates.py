@@ -5,9 +5,10 @@ Date: 2016/26/01
 from copy import deepcopy
 import pathlib
 import sys
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
-from . import constants, field, misc
+from . import conf, field, misc, phyvars
 from .stagyydata import StagyyData
 
 
@@ -115,7 +116,7 @@ def detect_plates_vzcheck(step, seuil_memz):
     return limits, nphi, dvphi, vz_thres, v_x[:, n_z - 1], water_profile
 
 
-def detect_plates(args, step, vrms_surface, fids, time):
+def detect_plates(step, vrms_surface, fids, time):
     """detect plates using derivative of horizontal velocity"""
     vphi = step.fields['v2'][0, :, :, 0]
     ph_coord = step.geom.p_coord
@@ -174,12 +175,12 @@ def detect_plates(args, step, vrms_surface, fids, time):
             arggreat_dv = np.delete(arggreat_dv, np.array(argdel))
 
     dv_ridge = dvph2[arggreat_dv]
-    if args.plot_age:
+    if conf.plates.plot_age:
         agefld = step.fields['age'][0, :, :, 0]
         age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
                                          agefld[:, indsurf])
         age_surface_dim = age_surface * vrms_surface *\
-            args.ttransit / args.yearins / 1.e6
+            conf.scaling.ttransit / conf.scaling.yearins / 1.e6
         agetrench = age_surface_dim[argless_dv]  # age at the trench
     else:
         agetrench = np.zeros(len(argless_dv))
@@ -229,7 +230,7 @@ def plot_plate_limits_field(axis, rcmb, ridges, trenches):
                       arrowprops=dict(facecolor='green', shrink=0.05))
 
 
-def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
+def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                 topo, fids):
     """handle ploting stuff"""
     if step.sdat.par['boundaries']['air_layer']:
@@ -237,18 +238,18 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     else:
         dsa = 0.
 
-    plt = args.plt
-    lwd = args.linewidth
+    lwd = conf.core.linewidth
     vphi = step.fields['v2'][0, :, :, 0]
     tempfld = step.fields['T'][0, :, :, 0]
     concfld = step.fields['c'][0, :, :, 0]
     timestep = step.isnap
 
-    if args.plot_age:
+    if conf.plates.plot_age:
         agefld = step.fields['age'][0, :, :, 0]
-    if args.plot_stress:
+    if conf.plates.plot_stress:
         stressfld = step.fields['sII'][0, :, :, 0]
-        scale_stress = args.kappa * args.viscosity_ref / args.mantle**2
+        scale_stress = (conf.scaling.kappa * conf.scaling.viscosity_ref /
+                        conf.scaling.mantle**2)
 
     if step.sdat.par['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
@@ -284,11 +285,11 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     # masked array, only continents are true
     continentsall = continents / continents
 
-    if args.plot_age:
+    if conf.plates.plot_age:
         age_surface = np.ma.masked_where(
             agefld[:, indsurf] < 0.00001, agefld[:, indsurf])
-        age_surface_dim =\
-            age_surface * vrms_surface * args.ttransit / args.yearins / 1.e6
+        age_surface_dim = (age_surface * vrms_surface * conf.scaling.ttransit /
+                           conf.scaling.yearins / 1.e6)
 
     ph_coord = step.geom.p_coord
 
@@ -322,20 +323,21 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax3.fill_between(
         ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
         round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
-    ax3.set_ylim(args.velocitymin, args.velocitymax)
+    ax3.set_ylim(conf.plotting.velocitymin, conf.plotting.velocitymax)
 
-    ax1.set_ylabel("Concentration", fontsize=args.fontsize)
-    ax2.set_ylabel("Temperature", fontsize=args.fontsize)
-    ax3.set_ylabel("Velocity", fontsize=args.fontsize)
-    ax1.set_title(timestep, fontsize=args.fontsize)
+    ax1.set_ylabel("Concentration", fontsize=conf.core.fontsize)
+    ax2.set_ylabel("Temperature", fontsize=conf.core.fontsize)
+    ax3.set_ylabel("Velocity", fontsize=conf.core.fontsize)
+    ax1.set_title(timestep, fontsize=conf.core.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=conf.core.fontsize)
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-             transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=conf.core.fontsize)
 
-    plot_plate_limits(ax3, ridge, trench, args.velocitymin, args.velocitymax)
+    plot_plate_limits(ax3, ridge, trench, conf.plotting.velocitymin,
+                      conf.plotting.velocitymax)
 
-    figname = misc.out_name(args, 'sveltempconc').format(timestep) + '.pdf'
+    figname = misc.out_name('sveltempconc').format(timestep) + '.pdf'
     plt.savefig(figname, format='PDF')
     plt.close(fig0)
 
@@ -344,66 +346,68 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
-    ax1.set_ylabel("Velocity", fontsize=args.fontsize)
+    ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=conf.core.fontsize)
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-             transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=conf.core.fontsize)
     ax2.plot(ph_coord[:-1] + ph_coord[0], dvph2,
              color='k', linewidth=lwd, label='dv')
-    ax2.set_ylabel("dv", fontsize=args.fontsize)
+    ax2.set_ylabel("dv", fontsize=conf.core.fontsize)
 
-    plot_plate_limits(ax1, ridge, trench, args.velocitymin, args.velocitymax)
-    plot_plate_limits(ax2, ridge, trench, args.dvelocitymin, args.dvelocitymax)
+    plot_plate_limits(ax1, ridge, trench, conf.plotting.velocitymin,
+                      conf.plotting.velocitymax)
+    plot_plate_limits(ax2, ridge, trench, conf.plotting.dvelocitymin,
+                      conf.plotting.dvelocitymax)
     ax1.set_xlim(0, 2 * np.pi)
-    ax1.set_title(timestep, fontsize=args.fontsize)
+    ax1.set_title(timestep, fontsize=conf.core.fontsize)
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
-        facecolor='#8b6914', alpha=0.2)
-    ax1.set_ylim(args.velocitymin, args.velocitymax)
+        ph_coord[:-1], continentsall * conf.plotting.velocitymin,
+        conf.plotting.velocitymax, facecolor='#8b6914', alpha=0.2)
+    ax1.set_ylim(conf.plotting.velocitymin, conf.plotting.velocitymax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * args.dvelocitymin, args.dvelocitymax,
-        facecolor='#8b6914', alpha=0.2)
-    ax2.set_ylim(args.dvelocitymin, args.dvelocitymax)
+        ph_coord[:-1], continentsall * conf.plotting.dvelocitymin,
+        conf.plotting.dvelocitymax, facecolor='#8b6914', alpha=0.2)
+    ax2.set_ylim(conf.plotting.dvelocitymin, conf.plotting.dvelocitymax)
 
-    figname = misc.out_name(args, 'sveldvel').format(timestep) + '.pdf'
+    figname = misc.out_name('sveldvel').format(timestep) + '.pdf'
     plt.savefig(figname, format='PDF')
     plt.close(fig0)
 
     # plotting velocity and second invariant of stress
-    if args.plot_stress:
+    if conf.plates.plot_stress:
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                     color='black', ls='solid', alpha=0.2)
-        ax1.set_ylabel("Velocity", fontsize=args.fontsize)
+        ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
         ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                 transform=ax1.transAxes, fontsize=args.fontsize)
+                 transform=ax1.transAxes, fontsize=conf.core.fontsize)
         ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-                 transform=ax1.transAxes, fontsize=args.fontsize)
+                 transform=ax1.transAxes, fontsize=conf.core.fontsize)
         ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf] * scale_stress / 1.e6,
                  color='k', linewidth=lwd, label='Stress')
-        ax2.set_ylim(args.stressmin, args.stressmax)
-        ax2.set_ylabel("Stress [MPa]", fontsize=args.fontsize)
+        ax2.set_ylim(conf.plotting.stressmin, conf.plotting.stressmax)
+        ax2.set_ylabel("Stress [MPa]", fontsize=conf.core.fontsize)
 
         plot_plate_limits(ax1, ridge, trench,
-                          args.velocitymin, args.velocitymax)
+                          conf.plotting.velocitymin, conf.plotting.velocitymax)
         plot_plate_limits(ax2, ridge, trench,
-                          args.stressmin, args.stressmax)
+                          conf.plotting.stressmin, conf.plotting.stressmax)
         ax1.set_xlim(0, 2 * np.pi)
-        ax1.set_title(timestep, fontsize=args.fontsize)
+        ax1.set_title(timestep, fontsize=conf.core.fontsize)
 
         ax1.fill_between(
-            ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
-            facecolor='#8B6914', alpha=0.2)
-        ax1.set_ylim(args.velocitymin, args.velocitymax)
+            ph_coord[:-1], continentsall * conf.plotting.velocitymin,
+            conf.plotting.velocitymax, facecolor='#8B6914', alpha=0.2)
+        ax1.set_ylim(conf.plotting.velocitymin, conf.plotting.velocitymax)
         ax2.fill_between(
-            ph_coord[:-1], continentsall * args.dvelocitymin,
-            args.dvelocitymax,
+            ph_coord[:-1], continentsall * conf.plotting.dvelocitymin,
+            conf.plotting.dvelocitymax,
             facecolor='#8B6914', alpha=0.2)
 
-        figname = misc.out_name(args, 'svelstress').format(timestep) + '.pdf'
+        figname = misc.out_name('svelstress').format(timestep) + '.pdf'
         plt.savefig(figname, format='PDF')
         plt.close(fig0)
 
@@ -412,28 +416,29 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
     ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
-    ax1.set_ylim(args.velocitymin, args.velocitymax)
-    ax1.set_ylabel("Velocity", fontsize=args.fontsize)
+    ax1.set_ylim(conf.plotting.velocitymin, conf.plotting.velocitymax)
+    ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=args.fontsize)
-    plot_plate_limits(ax1, ridge, trench, args.velocitymin, args.velocitymax)
+             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+    plot_plate_limits(ax1, ridge, trench, conf.plotting.velocitymin,
+                      conf.plotting.velocitymax)
 
     # plotting velocity and age at surface
-    if args.plot_age:
+    if conf.plates.plot_age:
         fig2, (ax3, ax4) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax3.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
         ax3.axhline(
             y=0, xmin=0, xmax=2 * np.pi,
             color='black', ls='solid', alpha=0.2)
-        ax3.set_ylim(args.velocitymin, args.velocitymax)
-        ax3.set_ylabel("Velocity", fontsize=args.fontsize)
+        ax3.set_ylim(conf.plotting.velocitymin, conf.plotting.velocitymax)
+        ax3.set_ylabel("Velocity", fontsize=conf.core.fontsize)
         ax3.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                 transform=ax3.transAxes, fontsize=args.fontsize)
+                 transform=ax3.transAxes, fontsize=conf.core.fontsize)
         ax3.fill_between(
-            ph_coord[:-1], continentsall * args.velocitymax, args.velocitymin,
-            facecolor='#8B6914', alpha=0.2)
+            ph_coord[:-1], continentsall * conf.plotting.velocitymax,
+            conf.plotting.velocitymin, facecolor='#8B6914', alpha=0.2)
         plot_plate_limits(ax3, ridge, trench,
-                          args.velocitymin, args.velocitymax)
+                          conf.plotting.velocitymin, conf.plotting.velocitymax)
 
     times_subd = []
     age_subd = []
@@ -481,37 +486,39 @@ def plot_plates(args, step, time, vrms_surface, trench, ridge, agetrench,
                                              shrinkA=0, shrinkB=0))
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
-        facecolor='#8B6914', alpha=0.2)
-    ax2.set_ylabel("Topography [km]", fontsize=args.fontsize)
+        ph_coord[:-1], continentsall * conf.plotting.velocitymin,
+        conf.plotting.velocitymax, facecolor='#8B6914', alpha=0.2)
+    ax2.set_ylabel("Topography [km]", fontsize=conf.core.fontsize)
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-             topo[:, 1] * args.mantle / 1.e3,
+             topo[:, 1] * conf.scaling.mantle / 1.e3,
              color='black')
     ax2.set_xlim(0, 2 * np.pi)
-    ax2.set_ylim(args.topomin, args.topomax)
+    ax2.set_ylim(conf.plotting.topomin, conf.plotting.topomax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * args.topomax, args.topomin,
-        facecolor='#8B6914', alpha=0.2)
-    plot_plate_limits(ax2, ridge, trench, args.topomin, args.topomax)
-    ax1.set_title(timestep, fontsize=args.fontsize)
-    figname = misc.out_name(args, 'sveltopo').format(timestep) + '.pdf'
+        ph_coord[:-1], continentsall * conf.plotting.topomax,
+        conf.plotting.topomin, facecolor='#8B6914', alpha=0.2)
+    plot_plate_limits(ax2, ridge, trench, conf.plotting.topomin,
+                      conf.plotting.topomax)
+    ax1.set_title(timestep, fontsize=conf.core.fontsize)
+    figname = misc.out_name('sveltopo').format(timestep) + '.pdf'
     fig1.savefig(figname, format='PDF')
     plt.close(fig1)
 
-    if args.plot_age:
-        ax4.set_ylabel("Seafloor age [My]", fontsize=args.fontsize)
+    if conf.plates.plot_age:
+        ax4.set_ylabel("Seafloor age [My]", fontsize=conf.core.fontsize)
         # in dimensions
         ax4.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
         ax4.set_xlim(0, 2 * np.pi)
         ax4.fill_between(
-            ph_coord[:-1], continentsall * args.agemax, args.agemin,
-            facecolor='#8B6914', alpha=0.2)
-        ax4.set_ylim(args.agemin, args.agemax)
-        plot_plate_limits(ax4, ridge, trench, args.agemin, args.agemax)
-        ax3.set_title(timestep, fontsize=args.fontsize)
-        figname = misc.out_name(args, 'svelage').format(timestep) + '.pdf'
+            ph_coord[:-1], continentsall * conf.plotting.agemax,
+            conf.plotting.agemin, facecolor='#8B6914', alpha=0.2)
+        ax4.set_ylim(conf.plotting.agemin, conf.plotting.agemax)
+        plot_plate_limits(ax4, ridge, trench, conf.plotting.agemin,
+                          conf.plotting.agemax)
+        ax3.set_title(timestep, fontsize=conf.core.fontsize)
+        figname = misc.out_name('svelage').format(timestep) + '.pdf'
         fig2.savefig(figname, format='PDF')
         plt.close(fig2)
 
@@ -535,13 +542,14 @@ def io_surface(timestep, time, fid, fld):
     fid.writelines(["\n"])
 
 
-def lithospheric_stress(args, step, trench, ridge, time):
+def lithospheric_stress(step, trench, ridge, time):
     """calculate stress in the lithosphere"""
     timestep = step.isnap
-    lwd = args.linewidth
+    lwd = conf.core.linewidth
     base_lith = step.geom.rcmb + 1 - 0.105
-    scale_stress = args.kappa * args.viscosity_ref / args.mantle**2
-    scale_dist = args.mantle
+    scale_stress = (conf.scaling.kappa * conf.scaling.viscosity_ref /
+                    conf.scaling.mantle**2)
+    scale_dist = conf.scaling.mantle
 
     stressfld = step.fields['sII'][0, :, :, 0]
     stressfld = np.ma.masked_where(step.geom.r_mesh[0] < base_lith, stressfld)
@@ -552,25 +560,25 @@ def lithospheric_stress(args, step, trench, ridge, time):
     ph_coord = step.geom.p_coord  # probably doesn't need alias
 
     # plot stress in the lithosphere
-    fig, axis = args.plt.subplots(ncols=1)
+    fig, axis = plt.subplots(ncols=1)
     surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
                            stressfld * scale_stress / 1.e6,
                            cmap='gnuplot2_r',
-                           rasterized=not args.pdf, shading='gouraud')
+                           rasterized=not conf.core.pdf, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
-    cbar = args.plt.colorbar(surf, shrink=args.shrinkcb)
-    cbar.set_label(r'${}$'.format(constants.FIELD_VARS['sII'].shortname))
-    args.plt.axis('equal')
-    args.plt.axis('off')
+    cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
+    cbar.set_label(r'${}$'.format(phyvars.FIELD['sII'].shortname))
+    plt.axis('equal')
+    plt.axis('off')
     # Annotation with time and step
     axis.text(1., 0.9, str(round(time, 0)) + ' My',
-              transform=axis.transAxes, fontsize=args.fontsize)
+              transform=axis.transAxes, fontsize=conf.core.fontsize)
     axis.text(1., 0.1, str(timestep),
-              transform=axis.transAxes, fontsize=args.fontsize)
-    args.plt.savefig(
-        misc.out_name(args, 'lith').format(timestep) + '.pdf',
+              transform=axis.transAxes, fontsize=conf.core.fontsize)
+    plt.savefig(
+        misc.out_name('lith').format(timestep) + '.pdf',
         format='PDF')
-    args.plt.close(fig)
+    plt.close(fig)
 
     # velocity
     vphi = step.fields['v2'][0, :, :, 0]
@@ -610,54 +618,53 @@ def lithospheric_stress(args, step, trench, ridge, time):
     continentsall = continents / continents
 
     # plot integrated stress in the lithosphere
-    fig0, (ax1, ax2) = args.plt.subplots(2, 1, sharex=True, figsize=(12, 8))
+    fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
     ax1.plot(ph_coord[:-1], vph2[:-1, -1], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
-    ax1.set_ylabel("Velocity", fontsize=args.fontsize)
+    ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=conf.core.fontsize)
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-             transform=ax1.transAxes, fontsize=args.fontsize)
+             transform=ax1.transAxes, fontsize=conf.core.fontsize)
 
     ax2.plot(ph_coord, stress_lith * scale_stress * scale_dist / 1.e12,
              color='k', linewidth=lwd, label='Stress')
-    ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]", fontsize=args.fontsize)
+    ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]",
+                   fontsize=conf.core.fontsize)
 
-    plot_plate_limits(ax1, ridge, trench, args.velocitymin, args.velocitymax)
-    plot_plate_limits(ax2, ridge, trench, args.stressmin, args.lstressmax)
+    plot_plate_limits(ax1, ridge, trench, conf.plotting.velocitymin,
+                      conf.plotting.velocitymax)
+    plot_plate_limits(ax2, ridge, trench, conf.plotting.stressmin,
+                      conf.plotting.lstressmax)
     ax1.set_xlim(0, 2 * np.pi)
-    ax1.set_title(timestep, fontsize=args.fontsize)
+    ax1.set_title(timestep, fontsize=conf.core.fontsize)
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * args.velocitymin, args.velocitymax,
-        facecolor='#8b6914', alpha=0.2)
-    ax1.set_ylim(args.velocitymin, args.velocitymax)
+        ph_coord[:-1], continentsall * conf.plotting.velocitymin,
+        conf.plotting.velocitymax, facecolor='#8b6914', alpha=0.2)
+    ax1.set_ylim(conf.plotting.velocitymin, conf.plotting.velocitymax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * args.stressmin, args.lstressmax,
-        facecolor='#8b6914', alpha=0.2)
-    ax2.set_ylim(args.stressmin, args.lstressmax)
+        ph_coord[:-1], continentsall * conf.plotting.stressmin,
+        conf.plotting.lstressmax, facecolor='#8b6914', alpha=0.2)
+    ax2.set_ylim(conf.plotting.stressmin, conf.plotting.lstressmax)
 
-    figname = misc.out_name(args, 'svelslith').format(timestep) + '.pdf'
+    figname = misc.out_name('svelslith').format(timestep) + '.pdf'
     fig0.savefig(figname, format='PDF')
-    args.plt.close(fig0)
+    plt.close(fig0)
 
 
-def plates_cmd(args):
-    """find positions of trenches and subductions
-
-    uses velocity field (velocity derivation)
-    plots the number of plates over a designated lapse of time
-    """
-    sdat = StagyyData(args.path)
-    if not args.vzcheck:
+def plates_cmd():
+    """Plate analysis"""
+    sdat = StagyyData(conf.core.path)
+    if not conf.plates.vzcheck:
         # calculating averaged horizontal surface velocity
         # needed for redimensionalisation
         ilast = sdat.rprof.index.levels[0][-1]
         rlast = sdat.rprof.loc[ilast]
         nprof = 0
         uprof_averaged = rlast.loc[:, 'vhrms'] * 0
-        for step in misc.steps_gen(sdat, args):
+        for step in misc.steps_gen(sdat):
             if step.rprof is None:
                 continue
             uprof_averaged += step.rprof['vhrms']
@@ -682,7 +689,7 @@ def plates_cmd(args):
                           'ph_trench     ph_cont  age_trench [My]\n')
 
             istart, iend = None, None
-            for step in misc.steps_gen(sdat, args):
+            for step in misc.steps_gen(sdat):
                 # could check other fields too
                 if step.fields['T'] is None:
                     continue
@@ -692,9 +699,9 @@ def plates_cmd(args):
                 print('Treating snapshot', timestep)
 
                 rcmb = step.geom.rcmb
-                if args.plot_stress:
-                    scale_stress = args.kappa * \
-                        args.viscosity_ref / args.mantle**2
+                if conf.plates.plot_stress:
+                    scale_stress = conf.scaling.kappa * \
+                        conf.scaling.viscosity_ref / conf.scaling.mantle**2
 
                 # topography
                 fname = sdat.filename('sc', timestep=timestep, suffix='.dat')
@@ -704,10 +711,10 @@ def plates_cmd(args):
                     topo[:, 1] = topo[:, 1] / (1. - dsa)
 
                 time = step.geom.ti_ad * vrms_surface *\
-                    args.ttransit / args.yearins / 1.e6
+                    conf.scaling.ttransit / conf.scaling.yearins / 1.e6
                 trenches, ridges, agetrenches, _, _ =\
-                    detect_plates(args, step, vrms_surface, fids, time)
-                plot_plates(args, step, time, vrms_surface, trenches, ridges,
+                    detect_plates(step, vrms_surface, fids, time)
+                plot_plates(step, time, vrms_surface, trenches, ridges,
                             agetrenches, topo, fids)
 
                 # prepare for continent plotting
@@ -723,21 +730,21 @@ def plates_cmd(args):
                 io_surface(timestep, time, fids[2], concfld[:-1, isurf])
                 io_surface(timestep, time, fids[3], tgrad)
                 io_surface(timestep, time, fids[4], topo[:, 1])
-                if args.plot_age:
+                if conf.plates.plot_age:
                     io_surface(timestep, time, fids[5],
                                step.fields['age'][0, :, isurf, 0])
 
                 # plot viscosity field with position of trenches and ridges
-                fig, axis, surf, _ = field.plot_scalar(args, step, 'eta')
+                fig, axis, surf, _ = field.plot_scalar(step, 'eta')
                 etamax = sdat.par['viscosity']['eta_max']
                 surf.set_clim(vmin=1e-2, vmax=etamax)
 
                 # plotting continents
                 xmesh, ymesh = step.geom.x_mesh[0], step.geom.y_mesh[0]
                 axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                rasterized=not args.pdf, cmap='cool_r',
+                                rasterized=not conf.core.pdf, cmap='cool_r',
                                 vmin=0, vmax=0, shading='goaround')
-                cmap2 = args.plt.cm.ocean
+                cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
 
                 # plotting velocity vectors
@@ -745,88 +752,93 @@ def plates_cmd(args):
 
                 # Annotation with time and step
                 axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                          transform=axis.transAxes, fontsize=args.fontsize)
+                          transform=axis.transAxes,
+                          fontsize=conf.core.fontsize)
                 axis.text(1., 0.1, str(timestep),
-                          transform=axis.transAxes, fontsize=args.fontsize)
+                          transform=axis.transAxes,
+                          fontsize=conf.core.fontsize)
 
                 # Put arrow where ridges and trenches are
                 plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                 # Save figure
-                args.plt.tight_layout()
-                args.plt.savefig(
-                    misc.out_name(args, 'eta').format(timestep) + '.pdf',
+                plt.tight_layout()
+                plt.savefig(
+                    misc.out_name('eta').format(timestep) + '.pdf',
                     format='PDF')
 
                 # Zoom
-                if args.zoom is not None:
-                    if args.zoom > 360 or args.zoom < 0:
+                if conf.plates.zoom is not None:
+                    if not 0 <= conf.plates.zoom <= 360:
                         print(' *WARNING* ')
                         print('Zoom angle should be positive and '
                               'less than 360 deg')
                         print(' Exiting the code ')
                         sys.exit()
-                    if args.zoom > 315. or args.zoom <= 45:
-                        ladd, radd, uadd, dadd = 0.1, 0.05, 0.8, 0.8
-                    elif args.zoom > 45. and args.zoom <= 135:
+                    if 45 < conf.plates.zoom <= 135:
                         ladd, radd, uadd, dadd = 0.8, 0.8, 0.05, 0.1
-                    elif args.zoom > 135. and args.zoom <= 225:
+                    elif 135 < conf.plates.zoom <= 225:
                         ladd, radd, uadd, dadd = 0.05, 0.1, 0.8, 0.8
-                    else:
+                    elif 225 < conf.plates.zoom <= 315:
                         ladd, radd, uadd, dadd = 0.8, 0.8, 0.1, 0.05
-                    xzoom = (rcmb + 1) * np.cos(args.zoom / 180. * np.pi)
-                    yzoom = (rcmb + 1) * np.sin(args.zoom / 180. * np.pi)
+                    else:  # >315 or <=45
+                        ladd, radd, uadd, dadd = 0.1, 0.05, 0.8, 0.8
+                    xzoom = (rcmb + 1) * np.cos(np.radians(conf.plates.zoom))
+                    yzoom = (rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
                     axis.set_xlim(xzoom - ladd, xzoom + radd)
                     axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                    args.plt.savefig(
-                        misc.out_name(args, 'etazoom').format(timestep) +
+                    plt.savefig(
+                        misc.out_name('etazoom').format(timestep) +
                         '.pdf', format='PDF')
-                args.plt.close(fig)
+                plt.close(fig)
 
                 # plot stress field with position of trenches and ridges
-                if args.plot_stress:
+                if conf.plates.plot_stress:
                     fig, axis, surf, cbar = field.plot_scalar(
-                        args, step, 'sII', scale_stress / 1.e6)
+                        step, 'sII', scale_stress / 1.e6)
                     surf.set_clim(vmin=0, vmax=300)
                     cbar.set_label('Stress [MPa]')
 
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                              transform=axis.transAxes, fontsize=args.fontsize)
+                              transform=axis.transAxes,
+                              fontsize=conf.core.fontsize)
                     axis.text(1., 0.1, str(timestep),
-                              transform=axis.transAxes, fontsize=args.fontsize)
+                              transform=axis.transAxes,
+                              fontsize=conf.core.fontsize)
 
                     # Put arrow where ridges and trenches are
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                     # Save figure
-                    args.plt.tight_layout()
-                    args.plt.savefig(
-                        misc.out_name(args, 's').format(timestep) + '.pdf',
+                    plt.tight_layout()
+                    plt.savefig(
+                        misc.out_name('s').format(timestep) + '.pdf',
                         format='PDF')
 
                     # Zoom
-                    if args.zoom is not None:
+                    if conf.plates.zoom is not None:
                         axis.set_xlim(xzoom - ladd, xzoom + radd)
                         axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                        args.plt.savefig(
-                            misc.out_name(args, 'szoom').format(timestep) +
+                        plt.savefig(
+                            misc.out_name('szoom').format(timestep) +
                             '.pdf', format='PDF')
-                    args.plt.close(fig)
+                    plt.close(fig)
 
                     # calculate stresses in the lithosphere
-                    lithospheric_stress(args, step, trenches, ridges, time)
+                    lithospheric_stress(step, trenches, ridges, time)
 
                 # plotting the principal deviatoric stress field
-                if args.plot_deviatoric_stress:
-                    fig, axis, _, _ = field.plot_scalar(args, step, 'sII',
+                if conf.plates.plot_deviatoric_stress:
+                    fig, axis, _, _ = field.plot_scalar(step, 'sII',
                                                         alpha=0.1)
 
                     # plotting continents
                     axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                    rasterized=not args.pdf, cmap='cool_r',
+                                    rasterized=not conf.core.pdf,
+                                    cmap='cool_r',
                                     vmin=0, vmax=0, shading='goaround')
-                    cmap2 = args.plt.cm.ocean
+                    cmap2 = plt.cm.ocean
                     cmap2.set_over('m')
 
                     # plotting principal deviatoric stress
@@ -834,18 +846,20 @@ def plates_cmd(args):
 
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                              transform=axis.transAxes, fontsize=args.fontsize)
+                              transform=axis.transAxes,
+                              fontsize=conf.core.fontsize)
                     axis.text(1., 0.1, str(timestep),
-                              transform=axis.transAxes, fontsize=args.fontsize)
+                              transform=axis.transAxes,
+                              fontsize=conf.core.fontsize)
 
                     # Put arrow where ridges and trenches are
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-                    args.plt.tight_layout()
-                    args.plt.savefig(
-                        misc.out_name(args, 'sx').format(timestep) + '.pdf',
+                    plt.tight_layout()
+                    plt.savefig(
+                        misc.out_name('sx').format(timestep) + '.pdf',
                         format='PDF')
-                    args.plt.close(fig)
+                    plt.close(fig)
 
             # determine names of files
             stem = '{}_{}_{}'.format(fids.fnames[0], istart, iend)
@@ -857,23 +871,22 @@ def plates_cmd(args):
             fids.fnames = [fmt.format('{}_{}_{}'.format(fname, istart, iend),
                                       idx)
                            for fname in fids.fnames]
-    else:  # args.vzcheck
+    else:  # conf.plates.vzcheck
         seuil_memz = 0
         nb_plates = []
         time = []
         ch2o = []
         istart, iend = None, None
 
-        for step in misc.steps_gen(sdat, args):
+        for step in misc.steps_gen(sdat):
             # could check other fields too
             if step.fields['T'] is None:
                 continue
-            if args.timeprofile:
+            if conf.plates.timeprofile:
                 time.append(step.timeinfo.loc['t'])
                 ch2o.append(step.timeinfo.loc[0])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
-            plt = args.plt
             limits, nphi, dvphi, seuil_memz, vphi_surf, water_profile =\
                 detect_plates_vzcheck(step, seuil_memz)
             limits.sort()
@@ -901,7 +914,7 @@ def plates_cmd(args):
 
             nb_plates.append(len(limits))
 
-        if args.timeprofile:
+        if conf.plates.timeprofile:
             for i in range(2, len(nb_plates) - 3):
                 nb_plates[i] = (nb_plates[i - 2] + nb_plates[i - 1] +
                                 nb_plates[i] + nb_plates[i + 1] +

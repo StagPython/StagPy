@@ -4,22 +4,16 @@
 import importlib
 import signal
 import sys
-
-
-def sigint_handler(*_):
-    """SIGINT handler"""
-    print('\nSo long, and thanks for all the fish.')
-    sys.exit()
+from . import sigint_handler
 
 
 def main():
     """StagPy entry point"""
     signal.signal(signal.SIGINT, sigint_handler)
-    config = importlib.import_module('stagpy.config')
+    args = importlib.import_module('stagpy.args')
     error = importlib.import_module('stagpy.error')
     try:
-        args = config.parse_args()
-        args.func(args)
+        args.parse_args()()
     except error.StagpyError as err:
         print('Oops! StagPy encountered the following problem while '
               'processing your request.',

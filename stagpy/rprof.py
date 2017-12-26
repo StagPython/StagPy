@@ -4,17 +4,18 @@ Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/09/11
 """
 from inspect import getdoc
-from . import constants, misc
+import matplotlib.pyplot as plt
+from . import conf, misc, phyvars
 from .error import UnknownRprofVarError
 from .stagyydata import StagyyData
 
 
-def _plot_rprof_list(lovs, rprofs, metas, args, stepstr, rads=None):
+def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
     """Plot requested profiles"""
     if rads is None:
         rads = {}
     for vfig in lovs:
-        fig, axes = args.plt.subplots(ncols=len(vfig), sharey=True)
+        fig, axes = plt.subplots(ncols=len(vfig), sharey=True)
         axes = [axes] if len(vfig) == 1 else axes
         fname = ''
         for iplt, vplt in enumerate(vfig):
@@ -36,7 +37,7 @@ def _plot_rprof_list(lovs, rprofs, metas, args, stepstr, rads=None):
         axes[0].set_ylabel(r'$r$')
         fig.savefig('{}{}.pdf'.format(fname, stepstr),
                     format='PDF', bbox_inches='tight')
-        args.plt.close(fig)
+        plt.close(fig)
 
 
 def get_rprof(step, var):
@@ -44,25 +45,25 @@ def get_rprof(step, var):
     if var in step.rprof.columns:
         rprof = step.rprof[var]
         rad = None
-        if var in constants.RPROF_VARS:
-            meta = constants.RPROF_VARS[var]
+        if var in phyvars.RPROF:
+            meta = phyvars.RPROF[var]
         else:
-            meta = constants.Varr(None, None)
-    elif var in constants.RPROF_VARS_EXTRA:
-        meta = constants.RPROF_VARS_EXTRA[var]
+            meta = phyvars.Varr(None, None)
+    elif var in phyvars.RPROF_EXTRA:
+        meta = phyvars.RPROF_EXTRA[var]
         rprof, rad = meta.description(step)
-        meta = constants.Varr(getdoc(meta.description), meta.shortname)
+        meta = phyvars.Varr(getdoc(meta.description), meta.shortname)
     else:
         raise UnknownRprofVarError(var)
 
     return rprof, rad, meta
 
 
-def plot_grid(step, args):
+def plot_grid(step):
     """Plot cell position and thickness"""
     rad = step.rprof['r']
     drad, _, _ = get_rprof(step, 'dr')
-    fig, (ax1, ax2) = args.plt.subplots(2, sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(rad, '-ko')
     ax1.set_ylabel('$r$')
     ax2.plot(drad, '-ko')
@@ -70,10 +71,10 @@ def plot_grid(step, args):
     ax2.set_xlim([-0.5, len(rad) - 0.5])
     ax2.set_xlabel('Cell number')
     fig.savefig('grid_{}.pdf'.format(step.istep))
-    args.plt.close(fig)
+    plt.close(fig)
 
 
-def plot_average(sdat, lovs, args):
+def plot_average(sdat, lovs):
     """Plot time averaged profiles"""
     sovs = misc.set_of_vars(lovs)
     istart = None
@@ -84,7 +85,7 @@ def plot_average(sdat, lovs, args):
     nprofs = 0
     rads = {}
     metas = {}
-    for step in misc.steps_gen(sdat, args):
+    for step in misc.steps_gen(sdat):
         if step.rprof is None:
             continue
         if istart is None:
@@ -104,14 +105,14 @@ def plot_average(sdat, lovs, args):
 
     stepstr = '{}_{}'.format(istart, ilast)
 
-    _plot_rprof_list(lovs, rprof_averaged, metas, args, stepstr, rads)
+    _plot_rprof_list(lovs, rprof_averaged, metas, stepstr, rads)
 
 
-def plot_every_step(sdat, lovs, args):
+def plot_every_step(sdat, lovs):
     """One plot per time step"""
     sovs = misc.set_of_vars(lovs)
 
-    for step in misc.steps_gen(sdat, args):
+    for step in misc.steps_gen(sdat):
         if step.rprof is None:
             continue
         rprofs = {}
@@ -126,24 +127,24 @@ def plot_every_step(sdat, lovs, args):
         rprofs['r'] = step.rprof.loc[:, 'r'] + misc.get_rbounds(step)[0]
         stepstr = str(step.istep)
 
-        _plot_rprof_list(lovs, rprofs, metas, args, stepstr, rads)
+        _plot_rprof_list(lovs, rprofs, metas, stepstr, rads)
 
 
-def rprof_cmd(args):
+def rprof_cmd():
     """Plot radial profiles"""
-    sdat = StagyyData(args.path)
+    sdat = StagyyData(conf.core.path)
     if sdat.rprof is None:
         return
 
-    if args.grid:
-        for step in misc.steps_gen(sdat, args):
-            plot_grid(step, args)
+    if conf.rprof.grid:
+        for step in misc.steps_gen(sdat):
+            plot_grid(step)
 
-    lovs = misc.list_of_vars(args.plot)
+    lovs = misc.list_of_vars(conf.rprof.plot)
     if not lovs:
         return
 
-    if args.average:
-        plot_average(sdat, lovs, args)
+    if conf.rprof.average:
+        plot_average(sdat, lovs)
     else:
-        plot_every_step(sdat, lovs, args)
+        plot_every_step(sdat, lovs)

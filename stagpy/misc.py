@@ -1,10 +1,10 @@
 """miscellaneous definitions"""
 
-import importlib
 import pathlib
 import shutil
 import sys
 import tempfile
+from . import conf
 
 INT_FMT = '{:05d}'
 
@@ -15,9 +15,9 @@ def stop(*msgs):
     sys.exit()
 
 
-def out_name(args, par_type):
+def out_name(par_type):
     """return out file name format for any time step"""
-    return args.outname + '_' + par_type + INT_FMT
+    return conf.core.outname + '_' + par_type + INT_FMT
 
 
 def fmttime(tin):
@@ -25,16 +25,6 @@ def fmttime(tin):
     aaa, bbb = '{:.2e}'.format(tin).split('e')
     bbb = int(bbb)
     return r'$t={} \times 10^{{{}}}$'.format(aaa, bbb)
-
-
-def set_arg(args, arg, val):
-    """set a cmd line with arg string name"""
-    vars(args)[arg] = val
-
-
-def get_arg(args, arg):
-    """set a cmd line with arg string name"""
-    return vars(args)[arg]
 
 
 def list_of_vars(arg_plot):
@@ -56,12 +46,12 @@ def set_of_vars(lovs):
     return set(var for pvars in lovs for svars in pvars for var in svars)
 
 
-def steps_gen(sdat, args):
+def steps_gen(sdat):
     """Return generator over relevant snapshots or timesteps"""
-    if args.snapshots is not None:
-        return sdat.snaps[args.snapshots]
+    if conf.core.snapshots is not None:
+        return sdat.snaps[conf.core.snapshots]
     else:
-        return sdat.steps[args.timesteps]
+        return sdat.steps[conf.core.timesteps]
 
 
 def get_rbounds(step):
@@ -74,21 +64,6 @@ def get_rbounds(step):
             rcmb = 0
     rcmb = max(rcmb, 0)
     return rcmb, rcmb + 1
-
-
-def plot_backend(args):
-    """import matplotlib and seaborn"""
-    mpl = importlib.import_module('matplotlib')
-    if args.matplotback:
-        mpl.use(args.matplotback)
-    plt = importlib.import_module('matplotlib.pyplot')
-    if args.useseaborn:
-        sns = importlib.import_module('seaborn')
-        args.sns = sns
-    if args.xkcd:
-        plt.xkcd()
-    args.mpl = mpl
-    args.plt = plt
 
 
 class InchoateFiles:

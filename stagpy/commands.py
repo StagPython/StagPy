@@ -4,45 +4,20 @@ from inspect import getdoc
 from itertools import zip_longest
 from math import ceil
 from shutil import get_terminal_size
+from subprocess import call
 from textwrap import TextWrapper
-from . import constants, misc, field, rprof, time_series, plates, stagyydata
-from . import __version__
+import shlex
+from . import conf, config, phyvars, __version__
+from . import stagyydata
 
 
-def field_cmd(args):
-    """Plot scalar and vector fields"""
-    misc.plot_backend(args)
-    field.field_cmd(args)
-
-
-def rprof_cmd(args):
-    """Plot radial profiles"""
-    misc.plot_backend(args)
-    rprof.rprof_cmd(args)
-
-
-def time_cmd(args):
-    """Plot time series"""
-    misc.plot_backend(args)
-    time_series.time_cmd(args)
-
-
-def plates_cmd(args):
-    """Plate analysis"""
-    misc.plot_backend(args)
-    if args.plot is not None:
-        for var, meta in constants.PLATES_VAR_LIST.items():
-            misc.set_arg(args, meta.arg, var in args.plot)
-    plates.plates_cmd(args)
-
-
-def info_cmd(args):
+def info_cmd():
     """Print basic information about StagYY run"""
-    sdat = stagyydata.StagyyData(args.path)
+    sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps.last
     lstep = sdat.steps.last
     lfields = []
-    for fvar in constants.FIELD_VARS:
+    for fvar in phyvars.FIELD:
         if lsnap.fields[fvar] is not None:
             lfields.append(fvar)
     print('StagYY run in {}'.format(sdat.path))
@@ -59,7 +34,7 @@ def info_cmd(args):
 
 
 def _layout(dict_vars, dict_vars_extra):
-    """Print nicely [(var, description)] from *_VARS and *_VARS__EXTRA"""
+    """Print nicely [(var, description)] from phyvars"""
     desc = [(v, m.description) for v, m in dict_vars.items()]
     desc.extend((v, getdoc(m.description)) for v, m in dict_vars_extra.items())
     termw = get_terminal_size().columns
@@ -88,21 +63,32 @@ def _layout(dict_vars, dict_vars_extra):
     print(*(fmt.format(*line) for line in lines), sep='\n')
 
 
-def var_cmd(_):
+def var_cmd():
     """Print a list of available variables"""
     print('field:')
-    _layout(constants.FIELD_VARS, constants.FIELD_VARS_EXTRA)
+    _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
     print()
     print('rprof:')
-    _layout(constants.RPROF_VARS, constants.RPROF_VARS_EXTRA)
+    _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)
     print()
     print('time:')
-    _layout(constants.TIME_VARS, constants.TIME_VARS_EXTRA)
+    _layout(phyvars.TIME, phyvars.TIME_EXTRA)
     print()
     print('plates:')
-    _layout(constants.PLATES_VAR_LIST, {})
+    _layout(phyvars.PLATES, {})
 
 
-def version_cmd(_):
+def version_cmd():
     """Print StagPy version"""
     print('stagpy version: {}'.format(__version__))
+
+
+def config_cmd():
+    """Configuration handling"""
+    if not (conf.config.create or conf.config.update or conf.config.edit):
+        conf.config.update = True
+    if conf.config.create or conf.config.update:
+        config.create_config()
+    if conf.config.edit:
+        call(shlex.split('{} {}'.format(conf.config.editor,
+                                        config.CONFIG_FILE)))
