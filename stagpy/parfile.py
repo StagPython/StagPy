@@ -1,7 +1,7 @@
 """StagYY par file handling"""
 
 import f90nml
-from .constants import CONFIG_DIR
+from .config import CONFIG_DIR
 from .error import NoParFileError
 
 PAR_DFLT_FILE = CONFIG_DIR / 'par'

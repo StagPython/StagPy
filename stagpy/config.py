@@ -5,16 +5,12 @@ and deal with the config file
 """
 
 from collections import OrderedDict, namedtuple
-from inspect import getdoc
-from subprocess import call
-import argcomplete
-import argparse
+from os.path import expanduser
 import configparser
 import pathlib
-import shlex
-from . import commands
-from .constants import CONFIG_DIR
 
+HOME_DIR = pathlib.Path(expanduser('~'))
+CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 CONFIG_FILE = CONFIG_DIR / 'config'
 
 Conf = namedtuple('ConfigEntry',
@@ -192,28 +188,6 @@ CONF_DEF['config'] = OrderedDict((
 ))
 
 
-def config_cmd(args):
-    """Configuration handling"""
-    if not (args.create or args.update or args.edit):
-        args.update = True
-    if args.create or args.update:
-        create_config()
-    if args.edit:
-        call(shlex.split('{} {}'.format(args.editor, CONFIG_FILE)))
-
-Sub = namedtuple('Sub', ['use_core', 'func'])
-SUB_CMDS = OrderedDict((
-    ('field', Sub(True, commands.field_cmd)),
-    ('rprof', Sub(True, commands.rprof_cmd)),
-    ('time', Sub(True, commands.time_cmd)),
-    ('plates', Sub(True, commands.plates_cmd)),
-    ('info', Sub(True, commands.info_cmd)),
-    ('var', Sub(False, commands.var_cmd)),
-    ('version', Sub(False, commands.version_cmd)),
-    ('config', Sub(False, config_cmd)),
-))
-
-
 def create_config():
     """Create config file"""
     if not CONFIG_DIR.exists():
@@ -228,115 +202,13 @@ def create_config():
         config_parser.write(out_stream)
 
 
-class Toggle(argparse.Action):
-
-    """argparse Action to store True/False to a +/-arg"""
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        """set args attribute with True/False"""
-        setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
-
-
-def add_args(subconf, parser, entries):
-    """Add arguments to a parser"""
-    for arg, meta in entries.items():
-        if not meta.cmd_arg:
-            continue
-        if isinstance(meta.default, bool):
-            meta.kwargs.update(action=Toggle, nargs=0)
-            names = ['-{}'.format(arg), '+{}'.format(arg)]
-            if meta.shortname is not None:
-                names.append('-{}'.format(meta.shortname))
-                names.append('+{}'.format(meta.shortname))
-        else:
-            if meta.default is not None:
-                meta.kwargs.setdefault('type', type(meta.default))
-            names = ['--{}'.format(arg)]
-            if meta.shortname is not None:
-                names.append('-{}'.format(meta.shortname))
-        meta.kwargs.update(help=meta.help_string)
-        parser.add_argument(*names, **meta.kwargs)
-    parser.set_defaults(**{a: subconf[a] for a in entries})
-    return parser
-
-
-def _build_parser(conf):
-    """Return complete parser"""
-    main_parser = argparse.ArgumentParser(
-        description='read and process StagYY binary data')
-    main_parser.set_defaults(func=lambda _: print('stagpy -h for usage'))
-    subparsers = main_parser.add_subparsers()
-
-    core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
-    for sub in CONF_DEF:
-        if sub not in SUB_CMDS:
-            core_parser = add_args(conf[sub], core_parser, CONF_DEF[sub])
-
-    for sub_cmd, meta in SUB_CMDS.items():
-        kwargs = {'prefix_chars': '+-', 'help': getdoc(meta.func)}
-        if meta.use_core:
-            kwargs.update(parents=[core_parser])
-        dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-        dummy_parser = add_args(conf[sub_cmd], dummy_parser, CONF_DEF[sub_cmd])
-        dummy_parser.set_defaults(func=meta.func)
-
-    return main_parser
-
-
-def _steps_to_slices(args):
-    """parse timesteps and snapshots arguments and return slices"""
-    if args.timesteps is None and args.snapshots is None:
-        # default to the last snap
-        args.snapshots = slice(-1, None, None)
-        return None
-    elif args.snapshots is not None:
-        # snapshots take precedence over timesteps
-        # if both are defined
-        args.timesteps = None
-        steps = args.snapshots
-    else:
-        steps = args.timesteps
-    steps = steps.split(':')
-    steps[0] = int(steps[0]) if steps[0] else None
-    if len(steps) == 1:
-        steps.append(steps[0] + 1)
-    steps[1] = int(steps[1]) if steps[1] else None
-    if len(steps) != 3:
-        steps = steps[0:2] + [1]
-    steps[2] = int(steps[2]) if steps[2] else None
-    steps = slice(*steps)
-    if args.snapshots is not None:
-        args.snapshots = steps
-    else:
-        args.timesteps = steps
-
-
-def parse_args(conf):
-    """Parse cmd line arguments"""
-    main_parser = _build_parser(conf)
-    argcomplete.autocomplete(main_parser)
-    args = main_parser.parse_args()
-
-    if args.func is not config_cmd:
-        args.create = False
-        args.edit = False
-        args.update = False
-        conf.report_parsing_problems()
-
-    try:
-        _steps_to_slices(args)
-    except AttributeError:
-        pass
-    return args
-
-
 class _SubConfig:
 
     """Hold options for a single subcommand"""
 
     def __init__(self, parent, name, entries):
-        self.parent = parent
-        self.name = name
+        self._parent = parent
+        self._name = name
         for opt, meta in entries.items():
             self[opt] = meta.default
 
@@ -353,21 +225,21 @@ class _SubConfig:
         and set options accordingly
         """
         missing_opts = []
-        config_parser = self.parent.config_parser
-        for opt, meta_opt in CONF_DEF[self.name].items():
+        config_parser = self._parent.config_parser
+        for opt, meta_opt in CONF_DEF[self._name].items():
             if not meta_opt.conf_arg:
                 continue
-            if not config_parser.has_option(self.name, opt):
+            if not config_parser.has_option(self._name, opt):
                 missing_opts.append(opt)
                 continue
             if isinstance(meta_opt.default, bool):
-                dflt = config_parser.getboolean(self.name, opt)
+                dflt = config_parser.getboolean(self._name, opt)
             elif isinstance(meta_opt.default, float):
-                dflt = config_parser.getfloat(self.name, opt)
+                dflt = config_parser.getfloat(self._name, opt)
             elif isinstance(meta_opt.default, int):
-                dflt = config_parser.getint(self.name, opt)
+                dflt = config_parser.getint(self._name, opt)
             else:
-                dflt = config_parser.get(self.name, opt)
+                dflt = config_parser.get(self._name, opt)
             self[opt] = dflt
         return missing_opts
 

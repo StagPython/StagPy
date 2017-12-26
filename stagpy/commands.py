@@ -4,9 +4,11 @@ from inspect import getdoc
 from itertools import zip_longest
 from math import ceil
 from shutil import get_terminal_size
+from subprocess import call
 from textwrap import TextWrapper
-from . import constants, misc, field, rprof, time_series, plates, stagyydata
-from . import __version__
+import shlex
+from . import config, constants, misc, __version__
+from . import field, rprof, time_series, plates, stagyydata
 
 
 def field_cmd(args):
@@ -106,3 +108,13 @@ def var_cmd(_):
 def version_cmd(_):
     """Print StagPy version"""
     print('stagpy version: {}'.format(__version__))
+
+
+def config_cmd(args):
+    """Configuration handling"""
+    if not (args.create or args.update or args.edit):
+        args.update = True
+    if args.create or args.update:
+        config.create_config()
+    if args.edit:
+        call(shlex.split('{} {}'.format(args.editor, config.CONFIG_FILE)))

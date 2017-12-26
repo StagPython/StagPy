@@ -1,12 +1,7 @@
-"""defines some constants"""
+"""Define lists of variables"""
 
-import pathlib
 from collections import OrderedDict, namedtuple
-from os.path import expanduser
 from . import processing
-
-HOME_DIR = pathlib.Path(expanduser('~'))
-CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 
 Varf = namedtuple('Varf', ['description', 'shortname', 'popts'])
 FIELD_VARS = OrderedDict((
