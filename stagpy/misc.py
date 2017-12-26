@@ -1,6 +1,5 @@
 """miscellaneous definitions"""
 
-import importlib
 import pathlib
 import shutil
 import sys
