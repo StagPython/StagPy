@@ -2,17 +2,10 @@
 
 import pathlib
 import shutil
-import sys
 import tempfile
 from . import conf
 
 INT_FMT = '{:05d}'
-
-
-def stop(*msgs):
-    """print error message and exit"""
-    print('ERROR:', *msgs, file=sys.stderr)
-    sys.exit()
 
 
 def out_name(par_type):
