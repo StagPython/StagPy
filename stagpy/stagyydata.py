@@ -3,7 +3,7 @@
 import re
 import pathlib
 import numpy as np
-from . import constants, error, parfile, stagyyparsers
+from . import error, parfile, phyvars, stagyyparsers
 
 
 UNDETERMINED = object()
@@ -161,15 +161,14 @@ class _Fields(dict):
         super().__init__()
 
     def __missing__(self, name):
-        if name in constants.FIELD_VARS:
+        if name in phyvars.FIELD:
             filestem = ''
-            for filestem, list_fvar in constants.FIELD_FILES.items():
+            for filestem, list_fvar in phyvars.FIELD_FILES.items():
                 if name in list_fvar:
                     break
             fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
-        elif name in constants.FIELD_VARS_EXTRA:
-            self[name] = constants.FIELD_VARS_EXTRA[name].\
-                description(self.step)
+        elif name in phyvars.FIELD_EXTRA:
+            self[name] = phyvars.FIELD_EXTRA[name].description(self.step)
             return self[name]
         else:
             raise error.UnknownFieldVarError(name)
@@ -178,7 +177,7 @@ class _Fields(dict):
             return None
         header, fields = parsed_data
         self._header = header
-        fld_names = constants.FIELD_FILES[filestem]
+        fld_names = phyvars.FIELD_FILES[filestem]
         for fld_name, fld in zip(fld_names, fields):
             if self._header['xyp'] == 0:
                 if not self.geom.twod_yz:
@@ -380,7 +379,7 @@ class _Snaps(_Steps):
             out_stem = re.escape(pathlib.Path(
                 self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
             rgx = re.compile('^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
-            fstems = set(fstem for fstem in constants.FIELD_FILES)
+            fstems = set(fstem for fstem in phyvars.FIELD_FILES)
             for fname in self.sdat.files:
                 match = rgx.match(fname.name)
                 if match is not None and match.group(1) in fstems:
@@ -429,7 +428,7 @@ class StagyyData:
         if self._stagdat['tseries'] is UNDETERMINED:
             timefile = self.filename('time.dat')
             self._stagdat['tseries'] = stagyyparsers.time_series(
-                timefile, list(constants.TIME_VARS.keys()))
+                timefile, list(phyvars.TIME.keys()))
         return self._stagdat['tseries']
 
     @property
@@ -437,7 +436,7 @@ class StagyyData:
         if self._stagdat['rprof'] is UNDETERMINED:
             rproffile = self.filename('rprof.dat')
             self._stagdat['rprof'] = stagyyparsers.rprof(
-                rproffile, list(constants.RPROF_VARS.keys()))
+                rproffile, list(phyvars.RPROF.keys()))
         return self._stagdat['rprof']
 
     @property
@@ -504,5 +503,5 @@ class StagyyData:
     def binfiles_set(self, isnap):
         """Set of existing binary files at a given snap"""
         possible_files = set(self.filename(fstem, isnap)
-                             for fstem in constants.FIELD_FILES)
+                             for fstem in phyvars.FIELD_FILES)
         return possible_files & self.files

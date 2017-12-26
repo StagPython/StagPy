@@ -7,7 +7,7 @@ from shutil import get_terminal_size
 from subprocess import call
 from textwrap import TextWrapper
 import shlex
-from . import conf, config, constants, __version__
+from . import conf, config, phyvars, __version__
 from . import stagyydata
 
 
@@ -17,7 +17,7 @@ def info_cmd():
     lsnap = sdat.snaps.last
     lstep = sdat.steps.last
     lfields = []
-    for fvar in constants.FIELD_VARS:
+    for fvar in phyvars.FIELD:
         if lsnap.fields[fvar] is not None:
             lfields.append(fvar)
     print('StagYY run in {}'.format(sdat.path))
@@ -34,7 +34,7 @@ def info_cmd():
 
 
 def _layout(dict_vars, dict_vars_extra):
-    """Print nicely [(var, description)] from *_VARS and *_VARS__EXTRA"""
+    """Print nicely [(var, description)] from phyvars"""
     desc = [(v, m.description) for v, m in dict_vars.items()]
     desc.extend((v, getdoc(m.description)) for v, m in dict_vars_extra.items())
     termw = get_terminal_size().columns
@@ -66,16 +66,16 @@ def _layout(dict_vars, dict_vars_extra):
 def var_cmd():
     """Print a list of available variables"""
     print('field:')
-    _layout(constants.FIELD_VARS, constants.FIELD_VARS_EXTRA)
+    _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
     print()
     print('rprof:')
-    _layout(constants.RPROF_VARS, constants.RPROF_VARS_EXTRA)
+    _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)
     print()
     print('time:')
-    _layout(constants.TIME_VARS, constants.TIME_VARS_EXTRA)
+    _layout(phyvars.TIME, phyvars.TIME_EXTRA)
     print()
     print('plates:')
-    _layout(constants.PLATES_VAR_LIST, {})
+    _layout(phyvars.PLATES, {})
 
 
 def version_cmd():

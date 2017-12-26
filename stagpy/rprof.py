@@ -5,7 +5,7 @@ Date: 2015/09/11
 """
 from inspect import getdoc
 import matplotlib.pyplot as plt
-from . import conf, constants, misc
+from . import conf, misc, phyvars
 from .error import UnknownRprofVarError
 from .stagyydata import StagyyData
 
@@ -45,14 +45,14 @@ def get_rprof(step, var):
     if var in step.rprof.columns:
         rprof = step.rprof[var]
         rad = None
-        if var in constants.RPROF_VARS:
-            meta = constants.RPROF_VARS[var]
+        if var in phyvars.RPROF:
+            meta = phyvars.RPROF[var]
         else:
-            meta = constants.Varr(None, None)
-    elif var in constants.RPROF_VARS_EXTRA:
-        meta = constants.RPROF_VARS_EXTRA[var]
+            meta = phyvars.Varr(None, None)
+    elif var in phyvars.RPROF_EXTRA:
+        meta = phyvars.RPROF_EXTRA[var]
         rprof, rad = meta.description(step)
-        meta = constants.Varr(getdoc(meta.description), meta.shortname)
+        meta = phyvars.Varr(getdoc(meta.description), meta.shortname)
     else:
         raise UnknownRprofVarError(var)
 

@@ -8,7 +8,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
-from . import conf, constants, field, misc
+from . import conf, field, misc, phyvars
 from .stagyydata import StagyyData
 
 
@@ -567,7 +567,7 @@ def lithospheric_stress(step, trench, ridge, time):
                            rasterized=not conf.core.pdf, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
-    cbar.set_label(r'${}$'.format(constants.FIELD_VARS['sII'].shortname))
+    cbar.set_label(r'${}$'.format(phyvars.FIELD['sII'].shortname))
     plt.axis('equal')
     plt.axis('off')
     # Annotation with time and step

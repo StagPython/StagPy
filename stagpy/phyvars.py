@@ -1,10 +1,10 @@
-"""Define lists of variables"""
+"""Define lists of physical variables"""
 
 from collections import OrderedDict, namedtuple
 from . import processing
 
 Varf = namedtuple('Varf', ['description', 'shortname', 'popts'])
-FIELD_VARS = OrderedDict((
+FIELD = OrderedDict((
     ('T', Varf('Temperature', 'T', {})),
     ('v1', Varf('x Velocity', 'u', {})),
     ('v2', Varf('y Velocity', 'v', {})),
@@ -28,7 +28,7 @@ FIELD_VARS = OrderedDict((
     ('contID', Varf('ID of continents', 'id', {})),
 ))
 
-FIELD_VARS_EXTRA = OrderedDict((
+FIELD_EXTRA = OrderedDict((
     ('stream', Varf(processing.stream_function, r'\psi', {})),
 ))
 
@@ -48,7 +48,7 @@ FIELD_FILES = OrderedDict((
 ))
 
 Varr = namedtuple('Varr', ['description', 'shortname'])
-RPROF_VARS = OrderedDict((
+RPROF = OrderedDict((
     ('r', Varr('Radial coordinate', 'r')),
     ('Tmean', Varr('Temperature', 'T')),
     ('Tmin', Varr('Min temperature', 'T')),
@@ -117,7 +117,7 @@ RPROF_VARS = OrderedDict((
     ('advasc', Varr('Upward advection', 'q')),
 ))
 
-RPROF_VARS_EXTRA = OrderedDict((
+RPROF_EXTRA = OrderedDict((
     ('redges', Varr(processing.r_edges, 'r')),
     ('dr', Varr(processing.delta_r, 'dr')),
     ('diff', Varr(processing.diff_prof, 'q')),
@@ -131,7 +131,7 @@ RPROF_VARS_EXTRA = OrderedDict((
 ))
 
 Vart = namedtuple('Vart', ['description', 'shortname'])
-TIME_VARS = OrderedDict((
+TIME = OrderedDict((
     ('t', Vart('Time', 't')),
     ('ftop', Vart('Heat flux at top', 'q')),
     ('fbot', Vart('Heat flux at bottom', 'q')),
@@ -163,13 +163,13 @@ TIME_VARS = OrderedDict((
     ('botT_val', Vart('Temperature at bottom', 'T')),
 ))
 
-TIME_VARS_EXTRA = OrderedDict((
+TIME_EXTRA = OrderedDict((
     ('dTdt', Vart(processing.dt_dt, r'dT/dt')),
     ('ebalance', Vart(processing.ebalance, r'\mathrm{Nu}')),
 ))
 
 Varp = namedtuple('Varp', ['par', 'description', 'arg'])
-PLATES_VAR_LIST = OrderedDict((
+PLATES = OrderedDict((
     ('c', Varp('c', 'Composition', 'plot_composition')),
     ('n', Varp('eta', 'Viscosity', 'plot_viscosity')),
     ('r', Varp('cs', 'Topography', 'plot_topography')),

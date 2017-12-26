@@ -7,7 +7,7 @@ from inspect import getdoc
 import numpy as np
 from math import sqrt
 import matplotlib.pyplot as plt
-from . import conf, constants, misc
+from . import conf, misc, phyvars
 from .error import UnknownTimeVarError
 from .stagyydata import StagyyData
 
@@ -55,14 +55,14 @@ def get_time_series(sdat, var, tstart, tend):
     if var in tseries.columns:
         series = tseries[var]
         time = None
-        if var in constants.TIME_VARS:
-            meta = constants.TIME_VARS[var]
+        if var in phyvars.TIME:
+            meta = phyvars.TIME[var]
         else:
-            meta = constants.Varr(None, None)
-    elif var in constants.TIME_VARS_EXTRA:
-        meta = constants.TIME_VARS_EXTRA[var]
+            meta = phyvars.Varr(None, None)
+    elif var in phyvars.TIME_EXTRA:
+        meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
-        meta = constants.Varr(getdoc(meta.description), meta.shortname)
+        meta = phyvars.Vart(getdoc(meta.description), meta.shortname)
     else:
         raise UnknownTimeVarError(var)
 

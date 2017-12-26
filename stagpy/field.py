@@ -4,14 +4,14 @@ from inspect import getdoc
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from . import conf, constants, misc
+from . import conf, misc, phyvars
 from .error import NotAvailableError
 from .stagyydata import StagyyData
 
 
 def valid_field_var(var):
     """Whether a field var is defined"""
-    return var in constants.FIELD_VARS or var in constants.FIELD_VARS_EXTRA
+    return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
 
 def get_meshes_fld(step, var):
@@ -66,12 +66,12 @@ def set_of_vars(arg_plot):
 
 def plot_scalar(step, var, scaling=None, **extra):
     """Plot scalar field"""
-    if var in constants.FIELD_VARS:
-        meta = constants.FIELD_VARS[var]
+    if var in phyvars.FIELD:
+        meta = phyvars.FIELD[var]
     else:
-        meta = constants.FIELD_VARS_EXTRA[var]
-        meta = constants.Varf(getdoc(meta.description),
-                              meta.shortname, meta.popts)
+        meta = phyvars.FIELD_EXTRA[var]
+        meta = phyvars.Varf(getdoc(meta.description),
+                            meta.shortname, meta.popts)
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
