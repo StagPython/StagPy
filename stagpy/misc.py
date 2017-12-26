@@ -67,18 +67,6 @@ def get_rbounds(step):
     return rcmb, rcmb + 1
 
 
-def plot_backend():
-    """import matplotlib and seaborn"""
-    conf.mpl = importlib.import_module('matplotlib')
-    if conf.core.matplotback:
-        conf.mpl.use(conf.core.matplotback)
-    conf.plt = importlib.import_module('matplotlib.pyplot')
-    if conf.core.useseaborn:
-        conf.sns = importlib.import_module('seaborn')
-    if conf.core.xkcd:
-        conf.plt.xkcd()
-
-
 class InchoateFiles:
 
     """Context manager handling files whose names are not known yet"""

@@ -5,6 +5,7 @@ Date: 2016/26/01
 from copy import deepcopy
 import pathlib
 import sys
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
 from . import conf, constants, field, misc
@@ -237,7 +238,6 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     else:
         dsa = 0.
 
-    plt = conf.plt
     lwd = conf.core.linewidth
     vphi = step.fields['v2'][0, :, :, 0]
     tempfld = step.fields['T'][0, :, :, 0]
@@ -560,25 +560,25 @@ def lithospheric_stress(step, trench, ridge, time):
     ph_coord = step.geom.p_coord  # probably doesn't need alias
 
     # plot stress in the lithosphere
-    fig, axis = conf.plt.subplots(ncols=1)
+    fig, axis = plt.subplots(ncols=1)
     surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
                            stressfld * scale_stress / 1.e6,
                            cmap='gnuplot2_r',
                            rasterized=not conf.core.pdf, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
-    cbar = conf.plt.colorbar(surf, shrink=conf.plates.shrinkcb)
+    cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
     cbar.set_label(r'${}$'.format(constants.FIELD_VARS['sII'].shortname))
-    conf.plt.axis('equal')
-    conf.plt.axis('off')
+    plt.axis('equal')
+    plt.axis('off')
     # Annotation with time and step
     axis.text(1., 0.9, str(round(time, 0)) + ' My',
               transform=axis.transAxes, fontsize=conf.core.fontsize)
     axis.text(1., 0.1, str(timestep),
               transform=axis.transAxes, fontsize=conf.core.fontsize)
-    conf.plt.savefig(
+    plt.savefig(
         misc.out_name('lith').format(timestep) + '.pdf',
         format='PDF')
-    conf.plt.close(fig)
+    plt.close(fig)
 
     # velocity
     vphi = step.fields['v2'][0, :, :, 0]
@@ -618,7 +618,7 @@ def lithospheric_stress(step, trench, ridge, time):
     continentsall = continents / continents
 
     # plot integrated stress in the lithosphere
-    fig0, (ax1, ax2) = conf.plt.subplots(2, 1, sharex=True, figsize=(12, 8))
+    fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
     ax1.plot(ph_coord[:-1], vph2[:-1, -1], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
@@ -651,7 +651,7 @@ def lithospheric_stress(step, trench, ridge, time):
 
     figname = misc.out_name('svelslith').format(timestep) + '.pdf'
     fig0.savefig(figname, format='PDF')
-    conf.plt.close(fig0)
+    plt.close(fig0)
 
 
 def plates_cmd():
@@ -748,7 +748,7 @@ def plates_cmd():
                 axis.pcolormesh(xmesh, ymesh, continentsfld,
                                 rasterized=not conf.core.pdf, cmap='cool_r',
                                 vmin=0, vmax=0, shading='goaround')
-                cmap2 = conf.plt.cm.ocean
+                cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
 
                 # plotting velocity vectors
@@ -766,8 +766,8 @@ def plates_cmd():
                 plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                 # Save figure
-                conf.plt.tight_layout()
-                conf.plt.savefig(
+                plt.tight_layout()
+                plt.savefig(
                     misc.out_name('eta').format(timestep) + '.pdf',
                     format='PDF')
 
@@ -791,10 +791,10 @@ def plates_cmd():
                     yzoom = (rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
                     axis.set_xlim(xzoom - ladd, xzoom + radd)
                     axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                    conf.plt.savefig(
+                    plt.savefig(
                         misc.out_name('etazoom').format(timestep) +
                         '.pdf', format='PDF')
-                conf.plt.close(fig)
+                plt.close(fig)
 
                 # plot stress field with position of trenches and ridges
                 if conf.plates.plot_stress:
@@ -815,8 +815,8 @@ def plates_cmd():
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                     # Save figure
-                    conf.plt.tight_layout()
-                    conf.plt.savefig(
+                    plt.tight_layout()
+                    plt.savefig(
                         misc.out_name('s').format(timestep) + '.pdf',
                         format='PDF')
 
@@ -824,10 +824,10 @@ def plates_cmd():
                     if conf.plates.zoom is not None:
                         axis.set_xlim(xzoom - ladd, xzoom + radd)
                         axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                        conf.plt.savefig(
+                        plt.savefig(
                             misc.out_name('szoom').format(timestep) +
                             '.pdf', format='PDF')
-                    conf.plt.close(fig)
+                    plt.close(fig)
 
                     # calculate stresses in the lithosphere
                     lithospheric_stress(step, trenches, ridges, time)
@@ -842,7 +842,7 @@ def plates_cmd():
                                     rasterized=not conf.core.pdf,
                                     cmap='cool_r',
                                     vmin=0, vmax=0, shading='goaround')
-                    cmap2 = conf.plt.cm.ocean
+                    cmap2 = plt.cm.ocean
                     cmap2.set_over('m')
 
                     # plotting principal deviatoric stress
@@ -859,11 +859,11 @@ def plates_cmd():
                     # Put arrow where ridges and trenches are
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-                    conf.plt.tight_layout()
-                    conf.plt.savefig(
+                    plt.tight_layout()
+                    plt.savefig(
                         misc.out_name('sx').format(timestep) + '.pdf',
                         format='PDF')
-                    conf.plt.close(fig)
+                    plt.close(fig)
 
             # determine names of files
             stem = '{}_{}_{}'.format(fids.fnames[0], istart, iend)
@@ -891,7 +891,6 @@ def plates_cmd():
                 ch2o.append(step.timeinfo.loc[0])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
-            plt = conf.plt
             limits, nphi, dvphi, seuil_memz, vphi_surf, water_profile =\
                 detect_plates_vzcheck(step, seuil_memz)
             limits.sort()

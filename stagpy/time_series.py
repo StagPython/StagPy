@@ -6,6 +6,7 @@ Date: 2015/11/27
 from inspect import getdoc
 import numpy as np
 from math import sqrt
+import matplotlib.pyplot as plt
 from . import conf, constants, misc
 from .error import UnknownTimeVarError
 from .stagyydata import StagyyData
@@ -16,7 +17,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
     if times is None:
         times = {}
     for vfig in lovs:
-        fig, axes = conf.plt.subplots(nrows=len(vfig), sharex=True,
+        fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
                                       figsize=(30, 5 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
         fname = ''
@@ -45,7 +46,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
         axes[-1].tick_params(labelsize=conf.core.fontsize)
         fig.savefig('time_{}.pdf'.format(fname[:-1]),
                     format='PDF', bbox_inches='tight')
-        conf.plt.close(fig)
+        plt.close(fig)
 
 
 def get_time_series(sdat, var, tstart, tend):

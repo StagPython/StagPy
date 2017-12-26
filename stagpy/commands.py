@@ -7,31 +7,27 @@ from shutil import get_terminal_size
 from subprocess import call
 from textwrap import TextWrapper
 import shlex
-from . import conf, config, constants, misc, __version__
+from . import conf, config, constants, __version__
 from . import field, rprof, time_series, plates, stagyydata
 
 
 def field_cmd():
     """Plot scalar and vector fields"""
-    misc.plot_backend()
     field.field_cmd()
 
 
 def rprof_cmd():
     """Plot radial profiles"""
-    misc.plot_backend()
     rprof.rprof_cmd()
 
 
 def time_cmd():
     """Plot time series"""
-    misc.plot_backend()
     time_series.time_cmd()
 
 
 def plates_cmd():
     """Plate analysis"""
-    misc.plot_backend()
     plates.plates_cmd()
 
 

@@ -2,6 +2,8 @@
 
 from inspect import getdoc
 import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 from . import conf, constants, misc
 from .error import NotAvailableError
 from .stagyydata import StagyyData
@@ -64,8 +66,6 @@ def set_of_vars(arg_plot):
 
 def plot_scalar(step, var, scaling=None, **extra):
     """Plot scalar field"""
-    plt = conf.plt
-
     if var in constants.FIELD_VARS:
         meta = constants.FIELD_VARS[var]
     else:
@@ -84,7 +84,7 @@ def plot_scalar(step, var, scaling=None, **extra):
     extra_opts = {'cmap': 'jet'}
     extra_opts.update(meta.popts)
     extra_opts.update({} if var != 'eta'
-                      else {'norm': conf.mpl.colors.LogNorm()})
+                      else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)
     surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not conf.core.pdf,
                            shading='gouraud', **extra_opts)
@@ -130,4 +130,4 @@ def field_cmd():
             fig.savefig(
                 misc.out_name(oname).format(step.isnap) + '.pdf',
                 format='PDF', bbox_inches='tight')
-            conf.plt.close(fig)
+            plt.close(fig)

@@ -4,6 +4,7 @@ Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
 Date: 2015/09/11
 """
 from inspect import getdoc
+import matplotlib.pyplot as plt
 from . import conf, constants, misc
 from .error import UnknownRprofVarError
 from .stagyydata import StagyyData
@@ -14,7 +15,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
     if rads is None:
         rads = {}
     for vfig in lovs:
-        fig, axes = conf.plt.subplots(ncols=len(vfig), sharey=True)
+        fig, axes = plt.subplots(ncols=len(vfig), sharey=True)
         axes = [axes] if len(vfig) == 1 else axes
         fname = ''
         for iplt, vplt in enumerate(vfig):
@@ -36,7 +37,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
         axes[0].set_ylabel(r'$r$')
         fig.savefig('{}{}.pdf'.format(fname, stepstr),
                     format='PDF', bbox_inches='tight')
-        conf.plt.close(fig)
+        plt.close(fig)
 
 
 def get_rprof(step, var):
@@ -62,7 +63,7 @@ def plot_grid(step):
     """Plot cell position and thickness"""
     rad = step.rprof['r']
     drad, _, _ = get_rprof(step, 'dr')
-    fig, (ax1, ax2) = conf.plt.subplots(2, sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(rad, '-ko')
     ax1.set_ylabel('$r$')
     ax2.plot(drad, '-ko')
@@ -70,7 +71,7 @@ def plot_grid(step):
     ax2.set_xlim([-0.5, len(rad) - 0.5])
     ax2.set_xlabel('Cell number')
     fig.savefig('grid_{}.pdf'.format(step.istep))
-    conf.plt.close(fig)
+    plt.close(fig)
 
 
 def plot_average(sdat, lovs):
