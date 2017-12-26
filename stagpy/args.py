@@ -4,7 +4,7 @@ from collections import OrderedDict, namedtuple
 from inspect import getdoc
 import argparse
 import argcomplete
-from . import commands, conf, field, rprof, time_series, plates
+from . import commands, conf, field, phyvars, rprof, time_series, plates
 from .config import CONF_DEF
 
 Sub = namedtuple('Sub', ['use_core', 'func'])
@@ -112,6 +112,13 @@ def _update_subconf(cmd_args, sub):
         conf[sub][opt] = getattr(cmd_args, opt)
 
 
+def _update_plates_plot():
+    """Set plot_* variables for plates"""
+    if conf.plates.plot is not None:
+        for varp, meta in phyvars.PLATES.items():
+            conf.plates[meta.arg] = varp in conf.plates.plot
+
+
 def parse_args():
     """Parse cmd line arguments"""
     main_parser = _build_parser()
@@ -136,6 +143,8 @@ def parse_args():
 
     # options specific to the subcommand
     _update_subconf(cmd_args, sub_cmd)
+
+    _update_plates_plot()
 
     try:
         _steps_to_slices()
