@@ -108,7 +108,7 @@ def compstat(sdat, tstart=0., tend=None):
 
 
 def time_cmd():
-    """plot temporal series"""
+    """Plot time series"""
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return

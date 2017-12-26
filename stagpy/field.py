@@ -112,7 +112,7 @@ def plot_vec(axis, step, var):
 
 
 def field_cmd():
-    """extract and plot field data"""
+    """Plot scalar and vector fields"""
     sdat = StagyyData(conf.core.path)
     sovs = set_of_vars(conf.field.plot)
     for step in misc.steps_gen(sdat):

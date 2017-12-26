@@ -8,27 +8,7 @@ from subprocess import call
 from textwrap import TextWrapper
 import shlex
 from . import conf, config, constants, __version__
-from . import field, rprof, time_series, plates, stagyydata
-
-
-def field_cmd():
-    """Plot scalar and vector fields"""
-    field.field_cmd()
-
-
-def rprof_cmd():
-    """Plot radial profiles"""
-    rprof.rprof_cmd()
-
-
-def time_cmd():
-    """Plot time series"""
-    time_series.time_cmd()
-
-
-def plates_cmd():
-    """Plate analysis"""
-    plates.plates_cmd()
+from . import stagyydata
 
 
 def info_cmd():

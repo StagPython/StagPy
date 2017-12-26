@@ -4,15 +4,15 @@ from collections import OrderedDict, namedtuple
 from inspect import getdoc
 import argparse
 import argcomplete
-from . import commands, conf
+from . import commands, conf, field, rprof, time_series, plates
 from .config import CONF_DEF
 
 Sub = namedtuple('Sub', ['use_core', 'func'])
 SUB_CMDS = OrderedDict((
-    ('field', Sub(True, commands.field_cmd)),
-    ('rprof', Sub(True, commands.rprof_cmd)),
-    ('time', Sub(True, commands.time_cmd)),
-    ('plates', Sub(True, commands.plates_cmd)),
+    ('field', Sub(True, field.field_cmd)),
+    ('rprof', Sub(True, rprof.rprof_cmd)),
+    ('time', Sub(True, time_series.time_cmd)),
+    ('plates', Sub(True, plates.plates_cmd)),
     ('info', Sub(True, commands.info_cmd)),
     ('var', Sub(False, commands.var_cmd)),
     ('version', Sub(False, commands.version_cmd)),

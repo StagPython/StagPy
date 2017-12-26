@@ -655,11 +655,7 @@ def lithospheric_stress(step, trench, ridge, time):
 
 
 def plates_cmd():
-    """find positions of trenches and subductions
-
-    uses velocity field (velocity derivation)
-    plots the number of plates over a designated lapse of time
-    """
+    """Plate analysis"""
     sdat = StagyyData(conf.core.path)
     if not conf.plates.vzcheck:
         # calculating averaged horizontal surface velocity
