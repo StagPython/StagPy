@@ -4,12 +4,7 @@
 import importlib
 import signal
 import sys
-
-
-def sigint_handler(*_):
-    """SIGINT handler"""
-    print('\nSo long, and thanks for all the fish.')
-    sys.exit()
+from . import sigint_handler
 
 
 def main():
