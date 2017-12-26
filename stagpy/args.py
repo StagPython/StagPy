@@ -103,20 +103,41 @@ def _steps_to_slices(args):
         args.timesteps = steps
 
 
+def _update_subconf(cmd_args, sub):
+    """Set subconfig options accordingly to cmd line args"""
+    for opt, meta in CONF_DEF[sub].items():
+        if not meta.cmd_arg:
+            continue
+        conf[sub][opt] = getattr(cmd_args, opt)
+
+
 def parse_args():
     """Parse cmd line arguments"""
     main_parser = _build_parser()
     argcomplete.autocomplete(main_parser)
-    args = main_parser.parse_args()
+    cmd_args = main_parser.parse_args()
 
-    if args.func is not commands.config_cmd:
-        args.create = False
-        args.edit = False
-        args.update = False
+    if cmd_args.func is not commands.config_cmd:
         conf.report_parsing_problems()
 
+    # determine sub command
+    sub_cmd = None
+    for sub, meta in SUB_CMDS.items():
+        if cmd_args.func is meta.func:
+            sub_cmd = sub
+            break
+
+    # core options
+    if SUB_CMDS[sub_cmd].use_core:
+        for sub in CONF_DEF:
+            if sub not in SUB_CMDS:
+                _update_subconf(cmd_args, sub)
+
+    # options specific to the subcommand
+    _update_subconf(cmd_args, sub_cmd)
+
     try:
-        _steps_to_slices(args)
+        _steps_to_slices(cmd_args)
     except AttributeError:
         pass
-    return args
+    return cmd_args
