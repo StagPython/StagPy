@@ -17,8 +17,9 @@ def main():
     signal.signal(signal.SIGINT, sigint_handler)
     config = importlib.import_module('stagpy.config')
     error = importlib.import_module('stagpy.error')
+    conf = importlib.import_module('stagpy').conf
     try:
-        args = config.parse_args()
+        args = config.parse_args(conf)
         args.func(args)
     except error.StagpyError as err:
         print('Oops! StagPy encountered the following problem while '
