@@ -26,6 +26,12 @@ def _load_mpl():
         plt.xkcd()
 
 
+def init_config(config_file=config.CONFIG_FILE):
+    """Init configuration with given config_file"""
+    global conf  # pylint:disable=global-variable-undefined,invalid-name
+    conf = config.StagpyConfiguration(config_file)
+
+
 _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
@@ -35,8 +41,7 @@ except LookupError:
 except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
-conf = config.StagpyConfiguration()
-
+init_config()
 _load_mpl()
 
 signal.signal(signal.SIGINT, _PREV_INT)

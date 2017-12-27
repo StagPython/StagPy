@@ -248,7 +248,7 @@ class StagpyConfiguration:
 
     """Hold StagPy configuration options"""
 
-    def __init__(self, config_file=CONFIG_FILE):
+    def __init__(self, config_file):
         """Config is set with default values and updated with config_file"""
         for sub, entries in CONF_DEF.items():
             self[sub] = _SubConfig(self, sub, entries)
@@ -288,7 +288,7 @@ class StagpyConfiguration:
         missing_opts, missing_sections = self._missing_parsing
         need_update = False
         if missing_opts is None or missing_sections is None:
-            print('Unable to read config file {}!'.format(CONFIG_FILE),
+            print('Unable to read config file {}!'.format(self.config_file),
                   'Run stagpy config --create to obtain a new config file.',
                   '=' * 26, sep='\n')
             return
