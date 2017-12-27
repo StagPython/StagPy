@@ -6,16 +6,21 @@
 Welcome to StagPy's documentation!
 ==================================
 
-Contents:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Diving in
 
    sources/install
    sources/tuto
    sources/stagyydata
    sources/cli
    sources/cookbook
+
+.. toctree::
+   :maxdepth: 2
+   :caption: For developers
+
    sources/developers
    sources/maintainers
 
