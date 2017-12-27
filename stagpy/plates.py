@@ -4,7 +4,6 @@ Date: 2016/26/01
 """
 from copy import deepcopy
 import pathlib
-import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
@@ -60,8 +59,7 @@ def detect_plates_vzcheck(step, seuil_memz):
             stagnant_lid = False
             break
     if stagnant_lid:
-        print('stagnant lid')
-        sys.exit()
+        raise error.StagnantLidError(step.sdat)
     else:
         # verifying horizontal plate speed and closeness of plates
         dvphi = nphi * [0]

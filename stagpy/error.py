@@ -64,6 +64,15 @@ class InvalidZoomError(StagpyError):
                          .format(zoom))
 
 
+class StagnantLidError(StagpyError):
+
+    """Raised when unexpected stagnant lid regime is found"""
+
+    def __init__(self, sdat):
+        self.sdat = sdat
+        super().__init__('Stagnant lid regime for {}'.format(sdat))
+
+
 class UnknownVarError(StagpyError):
 
     """Raised when invalid var is requested"""
