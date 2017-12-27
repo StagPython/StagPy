@@ -54,6 +54,16 @@ class InvalidTimestepError(StagpyError):
         super().__init__(sdat, istep, msg)
 
 
+class InvalidZoomError(StagpyError):
+
+    """Raised when invalid zoom is requested"""
+
+    def __init__(self, zoom):
+        self.zoom = zoom
+        super().__init__('Zoom angle should be in [0,360] (received {})'
+                         .format(zoom))
+
+
 class UnknownVarError(StagpyError):
 
     """Raised when invalid var is requested"""

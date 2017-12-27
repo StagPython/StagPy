@@ -8,7 +8,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
-from . import conf, field, misc, phyvars
+from . import conf, error, field, misc, phyvars
 from .stagyydata import StagyyData
 
 
@@ -770,11 +770,7 @@ def plates_cmd():
                 # Zoom
                 if conf.plates.zoom is not None:
                     if not 0 <= conf.plates.zoom <= 360:
-                        print(' *WARNING* ')
-                        print('Zoom angle should be positive and '
-                              'less than 360 deg')
-                        print(' Exiting the code ')
-                        sys.exit()
+                        raise error.InvalidZoomError(conf.plates.zoom)
                     if 45 < conf.plates.zoom <= 135:
                         ladd, radd, uadd, dadd = 0.8, 0.8, 0.05, 0.1
                     elif 135 < conf.plates.zoom <= 225:
