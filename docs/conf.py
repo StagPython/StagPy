@@ -54,6 +54,7 @@ needs_sphinx = '1.3'
 extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
 ]
 
 autodoc_member_order = 'bysource'
