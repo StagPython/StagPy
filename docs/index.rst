@@ -29,4 +29,5 @@ Welcome to StagPy's documentation!
    :caption: API Reference
 
    sources/apiref/stagpy
+   sources/apiref/error
 
