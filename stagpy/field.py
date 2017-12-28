@@ -1,4 +1,4 @@
-"""plot fields"""
+"""Plot scalar and vector fields."""
 
 from inspect import getdoc
 import numpy as np
@@ -111,8 +111,8 @@ def plot_vec(axis, step, var):
                 linewidths=1)
 
 
-def field_cmd():
-    """Plot scalar and vector fields"""
+def cmd():
+    """Implementation of field subcommand."""
     sdat = StagyyData(conf.core.path)
     sovs = set_of_vars(conf.field.plot)
     for step in misc.steps_gen(sdat):

@@ -1,8 +1,5 @@
-"""Plots time series of temperature and heat fluxes outputs from stagyy.
+"""Plots time series."""
 
-Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
-Date: 2015/11/27
-"""
 from inspect import getdoc
 import numpy as np
 from math import sqrt
@@ -107,8 +104,8 @@ def compstat(sdat, tstart=0., tend=None):
         out_file.write("\n")
 
 
-def time_cmd():
-    """Plot time series"""
+def cmd():
+    """Implementation of time subcommand."""
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return

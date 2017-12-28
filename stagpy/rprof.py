@@ -1,8 +1,5 @@
-"""Plots radial profiles coming out of stagyy.
+"""Plot radial profiles."""
 
-Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
-Date: 2015/09/11
-"""
 from inspect import getdoc
 import matplotlib.pyplot as plt
 from . import conf, misc, phyvars
@@ -130,8 +127,8 @@ def plot_every_step(sdat, lovs):
         _plot_rprof_list(lovs, rprofs, metas, stepstr, rads)
 
 
-def rprof_cmd():
-    """Plot radial profiles"""
+def cmd():
+    """Implementation of rprof subcommand."""
     sdat = StagyyData(conf.core.path)
     if sdat.rprof is None:
         return
