@@ -53,6 +53,7 @@ needs_sphinx = '1.3'
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
+    'sphinx.ext.autodoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

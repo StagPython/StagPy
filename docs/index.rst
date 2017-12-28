@@ -24,4 +24,9 @@ Welcome to StagPy's documentation!
    sources/developers
    sources/maintainers
 
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference
+
+   sources/apiref/stagpy
 
