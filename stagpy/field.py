@@ -1,6 +1,5 @@
 """Plot scalar and vector fields."""
 
-from inspect import getdoc
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -70,7 +69,7 @@ def plot_scalar(step, var, scaling=None, **extra):
         meta = phyvars.FIELD[var]
     else:
         meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(getdoc(meta.description),
+        meta = phyvars.Varf(misc.baredoc(meta.description),
                             meta.shortname, meta.popts)
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')

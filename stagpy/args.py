@@ -1,11 +1,12 @@
 """Parse command line arguments and update conf"""
 
 from collections import OrderedDict, namedtuple
-from inspect import getdoc, isfunction
+from inspect import isfunction
 import argparse
 import argcomplete
 from . import commands, conf, field, phyvars, rprof, time_series, plates
 from .config import CONF_DEF
+from .misc import baredoc
 
 Sub = namedtuple('Sub', ['use_core', 'func'])
 SUB_CMDS = OrderedDict((
@@ -66,7 +67,7 @@ def _build_parser():
             core_parser = add_args(conf[sub], core_parser, CONF_DEF[sub])
 
     for sub_cmd, meta in SUB_CMDS.items():
-        kwargs = {'prefix_chars': '+-', 'help': getdoc(meta.func)}
+        kwargs = {'prefix_chars': '+-', 'help': baredoc(meta.func)}
         if meta.use_core:
             kwargs.update(parents=[core_parser])
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)

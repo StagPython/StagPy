@@ -1,6 +1,5 @@
 """Plots time series."""
 
-from inspect import getdoc
 import numpy as np
 from math import sqrt
 import matplotlib.pyplot as plt
@@ -59,7 +58,7 @@ def get_time_series(sdat, var, tstart, tend):
     elif var in phyvars.TIME_EXTRA:
         meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
-        meta = phyvars.Vart(getdoc(meta.description), meta.shortname)
+        meta = phyvars.Vart(misc.baredoc(meta.description), meta.shortname)
     else:
         raise UnknownTimeVarError(var)
 

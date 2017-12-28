@@ -1,6 +1,5 @@
 """Plot radial profiles."""
 
-from inspect import getdoc
 import matplotlib.pyplot as plt
 from . import conf, misc, phyvars
 from .error import UnknownRprofVarError
@@ -49,7 +48,7 @@ def get_rprof(step, var):
     elif var in phyvars.RPROF_EXTRA:
         meta = phyvars.RPROF_EXTRA[var]
         rprof, rad = meta.description(step)
-        meta = phyvars.Varr(getdoc(meta.description), meta.shortname)
+        meta = phyvars.Varr(misc.baredoc(meta.description), meta.shortname)
     else:
         raise UnknownRprofVarError(var)
 

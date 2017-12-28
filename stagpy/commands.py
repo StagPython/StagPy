@@ -1,6 +1,5 @@
 """definition of each subcommands"""
 
-from inspect import getdoc
 from itertools import zip_longest
 from math import ceil
 from shutil import get_terminal_size
@@ -9,6 +8,7 @@ from textwrap import TextWrapper
 import shlex
 from . import conf, config, phyvars, __version__
 from . import stagyydata
+from .misc import baredoc
 
 
 def info_cmd():
@@ -36,7 +36,8 @@ def info_cmd():
 def _layout(dict_vars, dict_vars_extra):
     """Print nicely [(var, description)] from phyvars"""
     desc = [(v, m.description) for v, m in dict_vars.items()]
-    desc.extend((v, getdoc(m.description)) for v, m in dict_vars_extra.items())
+    desc.extend((v, baredoc(m.description))
+                for v, m in dict_vars_extra.items())
     termw = get_terminal_size().columns
     ncols = (termw + 1) // 27  # min width of 26
     colw = (termw + 1) // ncols - 1

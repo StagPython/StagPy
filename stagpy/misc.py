@@ -1,5 +1,6 @@
 """miscellaneous definitions"""
 
+from inspect import getdoc
 import pathlib
 import shutil
 import tempfile
@@ -11,6 +12,24 @@ INT_FMT = '{:05d}'
 def out_name(par_type):
     """return out file name format for any time step"""
     return conf.core.outname + '_' + par_type + INT_FMT
+
+
+def baredoc(obj):
+    """Return the first line of docstring of an object.
+
+    If that first line ends with a period, it is removed in the output.
+
+    Args:
+        obj: any Python object with a docstring.
+
+    Returns:
+        str: the first line of the docstring of obj.
+    """
+    doc = getdoc(obj)
+    if not doc:
+        return ''
+    doc = doc.splitlines()[0]
+    return doc.rstrip(' .').lstrip()
 
 
 def fmttime(tin):
