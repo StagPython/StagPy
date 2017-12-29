@@ -2,7 +2,8 @@ stagpy
 ======
 
 .. automodule:: stagpy
-   :members: sigint_handler
+   :members:
+   :exclude-members: init_config
 
    .. data:: __version__
       :annotation: = 'x.y.z[.devN+gHASH[.dYYYYMMDD]]'
