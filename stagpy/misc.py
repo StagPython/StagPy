@@ -146,7 +146,7 @@ class InchoateFiles:
             nfiles (int): number of files. Defaults to 1.
             tmp_prefix (str): prefix name of temporary files. Use this
                 parameter if you want to easily track down the temporary files
-                created by the manage.
+                created by the manager.
         """
         self._fnames = ['inchoate{}'.format(i) for i in range(nfiles)]
         self._tmpprefix = tmp_prefix
