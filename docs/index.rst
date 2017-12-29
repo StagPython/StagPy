@@ -29,6 +29,7 @@ Welcome to StagPy's documentation!
    :caption: API Reference
 
    sources/apiref/stagpy
+   sources/apiref/commands
    sources/apiref/error
    sources/apiref/misc
    sources/apiref/stagyyparsers
