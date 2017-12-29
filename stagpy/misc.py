@@ -108,7 +108,7 @@ def get_rbounds(step):
     """Radial or vertical position of boundaries.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Steps`): a step of a StagyyData instance.
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData instance.
     Returns:
         tuple of floats: radial or vertical positions of boundaries of the domain.
     """
