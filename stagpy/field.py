@@ -9,12 +9,33 @@ from .stagyydata import StagyyData
 
 
 def valid_field_var(var):
-    """Whether a field var is defined"""
+    """Whether a field variable is defined.
+
+    This function checks if a definition of the variable exists in
+    :data:`phyvars.FIELD` or :data:`phyvars.FIELD_EXTRA`.
+
+    Args:
+        var (str): the variable name to be checked.
+    Returns:
+        bool: True is the var is defined, False otherwise.
+    """
     return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
 
 def get_meshes_fld(step, var):
-    """Return 2D meshes and field"""
+    """Return scalar field along with coordinates meshes.
+
+    Only works properly in 2D geometry.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+        var (str): scalar field name.
+    Returns:
+        tuple of :class:`numpy.array`: xmesh, ymesh, fld
+            2D arrays containing respectively the x position, y position, and
+            the value of the requested field.
+    """
     fld = step.fields[var]
     if step.geom.twod_xz:
         xmesh, ymesh = step.geom.x_mesh[:, 0, :], step.geom.z_mesh[:, 0, :]
@@ -29,7 +50,19 @@ def get_meshes_fld(step, var):
 
 
 def get_meshes_vec(step, var):
-    """Return 2D meshes and vec field components"""
+    """Return vector field components along with coordinates meshes.
+
+    Only works properly in 2D geometry.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+        var (str): vector field name.
+    Returns:
+        tuple of :class:`numpy.array`: xmesh, ymesh, fldx, fldy
+            2D arrays containing respectively the x position, y position, x
+            component and y component of the requested vector field.
+    """
     if step.geom.twod_xz:
         xmesh, ymesh = step.geom.x_mesh[:, 0, :], step.geom.z_mesh[:, 0, :]
         vec1 = step.fields[var + '1'][:, 0, :, 0]
@@ -49,13 +82,20 @@ def get_meshes_vec(step, var):
 
 
 def set_of_vars(arg_plot):
-    """List of vars
+    """Build set of needed field variables.
 
     Each var is a tuple, first component is a scalar field, second component is
     either:
-    - a scalar field, isocontours are added to the plot
+
+    - a scalar field, isocontours are added to the plot.
     - a vector field (e.g. 'v' for the (v1,v2,v3) vector), arrows are added to
-      the plot
+      the plot.
+
+    Args:
+        arg_plot (str): string with variable names separated with
+            ``,`` (figures), and ``+`` (same plot).
+    Returns:
+        set of str: set of needed field variables.
     """
     sovs = set(tuple((var + '+').split('+')[:2])
                for var in arg_plot.split(','))
@@ -64,7 +104,24 @@ def set_of_vars(arg_plot):
 
 
 def plot_scalar(step, var, scaling=None, **extra):
-    """Plot scalar field"""
+    """Plot scalar field.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+        var (str): the scalar field name.
+        scaling (float): if not None, the scalar field values are multiplied by
+            this factor before plotting. This can be used e.g. to obtain
+            dimensionful values.
+        extra (dict): options that will be passed on to
+            :func:`matplotlib.axes.Axes.pcolormesh`.
+    Returns:
+        fig, axis, surf, cbar
+            handles to various :mod:`matplotlib` objects, respectively the
+            figure, the axis, the surface returned by
+            :func:`~matplotlib.axes.Axes.pcolormesh`, and the colorbar returned
+            by :func:`matplotlib.pyplot.colorbar`.
+    """
     if var in phyvars.FIELD:
         meta = phyvars.FIELD[var]
     else:
@@ -96,13 +153,31 @@ def plot_scalar(step, var, scaling=None, **extra):
 
 
 def plot_iso(axis, step, var):
-    """Plot isocontours"""
+    """Plot isocontours of scalar field.
+
+    Args:
+        axis (:class:`matplotlib.axes.Axes`): the axis handler of an
+            existing matplotlib figure where the isocontours should
+            be plotted.
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+        var (str): the scalar field name.
+    """
     xmesh, ymesh, fld = get_meshes_fld(step, var)
     axis.contour(xmesh, ymesh, fld, linewidths=1)
 
 
 def plot_vec(axis, step, var):
-    """Plot vector field"""
+    """Plot vector field.
+
+    Args:
+        axis (:class:`matplotlib.axes.Axes`): the axis handler of an
+            existing matplotlib figure where the vector field should
+            be plotted.
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+        var (str): the vector field name.
+    """
     xmesh, ymesh, vec1, vec2 = get_meshes_vec(step, var)
     dip = step.geom.nztot // 10
     axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
@@ -111,7 +186,12 @@ def plot_vec(axis, step, var):
 
 
 def cmd():
-    """Implementation of field subcommand."""
+    """Implementation of field subcommand.
+
+    Other Parameters:
+        conf.field
+        conf.core
+    """
     sdat = StagyyData(conf.core.path)
     sovs = set_of_vars(conf.field.plot)
     for step in misc.steps_gen(sdat):
