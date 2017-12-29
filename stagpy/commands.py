@@ -88,7 +88,7 @@ def config_cmd():
     if not (conf.config.create or conf.config.update or conf.config.edit):
         conf.config.update = True
     if conf.config.create or conf.config.update:
-        config.create_config()
+        conf.create_config()
     if conf.config.edit:
         call(shlex.split('{} {}'.format(conf.config.editor,
                                         config.CONFIG_FILE)))

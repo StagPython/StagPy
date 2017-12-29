@@ -188,20 +188,6 @@ CONF_DEF['config'] = OrderedDict((
 ))
 
 
-def create_config():
-    """Create config file"""
-    if not CONFIG_DIR.exists():
-        CONFIG_DIR.mkdir(parents=True)
-    config_parser = configparser.ConfigParser()
-    for sub_cmd, entries in CONF_DEF.items():
-        config_parser.add_section(sub_cmd)
-        for opt, opt_meta in entries.items():
-            if opt_meta.conf_arg:
-                config_parser.set(sub_cmd, opt, str(opt_meta.default))
-    with CONFIG_FILE.open('w') as out_stream:
-        config_parser.write(out_stream)
-
-
 class _SubConfig:
 
     """Hold options for a single subcommand"""
@@ -257,7 +243,7 @@ class StagpyConfiguration:
             self.config_file = pathlib.Path(config_file)
             self._missing_parsing = self.read_config()
         else:
-            self.config_file = None
+            self.config_file = pathlib.Path('.stagpyconfig')
             self._missing_parsing = {}, []
 
     def __getitem__(self, key):
@@ -265,6 +251,23 @@ class StagpyConfiguration:
 
     def __setitem__(self, key, value):
         setattr(self, key, value)
+
+    def create_config(self):
+        """Create config file"""
+        if not self.config_file.parent.exists():
+            self.config_file.parent.mkdir(parents=True)
+        config_parser = configparser.ConfigParser()
+        for sub_cmd, entries in CONF_DEF.items():
+            config_parser.add_section(sub_cmd)
+            for opt, opt_meta in entries.items():
+                if opt_meta.conf_arg:
+                    if self.config.update:
+                        val = str(self[sub_cmd][opt])
+                    else:
+                        val = str(opt_meta.default)
+                    config_parser.set(sub_cmd, opt, val)
+        with self.config_file.open('w') as out_stream:
+            config_parser.write(out_stream)
 
     def read_config(self):
         """Read config file and set config values accordingly"""
