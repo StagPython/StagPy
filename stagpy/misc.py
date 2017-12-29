@@ -1,4 +1,4 @@
-"""miscellaneous definitions"""
+"""Miscellaneous definitions."""
 
 from inspect import getdoc
 import pathlib
@@ -10,18 +10,27 @@ INT_FMT = '{:05d}'
 
 
 def out_name(par_type):
-    """return out file name format for any time step"""
+    """Return StagPy out file name format for any time step.
+
+    Args:
+        par_type (str): the short name of the variable(s) on the plot.
+    Returns:
+        str: the format of output file name.
+    Other Parameters:
+        conf.core.outname (str): the generic name stem, defaults to
+            ``'stagpy'``.
+    """
     return conf.core.outname + '_' + par_type + INT_FMT
 
 
 def baredoc(obj):
-    """Return the first line of docstring of an object.
+    """Return the first line of the docstring of an object.
 
-    If that first line ends with a period, it is removed in the output.
+    Trailing periods and spaces as well as leading spaces are removed from the
+    output.
 
     Args:
-        obj: any Python object with a docstring.
-
+        obj: any Python object.
     Returns:
         str: the first line of the docstring of obj.
     """
@@ -33,19 +42,30 @@ def baredoc(obj):
 
 
 def fmttime(tin):
-    """Time formatting for labels"""
+    """Return LaTeX expression with time in scientific notation.
+
+    Args:
+        tin (float): the time.
+    Returns:
+        str: the LaTeX expression.
+    """
     aaa, bbb = '{:.2e}'.format(tin).split('e')
     bbb = int(bbb)
     return r'$t={} \times 10^{{{}}}$'.format(aaa, bbb)
 
 
 def list_of_vars(arg_plot):
-    """Compute list of variables per plot
+    """Construct list of variables per plot.
 
-    Three nested lists:
-    - variables on the same subplots;
-    - subplots on the same figure;
-    - figures.
+    Args:
+        arg_plot (str): string with variable names separated with
+            ``_`` (figures), ``.`` (subplots) and ``,`` (same subplot).
+    Returns:
+        three nested lists of str
+
+        - variables on the same subplot;
+        - subplots on the same figure;
+        - figures.
     """
     lovs = [[[var for var in svars.split(',') if var]
              for svars in pvars.split('.') if svars]
@@ -54,12 +74,30 @@ def list_of_vars(arg_plot):
 
 
 def set_of_vars(lovs):
-    """Build set of variables from list"""
+    """Build set of variables from list.
+
+    Args:
+        lovs: nested lists of variables such as the one produced by
+            :func:`list_of_vars`.
+    Returns:
+        set of str: flattened set of all the variables present in the
+        nested lists.
+    """
     return set(var for pvars in lovs for svars in pvars for var in svars)
 
 
 def steps_gen(sdat):
-    """Return generator over relevant snapshots or timesteps"""
+    """Return generator over snapshots or timesteps.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+    Returns:
+        generator of :class:`~stagpy.stagyydata._Step` objects, snapshots taking
+        precedence over timesteps.
+    Other Parameters:
+        conf.core.snapshots: the slice of snapshots.
+        conf.core.timesteps: the slice of timesteps.
+    """
     if conf.core.snapshots is not None:
         return sdat.snaps[conf.core.snapshots]
     else:
@@ -67,7 +105,13 @@ def steps_gen(sdat):
 
 
 def get_rbounds(step):
-    """Radii of boundaries"""
+    """Radial or vertical position of boundaries.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Steps`): a step of a StagyyData instance.
+    Returns:
+        tuple of floats: radial or vertical positions of boundaries of the domain.
+    """
     if step.geom is not None:
         rcmb = step.geom.rcmb
     else:
@@ -80,13 +124,29 @@ def get_rbounds(step):
 
 class InchoateFiles:
 
-    """Context manager handling files whose names are not known yet"""
+    """Context manager handling files whose names are not known yet.
+
+    Example:
+        InchoateFiles is used here to manage three files::
+
+            with InchoateFiles(3) as incho:
+                # for convenience, incho[x] is the same as incho.fids[x]
+                incho[0].write('First file')
+                incho[1].write('Second file')
+                incho[2].write('Third file')
+
+                # the three files will be named 'tata', 'titi' and 'toto'
+                incho.fnames = ['tata', 'titi', 'toto']
+    """
 
     def __init__(self, nfiles=1, tmp_prefix=None):
-        """Initialize context object
+        """Initialization of instances:
 
-        nfiles: number of files
-        tmp_prefix: prefix name of temporary files
+        Args:
+            nfiles (int): number of files. Defaults to 1.
+            tmp_prefix (str): prefix name of temporary files. Use this
+                parameter if you want to easily track down the temporary files
+                created by the manage.
         """
         self._fnames = ['inchoate{}'.format(i) for i in range(nfiles)]
         self._tmpprefix = tmp_prefix
@@ -94,12 +154,25 @@ class InchoateFiles:
 
     @property
     def fids(self):
-        """List of files id"""
+        """List of files id.
+
+        Use this to perform operations on files when the context manager is
+        used. :meth:`InchoateFiles.__getitem__` is implemented in order to
+        provide direct access to this property content (``self[x]`` is the
+        same as ``self.fids[x]``).
+        """
         return self._fids
 
     @property
     def fnames(self):
-        """List of filenames"""
+        """List of filenames.
+
+        Set this to the list of final filenames before exiting the context
+        manager. If this list is not set by the user, the produced files will
+        be named ``'inchoateN'`` with ``N`` the index of the file. If the list
+        of names you set is too long, it will be truncated. If it is too short,
+        extra files will be named ``'inchoateN'``.
+        """
         return self._fnames
 
     @fnames.setter
