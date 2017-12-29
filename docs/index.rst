@@ -33,5 +33,6 @@ Welcome to StagPy's documentation!
    sources/apiref/error
    sources/apiref/misc
    sources/apiref/parfile
+   sources/apiref/processing
    sources/apiref/stagyyparsers
 

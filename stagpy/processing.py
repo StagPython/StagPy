@@ -1,4 +1,12 @@
-"""Various computations"""
+"""Computations of phyvars that are not output by StagYY.
+
+Time series are returned along with the time at which the variables are
+evaluated. Radial profiles are returned along with the radial positions at
+which the variables are evaluated. These time and radial positions are set to
+None is they are identical to the one at which StagYY output data are produced.
+This is why some of the functions in this module return a tuple where the
+second element is None.
+"""
 
 import numpy as np
 from scipy import integrate
@@ -7,7 +15,20 @@ from .error import NotAvailableError
 
 
 def dt_dt(sdat, tstart=None, tend=None):
-    """Derivative of temperature"""
+    """Derivative of temperature.
+
+    Compute dT/dt as a function of time using an explicit Euler scheme.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        tstart (float): time at which the computation should start. Use the
+            beginning of the time series data if set to None.
+        tend (float): time at which the computation should end. Use the
+            end of the time series data if set to None.
+    Returns:
+        tuple of :class:`numpy.array`: derivative of temperature and time
+        arrays.
+    """
     tseries = sdat.tseries_between(tstart, tend)
     time = tseries['t'].values
     temp = tseries['Tmean'].values
@@ -16,7 +37,20 @@ def dt_dt(sdat, tstart=None, tend=None):
 
 
 def ebalance(sdat, tstart=None, tend=None):
-    """Energy balance"""
+    """Energy balance.
+
+    Compute Nu_t - Nu_b + V*dT/dt as a function of time using an explicit
+    Euler scheme. This should be zero if energy is conserved.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        tstart (float): time at which the computation should start. Use the
+            beginning of the time series data if set to None.
+        tend (float): time at which the computation should end. Use the
+            end of the time series data if set to None.
+    Returns:
+        tuple of :class:`numpy.array`: energy balance and time arrays.
+    """
     tseries = sdat.tseries_between(tstart, tend)
     rbot, rtop = misc.get_rbounds(sdat.steps.last)
     if rbot != 0:  # spherical
@@ -33,7 +67,15 @@ def ebalance(sdat, tstart=None, tend=None):
 
 
 def r_edges(step):
-    """Cell border"""
+    """Cell border.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array`: the position of the bottom and top walls
+        of the cells. The two elements of the tuple are identical.
+    """
     rbot, rtop = misc.get_rbounds(step)
     centers = step.rprof.loc[:, 'r'].values + rbot
     # assume walls are mid-way between T-nodes
@@ -45,7 +87,15 @@ def r_edges(step):
 
 
 def delta_r(step):
-    """Cells thickness"""
+    """Cells thickness.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array` and None: the thickness of the cells.
+        The second element of the tuple is None.
+    """
     edges, _ = r_edges(step)
     return (edges[1:] - edges[:-1]), None
 
@@ -61,7 +111,15 @@ def _scale_prof(step, rprof, rad=None):
 
 
 def diff_prof(step):
-    """Diffusion"""
+    """Diffusion.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array`: the diffusion and the radial position
+        at which it is evaluated.
+    """
     rbot, rtop = misc.get_rbounds(step)
     rad = step.rprof['r'].values + rbot
     tprof = step.rprof['Tmean'].values
@@ -75,35 +133,96 @@ def diff_prof(step):
 
 
 def diffs_prof(step):
-    """Scaled diffusion"""
+    """Scaled diffusion.
+
+    This computation takes sphericity into account if necessary.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array`: the diffusion and the radial position
+        at which it is evaluated.
+    """
     diff, rad = diff_prof(step)
     return _scale_prof(step, diff, rad), rad
 
 
 def advts_prof(step):
-    """Scaled advection"""
+    """Scaled advection.
+
+    This computation takes sphericity into account if necessary.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array` and None: the scaled advection.
+        The second element of the tuple is None.
+    """
     return _scale_prof(step, step.rprof['advtot']), None
 
 
 def advds_prof(step):
-    """Scaled downward advection"""
+    """Scaled downward advection.
+
+    This computation takes sphericity into account if necessary.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array` and None: the scaled downward advection.
+        The second element of the tuple is None.
+    """
     return _scale_prof(step, step.rprof['advdesc']), None
 
 
 def advas_prof(step):
-    """Scaled upward advection"""
+    """Scaled upward advection.
+
+    This computation takes sphericity into account if necessary.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array` and None: the scaled upward advection.
+        The second element of the tuple is None.
+    """
     return _scale_prof(step, step.rprof['advasc']), None
 
 
 def energy_prof(step):
-    """Energy flux"""
+    """Energy flux.
+
+    This computation takes sphericity into account if necessary.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array`: the energy flux and the radial position
+        at which it is evaluated.
+    """
     diff, rad = diffs_prof(step)
     adv, _ = advts_prof(step)
     return (diff + np.append(adv, 0)), rad
 
 
 def init_c_overturn(step):
-    """Initial concentration"""
+    """Initial concentration.
+
+    This compute the resulting composition profile if fractional
+    crystallization of a SMO is assumed.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array`: the composition and the radial position
+        at which it is evaluated.
+    """
     rbot, rtop = misc.get_rbounds(step)
     xieut = step.sdat.par['tracersin']['fe_eut']
     k_fe = step.sdat.par['tracersin']['k_fe']
@@ -127,7 +246,19 @@ def init_c_overturn(step):
 
 
 def c_overturned(step):
-    """Theoretical overturned concentration"""
+    """Theoretical overturned concentration.
+
+    This compute the resulting composition profile if fractional
+    crystallization of a SMO is assumed and then a purely radial
+    overturn happens.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array`: the composition and the radial position
+        at which it is evaluated.
+    """
     rbot, rtop = misc.get_rbounds(step)
     cinit, rad = init_c_overturn(step)
     radf = (rtop**3 + rbot**3 - rad**3)**(1 / 3)
@@ -135,7 +266,15 @@ def c_overturned(step):
 
 
 def stream_function(step):
-    """Stream function"""
+    """Stream function.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        :class:`numpy.array`: the stream function field, with four dimensions:
+        x-direction, y-direction, z-direction and block.
+    """
     if step.geom.twod_yz:
         x_coord = step.geom.y_coord
         v_x = step.fields['v2'][0, :, :, 0]
