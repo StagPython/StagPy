@@ -232,10 +232,30 @@ class _SubConfig:
 
 class StagpyConfiguration:
 
-    """Hold StagPy configuration options"""
+    """Hold StagPy configuration options values.
+
+    :data:`stagpy.conf` is a global instance of this class. Instances
+    of this class are set with default values from :data:`CONF_DEF`
+    and updated with the content of :attr:`config_file`.
+
+    A configuration option can be accessed both with attribute and
+    item access notations, these two lines access the same option
+    value::
+
+        stagpy.conf.core.path
+        stagpy.conf['core']['path']
+
+    Attributes:
+        config_parser: :class:`configparser.ConfigParser` instance.
+        config_file (pathlib.Path): path of config file.
+    """
 
     def __init__(self, config_file):
-        """Config is set with default values and updated with config_file"""
+        """Initialization of instances:
+
+        Args:
+            config_file (pathlike): path of config file.
+        """
         for sub, entries in CONF_DEF.items():
             self[sub] = _SubConfig(self, sub, entries)
         self.config_parser = configparser.ConfigParser()
@@ -253,7 +273,15 @@ class StagpyConfiguration:
         setattr(self, key, value)
 
     def create_config(self):
-        """Create config file"""
+        """Create config file.
+
+        Create a config file at path :attr:`config_file`.
+
+        Other Parameters:
+            conf.config.update (bool): if set to True and :attr:`config_file`
+                already exists, its content is read and all the options it sets
+                are kept in the produced config file.
+        """
         if not self.config_file.parent.exists():
             self.config_file.parent.mkdir(parents=True)
         config_parser = configparser.ConfigParser()
@@ -270,7 +298,7 @@ class StagpyConfiguration:
             config_parser.write(out_stream)
 
     def read_config(self):
-        """Read config file and set config values accordingly"""
+        """Read config file and set config values accordingly."""
         if not self.config_file.is_file():
             return None, None
         try:
@@ -287,7 +315,12 @@ class StagpyConfiguration:
         return missing_opts, missing_sections
 
     def report_parsing_problems(self):
-        """Output message about parsing problems"""
+        """Output message about potential parsing problems.
+
+        If there were some missing sections or options in the
+        :attr:`config_file` when it was last read, this will be reported by
+        this function.
+        """
         missing_opts, missing_sections = self._missing_parsing
         need_update = False
         if missing_opts is None or missing_sections is None:

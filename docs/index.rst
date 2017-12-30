@@ -30,6 +30,7 @@ Welcome to StagPy's documentation!
 
    sources/apiref/stagpy
    sources/apiref/commands
+   sources/apiref/config
    sources/apiref/error
    sources/apiref/field
    sources/apiref/misc
