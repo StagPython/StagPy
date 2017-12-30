@@ -37,7 +37,21 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
 
 
 def get_rprof(step, var):
-    """Return read or computed rprof along with metadata"""
+    """Extract or compute a radial profile.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+        var (str): radial profile name, a key of :data:`stagpy.phyvars.RPROF`
+            or :data:`stagpy.phyvars.RPROF_EXTRA`.
+    Returns:
+        tuple of :class:`numpy.array` and :class:`stagpy.phyvars.Varr`:
+        rprof, rad, meta
+            rprof is the requested profile, rad the radial position at which it
+            is evaluated (set to None if it is the position of profiles output
+            by StagYY), and meta is a :class:`stagpy.phyvars.Varr` instance
+            holding metadata of the requested variable.
+    """
     if var in step.rprof.columns:
         rprof = step.rprof[var]
         rad = None
@@ -56,8 +70,15 @@ def get_rprof(step, var):
 
 
 def plot_grid(step):
-    """Plot cell position and thickness"""
+    """Plot cell position and thickness.
+
+    The figure is call grid_N.pdf where N is replace by the step index.
+
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
     rad = step.rprof['r']
+    """
     drad, _, _ = get_rprof(step, 'dr')
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(rad, '-ko')
@@ -71,7 +92,17 @@ def plot_grid(step):
 
 
 def plot_average(sdat, lovs):
-    """Plot time averaged profiles"""
+    """Plot time averaged profiles.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        lovs (nested list of str): nested list of profile names such as
+            the one produced by :func:`stagpy.misc.list_of_vars`.
+
+    Other Parameters:
+        conf.core.snapshots: the slice of snapshots.
+        conf.conf.timesteps: the slice of timesteps.
+    """
     sovs = misc.set_of_vars(lovs)
     istart = None
     # assume constant z spacing for the moment
@@ -105,7 +136,17 @@ def plot_average(sdat, lovs):
 
 
 def plot_every_step(sdat, lovs):
-    """One plot per time step"""
+    """Plot profiles at each time step.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        lovs (nested list of str): nested list of profile names such as
+            the one produced by :func:`stagpy.misc.list_of_vars`.
+
+    Other Parameters:
+        conf.core.snapshots: the slice of snapshots.
+        conf.conf.timesteps: the slice of timesteps.
+    """
     sovs = misc.set_of_vars(lovs)
 
     for step in misc.steps_gen(sdat):
@@ -127,7 +168,12 @@ def plot_every_step(sdat, lovs):
 
 
 def cmd():
-    """Implementation of rprof subcommand."""
+    """Implementation of rprof subcommand.
+
+    Other Parameters:
+        conf.rprof
+        conf.core
+    """
     sdat = StagyyData(conf.core.path)
     if sdat.rprof is None:
         return
