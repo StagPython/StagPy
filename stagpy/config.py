@@ -244,10 +244,6 @@ class StagpyConfiguration:
 
         stagpy.conf.core.path
         stagpy.conf['core']['path']
-
-    Attributes:
-        config_parser: :class:`configparser.ConfigParser` instance.
-        config_file (pathlib.Path): path of config file.
     """
 
     def __init__(self, config_file):
@@ -255,6 +251,10 @@ class StagpyConfiguration:
 
         Args:
             config_file (pathlike): path of config file.
+
+        Attributes:
+            config_parser: :class:`configparser.ConfigParser` instance.
+            config_file (pathlib.Path): path of config file.
         """
         for sub, entries in CONF_DEF.items():
             self[sub] = _SubConfig(self, sub, entries)

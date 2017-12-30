@@ -16,17 +16,16 @@ class StagpyError(Exception):
 
 class NoSnapshotError(StagpyError):
 
-    """Raised when no snapshot can be found.
-
-    Attributes:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
-            instance for which no snapshot were found.
-    """
+    """Raised when no snapshot can be found."""
 
     def __init__(self, sdat):
         """Initialization of instances:
 
         Args:
+            sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
+                instance for which no snapshot were found.
+
+        Attributes:
             sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
                 instance for which no snapshot were found.
         """
@@ -36,11 +35,7 @@ class NoSnapshotError(StagpyError):
 
 class NoParFileError(StagpyError):
 
-    """Raised when no par file can be found.
-
-    Attributes:
-        parfile (pathlike): the expected path of the par file.
-    """
+    """Raised when no par file can be found."""
 
     def __init__(self, parfile):
         """Initialization of instances:
@@ -48,6 +43,9 @@ class NoParFileError(StagpyError):
         Args:
             parfile (pathlike): the expected path of
                 the par file.
+
+        Attributes:
+            parfile (pathlike): the expected path of the par file.
         """
         self.parfile = parfile
         super().__init__('{} file not found'.format(parfile))
@@ -62,13 +60,7 @@ class NotAvailableError(StagpyError):
 
 class ParsingError(StagpyError):
 
-    """Raised when a parsing error occurs.
-
-    Attributes:
-        file (pathlike): path of the file where a parsing problem was
-            encountered.
-        msg (str): error message.
-    """
+    """Raised when a parsing error occurs."""
 
     def __init__(self, faulty_file, msg):
         """Initialization of instances:
@@ -76,6 +68,11 @@ class ParsingError(StagpyError):
         Args:
             faulty_file (pathlike): path of the file where a parsing problem
                 was encountered.
+            msg (str): error message.
+
+        Attributes:
+            file (pathlike): path of the file where a parsing problem was
+                encountered.
             msg (str): error message.
         """
         self.file = faulty_file
@@ -85,19 +82,18 @@ class ParsingError(StagpyError):
 
 class InvalidTimestepError(StagpyError):
 
-    """Raised when invalid time step is requested.
-
-    Attributes:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData instance
-            for which the request was made.
-        istep (int): the invalid time step index.
-        msg (str): the error message.
-    """
+    """Raised when invalid time step is requested."""
 
     def __init__(self, sdat, istep, msg):
         """Initialization of instances:
 
         Args:
+            sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
+                instance for which the request was made.
+            istep (int): the invalid time step index.
+            msg (str): the error message.
+
+        Attributes:
             sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
                 instance for which the request was made.
             istep (int): the invalid time step index.
@@ -111,16 +107,15 @@ class InvalidTimestepError(StagpyError):
 
 class InvalidZoomError(StagpyError):
 
-    """Raised when invalid zoom is requested.
-
-    Attributes:
-        zoom (int): the invalid zoom level.
-    """
+    """Raised when invalid zoom is requested."""
 
     def __init__(self, zoom):
         """Initialization of instances:
 
         Args:
+            zoom (int): the invalid zoom level.
+
+        Attributes:
             zoom (int): the invalid zoom level.
         """
         self.zoom = zoom
@@ -130,17 +125,16 @@ class InvalidZoomError(StagpyError):
 
 class StagnantLidError(StagpyError):
 
-    """Raised when unexpected stagnant lid regime is found.
-
-    Attributes:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData instance
-            for which a stagnant lid regime was found.
-    """
+    """Raised when unexpected stagnant lid regime is found."""
 
     def __init__(self, sdat):
         """Initialization of instances:
 
         Args:
+            sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
+                instance for which a stagnant lid regime was found.
+
+        Attributes:
             sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
                 instance for which a stagnant lid regime was found.
         """
@@ -150,16 +144,15 @@ class StagnantLidError(StagpyError):
 
 class UnknownVarError(StagpyError):
 
-    """Raised when invalid var is requested.
-
-    Attributes:
-        varname (str): the invalid var name.
-    """
+    """Raised when invalid var is requested."""
 
     def __init__(self, varname):
         """Initialization of instances:
 
         Args:
+            varname (str): the invalid var name.
+
+        Attributes:
             varname (str): the invalid var name.
         """
         self.varname = varname
