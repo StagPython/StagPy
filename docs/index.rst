@@ -6,17 +6,39 @@
 Welcome to StagPy's documentation!
 ==================================
 
-Contents:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Diving in
 
    sources/install
    sources/tuto
    sources/stagyydata
    sources/cli
    sources/cookbook
+
+.. toctree::
+   :maxdepth: 2
+   :caption: For developers
+
    sources/developers
    sources/maintainers
 
+.. toctree::
+   :maxdepth: 2
+   :caption: API Reference
+
+   sources/apiref/stagpy
+   sources/apiref/commands
+   sources/apiref/config
+   sources/apiref/error
+   sources/apiref/field
+   sources/apiref/misc
+   sources/apiref/parfile
+   sources/apiref/phyvars
+   sources/apiref/processing
+   sources/apiref/rprof
+   sources/apiref/stagyydata
+   sources/apiref/stagyyparsers
+   sources/apiref/time
 

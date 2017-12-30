@@ -1,7 +1,5 @@
-"""Plots position of subduction and ridge at the surface.
+"""Plate analysis."""
 
-Date: 2016/26/01
-"""
 from copy import deepcopy
 import pathlib
 import matplotlib.pyplot as plt
@@ -652,8 +650,8 @@ def lithospheric_stress(step, trench, ridge, time):
     plt.close(fig0)
 
 
-def plates_cmd():
-    """Plate analysis"""
+def cmd():
+    """Implementation of plates subcommand."""
     sdat = StagyyData(conf.core.path)
     if not conf.plates.vzcheck:
         # calculating averaged horizontal surface velocity

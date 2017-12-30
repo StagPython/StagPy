@@ -1,18 +1,19 @@
 """Parse command line arguments and update conf"""
 
 from collections import OrderedDict, namedtuple
-from inspect import getdoc
+from inspect import isfunction
 import argparse
 import argcomplete
 from . import commands, conf, field, phyvars, rprof, time_series, plates
 from .config import CONF_DEF
+from .misc import baredoc
 
 Sub = namedtuple('Sub', ['use_core', 'func'])
 SUB_CMDS = OrderedDict((
-    ('field', Sub(True, field.field_cmd)),
-    ('rprof', Sub(True, rprof.rprof_cmd)),
-    ('time', Sub(True, time_series.time_cmd)),
-    ('plates', Sub(True, plates.plates_cmd)),
+    ('field', Sub(True, field)),
+    ('rprof', Sub(True, rprof)),
+    ('time', Sub(True, time_series)),
+    ('plates', Sub(True, plates)),
     ('info', Sub(True, commands.info_cmd)),
     ('var', Sub(False, commands.var_cmd)),
     ('version', Sub(False, commands.version_cmd)),
@@ -66,7 +67,7 @@ def _build_parser():
             core_parser = add_args(conf[sub], core_parser, CONF_DEF[sub])
 
     for sub_cmd, meta in SUB_CMDS.items():
-        kwargs = {'prefix_chars': '+-', 'help': getdoc(meta.func)}
+        kwargs = {'prefix_chars': '+-', 'help': baredoc(meta.func)}
         if meta.use_core:
             kwargs.update(parents=[core_parser])
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
@@ -119,6 +120,12 @@ def _update_plates_plot():
             conf.plates[meta.arg] = varp in conf.plates.plot
 
 
+def _update_func(cmd_args):
+    """Extract command func if necessary"""
+    if not isfunction(cmd_args.func):
+        cmd_args.func = cmd_args.func.cmd
+
+
 def parse_args():
     """Parse cmd line arguments"""
     main_parser = _build_parser()
@@ -145,6 +152,8 @@ def parse_args():
     _update_subconf(cmd_args, sub_cmd)
 
     _update_plates_plot()
+
+    _update_func(cmd_args)
 
     try:
         _steps_to_slices()

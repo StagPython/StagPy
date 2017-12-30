@@ -47,50 +47,6 @@ snapshot::
     for step in sdat.snaps[::2]:
         do_something(step)
 
-.. class:: _Step
-
-   Representation of time step and snapshot used by StagyyData. This class
-   shouldn't be instantiated by the user. A :class:`_Step` instance is returned
-   by access to ``steps`` and ``snaps`` items (e.g. ``step = sdat.steps[10]``).
-
-   .. attribute:: sdat
-
-      Reference towards the StagyyData instance holding the step object. It
-      means ``sdat.steps[n].sdat is sdat`` evaluates to ``True`` for any valid
-      step index ``n``. This is useful when you write a function to process
-      a time step that need other information available in the StagyyData
-      instance. You only need to feed a :class:`_Step` instance to such a
-      function since you can access the parent StagyyData instance through
-      this attribute.
-
-   .. attribute:: istep
-
-      Time step index. The relation ``sdat.steps[n].istep == n`` is always true.
-
-   .. attribute:: isnap
-
-      Snapshot index. The relation ``sdat.snaps[n].isnap == n`` is always true.
-
-   .. attribute:: rprof
-
-      Radial profile data of the time step. Equal to ``None`` if no radial
-      profile exists for this time step.
-
-   .. attribute:: timeinfo
-
-      Temporal data of the time step. Equal to ``None`` if no temporal data
-      exists for this time step.
-
-   .. attribute:: geom
-
-      Geometry information as read from a binary file holding field
-      information. Equal to ``None`` if no binary file exists for this time
-      step.
-
-   .. attribute:: fields
-
-      Scalar and vector fields available at this time step.
-
 
 Parameters file
 ---------------

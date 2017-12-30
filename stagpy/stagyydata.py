@@ -1,4 +1,10 @@
-"""Define high level structure StagyyData"""
+"""Define high level structure StagyyData and helper classes.
+
+Note:
+    The helper classes are not designed to be instantiated on their own, but
+    only as attributes of StagyyData instances. Users of this module should
+    only instantiate :class:`StagyyData`.
+"""
 
 import re
 import pathlib
@@ -15,7 +21,22 @@ UNDETERMINED = object()
 
 class _Geometry:
 
-    """Geometry information"""
+    """Geometry information.
+
+    It is deduced from the information in the header of binary field files
+    output by StagYY.
+
+    Attributes:
+        nxtot, nytot, nztot, nttot, nptot, nrtot, nbtot (int): number of grid
+            point in the various directions. Note that nxtot==nttot,
+            nytot==nptot, nztot==nrtot.
+        x_coord, y_coord, z_coord, t_coord, p_coord, r_coord (numpy.array):
+            positions of cell centers in the various directions. Note that
+            x_coord==t_coord, y_coord==p_coord, z_coord==r_coord.
+        x_mesh, y_mesh, z_mesh, t_mesh, p_mesh, r_mesh (numpy.array):
+            mesh in cartesian and curvilinear frames. The last three are
+            not defined if the geometry is cartesian.
+    """
 
     _regexes = (re.compile(r'^n([xyztprb])tot$'),  # ntot
                 re.compile(r'^([xyztpr])_coord$'),  # coord
@@ -94,47 +115,47 @@ class _Geometry:
 
     @property
     def cartesian(self):
-        """Cartesian geometry"""
+        """Whether the grid is in cartesian geometry."""
         return not self.curvilinear
 
     @property
     def curvilinear(self):
-        """Spherical or cylindrical geometry"""
+        """Whether the grid is in curvilinear geometry."""
         return self.spherical or self.cylindrical
 
     @property
     def cylindrical(self):
-        """Cylindrical geometry (2D spherical)"""
+        """Whether the grid is in cylindrical geometry (2D spherical)."""
         return self._shape['cyl']
 
     @property
     def spherical(self):
-        """Spherical geometry"""
+        """Whether the grid is in spherical geometry."""
         return self._shape['sph']
 
     @property
     def yinyang(self):
-        """Yin-yang geometry (3D spherical)"""
+        """Whether the grid is in Yin-yang geometry (3D spherical)."""
         return self.spherical and self.nbtot == 2
 
     @property
     def twod_xz(self):
-        """XZ plane only"""
+        """Whether the grid is in the XZ plane only."""
         return self.nytot == 1
 
     @property
     def twod_yz(self):
-        """YZ plane only"""
+        """Whether the grid is in the YZ plane only."""
         return self.nxtot == 1
 
     @property
     def twod(self):
-        """2D geometry"""
+        """Whether the grid is 2 dimensional."""
         return self.twod_xz or self.twod_yz
 
     @property
     def threed(self):
-        """3D geometry"""
+        """Whether the grid is 3 dimensional."""
         return not self.twod
 
     def __getattr__(self, attr):
@@ -152,7 +173,17 @@ class _Geometry:
 
 class _Fields(dict):
 
-    """Wrap fields of a step"""
+    """Fields data structure.
+
+    The :attr:`_Step.fields` attribute is an instance of this class.
+
+    :class:`_Fields` inherits from :class:`dict`. Keys are fields names defined
+    in :data:`stagpy.phyvars.FIELD`.
+
+    Attributes:
+        step (:class:`_Step`): the step object owning the :class:`_Fields`
+            instance.
+    """
 
     def __init__(self, step):
         self.step = step
@@ -200,7 +231,12 @@ class _Fields(dict):
 
     @property
     def geom(self):
-        """Header info from bin file"""
+        """Geometry information.
+
+        :class:`_Geometry` instance holding geometry information. It is
+        issued from binary files holding field information. It is set to
+        None if not available for this time step.
+        """
         if self._header is UNDETERMINED:
             binfiles = self.step.sdat.binfiles_set(self.step.isnap)
             if binfiles:
@@ -218,9 +254,46 @@ class _Fields(dict):
 
 class _Step:
 
-    """Time step data structure"""
+    """Time step data structure.
+
+    Elements of :class:`_Steps` and :class:`_Snaps` instances are all
+    :class:`_Step` instances. Note that :class:`_Step` objects are not
+    duplicated.
+
+    Examples:
+        Here are a few examples illustrating some properties of :class:`_Step`
+        instances.
+
+        >>> sdat = StagyyData('path/to/run')
+        >>> istep_last_snap = sdat.snaps.last.istep
+        >>> assert(sdat.steps[istep_last_snap] is sdat.snaps.last)
+        >>> n = 0  # or any valid time step / snapshot index
+        >>> assert(sdat.steps[n].sdat is sdat)
+        >>> assert(sdat.steps[n].istep == n)
+        >>> assert(sdat.snaps[n].isnap == n)
+        >>> assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
+        >>> assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
+    """
 
     def __init__(self, istep, sdat):
+        """Initialization of instances:
+
+        This class should not be instantiated by the user, the instantiation
+        is handled by :class:`StagyyData`.
+
+        Args:
+            istep (int): the index of the time step that the instance
+                represents.
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Step` instance.
+
+        Attributes:
+            istep (int): the index of the time step that the instance
+                represents.
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Step` instance.
+            fields (:class:`_Fields`): fields available at this time step.
+        """
         self.istep = istep
         self.sdat = sdat
         self.fields = _Fields(self)
@@ -228,12 +301,20 @@ class _Step:
 
     @property
     def geom(self):
-        """Geometry object"""
+        """Geometry information.
+
+        :class:`_Geometry` instance holding geometry information. It is
+        issued from binary files holding field information. It is set to
+        None if not available for this time step.
+        """
         return self.fields.geom
 
     @property
     def timeinfo(self):
-        """Relevant time series data"""
+        """Time series data of the time step.
+
+        Set to None if no time series data is available for this time step.
+        """
         if self.istep in self.sdat.tseries.index:
             return self.sdat.tseries.loc[self.istep]
         else:
@@ -241,7 +322,10 @@ class _Step:
 
     @property
     def rprof(self):
-        """Relevant radial profiles data"""
+        """Radial profiles data of the time step.
+
+        Set to None if no radial profiles data is available for this time step.
+        """
         if self.istep in self.sdat.rprof.index.levels[0]:
             return self.sdat.rprof.loc[self.istep]
         else:
@@ -249,7 +333,10 @@ class _Step:
 
     @property
     def isnap(self):
-        """Fields snap corresponding to time step"""
+        """Snapshot index corresponding to time step.
+
+        It is set to None if no snapshot exists for the time step.
+        """
         if self._isnap is UNDETERMINED:
             istep = None
             isnap = -1
@@ -276,7 +363,11 @@ class _Step:
 
 class _EmptyStep(_Step):
 
-    """Dummy step object for nonexistent snaps"""
+    """Dummy step object for nonexistent snaps.
+
+    This class inherits from :class:`_Step`, but its :meth:`__getattribute__`
+    method always return :obj:`None`.
+    """
 
     def __init__(self):
         super().__init__(None, None)
@@ -287,9 +378,26 @@ class _EmptyStep(_Step):
 
 class _Steps(dict):
 
-    """Implement the .steps[istep] accessor"""
+    """Collections of time steps.
+
+    The :attr:`StagyyData.steps` attribute is an instance of this class.
+    Time steps (which are :class:`_Step` instances) can be accessed with the
+    item accessor::
+
+        sdat = StagyyData('path/to/run')
+        sdat.steps[istep]  # _Step object of the istep-th time step
+    """
 
     def __init__(self, sdat):
+        """Initialization of instances:
+
+        Args:
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Steps` instance.
+        Attributes:
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Steps` instance.
+        """
         self.sdat = sdat
         self._last = UNDETERMINED
         super().__init__()
@@ -327,7 +435,11 @@ class _Steps(dict):
 
     @property
     def last(self):
-        """Last timestep available"""
+        """Last time step available.
+
+            >>> sdat = StagyyData('path/to/run')
+            >>> assert(sdat.steps.last is sdat.steps[-1])
+        """
         if self._last is UNDETERMINED:
             # not necessarily the last one...
             self._last = self.sdat.tseries.index[-1]
@@ -336,9 +448,28 @@ class _Steps(dict):
 
 class _Snaps(_Steps):
 
-    """Implement the .snaps[isnap] accessor"""
+    """Collections of snapshots.
+
+    The :attr:`StagyyData.snaps` attribute is an instance of this class.
+    Snapshots (which are :class:`_Step` instances) can be accessed with the
+    item accessor::
+
+        sdat = StagyyData('path/to/run')
+        sdat.snaps[isnap]  # _Step object of the isnap-th snapshot
+
+    This class inherits from :class:`_Steps`.
+    """
 
     def __init__(self, sdat):
+        """Initialization of instances:
+
+        Args:
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Snaps` instance.
+        Attributes:
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Snaps` instance.
+        """
         self._isteps = {}
         super().__init__(sdat)
 
@@ -367,13 +498,24 @@ class _Snaps(_Steps):
         return self.sdat.steps[istep]
 
     def bind(self, isnap, istep):
-        """Make the isnap <-> istep link"""
+        """Register the isnap / istep correspondence.
+
+        Users of :class:`StagyyData` should not use this method.
+
+        Args:
+            isnap (int): snapshot index.
+            istep (int): time step index.
+        """
         self._isteps[isnap] = istep
         self.sdat.steps[istep].isnap = isnap
 
     @property
     def last(self):
-        """Last snapshot available"""
+        """Last snapshot available.
+
+            >>> sdat = StagyyData('path/to/run')
+            >>> assert(sdat.snaps.last is sdat.snaps[-1])
+        """
         if self._last is UNDETERMINED:
             self._last = -1
             out_stem = re.escape(pathlib.Path(
@@ -391,10 +533,26 @@ class _Snaps(_Steps):
 
 class StagyyData:
 
-    """Offer a generic interface to StagYY output data"""
+    """Generic lazy interface to StagYY output data."""
 
     def __init__(self, path, nfields_max=50):
-        """Generic lazy StagYY output data accessors"""
+        """Initialization of instances:
+
+        Args:
+            path (pathlike): path of the StagYY run.
+            nfields_max (int): the maximum number of scalar fields that should
+                be kept in memory. Set to a value smaller than 6 if you want no
+                limit.
+
+        Attributes:
+            steps (:class:`_Steps`): collection of time steps.
+            snaps (:class:`_Snaps`): collection of snapshots.
+            nfields_max (int): the maximum number of scalar fields that should
+                be kept in memory. Set to a value smaller than 6 if you want no
+                limit.
+            collected_fields (list of (int, str)): list of fields currently in
+                memory, described by istep and field name.
+        """
         self._rundir = {'path': pathlib.Path(path),
                         'ls': UNDETERMINED}
         self._stagdat = {'par': parfile.readpar(self.path),
@@ -414,17 +572,28 @@ class StagyyData:
 
     @property
     def path(self):
-        """Path of StagYY run directory"""
+        """Path of StagYY run directory.
+
+        :class:`pathlib.Path` instance.
+        """
         return self._rundir['path']
 
     @property
     def par(self):
-        """Content of par file"""
+        """Content of par file.
+
+        This is a dictionary of dictionaries, the first key being namelists and
+        the second key the parameter name.
+        """
         return self._stagdat['par']
 
     @property
     def tseries(self):
-        """Time series data"""
+        """Time series data.
+
+        This is a :class:`pandas.DataFrame` with istep as index and variable
+        names as columns.
+        """
         if self._stagdat['tseries'] is UNDETERMINED:
             timefile = self.filename('time.dat')
             self._stagdat['tseries'] = stagyyparsers.time_series(
@@ -441,17 +610,24 @@ class StagyyData:
 
     @property
     def rprof(self):
-        """Radial profiles data"""
+        """Radial profiles data.
+
+        This is a :class:`pandas.DataFrame` with a 2-level index (istep and iz)
+        and variable names as columns.
+        """
         return self._rprof_and_times[0]
 
     @property
     def rtimes(self):
-        """Radial profiles data"""
+        """Radial profiles times.
+
+        This is a :class:`pandas.DataFrame` with istep as index.
+        """
         return self._rprof_and_times[1]
 
     @property
     def files(self):
-        """Set of output binary files"""
+        """Set of found binary files output by StagYY."""
         if self._rundir['ls'] is UNDETERMINED:
             out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
             out_dir = self.path / out_stem.parent
@@ -459,7 +635,16 @@ class StagyyData:
         return self._rundir['ls']
 
     def tseries_between(self, tstart=None, tend=None):
-        """Time series data between requested times"""
+        """Return time series data between requested times.
+
+        Args:
+            tstart (float): starting time. Set to None to start at the
+                beginning of available data.
+            tend (float): ending time. Set to None to stop at the end of
+                available data.
+        Returns:
+            :class:`pandas.DataFrame`: slice of :attr:`tseries`.
+        """
         if self.tseries is None:
             return None
 
@@ -494,14 +679,31 @@ class StagyyData:
         return self.tseries.iloc[istart:iend]
 
     def filename(self, fname, timestep=None, suffix=''):
-        """return name of StagYY out file"""
+        """Return name of StagYY output file.
+
+        Args:
+            fname (str): name stem.
+            timestep (int): snapshot number, set to None if this is not
+                relevant.
+            suffix (str): optional suffix of file name.
+        Returns:
+            :class:`pathlib.Path`: the path of the output file constructed
+            with the provided segments.
+        """
         if timestep is not None:
             fname += '{:05d}'.format(timestep)
         fname = self.par['ioin']['output_file_stem'] + '_' + fname + suffix
         return self.path / fname
 
     def binfiles_set(self, isnap):
-        """Set of existing binary files at a given snap"""
+        """Set of existing binary files at a given snap.
+
+        Args:
+            isnap (int): snapshot index.
+        Returns:
+            set of pathlib.Path: the set of output files available for this
+            snapshot number.
+        """
         possible_files = set(self.filename(fstem, isnap)
                              for fstem in phyvars.FIELD_FILES)
         return possible_files & self.files

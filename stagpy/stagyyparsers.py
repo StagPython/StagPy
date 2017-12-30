@@ -1,4 +1,10 @@
-"""Parsers of StagYY output files"""
+"""Parsers of StagYY output files.
+
+Note:
+    These functions are low level utilities. You should not use these unless
+    you know what you are doing. To access StagYY output data, use an instance
+    of :class:`~stagpy.stagyydata.StagyyData`.
+"""
 from functools import partial
 from itertools import product, repeat
 from operator import itemgetter
@@ -10,7 +16,22 @@ from .error import ParsingError
 
 
 def time_series(timefile, colnames):
-    """Read temporal series from time.dat"""
+    """Read temporal series text file.
+
+    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    additional numeric column names from 0 to N-1 will be attributed to the N
+    extra columns present in :data:`timefile`.
+
+    Args:
+        timefile (:class:`pathlib.Path`): path of the time.dat file.
+        colnames (list of names): names of the variables expected in
+            :data:`timefile`.
+
+    Returns:
+        :class:`pandas.DataFrame`:
+            Time series, with the variables in columns and the time steps in
+            rows.
+    """
     if not timefile.is_file():
         return None
     data = pd.read_csv(timefile, delim_whitespace=True, dtype=str,
@@ -73,7 +94,25 @@ def _extract_rsnap_isteps(rproffile):
 
 
 def rprof(rproffile, colnames):
-    """Extract radial profiles data"""
+    """Extract radial profiles data
+
+    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    additional numeric column names from 0 to N-1 will be attributed to the N
+    extra columns present in :data:`timefile`.
+
+    Args:
+        rproffile (:class:`pathlib.Path`): path of the rprof.dat file.
+        colnames (list of names): names of the variables expected in
+            :data:`rproffile`.
+
+    Returns:
+        tuple of :class:`pandas.DataFrame`: (profs, times)
+            :data:`profs` are the radial profiles, with the variables in
+            columns and rows double-indexed with the time step and the radial
+            index of numerical cells.
+
+            :data:`times` is the dimensionless time indexed by time steps.
+    """
     if not rproffile.is_file():
         return None, None
     data = pd.read_csv(rproffile, delim_whitespace=True, dtype=str,
@@ -125,7 +164,26 @@ def _readbin(fid, fmt='i', nwords=1, file64=False):
 
 
 def fields(fieldfile, only_header=False, only_istep=False):
-    """Extract fields data"""
+    """Extract fields data.
+
+    Args:
+        fieldfile (:class:`pathlib.Path`): path of the binary field file.
+        only_header (bool): when True (and :data:`only_istep` is False), only
+            :data:`header` is returned.
+        only_istep (bool): when True, only :data:`istep` is returned.
+
+    Returns:
+        depends on flags.: :obj:`int`: istep
+            If :data:`only_istep` is True, this function returns the time step
+            at which the binary file was written.
+        :obj:`dict`: header
+            Else, if :data:`only_header` is True, this function returns a dict
+            containing the header informations of the binary file.
+        :class:`numpy.array`: fields
+            Else, this function returns the tuple :data:`(header, fields)`.
+            :data:`fields` is an array of scalar fields indexed by variable,
+            x-direction, y-direction, z-direction, block.
+    """
     # something to skip header?
     if not fieldfile.is_file():
         return None

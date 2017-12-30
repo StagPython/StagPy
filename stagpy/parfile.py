@@ -1,4 +1,4 @@
-"""StagYY par file handling"""
+"""StagYY par file handling."""
 
 import f90nml
 from .config import CONFIG_DIR
@@ -628,7 +628,17 @@ def _read_default():
 
 
 def readpar(path):
-    """read StagYY par file"""
+    """Read StagYY par file.
+
+    :data:`PAR_DFLT_FILE` and ultimately :data:`PAR_DEFAULT` are used to fill
+    missing entries.
+
+    Args:
+        path (:class:`pathlib.Path`): path of par file.
+    Returns:
+        dict of dict: dict of dict of values with first key being the namelist
+        and second key the variables' name.
+    """
     par_file = path / 'par'
     par_dflt = _read_default()
     if par_file.is_file():

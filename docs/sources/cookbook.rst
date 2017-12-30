@@ -1,15 +1,15 @@
 Cookbook
-=======
+========
 You will find here some examples of use that you can try on the data
 available in the Examples directory.
 
 Simple command lines
-------------------
+--------------------
 For the examples here, simply copy and paste the command line in your
 shell, working in the directory where the StagYY par file is located.
 
 Time series
-~~~~~~~~~
+~~~~~~~~~~~
 
 The command
 
@@ -53,7 +53,7 @@ reached a statistical steady state.
 
 
 Snapshots
-~~~~~~~~
+~~~~~~~~~
 The next use of stagpy is to create images of snapshots of the
 different fields.
 
@@ -78,7 +78,7 @@ will plot the temperature field with isocontours of the stream function from
 the third to the eighth snapshot, every two snapshots.
 
 Profiles
-~~~~~~
+~~~~~~~~
 Profiles are accessed using the rprof command::
 
     % stagpy rprof -s 4:6
@@ -110,10 +110,10 @@ turns off output of other radial profiles (``Tmean`` by default).
 
 
 Scripts using StagyyData
---------------------
+------------------------
 
 Plotting a scalar diagnostic as function of control parameter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Suppose you have a group of directories, each for a given set of
 parameters, and you want to plot the results of all cases on the same
@@ -161,7 +161,7 @@ only in statistical steady state, a time average is more relevant. It
 can be computed using the whole sdat.tseries table in each directory.
 
 Plotting a scalar diagnostic as function of time for several parameter sets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Instead of plotting just the last value of a diagnostic, or its
 average, you may want to plot its evolution of time for different

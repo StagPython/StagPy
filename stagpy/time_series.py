@@ -1,9 +1,5 @@
-"""Plots time series of temperature and heat fluxes outputs from stagyy.
+"""Plots time series."""
 
-Author: Stephane Labrosse with inputs from Martina Ulvrova and Adrien Morison
-Date: 2015/11/27
-"""
-from inspect import getdoc
 import numpy as np
 from math import sqrt
 import matplotlib.pyplot as plt
@@ -50,7 +46,24 @@ def _plot_time_list(lovs, tseries, metas, times=None):
 
 
 def get_time_series(sdat, var, tstart, tend):
-    """Return read or computed time series along with metadata"""
+    """Extract or compute a time series.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        var (str): time series name, a key of :data:`stagpy.phyvars.TIME`
+            or :data:`stagpy.phyvars.TIME_EXTRA`.
+        tstart (float): starting time of desired series. Set to None to start
+            at the beginning of available data.
+        tend (float): ending time of desired series. Set to None to stop at the
+            end of available data.
+    Returns:
+        tuple of :class:`numpy.array` and :class:`stagpy.phyvars.Vart`:
+        series, time, meta
+            series is the requested time series, time the time at which it
+            is evaluated (set to None if it is the one of time series output
+            by StagYY), and meta is a :class:`stagpy.phyvars.Vart` instance
+            holding metadata of the requested variable.
+    """
     tseries = sdat.tseries_between(tstart, tend)
     if var in tseries.columns:
         series = tseries[var]
@@ -62,7 +75,7 @@ def get_time_series(sdat, var, tstart, tend):
     elif var in phyvars.TIME_EXTRA:
         meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
-        meta = phyvars.Vart(getdoc(meta.description), meta.shortname)
+        meta = phyvars.Vart(misc.baredoc(meta.description), meta.shortname)
     else:
         raise UnknownTimeVarError(var)
 
@@ -70,7 +83,17 @@ def get_time_series(sdat, var, tstart, tend):
 
 
 def plot_time_series(sdat, lovs):
-    """Plot requested time series"""
+    """Plot requested time series.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        lovs (nested list of str): nested list of series names such as
+            the one produced by :func:`stagpy.misc.list_of_vars`.
+
+    Other Parameters:
+        conf.time.tstart: the starting time.
+        conf.time.tend: the ending time.
+    """
     sovs = misc.set_of_vars(lovs)
     tseries = {}
     times = {}
@@ -88,8 +111,19 @@ def plot_time_series(sdat, lovs):
     _plot_time_list(lovs, tseries, metas, times)
 
 
-def compstat(sdat, tstart=0., tend=None):
-    """Compute statistics"""
+def compstat(sdat, tstart=None, tend=None):
+    """Compute statistics from series output by StagYY.
+
+    Create a file 'statistics.dat' containing the mean and standard deviation
+    of each series on the requested time span.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        tstart (float): starting time. Set to None to start at the beginning of
+            available data.
+        tend (float): ending time. Set to None to stop at the end of available
+            data.
+    """
     data = sdat.tseries_between(tstart, tend)
     time = data['t'].values
 
@@ -107,8 +141,13 @@ def compstat(sdat, tstart=0., tend=None):
         out_file.write("\n")
 
 
-def time_cmd():
-    """Plot time series"""
+def cmd():
+    """Implementation of time subcommand.
+
+    Other Parameters:
+        conf.time
+        conf.core
+    """
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return

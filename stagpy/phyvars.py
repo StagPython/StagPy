@@ -1,4 +1,9 @@
-"""Define lists of physical variables"""
+"""Lists of physical variables made available by StagPy.
+
+They are organized by kind of variables (field, profiles, and time series).
+EXTRA lists group variables that are not directly output by StagYY and need to
+be computed from other variables.
+"""
 
 from collections import OrderedDict, namedtuple
 from . import processing
