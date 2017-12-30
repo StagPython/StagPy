@@ -38,6 +38,7 @@ Welcome to StagPy's documentation!
    sources/apiref/phyvars
    sources/apiref/processing
    sources/apiref/rprof
+   sources/apiref/stagyydata
    sources/apiref/stagyyparsers
    sources/apiref/time
 
