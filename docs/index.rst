@@ -39,4 +39,5 @@ Welcome to StagPy's documentation!
    sources/apiref/processing
    sources/apiref/rprof
    sources/apiref/stagyyparsers
+   sources/apiref/time
 
