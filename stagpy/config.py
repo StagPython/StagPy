@@ -8,6 +8,7 @@ from collections import OrderedDict, namedtuple
 from os.path import expanduser
 import configparser
 import pathlib
+from .error import ConfigSectionError, ConfigOptionError
 
 HOME_DIR = pathlib.Path(expanduser('~'))
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
@@ -205,6 +206,16 @@ class _SubConfig:
     def __setitem__(self, key, value):
         setattr(self, key, value)
 
+    def __delitem__(self, option):
+        delattr(self, option)
+
+    def __getattr__(self, option):
+        if option in self._def:
+            self[option] = self._def[option].default
+        else:
+            raise ConfigOptionError(option)
+        return self[option]
+
     def __iter__(self):
         return iter(self._def.keys())
 
@@ -273,6 +284,14 @@ class StagpyConfiguration:
 
         stagpy.conf.core.path
         stagpy.conf['core']['path']
+
+    To reset a configuration option (or an entire section) to its default
+    value, simply delete it (with item or attribute notation)::
+
+        del stagpy.conf['core']  # reset all core options
+        del stagpy.conf.field.plot  # reset a particular option
+
+    It will be set to its default value the next time you access it.
     """
 
     def __init__(self, config_file):
@@ -301,6 +320,16 @@ class StagpyConfiguration:
 
     def __setitem__(self, key, value):
         setattr(self, key, value)
+
+    def __delitem__(self, sub):
+        delattr(self, sub)
+
+    def __getattr__(self, sub):
+        if sub in self._def:
+            self[sub] = _SubConfig(self, sub, self._def[sub])
+        else:
+            raise ConfigSectionError(sub)
+        return self[sub]
 
     def __iter__(self):
         return iter(self._def.keys())
