@@ -17,9 +17,9 @@ Conf = namedtuple('ConfigEntry',
                   ['default', 'cmd_arg', 'shortname', 'kwargs',
                    'conf_arg', 'help_string'])
 
-CONF_DEF = OrderedDict()
+_CONF_DEF = OrderedDict()
 
-CONF_DEF['core'] = OrderedDict((
+_CONF_DEF['core'] = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),
     ('outname', Conf('stagpy', True, 'n', {},
@@ -44,7 +44,7 @@ CONF_DEF['core'] = OrderedDict((
                         True, 'use or not seaborn')),
 ))
 
-CONF_DEF['scaling'] = OrderedDict((
+_CONF_DEF['scaling'] = OrderedDict((
     ('yearins', Conf(3.154e7, False, None, {},
                      True, 'Year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
@@ -57,7 +57,7 @@ CONF_DEF['scaling'] = OrderedDict((
                            True, 'Reference viscosity Pa s')),
 ))
 
-CONF_DEF['plotting'] = OrderedDict((
+_CONF_DEF['plotting'] = OrderedDict((
     ('topomin', Conf(-40, False, None, {},
                      True, 'Min range for topography plots')),
     ('topomax', Conf(100, False, None, {},
@@ -82,7 +82,7 @@ CONF_DEF['plotting'] = OrderedDict((
                         True, 'Max range for lithospheric stress plots')),
 ))
 
-CONF_DEF['field'] = OrderedDict((
+_CONF_DEF['field'] = OrderedDict((
     ('plot',
         Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
@@ -93,7 +93,7 @@ CONF_DEF['field'] = OrderedDict((
              True, 'color bar shrink factor')),
 ))
 
-CONF_DEF['rprof'] = OrderedDict((
+_CONF_DEF['rprof'] = OrderedDict((
     ('plot',
         Conf('Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
@@ -106,7 +106,7 @@ CONF_DEF['rprof'] = OrderedDict((
              True, 'Plot grid')),
 ))
 
-CONF_DEF['time'] = OrderedDict((
+_CONF_DEF['time'] = OrderedDict((
     ('plot',
         Conf('Nutop,ebalance,Nubot.Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
@@ -122,7 +122,7 @@ CONF_DEF['time'] = OrderedDict((
              False, 'specify end time for the time series')),
 ))
 
-CONF_DEF['plates'] = OrderedDict((
+_CONF_DEF['plates'] = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
@@ -163,16 +163,16 @@ CONF_DEF['plates'] = OrderedDict((
              False, 'Zoom around surface')),
 ))
 
-CONF_DEF['info'] = OrderedDict((
+_CONF_DEF['info'] = OrderedDict((
 ))
 
-CONF_DEF['var'] = OrderedDict((
+_CONF_DEF['var'] = OrderedDict((
 ))
 
-CONF_DEF['version'] = OrderedDict((
+_CONF_DEF['version'] = OrderedDict((
 ))
 
-CONF_DEF['config'] = OrderedDict((
+_CONF_DEF['config'] = OrderedDict((
     ('create',
         Conf(None, True, None, {'action': 'store_true'},
              False, 'create new config file')),
@@ -192,10 +192,11 @@ class _SubConfig:
 
     """Hold options for a single subcommand"""
 
-    def __init__(self, parent, name, entries):
+    def __init__(self, parent, name, defaults):
         self._parent = parent
         self._name = name
-        for opt, meta in entries.items():
+        self._def = defaults
+        for opt, meta in self.defaults():
             self[opt] = meta.default
 
     def __getitem__(self, key):
@@ -203,6 +204,35 @@ class _SubConfig:
 
     def __setitem__(self, key, value):
         setattr(self, key, value)
+
+    def __iter__(self):
+        return iter(self._def.keys())
+
+    def options(self):
+        """Iterator over configuration option names.
+
+        Yields:
+            option names.
+        """
+        return iter(self)
+
+    def opt_vals(self):
+        """Iterator over option names and option values.
+
+        Yields:
+            tuples with option names, and option values.
+        """
+        for opt in self.options():
+            yield opt, self[opt]
+
+    def defaults(self):
+        """Iterator over option names, and option metadata.
+
+        Yields:
+            tuples with option names, and :class:`Conf` instances holding
+            option metadata.
+        """
+        return self._def.items()
 
     def read_section(self):
         """Read section of config parser
@@ -212,7 +242,7 @@ class _SubConfig:
         """
         missing_opts = []
         config_parser = self._parent.config_parser
-        for opt, meta_opt in CONF_DEF[self._name].items():
+        for opt, meta_opt in self.defaults():
             if not meta_opt.conf_arg:
                 continue
             if not config_parser.has_option(self._name, opt):
@@ -234,13 +264,12 @@ class StagpyConfiguration:
 
     """Hold StagPy configuration options values.
 
-    :data:`stagpy.conf` is a global instance of this class. Instances
-    of this class are set with default values from :data:`CONF_DEF`
-    and updated with the content of :attr:`config_file`.
+    :data:`stagpy.conf` is a global instance of this class. Instances of this
+    class are set with internally defined default values and updated with the
+    content of :attr:`config_file`.
 
-    A configuration option can be accessed both with attribute and
-    item access notations, these two lines access the same option
-    value::
+    A configuration option can be accessed both with attribute and item access
+    notations, these two lines access the same option value::
 
         stagpy.conf.core.path
         stagpy.conf['core']['path']
@@ -256,8 +285,9 @@ class StagpyConfiguration:
             config_parser: :class:`configparser.ConfigParser` instance.
             config_file (pathlib.Path): path of config file.
         """
-        for sub, entries in CONF_DEF.items():
-            self[sub] = _SubConfig(self, sub, entries)
+        self._def = _CONF_DEF  # defaults information
+        for sub in self.subs():
+            self[sub] = _SubConfig(self, sub, self._def[sub])
         self.config_parser = configparser.ConfigParser()
         if config_file is not None:
             self.config_file = pathlib.Path(config_file)
@@ -272,6 +302,76 @@ class StagpyConfiguration:
     def __setitem__(self, key, value):
         setattr(self, key, value)
 
+    def __iter__(self):
+        return iter(self._def.keys())
+
+    def subs(self):
+        """Iterator over configuration subsection names.
+
+        Yields:
+            subsection names.
+        """
+        return iter(self)
+
+    def options(self):
+        """Iterator over subsection and option names.
+
+        This iterator is also implemented at the subsection level. The two
+        loops produce the same output::
+
+            for sub, opt in conf.options():
+                print(sub, opt)
+
+            for sub in conf.subs():
+                for opt in conf[sub].options():
+                    print(sub, opt)
+
+        Yields:
+            tuples with subsection and options names.
+        """
+        for sub in self:
+            for opt in self._def[sub]:
+                yield sub, opt
+
+    def opt_vals(self):
+        """Iterator over subsection, option names, and option values.
+
+        This iterator is also implemented at the subsection level. The two
+        loops produce the same output::
+
+            for sub, opt, val in conf.opt_vals():
+                print(sub, opt, val)
+
+            for sub in conf.subs():
+                for opt, val in conf[sub].opt_vals():
+                    print(sub, opt, val)
+
+        Yields:
+            tuples with subsection, option names, and option values.
+        """
+        for sub, opt in self.options():
+            yield sub, opt, self[sub][opt]
+
+    def defaults(self):
+        """Iterator over subsection, option names, and option metadata.
+
+        This iterator is also implemented at the subsection level. The two
+        loops produce the same output::
+
+            for sub, opt, meta in conf.defaults():
+                print(sub, opt, meta.default)
+
+            for sub in conf.subs():
+                for opt, meta in conf[sub].defaults():
+                    print(sub, opt, meta.default)
+
+        Yields:
+            tuples with subsection, option names, and :class:`Conf`
+            instances holding option metadata.
+        """
+        for sub, opt in self.options():
+            yield sub, opt, self._def[sub][opt]
+
     def create_config(self):
         """Create config file.
 
@@ -285,9 +385,9 @@ class StagpyConfiguration:
         if not self.config_file.parent.exists():
             self.config_file.parent.mkdir(parents=True)
         config_parser = configparser.ConfigParser()
-        for sub_cmd, entries in CONF_DEF.items():
+        for sub_cmd in self.subs():
             config_parser.add_section(sub_cmd)
-            for opt, opt_meta in entries.items():
+            for opt, opt_meta in sub_cmd.defaults():
                 if opt_meta.conf_arg:
                     if self.config.update:
                         val = str(self[sub_cmd][opt])
@@ -307,7 +407,7 @@ class StagpyConfiguration:
             return None, None
         missing_sections = []
         missing_opts = {}
-        for sub in CONF_DEF:
+        for sub in self.subs():
             if not self.config_parser.has_section(sub):
                 missing_sections.append(sub)
                 continue

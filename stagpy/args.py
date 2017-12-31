@@ -5,7 +5,6 @@ from inspect import isfunction
 import argparse
 import argcomplete
 from . import commands, conf, field, phyvars, rprof, time_series, plates
-from .config import CONF_DEF
 from .misc import baredoc
 
 Sub = namedtuple('Sub', ['use_core', 'func'])
@@ -30,9 +29,9 @@ class Toggle(argparse.Action):
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
 
 
-def add_args(subconf, parser, entries):
+def add_args(subconf, parser):
     """Add arguments to a parser"""
-    for arg, meta in entries.items():
+    for arg, meta in subconf.defaults():
         if not meta.cmd_arg:
             continue
         if isinstance(meta.default, bool):
@@ -50,7 +49,7 @@ def add_args(subconf, parser, entries):
         meta.kwargs.update(help=meta.help_string)
         parser.add_argument(*names, **meta.kwargs)
     parser.set_defaults(**{a: subconf[a]
-                           for a, m in entries.items() if m.cmd_arg})
+                           for a, m in subconf.defaults() if m.cmd_arg})
     return parser
 
 
@@ -62,16 +61,16 @@ def _build_parser():
     subparsers = main_parser.add_subparsers()
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
-    for sub in CONF_DEF:
+    for sub in conf:
         if sub not in SUB_CMDS:
-            core_parser = add_args(conf[sub], core_parser, CONF_DEF[sub])
+            core_parser = add_args(conf[sub], core_parser)
 
     for sub_cmd, meta in SUB_CMDS.items():
         kwargs = {'prefix_chars': '+-', 'help': baredoc(meta.func)}
         if meta.use_core:
             kwargs.update(parents=[core_parser])
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-        dummy_parser = add_args(conf[sub_cmd], dummy_parser, CONF_DEF[sub_cmd])
+        dummy_parser = add_args(conf[sub_cmd], dummy_parser)
         dummy_parser.set_defaults(func=meta.func)
 
     return main_parser
@@ -107,7 +106,7 @@ def _steps_to_slices():
 
 def _update_subconf(cmd_args, sub):
     """Set subconfig options accordingly to cmd line args"""
-    for opt, meta in CONF_DEF[sub].items():
+    for opt, meta in conf[sub].defaults():
         if not meta.cmd_arg:
             continue
         conf[sub][opt] = getattr(cmd_args, opt)
@@ -144,7 +143,7 @@ def parse_args():
 
     # core options
     if SUB_CMDS[sub_cmd].use_core:
-        for sub in CONF_DEF:
+        for sub in conf:
             if sub not in SUB_CMDS:
                 _update_subconf(cmd_args, sub)
 
