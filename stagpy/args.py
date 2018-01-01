@@ -57,7 +57,7 @@ def _build_parser():
     """Return complete parser"""
     main_parser = argparse.ArgumentParser(
         description='read and process StagYY binary data')
-    main_parser.set_defaults(func=lambda _: print('stagpy -h for usage'))
+    main_parser.set_defaults(func=lambda: print('stagpy -h for usage'))
     subparsers = main_parser.add_subparsers()
 
     core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
@@ -140,6 +140,9 @@ def parse_args():
         if cmd_args.func is meta.func:
             sub_cmd = sub
             break
+
+    if sub_cmd is None:
+        return cmd_args.func
 
     # core options
     if SUB_CMDS[sub_cmd].use_core:
