@@ -41,7 +41,7 @@ _CONF_DEF['core'] = OrderedDict((
                        True, 'line width')),
     ('matplotback', Conf('agg', False, None, {},
                          True, 'graphical backend')),
-    ('useseaborn', Conf(True, False, None, {},
+    ('useseaborn', Conf(False, False, None, {},
                         True, 'use or not seaborn')),
 ))
 
