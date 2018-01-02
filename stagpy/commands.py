@@ -97,9 +97,9 @@ def config_cmd():
     Other Parameters:
         conf.config_file (:class:`pathlib.Path`): path of the config file.
         conf.config.create (bool): whether to create conf.config file.
-        conf.config.update (bool): create conf.config_file. If it already exists,
-            its content is read and only the missing parameters are set to their
-            default value.
+        conf.config.update (bool): create conf.config_file. If it already
+            exists, its content is read and only the missing parameters are set
+            to their default value.
         conf.config.edit (bool): update conf.config_file and open it in
             conf.editor.
         conf.editor (str): the editor used by conf.config.edit to open the

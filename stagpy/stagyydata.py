@@ -437,6 +437,7 @@ class _Steps(dict):
     def last(self):
         """Last time step available.
 
+        Example:
             >>> sdat = StagyyData('path/to/run')
             >>> assert(sdat.steps.last is sdat.steps[-1])
         """
@@ -513,6 +514,7 @@ class _Snaps(_Steps):
     def last(self):
         """Last snapshot available.
 
+        Example:
             >>> sdat = StagyyData('path/to/run')
             >>> assert(sdat.snaps.last is sdat.snaps[-1])
         """
