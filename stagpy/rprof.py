@@ -120,9 +120,8 @@ def plot_average(sdat, lovs):
         ilast = step.istep
         nprofs += 1
         for rvar in sovs:
-            rprof, rad, meta = get_rprof(step, rvar)
+            rprof, rad, metas[rvar] = get_rprof(step, rvar)
             rprof_averaged[rvar] += rprof
-            metas[rvar] = meta
             if rad is not None:
                 rads[rvar] = rad
 
