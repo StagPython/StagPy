@@ -416,7 +416,7 @@ class StagpyConfiguration:
         config_parser = configparser.ConfigParser()
         for sub_cmd in self.subs():
             config_parser.add_section(sub_cmd)
-            for opt, opt_meta in sub_cmd.defaults():
+            for opt, opt_meta in self[sub_cmd].defaults():
                 if opt_meta.conf_arg:
                     if self.config.update:
                         val = str(self[sub_cmd][opt])
