@@ -77,8 +77,8 @@ def plot_grid(step):
     Args:
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
             instance.
-    rad = step.rprof['r']
     """
+    rad = step.rprof['r']
     drad, _, _ = get_rprof(step, 'dr')
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(rad, '-ko')
@@ -120,9 +120,8 @@ def plot_average(sdat, lovs):
         ilast = step.istep
         nprofs += 1
         for rvar in sovs:
-            rprof, rad, meta = get_rprof(step, rvar)
+            rprof, rad, metas[rvar] = get_rprof(step, rvar)
             rprof_averaged[rvar] += rprof
-            metas[rvar] = meta
             if rad is not None:
                 rads[rvar] = rad
 
