@@ -12,7 +12,7 @@ SUB_CMDS = OrderedDict((
     ('field', Sub(['core', 'plot'], field)),
     ('rprof', Sub(['core', 'plot'], rprof)),
     ('time', Sub(['core', 'plot'], time_series)),
-    ('plates', Sub(['core', 'plot', 'scaling', 'plotting'], plates)),
+    ('plates', Sub(['core', 'plot', 'scaling'], plates)),
     ('info', Sub(['core'], commands.info_cmd)),
     ('var', Sub([], commands.var_cmd)),
     ('version', Sub([], commands.version_cmd)),
@@ -116,13 +116,6 @@ def _update_subconf(cmd_args, sub):
         conf[sub][opt] = getattr(cmd_args, opt)
 
 
-def _update_plates_plot():
-    """Set plot_* variables for plates"""
-    if conf.plates.plot is not None:
-        for varp, meta in phyvars.PLATES.items():
-            conf.plates[meta.arg] = varp in conf.plates.plot
-
-
 def _update_func(cmd_args):
     """Extract command func if necessary"""
     if not isfunction(cmd_args.func):
@@ -155,8 +148,6 @@ def parse_args():
     all_sub.append(sub_cmd)
     for sub in all_sub:
         _update_subconf(cmd_args, sub)
-
-    _update_plates_plot()
 
     _update_func(cmd_args)
 
