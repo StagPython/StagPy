@@ -156,8 +156,6 @@ def parse_args():
     for sub in all_sub:
         _update_subconf(cmd_args, sub)
 
-    _update_subconf(cmd_args, sub_cmd)
-
     _update_plates_plot()
 
     _update_func(cmd_args)
