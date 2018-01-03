@@ -143,8 +143,8 @@ def config_cmd():
             default value.
         conf.config.edit (bool): update conf.config_file and open it in
             conf.editor.
-        conf.editor (str): the editor used by conf.config.edit to open the
-            config file.
+        conf.config.editor (str): the editor used by conf.config.edit to open
+            the config file.
     """
     if not (conf.config.create or conf.config.update or conf.config.edit):
         config_pp(conf.subs())
