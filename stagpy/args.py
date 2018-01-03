@@ -4,7 +4,7 @@ from collections import OrderedDict, namedtuple
 from inspect import isfunction
 import argparse
 import argcomplete
-from . import commands, conf, field, phyvars, rprof, time_series, plates
+from . import commands, conf, field, rprof, time_series, plates
 from .misc import baredoc
 
 Sub = namedtuple('Sub', ['extra_parsers', 'func'])

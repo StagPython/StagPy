@@ -137,7 +137,7 @@ _CONF_DEF['plates'] = OrderedDict((
     ('dvmin', Conf(-250000, False, None, {},
                    True, 'min velocity derivative in plots')),
     ('dvmax', Conf(150000, False, None, {},
-                          True, 'max velocity derivative in plots')),
+                   True, 'max velocity derivative in plots')),
     ('stressmin', Conf(0, False, None, {},
                        True, 'min stress in plots')),
     ('stressmax', Conf(800, False, None, {},
