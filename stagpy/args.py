@@ -7,16 +7,16 @@ import argcomplete
 from . import commands, conf, field, phyvars, rprof, time_series, plates
 from .misc import baredoc
 
-Sub = namedtuple('Sub', ['use_core', 'func'])
+Sub = namedtuple('Sub', ['extra_parsers', 'func'])
 SUB_CMDS = OrderedDict((
-    ('field', Sub(True, field)),
-    ('rprof', Sub(True, rprof)),
-    ('time', Sub(True, time_series)),
-    ('plates', Sub(True, plates)),
-    ('info', Sub(True, commands.info_cmd)),
-    ('var', Sub(False, commands.var_cmd)),
-    ('version', Sub(False, commands.version_cmd)),
-    ('config', Sub(False, commands.config_cmd)),
+    ('field', Sub(['core', 'plot'], field)),
+    ('rprof', Sub(['core', 'plot'], rprof)),
+    ('time', Sub(['core', 'plot'], time_series)),
+    ('plates', Sub(['core', 'plot', 'scaling', 'plotting'], plates)),
+    ('info', Sub(['core'], commands.info_cmd)),
+    ('var', Sub([], commands.var_cmd)),
+    ('version', Sub([], commands.version_cmd)),
+    ('config', Sub([], commands.config_cmd)),
 ))
 
 
@@ -60,15 +60,19 @@ def _build_parser():
     main_parser.set_defaults(func=lambda: print('stagpy -h for usage'))
     subparsers = main_parser.add_subparsers()
 
-    core_parser = argparse.ArgumentParser(add_help=False, prefix_chars='-+')
+    xparsers = {}
     for sub in conf:
         if sub not in SUB_CMDS:
-            core_parser = add_args(conf[sub], core_parser)
+            xparsers[sub] = argparse.ArgumentParser(add_help=False,
+                                                    prefix_chars='-+')
+            xparsers[sub] = add_args(conf[sub], xparsers[sub])
 
     for sub_cmd, meta in SUB_CMDS.items():
         kwargs = {'prefix_chars': '+-', 'help': baredoc(meta.func)}
-        if meta.use_core:
-            kwargs.update(parents=[core_parser])
+        parent_parsers = [xparsers['common']]
+        for sub in meta.extra_parsers:
+            parent_parsers.append(xparsers[sub])
+        kwargs.update(parents=parent_parsers)
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
         dummy_parser = add_args(conf[sub_cmd], dummy_parser)
         dummy_parser.set_defaults(func=meta.func)
@@ -144,18 +148,22 @@ def parse_args():
     if sub_cmd is None:
         return cmd_args.func
 
-    # core options
-    if SUB_CMDS[sub_cmd].use_core:
-        for sub in conf:
-            if sub not in SUB_CMDS:
-                _update_subconf(cmd_args, sub)
-
+    # common options
+    all_sub = ['common']
+    all_sub.extend(SUB_CMDS[sub_cmd].extra_parsers)
     # options specific to the subcommand
+    all_sub.append(sub_cmd)
+    for sub in all_sub:
+        _update_subconf(cmd_args, sub)
+
     _update_subconf(cmd_args, sub_cmd)
 
     _update_plates_plot()
 
     _update_func(cmd_args)
+
+    if conf.common.config:
+        commands.config_pp(all_sub)
 
     try:
         _steps_to_slices()

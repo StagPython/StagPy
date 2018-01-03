@@ -26,12 +26,12 @@ def sigint_handler(*_):
 def _load_mpl():
     """Load matplotlib and set some configuration"""
     mpl = importlib.import_module('matplotlib')
-    if conf.core.matplotback:
-        mpl.use(conf.core.matplotback)
+    if conf.plot.matplotback:
+        mpl.use(conf.plot.matplotback)
     plt = importlib.import_module('matplotlib.pyplot')
-    if conf.core.useseaborn:
+    if conf.plot.useseaborn:
         importlib.import_module('seaborn')
-    if conf.core.xkcd:
+    if conf.plot.xkcd:
         plt.xkcd()
 
 

@@ -24,7 +24,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
                                 label=metas[tvar].description,
-                                linewidth=conf.core.linewidth)
+                                linewidth=conf.plot.linewidth)
                 lbl = metas[tvar].shortname
                 if ylabel is None:
                     ylabel = lbl
@@ -32,14 +32,14 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                     ylabel = ''
             if ylabel:
                 axes[iplt].set_ylabel(r'${}$'.format(ylabel),
-                                      fontsize=conf.core.fontsize)
+                                      fontsize=conf.plot.fontsize)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
-            axes[iplt].legend(fontsize=conf.core.fontsize)
-            axes[iplt].tick_params(labelsize=conf.core.fontsize)
-        axes[-1].set_xlabel(r'$t$', fontsize=conf.core.fontsize)
+            axes[iplt].legend(fontsize=conf.plot.fontsize)
+            axes[iplt].tick_params(labelsize=conf.plot.fontsize)
+        axes[-1].set_xlabel(r'$t$', fontsize=conf.plot.fontsize)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
-        axes[-1].tick_params(labelsize=conf.core.fontsize)
+        axes[-1].tick_params(labelsize=conf.plot.fontsize)
         fig.savefig('time_{}.pdf'.format(fname[:-1]),
                     format='PDF', bbox_inches='tight')
         plt.close(fig)

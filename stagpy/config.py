@@ -20,19 +20,25 @@ Conf = namedtuple('ConfigEntry',
 
 _CONF_DEF = OrderedDict()
 
+_CONF_DEF['common'] = OrderedDict((
+    ('config', Conf(None, True, None, {'action': 'store_true'},
+                    False, 'print config options')),
+))
+
 _CONF_DEF['core'] = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),
-    ('outname', Conf('stagpy', True, 'n', {},
-                     True, 'StagPy generic output file name')),
     ('timesteps', Conf(None, True, 't',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'timesteps slice')),
     ('snapshots', Conf(None, True, 's',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'snapshots slice')),
-    ('xkcd', Conf(False, True, None, {},
-                  True, 'use the xkcd style')),
+))
+
+_CONF_DEF['plot'] = OrderedDict((
+    ('outname', Conf('stagpy', True, 'n', {},
+                     True, 'StagPy generic output file name')),
     ('pdf', Conf(False, True, None, {},
                  True, 'produce non-rasterized pdf (slow!)')),
     ('fontsize', Conf(16, False, None, {},
@@ -43,52 +49,53 @@ _CONF_DEF['core'] = OrderedDict((
                          True, 'graphical backend')),
     ('useseaborn', Conf(True, False, None, {},
                         True, 'use or not seaborn')),
+    ('xkcd', Conf(False, False, None, {},
+                  True, 'use the xkcd style')),
 ))
 
 _CONF_DEF['scaling'] = OrderedDict((
     ('yearins', Conf(3.154e7, False, None, {},
-                     True, 'Year in seconds')),
+                     True, 'year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
-                      True, 'Transit time in My')),
+                      True, 'transit time in My')),
     ('kappa', Conf(1.0e-6, False, None, {},
-                   True, 'Earth mantle thermal diffusivity m2/s')),
-    ('mantle', Conf(2890.0e3, False, None, {},
-                    True, 'Thickness of Earth mantle m')),
-    ('viscosity_ref', Conf(5.86e22, False, None, {},
-                           True, 'Reference viscosity Pa s')),
+                   True, 'mantle thermal diffusivity m2/s')),
+    ('length', Conf(2890.0e3, False, None, {},
+                    True, 'thickness of mantle m')),
+    ('viscosity', Conf(5.86e22, False, None, {},
+                       True, 'reference viscosity Pa s')),
 ))
 
 _CONF_DEF['plotting'] = OrderedDict((
     ('topomin', Conf(-40, False, None, {},
-                     True, 'Min range for topography plots')),
+                     True, 'min topography in plots')),
     ('topomax', Conf(100, False, None, {},
-                     True, 'Max range for topography plots')),
+                     True, 'max topography in plots')),
     ('agemin', Conf(-50, False, None, {},
-                    True, 'Min range for age plots')),
+                    True, 'min age in plots')),
     ('agemax', Conf(500, False, None, {},
-                    True, 'Max range for age plots')),
-    ('velocitymin', Conf(-5000, False, None, {},
-                         True, 'Min range for velocity plots')),
-    ('velocitymax', Conf(5000, False, None, {},
-                         True, 'Max range for velocity plots')),
-    ('dvelocitymin', Conf(-250000, False, None, {},
-                          True, 'Min range for velocity derivative plots')),
-    ('dvelocitymax', Conf(150000, False, None, {},
-                          True, 'Max range for velocity derivative plots')),
+                    True, 'max age in plots')),
+    ('vmin', Conf(-5000, False, None, {},
+                  True, 'min velocity in plots')),
+    ('vmax', Conf(5000, False, None, {},
+                  True, 'max velocity in plots')),
+    ('dvmin', Conf(-250000, False, None, {},
+                   True, 'min velocity derivative in plots')),
+    ('dvmax', Conf(150000, False, None, {},
+                          True, 'max velocity derivative in plots')),
     ('stressmin', Conf(0, False, None, {},
-                       True, 'Min range for stress plots')),
+                       True, 'min stress in plots')),
     ('stressmax', Conf(800, False, None, {},
-                       True, 'Max range for stress plots')),
+                       True, 'max stress in plots')),
     ('lstressmax', Conf(50, False, None, {},
-                        True, 'Max range for lithospheric stress plots')),
+                        True, 'max lithospheric stress in plots')),
 ))
 
 _CONF_DEF['field'] = OrderedDict((
     ('plot',
         Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
-             True, ('specify which variables to plot, '
-                    'run stagpy var for a list of variables'))),
+             True, 'variables to plot (see stagpy var)')),
     ('shrinkcb',
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
@@ -98,70 +105,69 @@ _CONF_DEF['rprof'] = OrderedDict((
     ('plot',
         Conf('Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
-             True, 'specify which variables to plot')),
+             True, 'variables to plot (see stagpy var)')),
     ('average',
         Conf(False, True, 'a', {},
-             True, 'Plot temporal average')),
+             True, 'plot temporal average')),
     ('grid',
         Conf(False, True, 'g', {},
-             True, 'Plot grid')),
+             True, 'plot grid')),
 ))
 
 _CONF_DEF['time'] = OrderedDict((
     ('plot',
         Conf('Nutop,ebalance,Nubot.Tmean', True, 'o',
              {'nargs': '?', 'const': ''},
-             True, 'specify which variables to plot')),
+             True, 'variables to plot (see stagpy var)')),
     ('compstat',
         Conf(False, True, None, {},
              True, 'compute steady state statistics')),
     ('tstart',
         Conf(None, True, None, {'type': float},
-             False, 'specify beginning for the time series')),
+             False, 'beginning time')),
     ('tend',
         Conf(None, True, None, {'type': float},
-             False, 'specify end time for the time series')),
+             False, 'end time')),
 ))
 
 _CONF_DEF['plates'] = OrderedDict((
     ('plot',
         Conf(None, True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
-             False, ('specify which variable to plot, '
-                     'run stagpy var for a list of variables'))),
+             False, 'variables to plot (see stagpy var)')),
     ('plot_composition',
         Conf(True, False, None, {},
-             True, 'composition scalar field')),
+             True, 'composition field')),
     ('plot_viscosity',
         Conf(True, False, None, {},
-             True, 'viscosity scalar field')),
+             True, 'viscosity field')),
     ('plot_topography',
         Conf(True, False, None, {},
-             True, 'topography scalar field')),
+             True, 'topography field')),
     ('plot_age',
         Conf(False, False, None, {},
-             True, 'age scalar field')),
+             True, 'age field')),
     ('plot_stress',
         Conf(False, False, None, {},
-             True, 'second invariant of stress scalar field')),
-    ('plot_deviatoric_stress',
+             True, 'second invariant of stress field')),
+    ('plot_deviatoric',
         Conf(False, False, None, {},
-             True, 'principal deviatoric stress')),
+             True, 'principal deviatoric stress vector field')),
     ('plot_strainrate',
         Conf(False, False, None, {},
-             True, 'strain rate scalar field')),
+             True, 'strain rate field')),
     ('vzcheck',
         Conf(False, True, None, {},
              True, 'activate Colin\'s version with vz checking')),
     ('timeprofile',
         Conf(False, True, None, {},
-             True, 'plots nb of plates in function of time')),
+             True, 'nb of plates as function of time')),
     ('shrinkcb',
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
     ('zoom',
         Conf(None, True, None, {'type': float},
-             False, 'Zoom around surface')),
+             False, 'zoom around surface')),
 ))
 
 _CONF_DEF['info'] = OrderedDict((
@@ -179,7 +185,7 @@ _CONF_DEF['config'] = OrderedDict((
              False, 'create new config file')),
     ('update',
         Conf(None, True, None, {'action': 'store_true'},
-             False, 'add missing entries to existing config file')),
+             False, 'add missing entries to config file')),
     ('edit',
         Conf(None, True, None, {'action': 'store_true'},
              False, 'open config file in a text editor')),
@@ -278,6 +284,10 @@ class StagpyConfiguration:
     :data:`stagpy.conf` is a global instance of this class. Instances of this
     class are set with internally defined default values and updated with the
     content of :attr:`config_file`.
+
+    Run ``stagpy config`` to print the list of available configuration options
+    with a short description. The list of configuration options is also
+    available for each subcommand with the ``stagpy <cmd> --config`` flag.
 
     A configuration option can be accessed both with attribute and item access
     notations, these two lines access the same option value::
