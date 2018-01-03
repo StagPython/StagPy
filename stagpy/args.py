@@ -9,10 +9,10 @@ from .misc import baredoc
 
 Sub = namedtuple('Sub', ['extra_parsers', 'func'])
 SUB_CMDS = OrderedDict((
-    ('field', Sub(['core'], field)),
-    ('rprof', Sub(['core'], rprof)),
-    ('time', Sub(['core'], time_series)),
-    ('plates', Sub(['core', 'scaling', 'plotting'], plates)),
+    ('field', Sub(['core', 'plot'], field)),
+    ('rprof', Sub(['core', 'plot'], rprof)),
+    ('time', Sub(['core', 'plot'], time_series)),
+    ('plates', Sub(['core', 'plot', 'scaling', 'plotting'], plates)),
     ('info', Sub(['core'], commands.info_cmd)),
     ('var', Sub([], commands.var_cmd)),
     ('version', Sub([], commands.version_cmd)),

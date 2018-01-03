@@ -234,7 +234,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     else:
         dsa = 0.
 
-    lwd = conf.core.linewidth
+    lwd = conf.plot.linewidth
     vphi = step.fields['v2'][0, :, :, 0]
     tempfld = step.fields['T'][0, :, :, 0]
     concfld = step.fields['c'][0, :, :, 0]
@@ -321,14 +321,14 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
     ax3.set_ylim(conf.plotting.vmin, conf.plotting.vmax)
 
-    ax1.set_ylabel("Concentration", fontsize=conf.core.fontsize)
-    ax2.set_ylabel("Temperature", fontsize=conf.core.fontsize)
-    ax3.set_ylabel("Velocity", fontsize=conf.core.fontsize)
-    ax1.set_title(timestep, fontsize=conf.core.fontsize)
+    ax1.set_ylabel("Concentration", fontsize=conf.plot.fontsize)
+    ax2.set_ylabel("Temperature", fontsize=conf.plot.fontsize)
+    ax3.set_ylabel("Velocity", fontsize=conf.plot.fontsize)
+    ax1.set_title(timestep, fontsize=conf.plot.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+             transform=ax1.transAxes, fontsize=conf.plot.fontsize)
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+             transform=ax1.transAxes, fontsize=conf.plot.fontsize)
 
     plot_plate_limits(ax3, ridge, trench, conf.plotting.vmin,
                       conf.plotting.vmax)
@@ -342,21 +342,21 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
-    ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
+    ax1.set_ylabel("Velocity", fontsize=conf.plot.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+             transform=ax1.transAxes, fontsize=conf.plot.fontsize)
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+             transform=ax1.transAxes, fontsize=conf.plot.fontsize)
     ax2.plot(ph_coord[:-1] + ph_coord[0], dvph2,
              color='k', linewidth=lwd, label='dv')
-    ax2.set_ylabel("dv", fontsize=conf.core.fontsize)
+    ax2.set_ylabel("dv", fontsize=conf.plot.fontsize)
 
     plot_plate_limits(ax1, ridge, trench, conf.plotting.vmin,
                       conf.plotting.vmax)
     plot_plate_limits(ax2, ridge, trench, conf.plotting.dvmin,
                       conf.plotting.dvmax)
     ax1.set_xlim(0, 2 * np.pi)
-    ax1.set_title(timestep, fontsize=conf.core.fontsize)
+    ax1.set_title(timestep, fontsize=conf.plot.fontsize)
 
     ax1.fill_between(
         ph_coord[:-1], continentsall * conf.plotting.vmin, conf.plotting.vmax,
@@ -377,22 +377,22 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                     color='black', ls='solid', alpha=0.2)
-        ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
+        ax1.set_ylabel("Velocity", fontsize=conf.plot.fontsize)
         ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                 transform=ax1.transAxes, fontsize=conf.core.fontsize)
+                 transform=ax1.transAxes, fontsize=conf.plot.fontsize)
         ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-                 transform=ax1.transAxes, fontsize=conf.core.fontsize)
+                 transform=ax1.transAxes, fontsize=conf.plot.fontsize)
         ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf] * scale_stress / 1.e6,
                  color='k', linewidth=lwd, label='Stress')
         ax2.set_ylim(conf.plotting.stressmin, conf.plotting.stressmax)
-        ax2.set_ylabel("Stress [MPa]", fontsize=conf.core.fontsize)
+        ax2.set_ylabel("Stress [MPa]", fontsize=conf.plot.fontsize)
 
         plot_plate_limits(ax1, ridge, trench,
                           conf.plotting.vmin, conf.plotting.vmax)
         plot_plate_limits(ax2, ridge, trench,
                           conf.plotting.stressmin, conf.plotting.stressmax)
         ax1.set_xlim(0, 2 * np.pi)
-        ax1.set_title(timestep, fontsize=conf.core.fontsize)
+        ax1.set_title(timestep, fontsize=conf.plot.fontsize)
 
         ax1.fill_between(
             ph_coord[:-1], continentsall * conf.plotting.vmin,
@@ -413,9 +413,9 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax1.set_ylim(conf.plotting.vmin, conf.plotting.vmax)
-    ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
+    ax1.set_ylabel("Velocity", fontsize=conf.plot.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+             transform=ax1.transAxes, fontsize=conf.plot.fontsize)
     plot_plate_limits(ax1, ridge, trench, conf.plotting.vmin,
                       conf.plotting.vmax)
 
@@ -427,9 +427,9 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
             y=0, xmin=0, xmax=2 * np.pi,
             color='black', ls='solid', alpha=0.2)
         ax3.set_ylim(conf.plotting.vmin, conf.plotting.vmax)
-        ax3.set_ylabel("Velocity", fontsize=conf.core.fontsize)
+        ax3.set_ylabel("Velocity", fontsize=conf.plot.fontsize)
         ax3.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                 transform=ax3.transAxes, fontsize=conf.core.fontsize)
+                 transform=ax3.transAxes, fontsize=conf.plot.fontsize)
         ax3.fill_between(
             ph_coord[:-1], continentsall * conf.plotting.vmax,
             conf.plotting.vmin, facecolor='#8B6914', alpha=0.2)
@@ -484,7 +484,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax1.fill_between(
         ph_coord[:-1], continentsall * conf.plotting.vmin,
         conf.plotting.vmax, facecolor='#8B6914', alpha=0.2)
-    ax2.set_ylabel("Topography [km]", fontsize=conf.core.fontsize)
+    ax2.set_ylabel("Topography [km]", fontsize=conf.plot.fontsize)
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
@@ -497,13 +497,13 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         conf.plotting.topomin, facecolor='#8B6914', alpha=0.2)
     plot_plate_limits(ax2, ridge, trench, conf.plotting.topomin,
                       conf.plotting.topomax)
-    ax1.set_title(timestep, fontsize=conf.core.fontsize)
+    ax1.set_title(timestep, fontsize=conf.plot.fontsize)
     figname = misc.out_name('sveltopo').format(timestep) + '.pdf'
     fig1.savefig(figname, format='PDF')
     plt.close(fig1)
 
     if conf.plates.plot_age:
-        ax4.set_ylabel("Seafloor age [My]", fontsize=conf.core.fontsize)
+        ax4.set_ylabel("Seafloor age [My]", fontsize=conf.plot.fontsize)
         # in dimensions
         ax4.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
         ax4.set_xlim(0, 2 * np.pi)
@@ -513,7 +513,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         ax4.set_ylim(conf.plotting.agemin, conf.plotting.agemax)
         plot_plate_limits(ax4, ridge, trench, conf.plotting.agemin,
                           conf.plotting.agemax)
-        ax3.set_title(timestep, fontsize=conf.core.fontsize)
+        ax3.set_title(timestep, fontsize=conf.plot.fontsize)
         figname = misc.out_name('svelage').format(timestep) + '.pdf'
         fig2.savefig(figname, format='PDF')
         plt.close(fig2)
@@ -541,7 +541,7 @@ def io_surface(timestep, time, fid, fld):
 def lithospheric_stress(step, trench, ridge, time):
     """calculate stress in the lithosphere"""
     timestep = step.isnap
-    lwd = conf.core.linewidth
+    lwd = conf.plot.linewidth
     base_lith = step.geom.rcmb + 1 - 0.105
     scale_dist = conf.scaling.length
     scale_stress = conf.scaling.kappa * conf.scaling.viscosity / scale_dist**2
@@ -559,7 +559,7 @@ def lithospheric_stress(step, trench, ridge, time):
     surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
                            stressfld * scale_stress / 1.e6,
                            cmap='gnuplot2_r',
-                           rasterized=not conf.core.pdf, shading='gouraud')
+                           rasterized=not conf.plot.pdf, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
     cbar.set_label(r'${}$'.format(phyvars.FIELD['sII'].shortname))
@@ -567,9 +567,9 @@ def lithospheric_stress(step, trench, ridge, time):
     plt.axis('off')
     # Annotation with time and step
     axis.text(1., 0.9, str(round(time, 0)) + ' My',
-              transform=axis.transAxes, fontsize=conf.core.fontsize)
+              transform=axis.transAxes, fontsize=conf.plot.fontsize)
     axis.text(1., 0.1, str(timestep),
-              transform=axis.transAxes, fontsize=conf.core.fontsize)
+              transform=axis.transAxes, fontsize=conf.plot.fontsize)
     plt.savefig(
         misc.out_name('lith').format(timestep) + '.pdf',
         format='PDF')
@@ -617,23 +617,23 @@ def lithospheric_stress(step, trench, ridge, time):
     ax1.plot(ph_coord[:-1], vph2[:-1, -1], linewidth=lwd, label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
-    ax1.set_ylabel("Velocity", fontsize=conf.core.fontsize)
+    ax1.set_ylabel("Velocity", fontsize=conf.plot.fontsize)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+             transform=ax1.transAxes, fontsize=conf.plot.fontsize)
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
-             transform=ax1.transAxes, fontsize=conf.core.fontsize)
+             transform=ax1.transAxes, fontsize=conf.plot.fontsize)
 
     ax2.plot(ph_coord, stress_lith * scale_stress * scale_dist / 1.e12,
              color='k', linewidth=lwd, label='Stress')
     ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]",
-                   fontsize=conf.core.fontsize)
+                   fontsize=conf.plot.fontsize)
 
     plot_plate_limits(ax1, ridge, trench, conf.plotting.vmin,
                       conf.plotting.vmax)
     plot_plate_limits(ax2, ridge, trench, conf.plotting.stressmin,
                       conf.plotting.lstressmax)
     ax1.set_xlim(0, 2 * np.pi)
-    ax1.set_title(timestep, fontsize=conf.core.fontsize)
+    ax1.set_title(timestep, fontsize=conf.plot.fontsize)
 
     ax1.fill_between(
         ph_coord[:-1], continentsall * conf.plotting.vmin,
@@ -737,7 +737,7 @@ def cmd():
                 # plotting continents
                 xmesh, ymesh = step.geom.x_mesh[0], step.geom.y_mesh[0]
                 axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                rasterized=not conf.core.pdf, cmap='cool_r',
+                                rasterized=not conf.plot.pdf, cmap='cool_r',
                                 vmin=0, vmax=0, shading='goaround')
                 cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
@@ -748,10 +748,10 @@ def cmd():
                 # Annotation with time and step
                 axis.text(1., 0.9, str(round(time, 0)) + ' My',
                           transform=axis.transAxes,
-                          fontsize=conf.core.fontsize)
+                          fontsize=conf.plot.fontsize)
                 axis.text(1., 0.1, str(timestep),
                           transform=axis.transAxes,
-                          fontsize=conf.core.fontsize)
+                          fontsize=conf.plot.fontsize)
 
                 # Put arrow where ridges and trenches are
                 plot_plate_limits_field(axis, rcmb, ridges, trenches)
@@ -793,10 +793,10 @@ def cmd():
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
                               transform=axis.transAxes,
-                              fontsize=conf.core.fontsize)
+                              fontsize=conf.plot.fontsize)
                     axis.text(1., 0.1, str(timestep),
                               transform=axis.transAxes,
-                              fontsize=conf.core.fontsize)
+                              fontsize=conf.plot.fontsize)
 
                     # Put arrow where ridges and trenches are
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)
@@ -826,7 +826,7 @@ def cmd():
 
                     # plotting continents
                     axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                    rasterized=not conf.core.pdf,
+                                    rasterized=not conf.plot.pdf,
                                     cmap='cool_r',
                                     vmin=0, vmax=0, shading='goaround')
                     cmap2 = plt.cm.ocean
@@ -838,10 +838,10 @@ def cmd():
                     # Annotation with time and step
                     axis.text(1., 0.9, str(round(time, 0)) + ' My',
                               transform=axis.transAxes,
-                              fontsize=conf.core.fontsize)
+                              fontsize=conf.plot.fontsize)
                     axis.text(1., 0.1, str(timestep),
                               transform=axis.transAxes,
-                              fontsize=conf.core.fontsize)
+                              fontsize=conf.plot.fontsize)
 
                     # Put arrow where ridges and trenches are
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)

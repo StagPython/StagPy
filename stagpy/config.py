@@ -28,14 +28,17 @@ _CONF_DEF['common'] = OrderedDict((
 _CONF_DEF['core'] = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),
-    ('outname', Conf('stagpy', True, 'n', {},
-                     True, 'StagPy generic output file name')),
     ('timesteps', Conf(None, True, 't',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'timesteps slice')),
     ('snapshots', Conf(None, True, 's',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'snapshots slice')),
+))
+
+_CONF_DEF['plot'] = OrderedDict((
+    ('outname', Conf('stagpy', True, 'n', {},
+                     True, 'StagPy generic output file name')),
     ('pdf', Conf(False, True, None, {},
                  True, 'produce non-rasterized pdf (slow!)')),
     ('fontsize', Conf(16, False, None, {},

@@ -17,10 +17,10 @@ def out_name(par_type):
     Returns:
         str: the format of output file name.
     Other Parameters:
-        conf.core.outname (str): the generic name stem, defaults to
+        conf.plot.outname (str): the generic name stem, defaults to
             ``'stagpy'``.
     """
-    return conf.core.outname + '_' + par_type + INT_FMT
+    return conf.plot.outname + '_' + par_type + INT_FMT
 
 
 def baredoc(obj):
