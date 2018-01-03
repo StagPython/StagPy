@@ -110,6 +110,28 @@ def version_cmd():
     print('stagpy version: {}'.format(__version__))
 
 
+def config_pp(subs):
+    """Pretty print of configuration options.
+
+    Args:
+        subs (iterable of str): iterable with the list of conf sections to
+            print.
+    """
+    print('(c|f): available only as CLI argument/in the config file',
+          end='\n\n')
+    for sub in subs:
+        hlp_lst = []
+        for opt, meta in conf[sub].defaults():
+            if meta.cmd_arg ^ meta.conf_arg:
+                opt += ' (c)' if meta.cmd_arg else ' (f)'
+            hlp_lst.append((opt, meta.help_string))
+        if hlp_lst:
+            print('{}:'.format(sub))
+            _pretty_print(hlp_lst, sep=' -- ',
+                          text_width=min(get_terminal_size().columns, 100))
+            print()
+
+
 def config_cmd():
     """Configuration handling.
 
@@ -125,15 +147,7 @@ def config_cmd():
             config file.
     """
     if not (conf.config.create or conf.config.update or conf.config.edit):
-        for sub in conf.subs():
-            hlp_lst = []
-            for opt, meta in conf[sub].defaults():
-                hlp_lst.append((opt, meta.help_string))
-            if hlp_lst:
-                print('{}:'.format(sub))
-                _pretty_print(hlp_lst, sep=' -- ',
-                              text_width=min(get_terminal_size().columns, 100))
-                print()
+        config_pp(conf.subs())
     if conf.config.create or conf.config.update:
         conf.create_config()
     if conf.config.edit:
