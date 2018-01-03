@@ -171,7 +171,7 @@ def detect_plates(step, vrms_surface, fids, time):
             arggreat_dv = np.delete(arggreat_dv, np.array(argdel))
 
     dv_ridge = dvph2[arggreat_dv]
-    if conf.plates.plot_age:
+    if 'age' in conf.plates:
         agefld = step.fields['age'][0, :, :, 0]
         age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
                                          agefld[:, indsurf])
@@ -240,9 +240,9 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     concfld = step.fields['c'][0, :, :, 0]
     timestep = step.isnap
 
-    if conf.plates.plot_age:
+    if 'age' in conf.plates.plot:
         agefld = step.fields['age'][0, :, :, 0]
-    if conf.plates.plot_stress:
+    if 'str' in conf.plates.plot:
         stressfld = step.fields['sII'][0, :, :, 0]
         scale_stress = (conf.scaling.kappa * conf.scaling.viscosity /
                         conf.scaling.length**2)
@@ -281,7 +281,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     # masked array, only continents are true
     continentsall = continents / continents
 
-    if conf.plates.plot_age:
+    if 'age' in conf.plates.plot:
         age_surface = np.ma.masked_where(
             agefld[:, indsurf] < 0.00001, agefld[:, indsurf])
         age_surface_dim = (age_surface * vrms_surface * conf.scaling.ttransit /
@@ -372,7 +372,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     plt.close(fig0)
 
     # plotting velocity and second invariant of stress
-    if conf.plates.plot_stress:
+    if 'str' in conf.plates.plot:
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -420,7 +420,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                       conf.plotting.vmax)
 
     # plotting velocity and age at surface
-    if conf.plates.plot_age:
+    if 'age' in conf.plates.plot:
         fig2, (ax3, ax4) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax3.plot(ph_coord[:-1], vph2[:-1, indsurf], linewidth=lwd, label='Vel')
         ax3.axhline(
@@ -502,7 +502,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     fig1.savefig(figname, format='PDF')
     plt.close(fig1)
 
-    if conf.plates.plot_age:
+    if 'age' in conf.plates.plot:
         ax4.set_ylabel("Seafloor age [My]", fontsize=conf.plot.fontsize)
         # in dimensions
         ax4.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
@@ -649,9 +649,23 @@ def lithospheric_stress(step, trench, ridge, time):
     plt.close(fig0)
 
 
+def set_of_vars(arg_plot):
+    """Build set of needed variables.
+
+    Args:
+        arg_plot (str): string with variable names separated with ``,``.
+    Returns:
+        set of str: set of variables.
+    """
+    sovs = set(var for var in arg_plot.split(',') if var in phyvars.PLATES)
+    return sovs
+
+
 def cmd():
     """Implementation of plates subcommand."""
     sdat = StagyyData(conf.core.path)
+    conf.plates.plot = set_of_vars(conf.plates.plot)
+    print(conf.plates.plot)
     if not conf.plates.vzcheck:
         # calculating averaged horizontal surface velocity
         # needed for redimensionalisation
@@ -694,7 +708,7 @@ def cmd():
                 print('Treating snapshot', timestep)
 
                 rcmb = step.geom.rcmb
-                if conf.plates.plot_stress:
+                if 'str' in conf.plates.plot:
                     scale_stress = conf.scaling.kappa * \
                         conf.scaling.viscosity / conf.scaling.length**2
 
@@ -725,7 +739,7 @@ def cmd():
                 io_surface(timestep, time, fids[2], concfld[:-1, isurf])
                 io_surface(timestep, time, fids[3], tgrad)
                 io_surface(timestep, time, fids[4], topo[:, 1])
-                if conf.plates.plot_age:
+                if 'age' in conf.plates.plot:
                     io_surface(timestep, time, fids[5],
                                step.fields['age'][0, :, isurf, 0])
 
@@ -784,7 +798,7 @@ def cmd():
                 plt.close(fig)
 
                 # plot stress field with position of trenches and ridges
-                if conf.plates.plot_stress:
+                if 'str' in conf.plates.plot:
                     fig, axis, surf, cbar = field.plot_scalar(
                         step, 'sII', scale_stress / 1.e6)
                     surf.set_clim(vmin=0, vmax=300)
@@ -820,7 +834,7 @@ def cmd():
                     lithospheric_stress(step, trenches, ridges, time)
 
                 # plotting the principal deviatoric stress field
-                if conf.plates.plot_deviatoric_stress:
+                if 'sx' in conf.plates.plot:
                     fig, axis, _, _ = field.plot_scalar(step, 'sII',
                                                         alpha=0.1)
 

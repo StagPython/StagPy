@@ -173,13 +173,13 @@ TIME_EXTRA = OrderedDict((
     ('ebalance', Vart(processing.ebalance, r'\mathrm{Nu}')),
 ))
 
-Varp = namedtuple('Varp', ['par', 'description', 'arg'])
+Varp = namedtuple('Varp', ['description'])
 PLATES = OrderedDict((
-    ('c', Varp('c', 'Composition', 'plot_composition')),
-    ('n', Varp('eta', 'Viscosity', 'plot_viscosity')),
-    ('r', Varp('cs', 'Topography', 'plot_topography')),
-    ('a', Varp('age', 'Age', 'plot_age')),
-    ('s', Varp('str', 'Stress', 'plot_stress')),
-    ('x', Varp('sx', 'Principal deviatoric stress', 'plot_deviatoric_stress')),
-    ('e', Varp('ed', 'Strain rate', 'plot_strainrate')),
+    ('c', Varp('Composition')),
+    ('eta', Varp('Viscosity')),
+    ('sc', Varp('Topography')),
+    ('age', Varp('Age')),
+    ('str', Varp('Stress')),
+    ('sx', Varp('Principal deviatoric stress')),
+    ('ed', Varp('Strain rate')),
 ))
