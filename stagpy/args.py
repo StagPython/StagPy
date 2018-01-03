@@ -12,7 +12,7 @@ SUB_CMDS = OrderedDict((
     ('field', Sub(['core', 'plot'], field)),
     ('rprof', Sub(['core', 'plot'], rprof)),
     ('time', Sub(['core', 'plot'], time_series)),
-    ('plates', Sub(['core', 'plot', 'scaling', 'plotting'], plates)),
+    ('plates', Sub(['core', 'plot', 'scaling'], plates)),
     ('info', Sub(['core'], commands.info_cmd)),
     ('var', Sub([], commands.var_cmd)),
     ('version', Sub([], commands.version_cmd)),
