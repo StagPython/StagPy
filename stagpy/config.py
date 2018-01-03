@@ -20,6 +20,11 @@ Conf = namedtuple('ConfigEntry',
 
 _CONF_DEF = OrderedDict()
 
+_CONF_DEF['common'] = OrderedDict((
+    ('config', Conf(None, True, None, {'action': 'store_true'},
+                    False, 'print config options')),
+))
+
 _CONF_DEF['core'] = OrderedDict((
     ('path', Conf('./', True, 'p', {},
                   True, 'StagYY run directory')),

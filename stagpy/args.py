@@ -69,7 +69,7 @@ def _build_parser():
 
     for sub_cmd, meta in SUB_CMDS.items():
         kwargs = {'prefix_chars': '+-', 'help': baredoc(meta.func)}
-        parent_parsers = []
+        parent_parsers = [xparsers['common']]
         for sub in meta.extra_parsers:
             parent_parsers.append(xparsers[sub])
         kwargs.update(parents=parent_parsers)
@@ -149,15 +149,21 @@ def parse_args():
         return cmd_args.func
 
     # common options
-    for sub in SUB_CMDS[sub_cmd].extra_parsers:
+    all_sub = ['common']
+    all_sub.extend(SUB_CMDS[sub_cmd].extra_parsers)
+    # options specific to the subcommand
+    all_sub.append(sub_cmd)
+    for sub in all_sub:
         _update_subconf(cmd_args, sub)
 
-    # options specific to the subcommand
     _update_subconf(cmd_args, sub_cmd)
 
     _update_plates_plot()
 
     _update_func(cmd_args)
+
+    if conf.common.config:
+        commands.config_pp(all_sub)
 
     try:
         _steps_to_slices()

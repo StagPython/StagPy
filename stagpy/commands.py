@@ -146,7 +146,8 @@ def config_cmd():
         conf.config.editor (str): the editor used by conf.config.edit to open
             the config file.
     """
-    if not (conf.config.create or conf.config.update or conf.config.edit):
+    if not (conf.common.config or conf.config.create or conf.config.update or
+            conf.config.edit):
         config_pp(conf.subs())
     if conf.config.create or conf.config.update:
         conf.create_config()
