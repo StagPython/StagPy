@@ -45,6 +45,8 @@ def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
     """
     if text_width is None:
         text_width = get_terminal_size().columns
+    if text_width < min_col_width:
+        min_col_width = text_width
     ncols = (text_width + 1) // (min_col_width + 1)
     colw = (text_width + 1) // ncols - 1
     ncols = min(ncols, len(key_val))
@@ -52,7 +54,10 @@ def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
     wrapper = TextWrapper(width=colw)
     lines = []
     for key, val in key_val:
-        wrapper.subsequent_indent = ' ' * (len(key) + len(sep))
+        if len(key) + len(sep) >= colw // 2:
+            wrapper.subsequent_indent = ' '
+        else:
+            wrapper.subsequent_indent = ' ' * (len(key) + len(sep))
         lines.extend(wrapper.wrap('{}{}{}'.format(key, sep, val)))
 
     chunks = []
