@@ -36,8 +36,6 @@ _CONF_DEF['core'] = OrderedDict((
     ('snapshots', Conf(None, True, 's',
                        {'nargs': '?', 'const': ':', 'type': str},
                        False, 'snapshots slice')),
-    ('xkcd', Conf(False, True, None, {},
-                  True, 'use the xkcd style')),
     ('pdf', Conf(False, True, None, {},
                  True, 'produce non-rasterized pdf (slow!)')),
     ('fontsize', Conf(16, False, None, {},
@@ -48,6 +46,8 @@ _CONF_DEF['core'] = OrderedDict((
                          True, 'graphical backend')),
     ('useseaborn', Conf(True, False, None, {},
                         True, 'use or not seaborn')),
+    ('xkcd', Conf(False, False, None, {},
+                  True, 'use the xkcd style')),
 ))
 
 _CONF_DEF['scaling'] = OrderedDict((
