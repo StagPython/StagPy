@@ -30,7 +30,8 @@ def _load_mpl():
         mpl.use(conf.plot.matplotback)
     plt = importlib.import_module('matplotlib.pyplot')
     if conf.plot.useseaborn:
-        importlib.import_module('seaborn')
+        sns = importlib.import_module('seaborn')
+        sns.set()
     if conf.plot.xkcd:
         plt.xkcd()
 
