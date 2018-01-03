@@ -282,6 +282,10 @@ class StagpyConfiguration:
     class are set with internally defined default values and updated with the
     content of :attr:`config_file`.
 
+    Run ``stagpy config`` to print the list of available configuration options
+    with a short description. The list of configuration options is also
+    available for each subcommand with the ``stagpy <cmd> --config`` flag.
+
     A configuration option can be accessed both with attribute and item access
     notations, these two lines access the same option value::
 

@@ -47,7 +47,9 @@ subcommands.
 Configuration options
 ---------------------
 
-These options are used by the ``config`` subcommand.
+These options are used by the ``config`` subcommand. If none of these is used,
+a list of the available configuration options along with a short help message
+is displayed.
 
 .. option:: --create
 
