@@ -12,6 +12,7 @@ import re
 import struct
 import numpy as np
 import pandas as pd
+import h5py
 from .error import ParsingError
 
 
@@ -291,3 +292,17 @@ def fields(fieldfile, only_header=False, only_istep=False):
                      (nbk, npc[2], npc[1] + header['xyp'],
                       npc[0] + header['xyp'], nval)))
     return header, flds
+
+
+def _read_group_h5(filename, groupname):
+    """Return group content.
+
+    Args:
+        filename (:class:`pathlib.Path`): path of hdf5 file.
+        groupname (str): name of group to read.
+    Returns:
+        :class:`numpy.array`: content of group.
+    """
+    with h5py.File(filename, 'r') as h5f:
+        data = h5f[groupname].value
+    return data  # need to be reshaped
