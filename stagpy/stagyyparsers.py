@@ -401,6 +401,11 @@ def _read_coord_h5(files, shapes, header, twod):
                      len(header['e3_coord']))
 
 
+def _get_dim(data_item):
+    """Extract shape of data item."""
+    return tuple(map(int, data_item.get('Dimensions').split()))
+
+
 def read_geom_h5(xdmf_file, snapshot):
     """Extract geometry information from hdf5 files.
 
@@ -434,8 +439,7 @@ def read_geom_h5(xdmf_file, snapshot):
                 if coord in 'XYZ':
                     twod += coord
         data_item = elt_geom.find('DataItem')
-        coord_shape.append(
-            tuple(map(int, data_item.get('Dimensions').split())))
+        coord_shape.append(_get_dim(data_item))
         coord_h5.append(
             xdmf_file.parent / data_item.text.strip().split(':/', 1)[0])
     _read_coord_h5(coord_h5, coord_shape, header, twod)
