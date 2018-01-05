@@ -8,6 +8,7 @@ Note:
 from functools import partial
 from itertools import product, repeat
 from operator import itemgetter
+from xml.etree import ElementTree as xmlet
 import re
 import struct
 import numpy as np
@@ -306,3 +307,136 @@ def _read_group_h5(filename, groupname):
     with h5py.File(filename, 'r') as h5f:
         data = h5f[groupname].value
     return data  # need to be reshaped
+
+
+def _make_3d(field, twod):
+    """Add a dimension to field if necessary.
+
+    Args:
+        field (numpy.array): the field that need to be 3d.
+        twod (str): 'XZ', 'YZ' or None depending on what is relevant.
+    Returns:
+        numpy.array: reshaped field.
+    """
+    shp = list(field.shape)
+    if twod and 'X' in twod:
+        shp.insert(1, 1)
+    elif twod:
+        shp.insert(0, 1)
+    return field.reshape(shp)
+
+
+def _ncores(meshes, twod):
+    """Compute number of nodes in each direction."""
+    nnpb = len(meshes)  # number of nodes per block
+    nns = [1, 1, 1]  # number of nodes in x, y, z directions
+    if twod is None or 'X' in twod:
+        while (nnpb > 1 and
+               meshes[nns[0]]['X'][0, 0, 0] ==
+               meshes[nns[0] - 1]['X'][-1, 0, 0]):
+            nns[0] += 1
+            nnpb -= 1
+    if twod is None or 'Y' in twod:
+        while (nnpb > 1 and
+               meshes[nns[1]]['Y'][0, 0, 0] ==
+               meshes[nns[1] - 1]['Y'][0, -1, 0]):
+            nns[1] += 1
+            nnpb -= 1
+    while (nnpb > 1 and
+           meshes[nns[2]]['Z'][0, 0, 0] ==
+           meshes[nns[2] - 1]['Z'][0, 0, -1]):
+        nns[2] += 1
+        nnpb -= 1
+    return np.array(nns)
+
+
+def _read_coord_h5(files, shapes, header, twod):
+    """Read all coord hdf5 files of a snapshot.
+
+    Args:
+        files (list of pathlib.Path): list of NodeCoordinates files of
+            a snapshot.
+        shapes (list of (int,int)): shape of mesh grids.
+        header (dict): geometry info.
+        twod (str): 'XZ', 'YZ' or None depending on what is relevant.
+    """
+    meshes = []
+    for h5file, shape in zip(files, shapes):
+        meshes.append({})
+        with h5py.File(h5file, 'r') as h5f:
+            for coord, mesh in h5f.items():
+                # for some reason, the array is transposed!
+                meshes[-1][coord] = mesh.value.reshape(shape).T
+                meshes[-1][coord] = _make_3d(meshes[-1][coord], twod)
+
+    header['ncs'] = _ncores(meshes, twod)
+    header['e1_coord'] = meshes[0]['X'][:, 0, 0]
+    header['e2_coord'] = meshes[0]['Y'][0, :, 0]
+    header['e3_coord'] = meshes[0]['Z'][0, 0, :]
+    ncores = header['ncs'][0]
+    icore = 0
+    while ncores > 1:
+        icore += 1
+        ncores -= 1
+        header['e1_coord'] = np.append(header['e1_coord'][:-1],
+                                       meshes[icore]['X'][:, 0, 0])
+    ncores = header['ncs'][1]
+    while ncores > 1:
+        icore += 1
+        ncores -= 1
+        header['e2_coord'] = np.append(header['e2_coord'][:-1],
+                                       meshes[icore]['Y'][0, :, 0])
+    ncores = header['ncs'][2]
+    while ncores > 1:
+        icore += 1
+        ncores -= 1
+        header['e3_coord'] = np.append(header['e3_coord'][:-1],
+                                       meshes[icore]['Z'][0, 0, :])
+    if twod is None or 'X' in twod:
+        header['e1_coord'] = header['e1_coord'][:-1]
+    if twod is None or 'Y' in twod:
+        header['e2_coord'] = header['e2_coord'][:-1]
+    header['e3_coord'] = header['e3_coord'][:-1]
+    header['nts'] = (len(header['e1_coord']), len(header['e2_coord']),
+                     len(header['e3_coord']))
+
+
+def read_geom_h5(xdmf_file, snapshot):
+    """Extract geometry information from hdf5 files.
+
+    Args:
+        xdmf_file (:class:`pathlib.Path`): path of the xdmf file.
+        field (str): name of field to extract.
+        snapshot (int): snapshot number.
+    Returns:
+        (dict, root): geometry information and root of xdmf document.
+    """
+    header = {}
+    xdmf_root = xmlet.parse(xdmf_file).getroot()
+
+    # Domain, Temporal Collection, Snapshot
+    # should check that this is indeed the required snapshot
+    elt_snap = xdmf_root[0][0][snapshot]
+    header['ti_ad'] = float(elt_snap.find('Time').get('Value'))
+    header['ntb'] = 1
+    coord_h5 = []  # all the coordinate files
+    coord_shape = []  # shape of meshes
+    twod = None
+    for elt_subdomain in elt_snap.findall('Grid'):
+        if elt_subdomain.get('Name').startswith('meshYang'):
+            header['ntb'] = 2
+            break  # iterate only through meshYin
+        elt_geom = elt_subdomain.find('Geometry')
+        if elt_geom.get('Type') == 'X_Y' and twod is None:
+            twod = ''
+            for data_item in elt_geom.findall('DataItem'):
+                coord = data_item.text.strip()[-1]
+                if coord in 'XYZ':
+                    twod += coord
+        data_item = elt_geom.find('DataItem')
+        coord_shape.append(
+            tuple(map(int, data_item.get('Dimensions').split())))
+        coord_h5.append(
+            xdmf_file.parent / data_item.text.strip().split(':/', 1)[0])
+    _read_coord_h5(coord_h5, coord_shape, header, twod)
+    return header, xdmf_root
