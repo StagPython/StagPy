@@ -397,13 +397,23 @@ def _read_coord_h5(files, shapes, header, twod):
     if twod is None or 'Y' in twod:
         header['e2_coord'] = header['e2_coord'][:-1]
     header['e3_coord'] = header['e3_coord'][:-1]
-    header['nts'] = (len(header['e1_coord']), len(header['e2_coord']),
-                     len(header['e3_coord']))
+    header['nts'] = np.array((len(header['e1_coord']),
+                              len(header['e2_coord']),
+                              len(header['e3_coord'])))
 
 
 def _get_dim(data_item):
     """Extract shape of data item."""
     return tuple(map(int, data_item.get('Dimensions').split()))
+
+
+def _get_field(xdmf_file, data_item):
+    """Extract field from data item."""
+    shp = _get_dim(data_item)
+    h5file, group = data_item.text.strip().split(':/', 1)
+    icore = int(group.split('_')[1]) - 1
+    fld = _read_group_h5(xdmf_file.parent / h5file, group).reshape(shp)
+    return icore, fld
 
 
 def read_geom_h5(xdmf_file, snapshot):
@@ -444,3 +454,63 @@ def read_geom_h5(xdmf_file, snapshot):
             xdmf_file.parent / data_item.text.strip().split(':/', 1)[0])
     _read_coord_h5(coord_h5, coord_shape, header, twod)
     return header, xdmf_root
+
+
+def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
+    """Extract field data from hdf5 files.
+
+    Args:
+        xdmf_file (:class:`pathlib.Path`): path of the xdmf file.
+        fieldname (str): name of field to extract.
+        snapshot (int): snapshot number.
+        header (dict): geometry information.
+    Returns:
+        (dict, numpy.array): geometry information and field data.
+    """
+    if header is None:
+        header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
+    else:
+        xdmf_root = xmlet.parse(xdmf_file).getroot()
+
+    npc = header['nts'] // header['ncs']  # number of grid point per node
+    shp = list(header['nts'])
+    shp.append(header['ntb'])
+    # probably a better way to handle this
+    if fieldname == 'Velocity':
+        shp = [s + int(s != 1) for s in shp]
+        shp.insert(0, 3)
+        # extra points
+        header['xp'] = int(header['nts'][0] != 1)
+        header['yp'] = int(header['nts'][1] != 1)
+        header['zp'] = 1
+    else:
+        shp.insert(0, 1)
+        header['xp'] = 0
+        header['yp'] = 0
+        header['zp'] = 0
+    flds = np.zeros(shp)
+
+    for elt_subdomain in xdmf_root[0][0][snapshot].findall('Grid'):
+        ibk = int(elt_subdomain.get('Name').startswith('meshYang'))
+        for data_attr in elt_subdomain.findall('Attribute'):
+            if data_attr.get('Name') != fieldname:
+                continue
+            icore, fld = _get_field(xdmf_file, data_attr.find('DataItem'))
+            # for some reason, the field is transposed
+            fld = fld.T
+            shp = fld.shape
+            if shp[-1] == 1 and header['nts'][0] == 1:  # YZ
+                fld = fld.reshape((shp[0], 1, shp[1], shp[2]))
+                fld = fld[(2, 0, 1), ...]
+            elif shp[-1] == 1:  # XZ
+                fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
+                fld = fld[(0, 2, 1), ...]
+            ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
+                   * npc[i] for i in range(3)]
+            flds[:,
+                 ifs[0]:ifs[0] + npc[0] + header['xp'],
+                 ifs[1]:ifs[1] + npc[1] + header['yp'],
+                 ifs[2]:ifs[2] + npc[2] + header['zp'],
+                 ibk] = fld
+
+    return header, flds
