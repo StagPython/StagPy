@@ -514,3 +514,16 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                  ibk] = fld
 
     return header, flds
+
+
+def read_time_h5(h5folder):
+    """Iterate through (isnap, istep) recoreded in h5folder/'time_botT.h5'.
+
+    Args:
+        h5folder (:class:`pathlib.Path`): directory of HDF5 output files.
+    Yields:
+        tuple of int: (isnap, istep).
+    """
+    with h5py.File(h5folder / 'time_botT.h5', 'r') as h5f:
+        for name, dset in h5f.items():
+            yield int(name[-5:]), int(dset.value[2])
