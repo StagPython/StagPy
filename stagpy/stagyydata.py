@@ -256,6 +256,10 @@ class _Fields(dict):
             if binfiles:
                 self._header = stagyyparsers.fields(binfiles.pop(),
                                                     only_header=True)
+            elif self.step.sdat.hdf5:
+                xmf = self.step.sdat.hdf5 / 'Data.xmf'
+                self._header, _ = stagyyparsers.read_geom_h5(xmf,
+                                                             self.step.isnap)
             else:
                 self._header = None
         if self._geom is UNDETERMINED:
