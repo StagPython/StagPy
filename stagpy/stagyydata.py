@@ -193,22 +193,16 @@ class _Fields(dict):
 
     def __missing__(self, name):
         if name in phyvars.FIELD:
-            filestem = ''
-            for filestem, list_fvar in phyvars.FIELD_FILES.items():
-                if name in list_fvar:
-                    break
-            fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
+            fld_names, parsed_data = self._get_raw_data(name)
         elif name in phyvars.FIELD_EXTRA:
             self[name] = phyvars.FIELD_EXTRA[name].description(self.step)
             return self[name]
         else:
             raise error.UnknownFieldVarError(name)
-        parsed_data = stagyyparsers.fields(fieldfile)
         if parsed_data is None:
             return None
         header, fields = parsed_data
         self._header = header
-        fld_names = phyvars.FIELD_FILES[filestem]
         for fld_name, fld in zip(fld_names, fields):
             if self._header['xyp'] == 0:
                 if not self.geom.twod_yz:
@@ -219,6 +213,26 @@ class _Fields(dict):
                     fld = np.concatenate((fld, newline), axis=1)
             self[fld_name] = fld
         return self[name]
+
+    def _get_raw_data(self, name):
+        """Find file holding data and return its content."""
+        # try legacy first, then hdf5
+        filestem = ''
+        for filestem, list_fvar in phyvars.FIELD_FILES.items():
+            if name in list_fvar:
+                break
+        fieldfile = self.step.sdat.filename(filestem, self.step.isnap,
+                                            force_legacy=True)
+        parsed_data = None
+        if fieldfile.is_file():
+            parsed_data = stagyyparsers.fields(fieldfile)
+        elif self.step.sdat.hdf5:
+            for filestem, list_fvar in phyvars.FIELD_FILES_H5.items():
+                if name in list_fvar:
+                    break
+            parsed_data = stagyyparsers.read_field_h5(
+                self.step.sdat.hdf5 / 'Data.xmf', filestem, self.step.isnap)
+        return list_fvar, parsed_data
 
     def __setitem__(self, name, fld):
         sdat = self.step.sdat
@@ -472,6 +486,7 @@ class _Snaps(_Steps):
                 :class:`_Snaps` instance.
         """
         self._isteps = {}
+        self._all_isteps_known = False
         super().__init__(sdat)
 
     def __getitem__(self, key):
@@ -485,7 +500,8 @@ class _Snaps(_Steps):
     def __missing__(self, isnap):
         if isnap < 0:
             isnap += self.last.isnap + 1
-        istep = self._isteps.get(isnap, UNDETERMINED)
+        istep = self._isteps.get(
+            isnap, None if self._all_isteps_known else UNDETERMINED)
         if istep is UNDETERMINED:
             binfiles = self.sdat.binfiles_set(isnap)
             if binfiles:
@@ -494,6 +510,10 @@ class _Snaps(_Steps):
                 istep = None
             if istep is not None:
                 self.bind(isnap, istep)
+            elif self.sdat.hdf5:
+                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                    self.bind(isnap, istep)
+                self._all_isteps_known = True
             else:
                 self._isteps[isnap] = None
         return self.sdat.steps[istep]
@@ -520,14 +540,22 @@ class _Snaps(_Steps):
         """
         if self._last is UNDETERMINED:
             self._last = -1
-            out_stem = re.escape(pathlib.Path(
-                self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
-            rgx = re.compile('^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
-            fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-            for fname in self.sdat.files:
-                match = rgx.match(fname.name)
-                if match is not None and match.group(1) in fstems:
-                    self._last = max(int(match.group(2)), self._last)
+            if self.sdat.hdf5:
+                isnap = -1
+                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                    self.bind(isnap, istep)
+                self._last = isnap
+                self._all_isteps_known = True
+            if self._last < 0:
+                out_stem = re.escape(pathlib.Path(
+                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
+                rgx = re.compile(
+                    '^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
+                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
+                for fname in self.sdat.files:
+                    match = rgx.match(fname.name)
+                    if match is not None and match.group(1) in fstems:
+                        self._last = max(int(match.group(2)), self._last)
             if self._last < 0:
                 raise error.NoSnapshotError(self.sdat)
         return self[self._last]
@@ -556,6 +584,7 @@ class StagyyData:
                 memory, described by istep and field name.
         """
         self._rundir = {'path': pathlib.Path(path),
+                        'hdf5': UNDETERMINED,
                         'ls': UNDETERMINED}
         self._stagdat = {'par': parfile.readpar(self.path),
                          'tseries': UNDETERMINED,
@@ -581,6 +610,17 @@ class StagyyData:
         return self._rundir['path']
 
     @property
+    def hdf5(self):
+        """Path of output hdf5 folder if relevant, None otherwise."""
+        if self._rundir['hdf5'] is UNDETERMINED:
+            h5_folder = self.path / self.par['ioin']['hdf5_output_folder']
+            if (h5_folder / 'Data.xmf').is_file():
+                self._rundir['hdf5'] = h5_folder
+            else:
+                self._rundir['hdf5'] = None
+        return self._rundir['hdf5']
+
+    @property
     def par(self):
         """Content of par file.
 
@@ -598,6 +638,9 @@ class StagyyData:
         """
         if self._stagdat['tseries'] is UNDETERMINED:
             timefile = self.filename('time.dat')
+            if self.hdf5 and not timefile.is_file():
+                # check legacy folder as well
+                timefile = self.filename('time.dat', force_legacy=True)
             self._stagdat['tseries'] = stagyyparsers.time_series(
                 timefile, list(phyvars.TIME.keys()))
         return self._stagdat['tseries']
@@ -606,6 +649,9 @@ class StagyyData:
     def _rprof_and_times(self):
         if self._stagdat['rprof'] is UNDETERMINED:
             rproffile = self.filename('rprof.dat')
+            if self.hdf5 and not rproffile.is_file():
+                # check legacy folder as well
+                rproffile = self.filename('time.dat', force_legacy=True)
             self._stagdat['rprof'] = stagyyparsers.rprof(
                 rproffile, list(phyvars.RPROF.keys()))
         return self._stagdat['rprof']
@@ -633,7 +679,10 @@ class StagyyData:
         if self._rundir['ls'] is UNDETERMINED:
             out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
             out_dir = self.path / out_stem.parent
-            self._rundir['ls'] = set(out_dir.iterdir())
+            if out_dir.is_dir():
+                self._rundir['ls'] = set(out_dir.iterdir())
+            else:
+                self._rundir['ls'] = set()
         return self._rundir['ls']
 
     def tseries_between(self, tstart=None, tend=None):
@@ -680,7 +729,7 @@ class StagyyData:
 
         return self.tseries.iloc[istart:iend]
 
-    def filename(self, fname, timestep=None, suffix=''):
+    def filename(self, fname, timestep=None, suffix='', force_legacy=False):
         """Return name of StagYY output file.
 
         Args:
@@ -688,14 +737,20 @@ class StagyyData:
             timestep (int): snapshot number, set to None if this is not
                 relevant.
             suffix (str): optional suffix of file name.
+            force_legacy (bool): force returning the legacy output path.
         Returns:
             :class:`pathlib.Path`: the path of the output file constructed
             with the provided segments.
         """
         if timestep is not None:
             fname += '{:05d}'.format(timestep)
-        fname = self.par['ioin']['output_file_stem'] + '_' + fname + suffix
-        return self.path / fname
+        fname += suffix
+        if not force_legacy and self.hdf5:
+            fpath = self.hdf5 / fname
+        else:
+            fpath = self.par['ioin']['output_file_stem'] + '_' + fname
+            fpath = self.path / fpath
+        return fpath
 
     def binfiles_set(self, isnap):
         """Set of existing binary files at a given snap.
@@ -706,6 +761,6 @@ class StagyyData:
             set of pathlib.Path: the set of output files available for this
             snapshot number.
         """
-        possible_files = set(self.filename(fstem, isnap)
+        possible_files = set(self.filename(fstem, isnap, force_legacy=True)
                              for fstem in phyvars.FIELD_FILES)
         return possible_files & self.files

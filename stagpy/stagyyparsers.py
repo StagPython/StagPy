@@ -392,6 +392,11 @@ def _read_coord_h5(files, shapes, header, twod):
         ncores -= 1
         header['e3_coord'] = np.append(header['e3_coord'][:-1],
                                        meshes[icore]['Z'][0, 0, :])
+    header['aspect'] = (header['e1_coord'][-1] - header['e2_coord'][0],
+                        header['e1_coord'][-1] - header['e2_coord'][0])
+    header['rcmb'] = header['e1_coord'][0]  # is it the case?
+    if header['rcmb'] < 1e-9:
+        header['rcmb'] = -1
     if twod is None or 'X' in twod:
         header['e1_coord'] = header['e1_coord'][:-1]
     if twod is None or 'Y' in twod:
@@ -477,17 +482,20 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
     shp.append(header['ntb'])
     # probably a better way to handle this
     if fieldname == 'Velocity':
-        shp = [s + int(s != 1) for s in shp]
         shp.insert(0, 3)
         # extra points
         header['xp'] = int(header['nts'][0] != 1)
+        shp[1] += header['xp']
         header['yp'] = int(header['nts'][1] != 1)
+        shp[2] += header['yp']
         header['zp'] = 1
+        header['xyp'] = 1
     else:
         shp.insert(0, 1)
         header['xp'] = 0
         header['yp'] = 0
         header['zp'] = 0
+        header['xyp'] = 0
     flds = np.zeros(shp)
 
     for elt_subdomain in xdmf_root[0][0][snapshot].findall('Grid'):
@@ -507,10 +515,12 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                 fld = fld[(0, 2, 1), ...]
             ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
                    * npc[i] for i in range(3)]
+            if header['zp']:  # remove top row
+                fld = fld[:, :, :, :-1]
             flds[:,
                  ifs[0]:ifs[0] + npc[0] + header['xp'],
                  ifs[1]:ifs[1] + npc[1] + header['yp'],
-                 ifs[2]:ifs[2] + npc[2] + header['zp'],
+                 ifs[2]:ifs[2] + npc[2],
                  ibk] = fld
 
     return header, flds
