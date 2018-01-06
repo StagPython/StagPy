@@ -8,7 +8,7 @@ Note:
 from functools import partial
 from itertools import product, repeat
 from operator import itemgetter
-from xml.etree import ElementTree as xmlet
+from xml.etree import ElementTree as xmlET
 import re
 import struct
 import numpy as np
@@ -432,7 +432,7 @@ def read_geom_h5(xdmf_file, snapshot):
         (dict, root): geometry information and root of xdmf document.
     """
     header = {}
-    xdmf_root = xmlet.parse(xdmf_file).getroot()
+    xdmf_root = xmlET.parse(xdmf_file).getroot()
 
     # Domain, Temporal Collection, Snapshot
     # should check that this is indeed the required snapshot
@@ -475,7 +475,7 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
     if header is None:
         header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
     else:
-        xdmf_root = xmlet.parse(xdmf_file).getroot()
+        xdmf_root = xmlET.parse(xdmf_file).getroot()
 
     npc = header['nts'] // header['ncs']  # number of grid point per node
     shp = list(header['nts'])
