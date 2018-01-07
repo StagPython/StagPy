@@ -10,6 +10,7 @@ DEPENDENCIES = [
     'numpy>=1.12',
     'scipy>=0.17',
     'pandas>=0.20',
+    'h5py>=2.7.1',
     'matplotlib>=2.0',
     'seaborn>=0.8.1',
     'f90nml>=0.21',
@@ -19,7 +20,7 @@ DEPENDENCIES = [
 
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 if ON_RTD:  # heavy dependencies are mocked out
-    DEPENDENCIES = DEPENDENCIES[5:]
+    DEPENDENCIES = DEPENDENCIES[6:]
 
 setup(
     name='stagpy',

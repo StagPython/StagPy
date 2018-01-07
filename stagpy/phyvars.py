@@ -52,6 +52,21 @@ FIELD_FILES = OrderedDict((
     ('tcond', ['Tcond1', 'Tcond2', 'Tcond3']),
 ))
 
+FIELD_FILES_H5 = OrderedDict((
+    ('Temperature', ['T']),
+    ('Velocity', ['v1', 'v2', 'v3']),
+    ('Dynamic_Pressure', ['p']),
+    ('Composition', ['c']),
+    ('Viscosity', ['eta']),
+    ('Density', ['rho']),
+    ('water', ['wtr']),
+    ('Age', ['age']),
+    ('ContinentNumber', ['contID']),
+    ('Stress', ['sII']),
+    ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3', 's1val']),
+    ('StrainRate', ['edot']),
+))
+
 Varr = namedtuple('Varr', ['description', 'shortname'])
 RPROF = OrderedDict((
     ('r', Varr('Radial coordinate', 'r')),
