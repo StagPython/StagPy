@@ -350,6 +350,25 @@ def _ncores(meshes, twod):
     return np.array(nns)
 
 
+def _conglomerate_meshes(meshin, header):
+    """Conglomerate meshes from several cores into one."""
+    meshout = {}
+    npc = header['nts'] // header['ncs']
+    shp = [val + 1 if val != 1 else 1 for val in header['nts']]
+    x_p = int(shp[0] != 1)
+    y_p = int(shp[1] != 1)
+    for coord in meshin[0]:
+        meshout[coord] = np.zeros(shp)
+    for icore in range(np.prod(header['ncs'])):
+        ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
+               * npc[i] for i in range(3)]
+        for coord, mesh in meshin[icore].items():
+            meshout[coord][ifs[0]:ifs[0] + npc[0] + x_p,
+                           ifs[1]:ifs[1] + npc[1] + y_p,
+                           ifs[2]:ifs[2] + npc[2] + 1] = mesh
+    return meshout
+
+
 def _read_coord_h5(files, shapes, header, twod):
     """Read all coord hdf5 files of a snapshot.
 
@@ -370,41 +389,42 @@ def _read_coord_h5(files, shapes, header, twod):
                 meshes[-1][coord] = _make_3d(meshes[-1][coord], twod)
 
     header['ncs'] = _ncores(meshes, twod)
-    header['e1_coord'] = meshes[0]['X'][:, 0, 0]
-    header['e2_coord'] = meshes[0]['Y'][0, :, 0]
-    header['e3_coord'] = meshes[0]['Z'][0, 0, :]
-    ncores = header['ncs'][0]
-    icore = 0
-    while ncores > 1:
-        icore += 1
-        ncores -= 1
-        header['e1_coord'] = np.append(header['e1_coord'][:-1],
-                                       meshes[icore]['X'][:, 0, 0])
-    ncores = header['ncs'][1]
-    while ncores > 1:
-        icore += 1
-        ncores -= 1
-        header['e2_coord'] = np.append(header['e2_coord'][:-1],
-                                       meshes[icore]['Y'][0, :, 0])
-    ncores = header['ncs'][2]
-    while ncores > 1:
-        icore += 1
-        ncores -= 1
-        header['e3_coord'] = np.append(header['e3_coord'][:-1],
-                                       meshes[icore]['Z'][0, 0, :])
+    header['nts'] = list((meshes[0]['X'].shape[i] - 1) * header['ncs'][i]
+                         for i in range(3))
+    header['nts'] = np.array([max(1, val) for val in header['nts']])
+    # meshes could also be defined in legacy parser, so that these can be used
+    # in geometry setup
+    meshes = _conglomerate_meshes(meshes, header)
+    if np.any(meshes['Z'][:, :, 0] != 0):
+        # spherical
+        header['x_mesh'] = np.copy(meshes['Y'])  # annulus geometry...
+        header['y_mesh'] = np.copy(meshes['Z'])
+        header['z_mesh'] = np.copy(meshes['X'])
+        header['r_mesh'] = np.sqrt(header['x_mesh']**2 + header['y_mesh']**2 +
+                                   header['z_mesh']**2)
+        header['t_mesh'] = np.arccos(header['z_mesh'] / header['r_mesh'])
+        header['p_mesh'] = np.roll(
+            np.arctan2(header['y_mesh'], -header['x_mesh']) + np.pi, -1, 1)
+        header['e1_coord'] = header['t_mesh'][:, 0, 0]
+        header['e2_coord'] = header['p_mesh'][0, :, 0]
+        header['e3_coord'] = header['r_mesh'][0, 0, :]
+    else:
+        header['e1_coord'] = meshes['X'][:, 0, 0]
+        header['e2_coord'] = meshes['Y'][0, :, 0]
+        header['e3_coord'] = meshes['Z'][0, 0, :]
     header['aspect'] = (header['e1_coord'][-1] - header['e2_coord'][0],
                         header['e1_coord'][-1] - header['e2_coord'][0])
-    header['rcmb'] = header['e1_coord'][0]  # is it the case?
-    if header['rcmb'] < 1e-9:
+    header['rcmb'] = header['e3_coord'][0]
+    if header['rcmb'] == 0:
         header['rcmb'] = -1
+    else:
+        # could make the difference between r_coord and z_coord
+        header['e3_coord'] = header['e3_coord'] - header['rcmb']
     if twod is None or 'X' in twod:
         header['e1_coord'] = header['e1_coord'][:-1]
     if twod is None or 'Y' in twod:
         header['e2_coord'] = header['e2_coord'][:-1]
     header['e3_coord'] = header['e3_coord'][:-1]
-    header['nts'] = np.array((len(header['e1_coord']),
-                              len(header['e2_coord']),
-                              len(header['e3_coord'])))
 
 
 def _get_dim(data_item):
@@ -461,23 +481,21 @@ def read_geom_h5(xdmf_file, snapshot):
     return header, xdmf_root
 
 
-def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
-    """Extract field data from hdf5 files.
+def _to_spherical(flds, header):
+    """Convert vector field to spherical."""
+    cth = np.cos(header['t_mesh'][:, :, :-1])
+    sth = np.sin(header['t_mesh'][:, :, :-1])
+    cph = np.cos(header['p_mesh'][:, :, :-1])
+    sph = np.sin(header['p_mesh'][:, :, :-1])
+    fout = np.copy(flds)
+    fout[0] = cth * cph * flds[0] + cth * sph * flds[1] - sth * flds[2]
+    fout[1] = sph * flds[0] - cph * flds[1]  # need to take the opposite here...
+    fout[2] = sth * cph * flds[0] + sth * sph * flds[1] + cth * flds[2]
+    return fout
 
-    Args:
-        xdmf_file (:class:`pathlib.Path`): path of the xdmf file.
-        fieldname (str): name of field to extract.
-        snapshot (int): snapshot number.
-        header (dict): geometry information.
-    Returns:
-        (dict, numpy.array): geometry information and field data.
-    """
-    if header is None:
-        header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
-    else:
-        xdmf_root = xmlET.parse(xdmf_file).getroot()
 
-    npc = header['nts'] // header['ncs']  # number of grid point per node
+def _flds_shape(fieldname, header):
+    """Compute shape of flds variable."""
     shp = list(header['nts'])
     shp.append(header['ntb'])
     # probably a better way to handle this
@@ -496,7 +514,40 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
         header['yp'] = 0
         header['zp'] = 0
         header['xyp'] = 0
-    flds = np.zeros(shp)
+    return shp
+
+
+def _post_read_flds(flds, header):
+    """Process flds to handle sphericity."""
+    if flds.shape[0] >= 3 and header['rcmb'] > 0:
+        # spherical vector
+        header['p_mesh'] = np.roll(
+            np.arctan2(header['y_mesh'], header['x_mesh']), -1, 1)
+        for ibk in range(header['ntb']):
+            flds[..., ibk] = _to_spherical(flds[..., ibk], header)
+        header['p_mesh'] = np.roll(
+            np.arctan2(header['y_mesh'], -header['x_mesh']) + np.pi, -1, 1)
+    return flds
+
+
+def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
+    """Extract field data from hdf5 files.
+
+    Args:
+        xdmf_file (:class:`pathlib.Path`): path of the xdmf file.
+        fieldname (str): name of field to extract.
+        snapshot (int): snapshot number.
+        header (dict): geometry information.
+    Returns:
+        (dict, numpy.array): geometry information and field data.
+    """
+    if header is None:
+        header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
+    else:
+        xdmf_root = xmlET.parse(xdmf_file).getroot()
+
+    npc = header['nts'] // header['ncs']  # number of grid point per node
+    flds = np.zeros(_flds_shape(fieldname, header))
 
     for elt_subdomain in xdmf_root[0][0][snapshot].findall('Grid'):
         ibk = int(elt_subdomain.get('Name').startswith('meshYang'))
@@ -509,10 +560,12 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
             shp = fld.shape
             if shp[-1] == 1 and header['nts'][0] == 1:  # YZ
                 fld = fld.reshape((shp[0], 1, shp[1], shp[2]))
-                fld = fld[(2, 0, 1), ...]
+                if header['rcmb'] < 0:
+                    fld = fld[(2, 0, 1), ...]
             elif shp[-1] == 1:  # XZ
                 fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
-                fld = fld[(0, 2, 1), ...]
+                if header['rcmb'] < 0:
+                    fld = fld[(0, 2, 1), ...]
             ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
                    * npc[i] for i in range(3)]
             if header['zp']:  # remove top row
@@ -522,6 +575,8 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                  ifs[1]:ifs[1] + npc[1] + header['yp'],
                  ifs[2]:ifs[2] + npc[2],
                  ibk] = fld
+
+    flds = _post_read_flds(flds, header)
 
     return header, flds
 
