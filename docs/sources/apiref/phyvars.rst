@@ -74,10 +74,7 @@ phyvars
       :class:`collections.namedtuple` whose instances hold metadata of
       plate variables. It defines the following fields:
 
-      - **par** (*str*): name of StagYY output file.
-      - **description** (*str* or *func*): short description of the variable.
-      - **arg** (*str*): name of the configuration option related to this
-        variable.
+      - **description** (*str*): short description of the variable.
 
    .. data:: PLATES
       :annotation: = {platevar: Varp()}
