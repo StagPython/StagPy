@@ -582,7 +582,7 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
 
 
 def read_time_h5(h5folder):
-    """Iterate through (isnap, istep) recoreded in h5folder/'time_botT.h5'.
+    """Iterate through (isnap, istep) recorded in h5folder/'time_botT.h5'.
 
     Args:
         h5folder (:class:`pathlib.Path`): directory of HDF5 output files.
