@@ -17,7 +17,7 @@ The command
 
    % stagpy time
 
-will give you by default on figure with two subplots. The first subplot
+will give you by default one figure with two subplots. The first subplot
 contains the time series of the Nusselt number at the top and bottom
 boundaries, with a check of the energy balance. The corresponding line should
 be zero at all times for a perfect balance. The second subplot contains the
@@ -115,12 +115,12 @@ Scripts using StagyyData
 Plotting a scalar diagnostic as function of control parameter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Suppose you have a group of directories, each for a given set of
-parameters, and you want to plot the results of all cases on the same
-figure, compute statistics etc. The StagyyData is specially designed
-for that. The following script can be used to make a loglog plot of
-the Nusselt number as function of the Rayleigh number using
-all directories stored where the script is executed::
+Suppose you have a group of directories, each for a given set of parameters,
+and you want to plot the results of all cases on the same figure, compute
+statistics etc. The :class:`~stagpy.stagyydata.StagyyData` class comes in handy
+for that. The following script can be used to make a loglog plot of the Nusselt
+number as function of the Rayleigh number using all directories stored where
+the script is executed::
 
   #!/usr/bin/env python3
   """Nu=f(Ra) from a set of stagyy results in different directories"""
@@ -163,12 +163,11 @@ can be computed using the whole sdat.tseries table in each directory.
 Plotting a scalar diagnostic as function of time for several parameter sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Instead of plotting just the last value of a diagnostic, or its
-average, you may want to plot its evolution of time for different
-values of the control parameters. Suppose again that several
-directories named ra-* are present in your working directory. The
-following script will plot the RMS velocity (column 8 of the tseries
-table) as function of time for all these directories::
+Instead of plotting just the last value of a diagnostic, or its average, you
+may want to plot its evolution of time for different values of the control
+parameters. Suppose again that several directories named ra-* are present in
+your working directory. The following script will plot the RMS velocity as
+function of time for all these directories::
 
   #!/usr/bin/env python3
   """Nu=f(Ra) from a set of stagyy results in different directories"""

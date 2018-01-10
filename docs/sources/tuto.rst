@@ -20,11 +20,11 @@ This means a minimal call to StagPy is as follow::
 
 ``<subcommand>`` can be one of the following:
 
-* ``field``: compute and/or plots scalar fields such as temperature or stream
-  function;
-* ``rprof``: compute and/or plots radial profiles;
-* ``time``: compute and/or plots time series;
-* ``plates``: plate analysis;
+* ``field``: plot scalar fields such as temperature or stream function;
+* ``rprof``: plot radial profiles;
+* ``time``: plot time series;
+* ``plates``: perform plate analysis;
+* ``info``: print basic information about StagYY run;
 * ``var``: display a list of available variables;
 * ``version``: display the installed version of StagPy;
 * ``config``: configuration handling.
@@ -79,7 +79,7 @@ StagPy lets you operate the interface it uses internally to access StagYY
 output data. This allows you to write your own scripts to do some specific
 processings that aren't implemented in StagPy.
 
-The interface is wrapped in the ``stagpy.stagyydata.StagyyData`` class.
+The interface is wrapped in the :class:`~stagpy.stagyydata.StagyyData` class.
 Instantiating and using this class is rather simple::
 
     from stagpy.stagyydata import StagyyData
@@ -97,14 +97,14 @@ Instantiating and using this class is rather simple::
         do_something(snap)
 
 As you can see, the snapshot/time step distinction is automatically taken care
-of by ``StagyyData``.
+of by :class:`~stagpy.stagyydata.StagyyData`.
 
 All output data available in the StagYY run is accessible through this
-interface. ``StagyyData`` is designed a lazy data accessor. This means output
-files are read only when the data they contain is asked for. For example, the
-temperature field of the last snapshot isn't read until
-``sdat.snaps[-1].fields['T']`` is asked for.
+interface. :class:`~stagpy.stagyydata.StagyyData` is designed as a lazy data
+accessor. This means output files are read only when the data they contain is
+asked for. For example, the temperature field of the last snapshot isn't read
+until ``sdat.snaps[-1].fields['T']`` is asked for.
 
-See the :doc:`dedicated section <stagyydata>` for more information on the
-``StagyyData`` class.
+See the :doc:`dedicated section <stagyydata>` for more information on how to
+use the :class:`~stagpy.stagyydata.StagyyData` class.
 

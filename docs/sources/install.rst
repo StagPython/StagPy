@@ -29,7 +29,7 @@ In case this doesn't work, download the official script
 
 You can then install and/or update StagPy with the following command::
 
-    python3 -m pip install -U --user stagpy
+    % python3 -m pip install -U --user stagpy
 
 Make sure that the directory where ``pip`` install package entry-points
 (usually ``~/.local/bin``) is in your ``PATH`` environment variable.
@@ -61,7 +61,7 @@ Or this to your ``~/.zshrc`` file::
 Finally, run the following once to create your config file (in
 ``~/.config/stagpy/``)::
 
-    stagpy config --create
+    % stagpy config --create
 
 Enjoy!
 

@@ -16,8 +16,8 @@ basic knowledge to use Git for this project.
 To get a local copy of your fork of StagPy, clone it (you can use `the SSH
 protocol`__ if you prefer)::
 
-    git clone https://github.com/YOUR_USER_NAME/StagPy.git
-    cd StagPy
+    % git clone https://github.com/YOUR_USER_NAME/StagPy.git
+    % cd StagPy
 
 .. __: https://help.github.com/articles/connecting-to-github-with-ssh/
 
@@ -53,7 +53,7 @@ sourcing commands.
 To check that everything works fine, go to any subdirectory of the ``Examples``
 directory of the repository and run::
 
-    stagpy-git field
+    % stagpy-git field
 
 This should create a PDF file showing a plot of the temperature field with
 streamlines.
@@ -63,16 +63,16 @@ Installation as a regular package
 
 If you have installed the stable version of StagPy, uninstall it::
 
-    python3 -m pip uninstall stagpy
+    % python3 -m pip uninstall stagpy
 
 You can use the following command to install StagPy as a regular package::
 
-    python3 setup.py develop --user
+    % python3 setup.py develop --user
 
 You *don't* need to run this command everytime you modify the source files.
 If you want to uninstall the development version, you can run::
 
-    python3 setup.py develop --user --uninstall
+    % python3 setup.py develop --user --uninstall
 
 Add the following to your ``.zshrc``::
 
