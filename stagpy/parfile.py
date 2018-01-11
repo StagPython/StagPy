@@ -5,7 +5,7 @@ from .config import CONFIG_DIR
 from .error import NoParFileError
 
 PAR_DFLT_FILE = CONFIG_DIR / 'par'
-PAR_DEFAULT = {
+PAR_DEFAULT = f90nml.namelist.Namelist({
     'switches': {
         'verbose': False,
         'try_continue': False,
@@ -609,7 +609,7 @@ PAR_DEFAULT = {
         'atm_model': 'simple',
     },
 
-}
+})
 
 
 def _write_default():
@@ -636,8 +636,9 @@ def readpar(path):
     Args:
         path (:class:`pathlib.Path`): path of par file.
     Returns:
-        dict of dict: dict of dict of values with first key being the namelist
-        and second key the variables' name.
+        :class:`f90nml.namelist.Namelist`: case insensitive dict of dict of
+        values with first key being the namelist and second key the variables'
+        name.
     """
     par_file = path / 'par'
     par_dflt = _read_default()

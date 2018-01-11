@@ -628,8 +628,8 @@ class StagyyData:
     def par(self):
         """Content of par file.
 
-        This is a dictionary of dictionaries, the first key being namelists and
-        the second key the parameter name.
+        This is a :class:`f90nml.namelist.Namelist`, the first key being
+        namelists and the second key the parameter name.
         """
         return self._stagdat['par']
 
