@@ -1,4 +1,4 @@
-"""Parse command line arguments and update conf"""
+"""Parse command line arguments and update :attr:`stagpy.conf`."""
 
 from collections import OrderedDict, namedtuple
 from inspect import isfunction
