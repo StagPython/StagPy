@@ -1,4 +1,4 @@
-"""Parse command line arguments and update conf"""
+"""Parse command line arguments and update :attr:`stagpy.conf`."""
 
 from collections import OrderedDict, namedtuple
 from inspect import isfunction
@@ -122,11 +122,21 @@ def _update_func(cmd_args):
         cmd_args.func = cmd_args.func.cmd
 
 
-def parse_args():
-    """Parse cmd line arguments"""
+def parse_args(arglist=None):
+    """Parse cmd line arguments.
+
+    Update :attr:`stagpy.conf` accordingly.
+
+    Args:
+        arglist (list of str): the list of cmd line arguments. If set to
+            None, the arguments are taken from :attr:`sys.argv`.
+
+    Returns:
+        function: the function implementing the sub command to be executed.
+    """
     main_parser = _build_parser()
     argcomplete.autocomplete(main_parser)
-    cmd_args = main_parser.parse_args()
+    cmd_args = main_parser.parse_args(args=arglist)
 
     if cmd_args.func is not commands.config_cmd:
         conf.report_parsing_problems()
