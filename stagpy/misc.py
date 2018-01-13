@@ -4,6 +4,7 @@ from inspect import getdoc
 import pathlib
 import shutil
 import tempfile
+import matplotlib.pyplot as plt
 from . import conf
 
 INT_FMT = '{:05d}'
@@ -26,6 +27,24 @@ def out_name(stem, timestep=None):
     if timestep is not None:
         stem = (stem + INT_FMT).format(timestep)
     return conf.plot.outname + '_' + stem
+
+
+def saveplot(fig, *name_args, close=True, **name_kwargs):
+    """Save matplotlib figure.
+
+    You need to provide :data:`stem` as a positional or keyword argument (see
+    :func:`out_name`).
+
+    Args:
+        fig (:class:`matplotlib.figure.Figure`): matplotlib figure.
+        close (bool): whether to close the figure.
+        name_args: positional arguments passed on to :func:`out_name`.
+        name_kwargs: keyword arguments passed on to :func:`out_name`.
+    """
+    oname = out_name(*name_args, **name_kwargs)
+    fig.savefig(oname + '.pdf', format='pdf', bbox_inches='tight')
+    if close:
+        plt.close(fig)
 
 
 def baredoc(obj):
