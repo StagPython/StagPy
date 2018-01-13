@@ -42,7 +42,8 @@ def saveplot(fig, *name_args, close=True, **name_kwargs):
         name_kwargs: keyword arguments passed on to :func:`out_name`.
     """
     oname = out_name(*name_args, **name_kwargs)
-    fig.savefig(oname + '.pdf', format='pdf', bbox_inches='tight')
+    fig.savefig('{}.{}'.format(oname, conf.plot.format),
+                format=conf.plot.format, bbox_inches='tight')
     if close:
         plt.close(fig)
 

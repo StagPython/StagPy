@@ -41,6 +41,8 @@ _CONF_DEF['plot'] = OrderedDict((
                      True, 'StagPy generic output file name')),
     ('raster', Conf(True, True, None, {},
                     True, 'rasterize field plots')),
+    ('format', Conf('pdf', True, None, {},
+                    True, 'figure format (pdf, eps, svg, png)')),
     ('fontsize', Conf(16, False, None, {},
                       True, 'font size')),
     ('linewidth', Conf(2, False, None, {},
