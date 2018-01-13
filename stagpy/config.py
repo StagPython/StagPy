@@ -39,8 +39,10 @@ _CONF_DEF['core'] = OrderedDict((
 _CONF_DEF['plot'] = OrderedDict((
     ('outname', Conf('stagpy', True, 'n', {},
                      True, 'StagPy generic output file name')),
-    ('pdf', Conf(False, True, None, {},
-                 True, 'produce non-rasterized pdf (slow!)')),
+    ('raster', Conf(True, True, None, {},
+                    True, 'rasterize field plots')),
+    ('format', Conf('pdf', True, None, {},
+                    True, 'figure format (pdf, eps, svg, png)')),
     ('fontsize', Conf(16, False, None, {},
                       True, 'font size')),
     ('linewidth', Conf(2, False, None, {},

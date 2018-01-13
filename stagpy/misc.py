@@ -4,23 +4,48 @@ from inspect import getdoc
 import pathlib
 import shutil
 import tempfile
+import matplotlib.pyplot as plt
 from . import conf
 
 INT_FMT = '{:05d}'
 
 
-def out_name(par_type):
-    """Return StagPy out file name format for any time step.
+def out_name(stem, timestep=None):
+    """Return StagPy out file name.
 
     Args:
-        par_type (str): the short name of the variable(s) on the plot.
+        stem (str): short description of plot content.
+        timestep (int): timestep if relevant.
+
     Returns:
-        str: the format of output file name.
+        str: the output file name.
+
     Other Parameters:
         conf.plot.outname (str): the generic name stem, defaults to
             ``'stagpy'``.
     """
-    return conf.plot.outname + '_' + par_type + INT_FMT
+    if timestep is not None:
+        stem = (stem + INT_FMT).format(timestep)
+    return conf.plot.outname + '_' + stem
+
+
+def saveplot(fig, *name_args, close=True, **name_kwargs):
+    """Save matplotlib figure.
+
+    You need to provide :data:`stem` as a positional or keyword argument (see
+    :func:`out_name`).
+
+    Args:
+        fig (:class:`matplotlib.figure.Figure`): matplotlib figure.
+        close (bool): whether to close the figure.
+        name_args: positional arguments passed on to :func:`out_name`.
+        name_kwargs: keyword arguments passed on to :func:`out_name`.
+    """
+    oname = out_name(*name_args, **name_kwargs)
+    fig.savefig('{}.{}'.format(oname, conf.plot.format),
+                format=conf.plot.format, bbox_inches='tight')
+    if close:
+        plt.close(fig)
 
 
 def baredoc(obj):

@@ -333,9 +333,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     plot_plate_limits(ax3, ridge, trench, conf.plates.vmin,
                       conf.plates.vmax)
 
-    figname = misc.out_name('sveltempconc').format(timestep) + '.pdf'
-    plt.savefig(figname, format='PDF')
-    plt.close(fig0)
+    misc.saveplot(fig0, 'sveltempconc', timestep)
 
     # plotting velocity and velocity derivative
     fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
@@ -367,9 +365,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         conf.plates.dvmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.dvmin, conf.plates.dvmax)
 
-    figname = misc.out_name('sveldvel').format(timestep) + '.pdf'
-    plt.savefig(figname, format='PDF')
-    plt.close(fig0)
+    misc.saveplot(fig0, 'sveldvel', timestep)
 
     # plotting velocity and second invariant of stress
     if 'str' in conf.plates.plot:
@@ -403,9 +399,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
             conf.plates.dvmax,
             facecolor='#8B6914', alpha=0.2)
 
-        figname = misc.out_name('svelstress').format(timestep) + '.pdf'
-        plt.savefig(figname, format='PDF')
-        plt.close(fig0)
+        misc.saveplot(fig0, 'svelstress', timestep)
 
     # plotting velocity
     fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
@@ -498,9 +492,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     plot_plate_limits(ax2, ridge, trench, conf.plates.topomin,
                       conf.plates.topomax)
     ax1.set_title(timestep, fontsize=conf.plot.fontsize)
-    figname = misc.out_name('sveltopo').format(timestep) + '.pdf'
-    fig1.savefig(figname, format='PDF')
-    plt.close(fig1)
+    misc.saveplot(fig1, 'sveltopo', timestep)
 
     if 'age' in conf.plates.plot:
         ax4.set_ylabel("Seafloor age [My]", fontsize=conf.plot.fontsize)
@@ -514,9 +506,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         plot_plate_limits(ax4, ridge, trench, conf.plates.agemin,
                           conf.plates.agemax)
         ax3.set_title(timestep, fontsize=conf.plot.fontsize)
-        figname = misc.out_name('svelage').format(timestep) + '.pdf'
-        fig2.savefig(figname, format='PDF')
-        plt.close(fig2)
+        misc.saveplot(fig2, 'svelage', timestep)
 
     # writing the output into a file, all time steps are in one file
     for isubd in np.arange(len(distance_subd)):
@@ -559,7 +549,7 @@ def lithospheric_stress(step, trench, ridge, time):
     surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
                            stressfld * scale_stress / 1.e6,
                            cmap='gnuplot2_r',
-                           rasterized=not conf.plot.pdf, shading='gouraud')
+                           rasterized=conf.plot.raster, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
     cbar.set_label(r'${}$'.format(phyvars.FIELD['sII'].shortname))
@@ -570,10 +560,7 @@ def lithospheric_stress(step, trench, ridge, time):
               transform=axis.transAxes, fontsize=conf.plot.fontsize)
     axis.text(1., 0.1, str(timestep),
               transform=axis.transAxes, fontsize=conf.plot.fontsize)
-    plt.savefig(
-        misc.out_name('lith').format(timestep) + '.pdf',
-        format='PDF')
-    plt.close(fig)
+    misc.saveplot(fig, 'lith', timestep)
 
     # velocity
     vphi = step.fields['v2'][0, :, :, 0]
@@ -644,9 +631,7 @@ def lithospheric_stress(step, trench, ridge, time):
         conf.plates.lstressmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.stressmin, conf.plates.lstressmax)
 
-    figname = misc.out_name('svelslith').format(timestep) + '.pdf'
-    fig0.savefig(figname, format='PDF')
-    plt.close(fig0)
+    misc.saveplot(fig0, 'svelslith', timestep)
 
 
 def set_of_vars(arg_plot):
@@ -751,7 +736,7 @@ def cmd():
                 # plotting continents
                 xmesh, ymesh = step.geom.x_mesh[0], step.geom.y_mesh[0]
                 axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                rasterized=not conf.plot.pdf, cmap='cool_r',
+                                rasterized=conf.plot.raster, cmap='cool_r',
                                 vmin=0, vmax=0, shading='goaround')
                 cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
@@ -770,11 +755,7 @@ def cmd():
                 # Put arrow where ridges and trenches are
                 plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-                # Save figure
-                plt.tight_layout()
-                plt.savefig(
-                    misc.out_name('eta').format(timestep) + '.pdf',
-                    format='PDF')
+                misc.saveplot(fig, 'eta', timestep, close=False)
 
                 # Zoom
                 if conf.plates.zoom is not None:
@@ -792,9 +773,7 @@ def cmd():
                     yzoom = (rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
                     axis.set_xlim(xzoom - ladd, xzoom + radd)
                     axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                    plt.savefig(
-                        misc.out_name('etazoom').format(timestep) +
-                        '.pdf', format='PDF')
+                    misc.saveplot(fig, 'etazoom', timestep, close=False)
                 plt.close(fig)
 
                 # plot stress field with position of trenches and ridges
@@ -815,19 +794,13 @@ def cmd():
                     # Put arrow where ridges and trenches are
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-                    # Save figure
-                    plt.tight_layout()
-                    plt.savefig(
-                        misc.out_name('s').format(timestep) + '.pdf',
-                        format='PDF')
+                    misc.saveplot(fig, 's', timestep, close=False)
 
                     # Zoom
                     if conf.plates.zoom is not None:
                         axis.set_xlim(xzoom - ladd, xzoom + radd)
                         axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                        plt.savefig(
-                            misc.out_name('szoom').format(timestep) +
-                            '.pdf', format='PDF')
+                        misc.saveplot(fig, 'szoom', timestep, close=False)
                     plt.close(fig)
 
                     # calculate stresses in the lithosphere
@@ -840,7 +813,7 @@ def cmd():
 
                     # plotting continents
                     axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                    rasterized=not conf.plot.pdf,
+                                    rasterized=conf.plot.raster,
                                     cmap='cool_r',
                                     vmin=0, vmax=0, shading='goaround')
                     cmap2 = plt.cm.ocean
@@ -860,21 +833,17 @@ def cmd():
                     # Put arrow where ridges and trenches are
                     plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-                    plt.tight_layout()
-                    plt.savefig(
-                        misc.out_name('sx').format(timestep) + '.pdf',
-                        format='PDF')
-                    plt.close(fig)
+                    misc.saveplot(fig, 'sx', timestep)
 
             # determine names of files
-            stem = '{}_{}_{}'.format(fids.fnames[0], istart, iend)
+            ptn = misc.out_name('{}_{}_{}')
+            stem = ptn.format(fids.fnames[0], istart, iend)
             idx = 0
             fmt = '{}.dat'
             while pathlib.Path(fmt.format(stem, idx)).is_file():
                 fmt = '{}_{}.dat'
                 idx += 1
-            fids.fnames = [fmt.format('{}_{}_{}'.format(fname, istart, iend),
-                                      idx)
+            fids.fnames = [fmt.format(ptn.format(fname, istart, iend), idx)
                            for fname in fids.fnames]
     else:  # conf.plates.vzcheck
         seuil_memz = 0
@@ -899,7 +868,7 @@ def cmd():
             for lim in range(1, len(limits)):
                 sizeplates.append(limits[lim] - limits[lim - 1])
             lim = len(limits) * [max(dvphi)]
-            plt.figure(step.istep)
+            fig = plt.figure()
             plt.subplot(221)
             plt.axis([0, nphi,
                       np.min(vphi_surf) * 1.2, np.max(vphi_surf) * 1.2])
@@ -914,8 +883,7 @@ def cmd():
             plt.hist(sizeplates, 10, (0, nphi / 2))
             plt.subplot(224)
             plt.plot(water_profile)
-            plt.savefig('plates' + str(step.isnap) + '.pdf', format='PDF')
-            plt.close(step.istep)
+            misc.saveplot(fig, 'plates', step.isnap)
 
             nb_plates.append(len(limits))
 
@@ -924,11 +892,10 @@ def cmd():
                 nb_plates[i] = (nb_plates[i - 2] + nb_plates[i - 1] +
                                 nb_plates[i] + nb_plates[i + 1] +
                                 nb_plates[i + 2]) / 5
-            plt.figure(-1)
+            figt = plt.figure()
             plt.subplot(121)
             plt.axis([time[0], time[-1], 0, np.max(nb_plates)])
             plt.plot(time, nb_plates)
             plt.subplot(122)
             plt.plot(time, ch2o)
-            plt.savefig('plates_{}_{}.pdf'.format(istart, iend), format='PDF')
-            plt.close(-1)
+            misc.saveplot(figt, 'plates_{}_{}'.format(istart, iend))

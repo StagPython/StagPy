@@ -16,11 +16,11 @@ def _plot_time_list(lovs, tseries, metas, times=None):
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
                                  figsize=(30, 5 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
-        fname = ''
+        fname = ['time']
         for iplt, vplt in enumerate(vfig):
             ylabel = None
             for tvar in vplt:
-                fname += tvar + '_'
+                fname.append(tvar)
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
                                 label=metas[tvar].description,
@@ -40,9 +40,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
         axes[-1].set_xlabel(r'$t$', fontsize=conf.plot.fontsize)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
         axes[-1].tick_params(labelsize=conf.plot.fontsize)
-        fig.savefig('time_{}.pdf'.format(fname[:-1]),
-                    format='PDF', bbox_inches='tight')
-        plt.close(fig)
+        misc.saveplot(fig, '_'.join(fname))
 
 
 def get_time_series(sdat, var, tstart, tend):
@@ -135,7 +133,7 @@ def compstat(sdat, tstart=None, tend=None):
         rms.append(sqrt(np.trapz((data[col] - moy[-1])**2, x=time) /
                         delta_time))
     results = moy + rms
-    with open('statistics.dat', 'w') as out_file:
+    with open(misc.out_name('statistics.dat'), 'w') as out_file:
         for item in results:
             out_file.write("%10.5e " % item)
         out_file.write("\n")

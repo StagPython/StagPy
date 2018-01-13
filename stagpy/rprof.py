@@ -13,7 +13,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
     for vfig in lovs:
         fig, axes = plt.subplots(ncols=len(vfig), sharey=True)
         axes = [axes] if len(vfig) == 1 else axes
-        fname = ''
+        fname = 'rprof_'
         for iplt, vplt in enumerate(vfig):
             xlabel = None
             for rvar in vplt:
@@ -31,9 +31,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
                 axes[iplt].set_xscale('log')
             axes[iplt].legend()
         axes[0].set_ylabel(r'$r$')
-        fig.savefig('{}{}.pdf'.format(fname, stepstr),
-                    format='PDF', bbox_inches='tight')
-        plt.close(fig)
+        misc.saveplot(fig, fname + stepstr)
 
 
 def get_rprof(step, var):
@@ -87,8 +85,7 @@ def plot_grid(step):
     ax2.set_ylabel('$dr$')
     ax2.set_xlim([-0.5, len(rad) - 0.5])
     ax2.set_xlabel('Cell number')
-    fig.savefig('grid_{}.pdf'.format(step.istep))
-    plt.close(fig)
+    misc.saveplot(fig, 'grid', step.istep)
 
 
 def plot_average(sdat, lovs):

@@ -142,7 +142,7 @@ def plot_scalar(step, var, scaling=None, **extra):
     extra_opts.update({} if var != 'eta'
                       else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)
-    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not conf.plot.pdf,
+    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=conf.plot.raster,
                            shading='gouraud', **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
@@ -206,7 +206,4 @@ def cmd():
             elif var[1]:
                 plot_vec(axis, step, var[1])
             oname = '{}_{}'.format(*var) if var[1] else var[0]
-            fig.savefig(
-                misc.out_name(oname).format(step.isnap) + '.pdf',
-                format='PDF', bbox_inches='tight')
-            plt.close(fig)
+            misc.saveplot(fig, oname, step.isnap)
