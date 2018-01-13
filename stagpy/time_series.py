@@ -133,7 +133,7 @@ def compstat(sdat, tstart=None, tend=None):
         rms.append(sqrt(np.trapz((data[col] - moy[-1])**2, x=time) /
                         delta_time))
     results = moy + rms
-    with open('statistics.dat', 'w') as out_file:
+    with open(misc.out_name('statistics.dat'), 'w') as out_file:
         for item in results:
             out_file.write("%10.5e " % item)
         out_file.write("\n")

@@ -836,14 +836,14 @@ def cmd():
                     misc.saveplot(fig, 'sx', timestep)
 
             # determine names of files
-            stem = '{}_{}_{}'.format(fids.fnames[0], istart, iend)
+            ptn = misc.out_name('{}_{}_{}')
+            stem = ptn.format(fids.fnames[0], istart, iend)
             idx = 0
             fmt = '{}.dat'
             while pathlib.Path(fmt.format(stem, idx)).is_file():
                 fmt = '{}_{}.dat'
                 idx += 1
-            fids.fnames = [fmt.format('{}_{}_{}'.format(fname, istart, iend),
-                                      idx)
+            fids.fnames = [fmt.format(ptn.format(fname, istart, iend), idx)
                            for fname in fids.fnames]
     else:  # conf.plates.vzcheck
         seuil_memz = 0
