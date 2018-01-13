@@ -647,7 +647,14 @@ def set_of_vars(arg_plot):
 
 
 def cmd():
-    """Implementation of plates subcommand."""
+    """Implementation of plates subcommand.
+
+    Other Parameters:
+        conf.plates
+        conf.scaling
+        conf.plot
+        conf.core
+    """
     sdat = StagyyData(conf.core.path)
     conf.plates.plot = set_of_vars(conf.plates.plot)
     print(conf.plates.plot)
