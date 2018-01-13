@@ -9,18 +9,23 @@ from . import conf
 INT_FMT = '{:05d}'
 
 
-def out_name(par_type):
-    """Return StagPy out file name format for any time step.
+def out_name(stem, timestep=None):
+    """Return StagPy out file name.
 
     Args:
-        par_type (str): the short name of the variable(s) on the plot.
+        stem (str): short description of plot content.
+        timestep (int): timestep if relevant.
+
     Returns:
-        str: the format of output file name.
+        str: the output file name.
+
     Other Parameters:
         conf.plot.outname (str): the generic name stem, defaults to
             ``'stagpy'``.
     """
-    return conf.plot.outname + '_' + par_type + INT_FMT
+    if timestep is not None:
+        stem = (stem + INT_FMT).format(timestep)
+    return conf.plot.outname + '_' + stem
 
 
 def baredoc(obj):

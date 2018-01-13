@@ -207,6 +207,6 @@ def cmd():
                 plot_vec(axis, step, var[1])
             oname = '{}_{}'.format(*var) if var[1] else var[0]
             fig.savefig(
-                misc.out_name(oname).format(step.isnap) + '.pdf',
+                misc.out_name(oname, step.isnap) + '.pdf',
                 format='PDF', bbox_inches='tight')
             plt.close(fig)

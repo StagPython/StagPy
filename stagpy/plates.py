@@ -333,7 +333,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     plot_plate_limits(ax3, ridge, trench, conf.plates.vmin,
                       conf.plates.vmax)
 
-    figname = misc.out_name('sveltempconc').format(timestep) + '.pdf'
+    figname = misc.out_name('sveltempconc', timestep) + '.pdf'
     plt.savefig(figname, format='PDF')
     plt.close(fig0)
 
@@ -367,7 +367,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         conf.plates.dvmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.dvmin, conf.plates.dvmax)
 
-    figname = misc.out_name('sveldvel').format(timestep) + '.pdf'
+    figname = misc.out_name('sveldvel', timestep) + '.pdf'
     plt.savefig(figname, format='PDF')
     plt.close(fig0)
 
@@ -403,7 +403,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
             conf.plates.dvmax,
             facecolor='#8B6914', alpha=0.2)
 
-        figname = misc.out_name('svelstress').format(timestep) + '.pdf'
+        figname = misc.out_name('svelstress', timestep) + '.pdf'
         plt.savefig(figname, format='PDF')
         plt.close(fig0)
 
@@ -498,7 +498,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     plot_plate_limits(ax2, ridge, trench, conf.plates.topomin,
                       conf.plates.topomax)
     ax1.set_title(timestep, fontsize=conf.plot.fontsize)
-    figname = misc.out_name('sveltopo').format(timestep) + '.pdf'
+    figname = misc.out_name('sveltopo', timestep) + '.pdf'
     fig1.savefig(figname, format='PDF')
     plt.close(fig1)
 
@@ -514,7 +514,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         plot_plate_limits(ax4, ridge, trench, conf.plates.agemin,
                           conf.plates.agemax)
         ax3.set_title(timestep, fontsize=conf.plot.fontsize)
-        figname = misc.out_name('svelage').format(timestep) + '.pdf'
+        figname = misc.out_name('svelage', timestep) + '.pdf'
         fig2.savefig(figname, format='PDF')
         plt.close(fig2)
 
@@ -571,7 +571,7 @@ def lithospheric_stress(step, trench, ridge, time):
     axis.text(1., 0.1, str(timestep),
               transform=axis.transAxes, fontsize=conf.plot.fontsize)
     plt.savefig(
-        misc.out_name('lith').format(timestep) + '.pdf',
+        misc.out_name('lith', timestep) + '.pdf',
         format='PDF')
     plt.close(fig)
 
@@ -644,7 +644,7 @@ def lithospheric_stress(step, trench, ridge, time):
         conf.plates.lstressmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.stressmin, conf.plates.lstressmax)
 
-    figname = misc.out_name('svelslith').format(timestep) + '.pdf'
+    figname = misc.out_name('svelslith', timestep) + '.pdf'
     fig0.savefig(figname, format='PDF')
     plt.close(fig0)
 
@@ -773,7 +773,7 @@ def cmd():
                 # Save figure
                 plt.tight_layout()
                 plt.savefig(
-                    misc.out_name('eta').format(timestep) + '.pdf',
+                    misc.out_name('eta', timestep) + '.pdf',
                     format='PDF')
 
                 # Zoom
@@ -793,8 +793,8 @@ def cmd():
                     axis.set_xlim(xzoom - ladd, xzoom + radd)
                     axis.set_ylim(yzoom - dadd, yzoom + uadd)
                     plt.savefig(
-                        misc.out_name('etazoom').format(timestep) +
-                        '.pdf', format='PDF')
+                        misc.out_name('etazoom', timestep) + '.pdf',
+                        format='PDF')
                 plt.close(fig)
 
                 # plot stress field with position of trenches and ridges
@@ -818,7 +818,7 @@ def cmd():
                     # Save figure
                     plt.tight_layout()
                     plt.savefig(
-                        misc.out_name('s').format(timestep) + '.pdf',
+                        misc.out_name('s', timestep) + '.pdf',
                         format='PDF')
 
                     # Zoom
@@ -826,7 +826,7 @@ def cmd():
                         axis.set_xlim(xzoom - ladd, xzoom + radd)
                         axis.set_ylim(yzoom - dadd, yzoom + uadd)
                         plt.savefig(
-                            misc.out_name('szoom').format(timestep) +
+                            misc.out_name('szoom', timestep) +
                             '.pdf', format='PDF')
                     plt.close(fig)
 
@@ -862,7 +862,7 @@ def cmd():
 
                     plt.tight_layout()
                     plt.savefig(
-                        misc.out_name('sx').format(timestep) + '.pdf',
+                        misc.out_name('sx', timestep) + '.pdf',
                         format='PDF')
                     plt.close(fig)
 
