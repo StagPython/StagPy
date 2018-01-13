@@ -142,7 +142,7 @@ def plot_scalar(step, var, scaling=None, **extra):
     extra_opts.update({} if var != 'eta'
                       else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)
-    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=not conf.plot.pdf,
+    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=conf.plot.raster,
                            shading='gouraud', **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
