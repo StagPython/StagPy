@@ -14,19 +14,19 @@ def out_name(stem, timestep=None):
     """Return StagPy out file name.
 
     Args:
-        stem (str): short description of plot content.
+        stem (str): short description of file content.
         timestep (int): timestep if relevant.
 
     Returns:
         str: the output file name.
 
     Other Parameters:
-        conf.plot.outname (str): the generic name stem, defaults to
+        conf.core.outname (str): the generic name stem, defaults to
             ``'stagpy'``.
     """
     if timestep is not None:
         stem = (stem + INT_FMT).format(timestep)
-    return conf.plot.outname + '_' + stem
+    return conf.core.outname + '_' + stem
 
 
 def saveplot(fig, *name_args, close=True, **name_kwargs):
