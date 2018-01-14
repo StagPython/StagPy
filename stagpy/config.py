@@ -23,6 +23,8 @@ _CONF_DEF = OrderedDict()
 _CONF_DEF['common'] = OrderedDict((
     ('config', Conf(None, True, None, {'action': 'store_true'},
                     False, 'print config options')),
+    ('debug', Conf(None, True, None, {'action': 'store_true'},
+                   False, 'debug mode')),
 ))
 
 _CONF_DEF['core'] = OrderedDict((
