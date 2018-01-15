@@ -419,6 +419,7 @@ class _Steps(dict):
         self.sdat = sdat
         self._last = UNDETERMINED
         super().__init__()
+        super().__setitem__(None, _EmptyStep())  # for non existent snaps
 
     def __setitem__(self, key, value):
         pass
@@ -433,8 +434,6 @@ class _Steps(dict):
             return super().__getitem__(key)
 
     def __missing__(self, istep):
-        if istep is None:  # if called for nonexistent snap
-            return _EmptyStep()
         try:
             istep = int(istep)
         except ValueError:
