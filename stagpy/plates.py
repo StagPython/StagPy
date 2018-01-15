@@ -41,7 +41,6 @@ def detect_plates_vzcheck(step, seuil_memz):
                 (-radiusgrid[i_z] + radius[i_z])) / (radius[i_z] -
                                                      radius[i_z - 1])
             vz_mean += abs(v_z[phi, i_z]) / (nphi * n_z)
-    print(v_rms, vz_mean)
 
     flux_c = n_z * [0]
     for i_z in range(1, n_z - 1):
@@ -81,7 +80,6 @@ def detect_plates_vzcheck(step, seuil_memz):
                     mark = False
             if mark and abs(dvphi[phi]) >= dvx_thres:
                 limits.append(phi)
-        print(limits)
 
         # verifying vertical speed
         k = 0
@@ -106,9 +104,7 @@ def detect_plates_vzcheck(step, seuil_memz):
             if vzm < vz_thres:
                 limits.remove(phi)
                 k += 1
-        print(limits)
 
-        print('\n')
     return limits, nphi, dvphi, vz_thres, v_x[:, n_z - 1], water_profile
 
 
@@ -657,7 +653,6 @@ def cmd():
     """
     sdat = StagyyData(conf.core.path)
     conf.plates.plot = set_of_vars(conf.plates.plot)
-    print(conf.plates.plot)
     if not conf.plates.vzcheck:
         # calculating averaged horizontal surface velocity
         # needed for redimensionalisation
