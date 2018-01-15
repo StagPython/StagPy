@@ -138,9 +138,6 @@ def parse_args(arglist=None):
     argcomplete.autocomplete(main_parser)
     cmd_args = main_parser.parse_args(args=arglist)
 
-    if cmd_args.func is not commands.config_cmd:
-        conf.report_parsing_problems()
-
     # determine sub command
     sub_cmd = None
     for sub, meta in SUB_CMDS.items():
@@ -158,6 +155,9 @@ def parse_args(arglist=None):
     all_sub.append(sub_cmd)
     for sub in all_sub:
         _update_subconf(cmd_args, sub)
+
+    if cmd_args.func is not commands.config_cmd:
+        conf.report_parsing_problems()
 
     _update_func(cmd_args)
 

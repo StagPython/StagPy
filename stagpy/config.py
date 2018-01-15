@@ -8,6 +8,7 @@ from collections import OrderedDict, namedtuple
 from os.path import expanduser
 import configparser
 import pathlib
+import sys
 from .error import ConfigSectionError, ConfigOptionError
 
 HOME_DIR = pathlib.Path(expanduser('~'))
@@ -437,25 +438,27 @@ class StagpyConfiguration:
         """Output message about potential parsing problems.
 
         If there were some missing sections or options in the
-        :attr:`config_file` when it was last read, this will be reported by
-        this function.
+        :attr:`config_file` when it was last read, this will be printed by this
+        function in sys.stderr.
         """
         missing_opts, missing_sections = self._missing_parsing
         need_update = False
         if missing_opts is None or missing_sections is None:
-            print('Unable to read config file {}!'.format(self.config_file),
-                  'Run stagpy config --create to obtain a new config file.',
-                  '=' * 26, sep='\n')
+            print('Unable to read config file {}'.format(self.config_file),
+                  'Please run stagpy config --create',
+                  sep='\n', end='\n\n', file=sys.stderr)
             return
         for sub_cmd, missing in missing_opts.items():
-            if missing:
+            if self.common.debug and missing:
                 print('WARNING! Missing options in {} section of config file:'.
-                      format(sub_cmd), *missing, sep='\n', end='\n\n')
-                need_update = True
-        if missing_sections:
+                      format(sub_cmd), *missing, sep='\n', end='\n\n',
+                      file=sys.stderr)
+            need_update |= bool(missing)
+        if self.common.debug and missing_sections:
             print('WARNING! Missing sections in config file:',
-                  *missing_sections, sep='\n', end='\n\n')
-            need_update = True
+                  *missing_sections, sep='\n', end='\n\n', file=sys.stderr)
+        need_update |= bool(missing_sections)
         if need_update:
-            print('Run stagpy config --update to update config file',
-                  end='\n\n')
+            print('Missing entries in config file!',
+                  'Please run stagpy config --update',
+                  end='\n\n', file=sys.stderr)
