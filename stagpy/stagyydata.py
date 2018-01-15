@@ -514,8 +514,8 @@ class _Snaps(_Steps):
             if istep is not None:
                 self.bind(isnap, istep)
             elif self.sdat.hdf5:
-                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self.bind(isnap, istep)
+                for isn, ist in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                    self.bind(isn, ist)
                 self._all_isteps_known = True
             else:
                 self._isteps[isnap] = None
