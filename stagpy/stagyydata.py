@@ -587,7 +587,7 @@ class _StepsView:
             'snap': False,
             'rprof': False,
             'fields': [],
-            'func': None,
+            'func': lambda _: True,
         }
 
     def _pass(self, step):
@@ -597,7 +597,7 @@ class _StepsView:
         okf = okf and (not self._flt['rprof'] or step.rprof is not None)
         okf = okf and all(
             step.fields[f] is not None for f in self._flt['fields'])
-        okf = okf and (not self._flt['func'] or bool(self._flt['func'](step)))
+        okf = okf and bool(self._flt['func'](step))
         return okf
 
     def filter(self, **filters):
