@@ -449,6 +449,13 @@ class _Steps(dict):
     def __len__(self):
         return self.last.istep + 1
 
+    def __iter__(self):
+        return iter(self[:])
+
+    def filter(self, **filters):
+        """Build a _StepsView with requested filters."""
+        return self[:].filter(**filters)
+
     @property
     def last(self):
         """Last time step available.
