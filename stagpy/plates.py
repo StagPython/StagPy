@@ -660,9 +660,7 @@ def cmd():
         rlast = sdat.rprof.loc[ilast]
         nprof = 0
         uprof_averaged = rlast.loc[:, 'vhrms'] * 0
-        for step in misc.steps_gen(sdat):
-            if step.rprof is None:
-                continue
+        for step in misc.steps_gen(sdat).filter(rprof=True):
             uprof_averaged += step.rprof['vhrms']
             nprof += 1
         uprof_averaged /= nprof
@@ -685,10 +683,8 @@ def cmd():
                           'ph_trench     ph_cont  age_trench [My]\n')
 
             istart, iend = None, None
-            for step in misc.steps_gen(sdat):
+            for step in misc.steps_gen(sdat).filter(fields=['T']):
                 # could check other fields too
-                if step.fields['T'] is None:
-                    continue
                 timestep = step.isnap
                 istart = timestep if istart is None else istart
                 iend = timestep
@@ -854,10 +850,8 @@ def cmd():
         ch2o = []
         istart, iend = None, None
 
-        for step in misc.steps_gen(sdat):
+        for step in misc.steps_gen(sdat).filter(fields=['T']):
             # could check other fields too
-            if step.fields['T'] is None:
-                continue
             if conf.plates.timeprofile:
                 time.append(step.timeinfo.loc['t'])
                 ch2o.append(step.timeinfo.loc[0])
