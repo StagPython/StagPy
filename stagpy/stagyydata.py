@@ -9,7 +9,7 @@ Note:
 import re
 import pathlib
 import numpy as np
-from . import error, parfile, phyvars, stagyyparsers
+from . import conf, error, parfile, phyvars, stagyyparsers
 
 
 UNDETERMINED = object()
@@ -755,6 +755,20 @@ class StagyyData:
             else:
                 self._rundir['ls'] = set()
         return self._rundir['ls']
+
+    @property
+    def walk(self):
+        """Return view on configured steps slice.
+
+        Other Parameters:
+            conf.core.snapshots: the slice of snapshots.
+            conf.core.timesteps: the slice of timesteps.
+        """
+        if conf.core.snapshots is not None:
+            return self.snaps[conf.core.snapshots]
+        elif conf.core.timesteps is not None:
+            return self.steps[conf.core.timesteps]
+        return self.snaps[-1:]
 
     def tseries_between(self, tstart=None, tend=None):
         """Return time series data between requested times.

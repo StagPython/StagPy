@@ -109,7 +109,7 @@ def plot_average(sdat, lovs):
     nprofs = 0
     rads = {}
     metas = {}
-    for step in misc.steps_gen(sdat).filter(rprof=True):
+    for step in sdat.walk.filter(rprof=True):
         if istart is None:
             istart = step.istep
         ilast = step.istep
@@ -143,7 +143,7 @@ def plot_every_step(sdat, lovs):
     """
     sovs = misc.set_of_vars(lovs)
 
-    for step in misc.steps_gen(sdat).filter(rprof=True):
+    for step in sdat.walk.filter(rprof=True):
         rprofs = {}
         rads = {}
         metas = {}
@@ -171,7 +171,7 @@ def cmd():
         return
 
     if conf.rprof.grid:
-        for step in misc.steps_gen(sdat).filter(rprof=True):
+        for step in sdat.walk.filter(rprof=True):
             plot_grid(step)
 
     lovs = misc.list_of_vars(conf.rprof.plot)

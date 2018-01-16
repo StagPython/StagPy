@@ -111,24 +111,6 @@ def set_of_vars(lovs):
     return set(var for pvars in lovs for svars in pvars for var in svars)
 
 
-def steps_gen(sdat):
-    """Return generator over snapshots or timesteps.
-
-    Args:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-    Returns:
-        generator of :class:`~stagpy.stagyydata._Step` objects, snapshots taking
-        precedence over timesteps.
-    Other Parameters:
-        conf.core.snapshots: the slice of snapshots.
-        conf.core.timesteps: the slice of timesteps.
-    """
-    if conf.core.snapshots is not None:
-        return sdat.snaps[conf.core.snapshots]
-    else:
-        return sdat.steps[conf.core.timesteps]
-
-
 def get_rbounds(step):
     """Radial or vertical position of boundaries.
 

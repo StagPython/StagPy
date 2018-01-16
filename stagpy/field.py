@@ -194,7 +194,7 @@ def cmd():
     """
     sdat = StagyyData(conf.core.path)
     sovs = set_of_vars(conf.field.plot)
-    for step in misc.steps_gen(sdat).filter(snap=True):
+    for step in sdat.walk.filter(snap=True):
         for var in sovs:
             if step.fields[var[0]] is None:
                 print("'{}' field on snap {} not found".format(var,
