@@ -427,7 +427,7 @@ class _Steps(dict):
     def __getitem__(self, key):
         try:
             # slice
-            idxs = key.indices(self.last.istep + 1)
+            idxs = key.indices(len(self))
             return (super(self.__class__, self).__getitem__(k)
                     for k in range(*idxs))
         except AttributeError:
@@ -440,15 +440,18 @@ class _Steps(dict):
             raise error.InvalidTimestepError(
                 self.sdat, istep, 'Time step should be an integer value')
         if istep < 0:
-            istep += self.last.istep + 1
+            istep += len(self)
             if istep < 0:
-                istep -= self.last.istep + 1
+                istep -= len(self)
                 raise error.InvalidTimestepError(
                     self.sdat, istep,
                     'Last istep is {}'.format(self.last.istep))
         if not self.__contains__(istep):
             super().__setitem__(istep, _Step(istep, self.sdat))
         return super().__getitem__(istep)
+
+    def __len__(self):
+        return self.last.istep + 1
 
     @property
     def last(self):
@@ -495,14 +498,14 @@ class _Snaps(_Steps):
     def __getitem__(self, key):
         try:
             # slice
-            idxs = key.indices(self.last.isnap + 1)
+            idxs = key.indices(len(self))
             return (self.__missing__(k) for k in range(*idxs))
         except AttributeError:
             return self.__missing__(key)
 
     def __missing__(self, isnap):
         if isnap < 0:
-            isnap += self.last.isnap + 1
+            isnap += len(self)
         istep = self._isteps.get(
             isnap, None if self._all_isteps_known else UNDETERMINED)
         if istep is UNDETERMINED:
@@ -520,6 +523,9 @@ class _Snaps(_Steps):
             else:
                 self._isteps[isnap] = None
         return self.sdat.steps[istep]
+
+    def __len__(self):
+        return self.last.isnap + 1
 
     def bind(self, isnap, istep):
         """Register the isnap / istep correspondence.
