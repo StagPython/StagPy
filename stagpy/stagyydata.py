@@ -425,13 +425,9 @@ class _Steps(dict):
         pass
 
     def __getitem__(self, key):
-        try:
-            # slice
-            idxs = key.indices(len(self))
-            return (super(self.__class__, self).__getitem__(k)
-                    for k in range(*idxs))
-        except AttributeError:
-            return super().__getitem__(key)
+        if isinstance(key, slice):
+            return _StepsView(self, key)
+        return super().__getitem__(key)
 
     def __missing__(self, istep):
         try:
@@ -496,12 +492,9 @@ class _Snaps(_Steps):
         super().__init__(sdat)
 
     def __getitem__(self, key):
-        try:
-            # slice
-            idxs = key.indices(len(self))
-            return (self.__missing__(k) for k in range(*idxs))
-        except AttributeError:
-            return self.__missing__(key)
+        if isinstance(key, slice):
+            return _StepsView(self, key)
+        return self.__missing__(key)
 
     def __missing__(self, isnap):
         if isnap < 0:
@@ -568,6 +561,32 @@ class _Snaps(_Steps):
             if self._last < 0:
                 raise error.NoSnapshotError(self.sdat)
         return self[self._last]
+
+
+class _StepsView:
+
+    """Filtered iterator over steps or snaps.
+
+    This class shouldn't be instantiated directly by the user. Instances of
+    this class are returned when taking slices of :attr:`StagyyData.steps` or
+    :attr:`StagyyData.snaps` attributes.
+    """
+
+    def __init__(self, steps_col, slc):
+        """Initialization of instances:
+
+        Args:
+            steps_col (:class:`_Steps` or :class:`_Snaps`): steps collection,
+                :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
+                attributes.
+            slc (slice): slice of desired isteps or isnap.
+        """
+        self._col = steps_col
+        self._idx = slc.indices(len(self._col))
+
+    def __iter__(self):
+        for i in range(*self._idx):
+            yield self._col[i]
 
 
 class StagyyData:
