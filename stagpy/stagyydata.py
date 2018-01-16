@@ -577,16 +577,52 @@ class _StepsView:
 
         Args:
             steps_col (:class:`_Steps` or :class:`_Snaps`): steps collection,
-                :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
+                i.e. :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
                 attributes.
             slc (slice): slice of desired isteps or isnap.
         """
         self._col = steps_col
         self._idx = slc.indices(len(self._col))
+        self._flt = {
+            'snap': False,
+            'rprof': False,
+            'fields': [],
+            'func': None,
+        }
+
+    def _pass(self, step):
+        """Check whether a :class:`_Step` passes the filters."""
+        okf = True
+        okf = okf and (not self._flt['snap'] or step.isnap is not None)
+        okf = okf and (not self._flt['rprof'] or step.rprof is not None)
+        okf = okf and all(
+            step.fields[f] is not None for f in self._flt['fields'])
+        okf = okf and (not self._flt['func'] or bool(self._flt['func'](step)))
+        return okf
+
+    def filter(self, **filters):
+        """Update filters with provided arguments.
+
+        Args:
+            snap (bool): the step must be a snapshot to pass.
+            rprof (bool): the step must have rprof data to pass.
+            fields (list): list of fields that must be present to pass.
+            func (function): arbitrary function taking a :class:`_Step` as
+                argument and returning a True value if the step should pass
+                the filter.
+
+        Returns:
+            self.
+        """
+        for flt, val in self._flt.items():
+            self._flt[flt] = filters.pop(flt, val)
+        if filters:
+            raise error.UnknownFiltersError(filters.keys())
+        return self
 
     def __iter__(self):
-        for i in range(*self._idx):
-            yield self._col[i]
+        return (self._col[i] for i in range(*self._idx)
+                if self._pass(self._col[i]))
 
 
 class StagyyData:
