@@ -42,16 +42,35 @@ Negative indices are allowed, ``sdat.steps[-1]`` being the last time step
 (inferred from temporal series information) and ``sdat.snaps[-1]`` being the
 last snapshot (inferred from available binary files).
 
-Finally, :attr:`~stagpy.stagyydata.StagyyData.steps` and
+Iterators and filters
+---------------------
+
+:attr:`~stagpy.stagyydata.StagyyData.steps` and
 :attr:`~stagpy.stagyydata.StagyyData.snaps` accessors accept slices.
-``sdat.steps[a:b:c]`` returns the generator ``(sdat.steps[n] for n in range(a,
-b, c))`` (negative indices are also properly taken care of). This is useful to
-iterate through time steps or snapshots. For example, the following code
-process every even snapshot::
+``sdat.steps[a:b:c]`` returns a :class:`~stagpy.stagyydata._StepsView`
+instance. Iterating through this object is similar to iterating through the
+generator ``(sdat.steps[n] for n in range(a, b, c))`` (negative indices are
+also properly taken care of).  For example, the following code process every
+even snapshot::
 
     for step in sdat.snaps[::2]:
         do_something(step)
 
+:class:`~stagpy.stagyydata._StepsView` instances offer the possibility to
+filter out the steps objects with the
+:meth:`~stagpy.stagyydata._StepsView.filter` method (see its API reference
+documentation for a list of available filters). For example, the following loop
+process every timestep from the 512-th that has temperature and viscosity field
+data available::
+
+    for step in sdat.steps[512:].filter(fields=['T', 'eta']):
+        do_something(step)
+
+As a convenience, attempting to iterate through ``sdat.steps`` and
+``sdat.snaps`` is equivalent to iterate through ``sdat.steps[:]`` and
+``sdat.snaps[:]``. Similarly, calling ``sdat.steps.filter()`` and
+``sdat.snaps.filter()`` is a shortcut for ``sdat.steps[:].filter()``
+and ``sdat.snaps[:].filter()``.
 
 Parameters file
 ---------------
