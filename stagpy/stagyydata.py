@@ -9,7 +9,7 @@ Note:
 import re
 import pathlib
 import numpy as np
-from . import error, parfile, phyvars, stagyyparsers
+from . import conf, error, parfile, phyvars, stagyyparsers
 
 
 UNDETERMINED = object()
@@ -404,6 +404,17 @@ class _Steps(dict):
 
         sdat = StagyyData('path/to/run')
         sdat.steps[istep]  # _Step object of the istep-th time step
+
+    Slices of :class:`_Steps` object are :class:`_StepsView` instances that
+    you can iterate and filter::
+
+        for step in steps[500:]:
+            # iterate through all time steps from the 500-th one
+            do_something(step)
+
+        for step in steps[-100:].filter(snap=True):
+            # iterate through all snapshots present in the last 100 time steps
+            do_something(step)
     """
 
     def __init__(self, sdat):
@@ -425,13 +436,9 @@ class _Steps(dict):
         pass
 
     def __getitem__(self, key):
-        try:
-            # slice
-            idxs = key.indices(self.last.istep + 1)
-            return (super(self.__class__, self).__getitem__(k)
-                    for k in range(*idxs))
-        except AttributeError:
-            return super().__getitem__(key)
+        if isinstance(key, slice):
+            return _StepsView(self, key)
+        return super().__getitem__(key)
 
     def __missing__(self, istep):
         try:
@@ -440,15 +447,25 @@ class _Steps(dict):
             raise error.InvalidTimestepError(
                 self.sdat, istep, 'Time step should be an integer value')
         if istep < 0:
-            istep += self.last.istep + 1
+            istep += len(self)
             if istep < 0:
-                istep -= self.last.istep + 1
+                istep -= len(self)
                 raise error.InvalidTimestepError(
                     self.sdat, istep,
                     'Last istep is {}'.format(self.last.istep))
         if not self.__contains__(istep):
             super().__setitem__(istep, _Step(istep, self.sdat))
         return super().__getitem__(istep)
+
+    def __len__(self):
+        return self.last.istep + 1
+
+    def __iter__(self):
+        return iter(self[:])
+
+    def filter(self, **filters):
+        """Build a _StepsView with requested filters."""
+        return self[:].filter(**filters)
 
     @property
     def last(self):
@@ -493,16 +510,13 @@ class _Snaps(_Steps):
         super().__init__(sdat)
 
     def __getitem__(self, key):
-        try:
-            # slice
-            idxs = key.indices(self.last.isnap + 1)
-            return (self.__missing__(k) for k in range(*idxs))
-        except AttributeError:
-            return self.__missing__(key)
+        if isinstance(key, slice):
+            return _StepsView(self, key)
+        return self.__missing__(key)
 
     def __missing__(self, isnap):
         if isnap < 0:
-            isnap += self.last.isnap + 1
+            isnap += len(self)
         istep = self._isteps.get(
             isnap, None if self._all_isteps_known else UNDETERMINED)
         if istep is UNDETERMINED:
@@ -520,6 +534,9 @@ class _Snaps(_Steps):
             else:
                 self._isteps[isnap] = None
         return self.sdat.steps[istep]
+
+    def __len__(self):
+        return self.last.isnap + 1
 
     def bind(self, isnap, istep):
         """Register the isnap / istep correspondence.
@@ -562,6 +579,79 @@ class _Snaps(_Steps):
             if self._last < 0:
                 raise error.NoSnapshotError(self.sdat)
         return self[self._last]
+
+
+class _StepsView:
+
+    """Filtered iterator over steps or snaps.
+
+    This class shouldn't be instantiated directly by the user. Instances of
+    this class are returned when taking slices of :attr:`StagyyData.steps` or
+    :attr:`StagyyData.snaps` attributes.
+    """
+
+    def __init__(self, steps_col, slc):
+        """Initialization of instances:
+
+        Args:
+            steps_col (:class:`_Steps` or :class:`_Snaps`): steps collection,
+                i.e. :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
+                attributes.
+            slc (slice): slice of desired isteps or isnap.
+        """
+        self._col = steps_col
+        self._idx = slc.indices(len(self._col))
+        self._flt = {
+            'snap': False,
+            'rprof': False,
+            'fields': [],
+            'func': lambda _: True,
+        }
+
+    def _pass(self, step):
+        """Check whether a :class:`_Step` passes the filters."""
+        okf = True
+        okf = okf and (not self._flt['snap'] or step.isnap is not None)
+        okf = okf and (not self._flt['rprof'] or step.rprof is not None)
+        okf = okf and all(
+            step.fields[f] is not None for f in self._flt['fields'])
+        okf = okf and bool(self._flt['func'](step))
+        return okf
+
+    def filter(self, **filters):
+        """Update filters with provided arguments.
+
+        Note that filters are only resolved when the view is iterated, and
+        hence they do not compose. Each call to filter merely updates the
+        relevant filters. For example, with this code::
+
+            view = sdat.steps[500:].filter(rprof=True, fields=['T'])
+            view.filter(fields=[])
+
+        the produced ``view``, when iterated, will generate the steps after the
+        500-th that have radial profiles. The ``fields`` filter set in the
+        first line is emptied in the second line.
+
+        Args:
+            snap (bool): the step must be a snapshot to pass.
+            rprof (bool): the step must have rprof data to pass.
+            fields (list): list of fields that must be present to pass.
+            func (function): arbitrary function taking a :class:`_Step` as
+                argument and returning a True value if the step should pass
+                the filter.
+
+        Returns:
+            self.
+        """
+        for flt, val in self._flt.items():
+            self._flt[flt] = filters.pop(flt, val)
+        if filters:
+            raise error.UnknownFiltersError(filters.keys())
+        return self
+
+    def __iter__(self):
+        return (self._col[i] for i in range(*self._idx)
+                if self._pass(self._col[i]))
 
 
 class StagyyData:
@@ -687,6 +777,20 @@ class StagyyData:
             else:
                 self._rundir['ls'] = set()
         return self._rundir['ls']
+
+    @property
+    def walk(self):
+        """Return view on configured steps slice.
+
+        Other Parameters:
+            conf.core.snapshots: the slice of snapshots.
+            conf.core.timesteps: the slice of timesteps.
+        """
+        if conf.core.snapshots is not None:
+            return self.snaps[conf.core.snapshots]
+        elif conf.core.timesteps is not None:
+            return self.steps[conf.core.timesteps]
+        return self.snaps[-1:]
 
     def tseries_between(self, tstart=None, tend=None):
         """Return time series data between requested times.

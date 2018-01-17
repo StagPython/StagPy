@@ -193,6 +193,23 @@ class UnknownVarError(StagpyError):
         super().__init__(varname)
 
 
+class UnknownFiltersError(StagpyError):
+
+    """Raised when invalid step filter is requested."""
+
+    def __init__(self, filters):
+        """Initialization of instances:
+
+        Args:
+            filters (list): the invalid filter names.
+
+        Attributes:
+            filters (list): the invalid filter names.
+        """
+        self.filters = filters
+        super().__init__(', '.join(repr(f) for f in filters))
+
+
 class UnknownFieldVarError(UnknownVarError):
 
     """Raised when invalid field var is requested.
