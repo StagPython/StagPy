@@ -404,6 +404,17 @@ class _Steps(dict):
 
         sdat = StagyyData('path/to/run')
         sdat.steps[istep]  # _Step object of the istep-th time step
+
+    Slices of :class:`_Steps` object are :class:`_StepsView` instances that
+    you can iterate and filter::
+
+        for step in steps[500:]:
+            # iterate through all time steps from the 500-th one
+            do_something(step)
+
+        for step in steps[-100:].filter(snap=True):
+            # iterate through all snapshots present in the last 100 time steps
+            do_something(step)
     """
 
     def __init__(self, sdat):
