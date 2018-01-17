@@ -610,6 +610,17 @@ class _StepsView:
     def filter(self, **filters):
         """Update filters with provided arguments.
 
+        Note that filters are only resolved when the view is iterated, and
+        hence they do not compose. Each call to filter merely updates the
+        relevant filters. For example, with this code::
+
+            view = sdat.steps[500:].filter(rprof=True, fields=['T'])
+            view.filter(fields=[])
+
+        the produced ``view``, when iterated, will generate the steps after the
+        500-th that have radial profiles. The ``fields`` filter set in the
+        first line is emptied in the second line.
+
         Args:
             snap (bool): the step must be a snapshot to pass.
             rprof (bool): the step must have rprof data to pass.
