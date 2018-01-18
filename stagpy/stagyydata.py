@@ -296,9 +296,6 @@ class _Step:
     def __init__(self, istep, sdat):
         """Initialization of instances:
 
-        This class should not be instantiated by the user, the instantiation
-        is handled by :class:`StagyyData`.
-
         Args:
             istep (int): the index of the time step that the instance
                 represents.
@@ -583,9 +580,8 @@ class _StepsView:
 
     """Filtered iterator over steps or snaps.
 
-    This class shouldn't be instantiated directly by the user. Instances of
-    this class are returned when taking slices of :attr:`StagyyData.steps` or
-    :attr:`StagyyData.snaps` attributes.
+    Instances of this class are returned when taking slices of
+    :attr:`StagyyData.steps` or :attr:`StagyyData.snaps` attributes.
     """
 
     def __init__(self, steps_col, slc):
