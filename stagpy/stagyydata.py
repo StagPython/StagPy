@@ -333,10 +333,9 @@ class _Step:
 
         Set to None if no time series data is available for this time step.
         """
-        if self.istep in self.sdat.tseries.index:
-            return self.sdat.tseries.loc[self.istep]
-        else:
+        if self.istep not in self.sdat.tseries.index:
             return None
+        return self.sdat.tseries.loc[self.istep]
 
     @property
     def rprof(self):
@@ -344,10 +343,9 @@ class _Step:
 
         Set to None if no radial profiles data is available for this time step.
         """
-        if self.istep in self.sdat.rprof.index.levels[0]:
-            return self.sdat.rprof.loc[self.istep]
-        else:
+        if self.istep not in self.sdat.rprof.index.levels[0]:
             return None
+        return self.sdat.rprof.loc[self.istep]
 
     @property
     def isnap(self):

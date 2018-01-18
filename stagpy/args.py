@@ -50,7 +50,6 @@ def add_args(subconf, parser):
         parser.add_argument(*names, **meta.kwargs)
     parser.set_defaults(**{a: subconf[a]
                            for a, m in subconf.defaults() if m.cmd_arg})
-    return parser
 
 
 def _build_parser():
@@ -65,7 +64,7 @@ def _build_parser():
         if sub not in SUB_CMDS:
             xparsers[sub] = argparse.ArgumentParser(add_help=False,
                                                     prefix_chars='-+')
-            xparsers[sub] = add_args(conf[sub], xparsers[sub])
+            add_args(conf[sub], xparsers[sub])
 
     for sub_cmd, meta in SUB_CMDS.items():
         kwargs = {'prefix_chars': '+-', 'help': baredoc(meta.func)}
@@ -74,7 +73,7 @@ def _build_parser():
             parent_parsers.append(xparsers[sub])
         kwargs.update(parents=parent_parsers)
         dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-        dummy_parser = add_args(conf[sub_cmd], dummy_parser)
+        add_args(conf[sub_cmd], dummy_parser)
         dummy_parser.set_defaults(func=meta.func)
 
     return main_parser
@@ -85,7 +84,7 @@ def _steps_to_slices():
     if conf.core.timesteps is None and conf.core.snapshots is None:
         # default to the last snap
         conf.core.snapshots = slice(-1, None, None)
-        return None
+        return
     elif conf.core.snapshots is not None:
         # snapshots take precedence over timesteps
         # if both are defined

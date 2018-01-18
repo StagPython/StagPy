@@ -13,7 +13,6 @@ def detect_plates_vzcheck(step, seuil_memz):
     """detect plates and check with vz and plate size"""
     v_z = step.fields['v3'][0, :, :, 0]
     v_x = step.fields['v2'][0, :, :, 0]
-    h2o = step.fields['wtr'][0, :, :, 0]
     tcell = step.fields['T'][0, :, :, 0]
     n_z = step.geom.nztot
     nphi = step.geom.nptot  # -1? should be OK, ghost not included
@@ -21,9 +20,6 @@ def detect_plates_vzcheck(step, seuil_memz):
     radius = step.geom.r_coord + rcmb
     radiusgrid = step.geom.rgeom[:, 0] + rcmb
     dphi = 1 / nphi
-
-    # water profile
-    water_profile = np.mean(h2o, axis=0)
 
     # calculing tmean
     tmean = step.timeinfo.loc['Tmean']
@@ -51,10 +47,8 @@ def detect_plates_vzcheck(step, seuil_memz):
     # checking stagnant lid
     stagnant_lid = True
     max_flx = np.max(flux_c)
-    for i_z in range(n_z - n_z // 20, n_z):
-        if abs(flux_c[i_z]) > max_flx / 50:
-            stagnant_lid = False
-            break
+    stagnant_lid = all(abs(flux_c[i_z]) <= max_flx / 50
+                       for i_z in range(n_z - n_z // 20, n_z))
     if stagnant_lid:
         raise error.StagnantLidError(step.sdat)
     else:
@@ -97,15 +91,12 @@ def detect_plates_vzcheck(step, seuil_memz):
                             abs(v_z[phi - 1, i_z]) +
                             abs(v_z[phi + 1, i_z])) / (n_z * 3)
 
-            if seuil_memz != 0:
-                vz_thres = vz_mean * 0.1 + seuil_memz / 2
-            else:
-                vz_thres = vz_mean * 0
+            vz_thres = vz_mean * 0.1 + seuil_memz / 2 if seuil_memz else 0
             if vzm < vz_thres:
                 limits.remove(phi)
                 k += 1
 
-    return limits, nphi, dvphi, vz_thres, v_x[:, n_z - 1], water_profile
+    return limits, nphi, dvphi, vz_thres, v_x[:, n_z - 1]
 
 
 def detect_plates(step, vrms_surface, fids, time):
@@ -156,9 +147,9 @@ def detect_plates(step, vrms_surface, fids, time):
 
     # elimination of ridges that are too close to trench
     argdel = []
-    if len(trench) and len(ridge):
-        for i in range(len(ridge)):
-            mdistance = np.amin(abs(trench - ridge[i]))
+    if trench and ridge:
+        for i, ridge_i in enumerate(ridge):
+            mdistance = np.amin(abs(trench - ridge_i))
             if mdistance < 0.016:
                 argdel.append(i)
         if argdel:
@@ -432,36 +423,36 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ph_trench_subd = []
     ph_cont_subd = []
     if step.sdat.par['switches']['cont_tracers']:
-        for i in range(len(trench)):  # should enumerate
+        for i, trench_i in enumerate(trench):
             # detection of the distance in between subduction and continent
             ph_coord_noend = ph_coord[:-1]
-            angdistance1 = abs(ph_coord_noend[continentsall == 1] - trench[i])
+            angdistance1 = abs(ph_coord_noend[continentsall == 1] - trench_i)
             angdistance2 = 2. * np.pi - angdistance1
             angdistance = np.minimum(angdistance1, angdistance2)
             distancecont = min(angdistance)
             argdistancecont = np.argmin(angdistance)
             continentpos = ph_coord_noend[continentsall == 1][argdistancecont]
 
-            ph_trench_subd.append(trench[i])
+            ph_trench_subd.append(trench_i)
             age_subd.append(agetrench[i])
             ph_cont_subd.append(continentpos)
             distance_subd.append(distancecont)
             times_subd.append(step.geom.ti_ad)
 
             if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
-                if continentpos - trench[i] < 0:  # continent is on the left
+                if continentpos - trench_i < 0:  # continent is on the left
                     distancecont = - distancecont
-                ax1.annotate('', xy=(trench[i] + distancecont, 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
+                ax1.annotate('', xy=(trench_i + distancecont, 2000),
+                             xycoords='data', xytext=(trench_i, 2000),
                              textcoords='data',
                              arrowprops=dict(arrowstyle="->", lw="2",
                                              shrinkA=0, shrinkB=0))
             else:  # distance over boundary
                 xy_anot, xy_text = 0, 2 * np.pi
-                if continentpos - trench[i] < 0:
+                if continentpos - trench_i < 0:
                     xy_anot, xy_text = xy_text, xy_anot
                 ax1.annotate('', xy=(xy_anot, 2000),
-                             xycoords='data', xytext=(trench[i], 2000),
+                             xycoords='data', xytext=(trench_i, 2000),
                              textcoords='data',
                              arrowprops=dict(arrowstyle="-", lw="2",
                                              shrinkA=0, shrinkB=0))
@@ -857,8 +848,9 @@ def cmd():
                 ch2o.append(step.timeinfo.loc[0])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
-            limits, nphi, dvphi, seuil_memz, vphi_surf, water_profile =\
+            limits, nphi, dvphi, seuil_memz, vphi_surf =\
                 detect_plates_vzcheck(step, seuil_memz)
+            water_profile = np.mean(step.fields['wtr'][0, :, :, 0], axis=0)
             limits.sort()
             sizeplates = [limits[0] + nphi - limits[-1]]
             for lim in range(1, len(limits)):
