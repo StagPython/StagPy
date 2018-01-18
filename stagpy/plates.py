@@ -535,7 +535,7 @@ def lithospheric_stress(step, trench, ridge, time):
     fig, axis = plt.subplots(ncols=1)
     surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
                            stressfld * scale_stress / 1.e6,
-                           cmap='gnuplot2_r',
+                           cmap='plasma_r',
                            rasterized=conf.plot.raster, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
@@ -726,7 +726,7 @@ def cmd():
                 xmesh, ymesh = step.geom.x_mesh[0], step.geom.y_mesh[0]
                 axis.pcolormesh(xmesh, ymesh, continentsfld,
                                 rasterized=conf.plot.raster, cmap='cool_r',
-                                vmin=0, vmax=0, shading='goaround')
+                                vmin=0, vmax=0, shading='gouraud')
                 cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
 

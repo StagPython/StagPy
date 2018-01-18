@@ -137,7 +137,7 @@ def plot_scalar(step, var, scaling=None, **extra):
         fld = np.copy(fld) * scaling
 
     fig, axis = plt.subplots(ncols=1)
-    extra_opts = {'cmap': 'jet'}
+    extra_opts = {'cmap': 'RdBu_r'}
     extra_opts.update(meta.popts)
     extra_opts.update({} if var != 'eta'
                       else {'norm': mpl.colors.LogNorm()})
