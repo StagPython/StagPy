@@ -27,13 +27,3 @@ explanations on how to use StagPy.
 
 .. __: https://pypi.python.org/pypi/stagpy
 .. __: http://stagpy.readthedocs.org/en/latest/
-
-
-Troubleshooting
-===============
-
-*   Matplotlib related error in MacOS
-
-    This might be due to the matplotlib backend that is not correctly set. See
-    this Stack Overflow question:
-    <http://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python>
