@@ -1,6 +1,7 @@
 *.pdf
 *.swp
-stagpy/__pycache__/
+*/__pycache__/
+.cache
 bld/
 stagpy.egg-info/
 docs/_build/
