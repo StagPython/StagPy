@@ -100,29 +100,36 @@ def plot_average(sdat, lovs):
         conf.core.snapshots: the slice of snapshots.
         conf.conf.timesteps: the slice of timesteps.
     """
+    steps_iter = iter(sdat.walk.filter(rprof=True))
+    try:
+        step = next(steps_iter)
+    except StopIteration:
+        return
+
     sovs = misc.set_of_vars(lovs)
-    istart = None
-    # assume constant z spacing for the moment
-    ilast = sdat.rprof.index.levels[0][-1]
-    rlast = sdat.rprof.loc[ilast]
-    rprof_averaged = rlast.loc[:, sovs] * 0
-    nprofs = 0
+
+    istart = step.istep
+    nprofs = 1
+    rprof_averaged = {}
     rads = {}
     metas = {}
-    for step in sdat.walk.filter(rprof=True):
-        if istart is None:
-            istart = step.istep
-        ilast = step.istep
+
+    # assume constant z spacing for the moment
+    for rvar in sovs:
+        rprof_averaged[rvar], rad, metas[rvar] = get_rprof(step, rvar)
+        if rad is not None:
+            rads[rvar] = rad
+
+    for step in steps_iter:
         nprofs += 1
         for rvar in sovs:
-            rprof, rad, metas[rvar] = get_rprof(step, rvar)
-            rprof_averaged[rvar] += rprof
-            if rad is not None:
-                rads[rvar] = rad
+            rprof_averaged[rvar] += get_rprof(step, rvar)[0]
 
-    rprof_averaged /= nprofs
-    rprof_averaged['r'] = rlast.loc[:, 'r'] + \
-        misc.get_rbounds(sdat.steps[ilast])[0]
+    ilast = step.istep
+    for rvar in sovs:
+        rprof_averaged[rvar] /= nprofs
+    rprof_averaged['r'] = step.rprof.loc[:, 'r'] + \
+        misc.get_rbounds(step)[0]
 
     stepstr = '{}_{}'.format(istart, ilast)
 
