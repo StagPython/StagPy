@@ -3,11 +3,15 @@
 StagPy is both a CLI tool and a powerful Python library. See the
 documentation at
 http://stagpy.readthedocs.io/en/stable/
+
+If the environment variable STAGPY_NO_CONFIG is set to 'True', StagPy does not
+attempt to read any configuration file.
 """
 
 from setuptools_scm import get_version
 from pkg_resources import get_distribution, DistributionNotFound
 import importlib
+import os
 import signal
 import sys
 from . import config
@@ -60,7 +64,11 @@ except LookupError:
 except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
-init_config()
+if os.getenv('STAGPY_NO_CONFIG') == 'True':
+    init_config(None)
+else:
+    init_config()
+
 _load_mpl()
 
 signal.signal(signal.SIGINT, _PREV_INT)
