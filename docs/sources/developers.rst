@@ -32,13 +32,9 @@ and up to date on your system::
 .. _pytest: https://docs.pytest.org
 .. _tox: https://tox.readthedocs.io
 
-Launching ``pytest`` in the root of the StagPy repository will launch the tests
-against the **installed** version of StagPy. Launching ``tox`` will
-automatically create a virtual environment, install the development version of
-StagPy, and finally launch ``pytest`` within this virtual environment.
-
-Before submitting modifications to the code, please make sure they pass the
-tests by running ``tox``.
+Launching ``tox`` in the root of the repository will automatically run the
+tests in a virtual environment. Before submitting modifications to the code,
+please make sure they pass the tests by running ``tox``.
 
 Installation
 ------------
