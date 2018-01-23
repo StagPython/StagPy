@@ -1,8 +1,8 @@
-import pathlib
 import pytest
 
 @pytest.fixture(scope='session')
 def repo_dir():
+    import pathlib
     return pathlib.Path(__file__).parent.parent.resolve()
 
 @pytest.fixture(scope='session',
