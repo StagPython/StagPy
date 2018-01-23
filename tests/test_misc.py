@@ -1,4 +1,3 @@
-import helpers
 import stagpy
 import stagpy.misc
 

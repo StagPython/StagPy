@@ -1,9 +1,8 @@
 import re
-import helpers
 import stagpy.commands
 
-def test_info_cmd(capsys):
-    stagpy.conf.core.path = helpers.ra1e5_dir
+def test_info_cmd(capsys, example_dir):
+    stagpy.conf.core.path = example_dir
     stagpy.commands.info_cmd()
     output = capsys.readouterr()
     expected = re.compile(
