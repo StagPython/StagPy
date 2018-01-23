@@ -2,7 +2,6 @@
 *.swp
 stagpy/__pycache__/
 bld/
-stagpy.egg-info/
 docs/_build/
 docs/_static/
 docs/_templates/

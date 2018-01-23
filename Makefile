@@ -52,7 +52,8 @@ $(LINK): $(STAGPY)
 	ln -sf $(PWD)/$(STAGPY) $(LINK)
 
 $(STAGPY): $(VENV_DIR) $(OBJS)
-	$(VPY) -E setup.py develop
+	$(VPIP) install -e .
+	@-rm -rf stagpy.egg-info
 
 $(VENV_DIR):
 	$(PY) -m venv --system-site-packages $@
@@ -79,7 +80,6 @@ infobash:
 clean: uninstall
 	@echo 'Removing build files'
 	@-rm -rf $(BLD_DIR)
-	@-rm -rf stagpy.egg-info
 
 uninstall:
 	@echo 'Removing config files...'
