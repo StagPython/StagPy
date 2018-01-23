@@ -27,6 +27,13 @@ def test_get_invalid_opt():
         _ = conf.core[invalid]
     assert err.value.option == invalid
 
+def test_reset_all():
+    conf = stagpy.config.StagpyConfiguration(None)
+    default = conf.core.path
+    conf.core.path = default + 'some/path'
+    conf.reset()
+    assert conf.core.path == default
+
 def test_reset_subconfig():
     conf = stagpy.config.StagpyConfiguration(None)
     default = conf.core.path

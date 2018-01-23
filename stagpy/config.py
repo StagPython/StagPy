@@ -392,6 +392,11 @@ class StagpyConfiguration:
         for sub, opt in self.options():
             yield sub, opt, self._def[sub][opt]
 
+    def reset(self):
+        """Restore default values of all options."""
+        for sub, opt, meta in self.defaults():
+            self[sub][opt] = meta.default
+
     def create_config(self):
         """Create config file.
 

@@ -10,7 +10,7 @@ def test_info_cmd(capsys):
         r'^StagYY run in.*\nLast timestep:\n.*\n.*\n.*\nLast snapshot .*\n'
         r'.*\n.*\n.*\n$')
     assert expected.fullmatch(output.out)
-    helpers.reset_config()
+    del stagpy.conf.core.path
 
 def test_var_cmd(capsys):
     stagpy.commands.var_cmd()

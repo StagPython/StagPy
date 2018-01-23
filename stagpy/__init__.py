@@ -40,21 +40,6 @@ def _load_mpl():
         plt.xkcd()
 
 
-def init_config(config_file=config.CONFIG_FILE):
-    """Initialize configuration :data:`stagpy.conf`.
-
-    It is automatically called whenever the :mod:`stagpy` module is
-    imported. You can use this function if you want to reset the StagPy
-    configuration.
-
-    Args:
-        config_file (pathlike): the path of a config file. Set this parameter
-            to None if you do not want to use any config file.
-    """
-    global conf  # pylint:disable=global-variable-undefined,invalid-name
-    conf = config.StagpyConfiguration(config_file)
-
-
 _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
@@ -64,10 +49,11 @@ except LookupError:
 except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
-if os.getenv('STAGPY_NO_CONFIG') == 'True':
-    init_config(None)
-else:
-    init_config()
+_CONF_FILE = config.CONFIG_FILE\
+    if os.getenv('STAGPY_NO_CONFIG') == 'True' else None
+# pylint: disable=invalid-name
+conf = config.StagpyConfiguration(_CONF_FILE)
+# pylint: enable=invalid-name
 
 _load_mpl()
 

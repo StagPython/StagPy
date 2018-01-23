@@ -1,14 +1,13 @@
 import helpers
 import stagpy
-from stagpy import conf
 import stagpy.misc
 
 def test_out_name_conf():
     oname = 'something_fancy'
-    conf.core.outname = oname
+    stagpy.conf.core.outname = oname
     stem = 'teapot'
     assert stagpy.misc.out_name(stem) == oname + '_' + stem
-    del conf.core.outname
+    del stagpy.conf.core.outname
 
 def test_out_name_number():
     assert stagpy.misc.out_name('T', 123) == 'stagpy_T00123'
