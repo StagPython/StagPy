@@ -14,3 +14,12 @@ def example_dir(request, repo_dir):
 def cleanconf():
     import stagpy.config
     return stagpy.config.StagpyConfiguration(None)
+
+@pytest.fixture(scope='module')
+def sdat(example_dir):
+    import stagpy.stagyydata
+    return stagpy.stagyydata.StagyyData(example_dir)
+
+@pytest.fixture(scope='module')
+def step(sdat):
+    return sdat.snaps.last
