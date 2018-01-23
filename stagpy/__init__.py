@@ -50,7 +50,7 @@ except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
 _CONF_FILE = config.CONFIG_FILE\
-    if os.getenv('STAGPY_NO_CONFIG') == 'True' else None
+    if os.getenv('STAGPY_NO_CONFIG') != 'True' else None
 # pylint: disable=invalid-name
 conf = config.StagpyConfiguration(_CONF_FILE)
 # pylint: enable=invalid-name
