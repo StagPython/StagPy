@@ -3,7 +3,6 @@ stagpy
 
 .. automodule:: stagpy
    :members:
-   :exclude-members: init_config
 
    .. data:: __version__
       :annotation: = 'x.y.z[.devN+gHASH[.dYYYYMMDD]]'
@@ -18,5 +17,3 @@ stagpy
 
       Global :class:`~stagpy.config.StagpyConfiguration` instance, holding
       configuration options.
-
-   .. autofunction:: init_config(config_file=stagpy.config.CONFIG_FILE)
