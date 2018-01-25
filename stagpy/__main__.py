@@ -28,7 +28,7 @@ def main():
               'Please check the path to your simulation and the command line '
               'arguments.', '',
               '{}: {}'.format(err.__class__.__name__, err),
-              sep='\n')
+              sep='\n', file=sys.stderr)
         sys.exit()
 
 if __name__ == '__main__':
