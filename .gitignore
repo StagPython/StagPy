@@ -3,6 +3,7 @@
 */__pycache__/
 .cache
 .tox
+stagpy.egg-info/
 bld/
 docs/_build/
 docs/_static/
