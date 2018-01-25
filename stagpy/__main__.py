@@ -10,18 +10,15 @@ from . import conf, sigint_handler
 
 def main():
     """StagPy entry point"""
-    prev_int = signal.signal(signal.SIGINT, sigint_handler)
-    warnings.simplefilter('ignore')
+    if not conf.debug:
+        signal.signal(signal.SIGINT, sigint_handler)
+        warnings.simplefilter('ignore')
     args = importlib.import_module('stagpy.args')
     error = importlib.import_module('stagpy.error')
     try:
-        func = args.parse_args()
-        if conf.common.debug:
-            signal.signal(signal.SIGINT, prev_int)
-            warnings.simplefilter('default')
-        func()
+        args.parse_args()()
     except error.StagpyError as err:
-        if conf.common.debug:
+        if conf.debug:
             raise
         print('Oops! StagPy encountered the following problem while '
               'processing your request.',

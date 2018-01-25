@@ -6,6 +6,11 @@ http://stagpy.readthedocs.io/en/stable/
 
 If the environment variable STAGPY_NO_CONFIG is set to 'True', StagPy does not
 attempt to read any configuration file.
+
+When using the CLI interface, if the environment variable STAGPY_DEBUG is set
+to 'True', warnings are issued normally and StagpyError are raised. Otherwise,
+warnings are ignored and only a short form of encountered StagpyErrors is
+printed.
 """
 
 from setuptools_scm import get_version
@@ -15,6 +20,14 @@ import os
 import signal
 import sys
 from . import config
+
+
+def _env(var):
+    """Return whether var is set to True."""
+    return os.getenv(var) == 'True'
+
+
+_DEBUG = _env('STAGPY_DEBUG')
 
 
 def sigint_handler(*_):
@@ -31,7 +44,7 @@ def _load_mpl():
     """Load matplotlib and set some configuration"""
     mpl = importlib.import_module('matplotlib')
     if conf.plot.matplotback:
-        mpl.use(conf.plot.matplotback)
+        mpl.use(conf.plot.matplotback, warn=_DEBUG)
     plt = importlib.import_module('matplotlib.pyplot')
     if conf.plot.useseaborn:
         sns = importlib.import_module('seaborn')
@@ -40,12 +53,8 @@ def _load_mpl():
         plt.xkcd()
 
 
-def _env(var):
-    """Return whether var is set to True."""
-    return os.getenv(var) == 'True'
-
-
-_PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
+if not _DEBUG:
+    _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
     __version__ = get_version(root='..', relative_to=__file__)
@@ -56,9 +65,10 @@ except (DistributionNotFound, ValueError):
 
 _CONF_FILE = config.CONFIG_FILE if not _env('STAGPY_NO_CONFIG') else None
 # pylint: disable=invalid-name
-conf = config.StagpyConfiguration(_CONF_FILE)
+conf = config.StagpyConfiguration(_CONF_FILE, _DEBUG)
 # pylint: enable=invalid-name
 
 _load_mpl()
 
-signal.signal(signal.SIGINT, _PREV_INT)
+if not _DEBUG:
+    signal.signal(signal.SIGINT, _PREV_INT)

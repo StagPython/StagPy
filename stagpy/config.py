@@ -24,8 +24,6 @@ _CONF_DEF = OrderedDict()
 _CONF_DEF['common'] = OrderedDict((
     ('config', Conf(None, True, None, {'action': 'store_true'},
                     False, 'print config options')),
-    ('debug', Conf(None, True, None, {'action': 'store_true'},
-                   False, 'debug mode')),
 ))
 
 _CONF_DEF['core'] = OrderedDict((
@@ -285,17 +283,20 @@ class StagpyConfiguration:
     It will be set to its default value the next time you access it.
     """
 
-    def __init__(self, config_file):
+    def __init__(self, config_file, debug=False):
         """Initialization of instances:
 
         Args:
             config_file (pathlike): path of config file.
+            debug (bool): whether StagPy run in debug mode.
 
         Attributes:
             config_parser: :class:`configparser.ConfigParser` instance.
             config_file (pathlib.Path): path of config file.
+            debug (bool): whether StagPy run in debug mode.
         """
         self._def = _CONF_DEF  # defaults information
+        self.debug = debug
         for sub in self.subs():
             self[sub] = _SubConfig(self, sub, self._def[sub])
         self.config_parser = configparser.ConfigParser()
@@ -454,12 +455,12 @@ class StagpyConfiguration:
                   sep='\n', end='\n\n', file=sys.stderr)
             return
         for sub_cmd, missing in missing_opts.items():
-            if self.common.debug and missing:
+            if self.debug and missing:
                 print('WARNING! Missing options in {} section of config file:'.
                       format(sub_cmd), *missing, sep='\n', end='\n\n',
                       file=sys.stderr)
             need_update |= bool(missing)
-        if self.common.debug and missing_sections:
+        if self.debug and missing_sections:
             print('WARNING! Missing sections in config file:',
                   *missing_sections, sep='\n', end='\n\n', file=sys.stderr)
         need_update |= bool(missing_sections)
