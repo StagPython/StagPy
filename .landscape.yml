@@ -10,3 +10,4 @@ autodetect: true
 ignore-paths:
     - Examples
     - docs
+    - tests

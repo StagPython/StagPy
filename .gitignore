@@ -1,6 +1,8 @@
 *.pdf
 *.swp
-stagpy/__pycache__/
+*/__pycache__/
+.cache
+.tox
 bld/
 docs/_build/
 docs/_static/

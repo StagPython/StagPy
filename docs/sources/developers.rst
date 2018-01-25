@@ -21,7 +21,25 @@ protocol`__ if you prefer)::
 
 .. __: https://help.github.com/articles/connecting-to-github-with-ssh/
 
-You can then install the development version in two ways:
+Testing
+-------
+
+StagPy uses pytest_ and tox_ for code testing. Make sure they are installed
+and up to date on your system::
+
+    % python3 -m pip install -U --user pytest tox
+
+.. _pytest: https://docs.pytest.org
+.. _tox: https://tox.readthedocs.io
+
+Launching ``tox`` in the root of the repository will automatically run the
+tests in a virtual environment. Before submitting modifications to the code,
+please make sure they pass the tests by running ``tox``.
+
+Installation
+------------
+
+You can install the development version in two ways:
 
 1. in a virtual environment, allowing to have the development version alongside
    the stable one on your system;
@@ -31,7 +49,7 @@ You can then install the development version in two ways:
 The second option should only be used if necessary for your purpose.
 
 Installation in a virtual environment
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A ``Makefile`` in the git repository allows you to install StagPy in a virtual
 environment with all the necessary dependencies.
@@ -59,7 +77,7 @@ This should create a PDF file showing a plot of the temperature field with
 streamlines.
 
 Installation as a regular package
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have installed the stable version of StagPy, uninstall it::
 
