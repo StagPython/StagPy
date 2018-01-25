@@ -8,6 +8,9 @@ python:
 
 cache: pip
 
+git:
+    depth: false
+
 env:
     global:
         - STAGPY_NO_CONFIG=True
