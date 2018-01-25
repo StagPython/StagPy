@@ -379,7 +379,7 @@ class _EmptyStep(_Step):
     """Dummy step object for nonexistent snaps.
 
     This class inherits from :class:`_Step`, but its :meth:`__getattribute__`
-    method always return :obj:`None`.
+    method always return :obj:`None`. Its instances are falsy values.
     """
 
     def __init__(self):
@@ -387,6 +387,9 @@ class _EmptyStep(_Step):
 
     def __getattribute__(self, name):
         return None
+
+    def __bool__(self):
+        return False
 
 
 class _Steps(dict):

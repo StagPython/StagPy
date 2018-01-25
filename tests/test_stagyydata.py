@@ -29,7 +29,7 @@ def test_snaps_iter(sdat):
     assert all(a is b for a, b in zlong(sdat.snaps, sdat.snaps[:]))
 
 def test_filter_snap(sdat):
-    snaps = (s for s in sdat.snaps if s.istep is not None)
+    snaps = (s for s in sdat.snaps if s)
     assert all(
         a is b for a, b in zlong(snaps, sdat.steps.filter(snap=True)))
 
