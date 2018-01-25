@@ -40,6 +40,11 @@ def _load_mpl():
         plt.xkcd()
 
 
+def _env(var):
+    """Return whether var is set to True."""
+    return os.getenv(var) == 'True'
+
+
 _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
@@ -49,8 +54,7 @@ except LookupError:
 except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
-_CONF_FILE = config.CONFIG_FILE\
-    if os.getenv('STAGPY_NO_CONFIG') != 'True' else None
+_CONF_FILE = config.CONFIG_FILE if not _env('STAGPY_NO_CONFIG') else None
 # pylint: disable=invalid-name
 conf = config.StagpyConfiguration(_CONF_FILE)
 # pylint: enable=invalid-name
