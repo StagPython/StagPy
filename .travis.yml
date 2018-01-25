@@ -19,4 +19,7 @@ install:
     - pip install -q "pytest>=3.3"
     - pip install -q .
 
+before_script:
+    - stagpy version
+
 script: pytest
