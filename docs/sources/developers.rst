@@ -36,6 +36,23 @@ Launching ``tox`` in the root of the repository will automatically run the
 tests in a virtual environment. Before submitting modifications to the code,
 please make sure they pass the tests by running ``tox``.
 
+Documentation
+-------------
+
+The StagPy documentation is built with Sphinx_. To build it locally, install
+and update the needed packages::
+
+    % python3 -m pip install -U --user sphinx sphinx-rtd-theme
+
+.. _Sphinx: http://www.sphinx-doc.org
+
+Then, in the ``docs`` directory, run::
+
+    % make html
+
+Open the produced file ``_build/html/index.html`` in your navigator to browse
+your local version of the documentation.
+
 Installation
 ------------
 
