@@ -1,7 +1,6 @@
 """Plots time series."""
 
 import numpy as np
-from math import sqrt
 import matplotlib.pyplot as plt
 from . import conf, misc, phyvars
 from .error import UnknownTimeVarError
@@ -124,19 +123,17 @@ def compstat(sdat, tstart=None, tend=None):
     """
     data = sdat.tseries_between(tstart, tend)
     time = data['t'].values
-
-    moy = []
-    rms = []
     delta_time = time[-1] - time[0]
-    for col in data.columns[1:]:
-        moy.append(np.trapz(data[col], x=time) / delta_time)
-        rms.append(sqrt(np.trapz((data[col] - moy[-1])**2, x=time) /
-                        delta_time))
-    results = moy + rms
+    data = data.iloc[:, 1:].values  # assume t is first column
+
+    mean = np.trapz(data, x=time, axis=0) / delta_time
+    rms = np.sqrt(np.trapz((data - mean)**2, x=time, axis=0) / delta_time)
+
     with open(misc.out_name('statistics.dat'), 'w') as out_file:
-        for item in results:
-            out_file.write("%10.5e " % item)
-        out_file.write("\n")
+        mean.tofile(out_file, sep=' ', format="%10.5e")
+        out_file.write('\n')
+        rms.tofile(out_file, sep=' ', format="%10.5e")
+        out_file.write('\n')
 
 
 def cmd():
