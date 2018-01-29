@@ -13,7 +13,7 @@ DEPENDENCIES = [
     'h5py>=2.7.1',
     'matplotlib>=2.0',
     'seaborn>=0.8.1',
-    'f90nml>=0.23',
+    'f90nml>=1.0.1',
     'argcomplete>=1.8',
     'setuptools_scm>=1.15',
     ]
