@@ -102,12 +102,12 @@ If you have installed the stable version of StagPy, uninstall it::
 
 You can use the following command to install StagPy as a regular package::
 
-    % python3 setup.py develop --user
+    % python3 -m pip install -U --user -e .
 
 You *don't* need to run this command everytime you modify the source files.
-If you want to uninstall the development version, you can run::
+If you want to uninstall the development version, you can simply run::
 
-    % python3 setup.py develop --user --uninstall
+    % python3 -m pip uninstall stagpy
 
 Add the following to your ``.zshrc``::
 
