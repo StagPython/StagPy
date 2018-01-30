@@ -14,7 +14,7 @@ DEPENDENCIES = [
     'matplotlib>=2.0',
     'seaborn>=0.8.1',
     'loam>=0.1.0',
-    'f90nml>=1.0.1',
+    'f90nml>=1.0.2',
     'argcomplete>=1.8',
     'setuptools_scm>=1.15',
     ]
