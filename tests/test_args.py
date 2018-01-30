@@ -23,7 +23,8 @@ def test_invalid_argument(capsys):
         stagpy.args.parse_args(['-dummyinvalidarg'])
     output = capsys.readouterr()
     expected = re.compile(
-        r'^usage: .*\n.*error: unrecognized arguments:.*\n$')
+        r'^usage: .*error: unrecognized arguments:.*\n$',
+        flags=re.DOTALL)
     assert expected.fullmatch(output.err)
 
 def test_invalid_subcmd(capsys):
@@ -31,7 +32,8 @@ def test_invalid_subcmd(capsys):
         stagpy.args.parse_args(['dummyinvalidcmd'])
     output = capsys.readouterr()
     expected = re.compile(
-        r'^usage: .*\n.*error: invalid choice:.*\n$')
+        r'^usage: .*error:.*invalid choice:.*\n$',
+        flags=re.DOTALL)
     assert expected.fullmatch(output.err)
 
 def test_field_subcmd():

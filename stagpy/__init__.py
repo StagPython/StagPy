@@ -19,6 +19,7 @@ import importlib
 import os
 import signal
 import sys
+from loam.manager import ConfigurationManager
 from . import config
 
 
@@ -27,7 +28,7 @@ def _env(var):
     return os.getenv(var) == 'True'
 
 
-_DEBUG = _env('STAGPY_DEBUG')
+DEBUG = _env('STAGPY_DEBUG')
 
 
 def sigint_handler(*_):
@@ -44,7 +45,7 @@ def _load_mpl():
     """Load matplotlib and set some configuration"""
     mpl = importlib.import_module('matplotlib')
     if conf.plot.matplotback:
-        mpl.use(conf.plot.matplotback, warn=_DEBUG)
+        mpl.use(conf.plot.matplotback, warn=DEBUG)
     plt = importlib.import_module('matplotlib.pyplot')
     if conf.plot.useseaborn:
         sns = importlib.import_module('seaborn')
@@ -53,7 +54,7 @@ def _load_mpl():
         plt.xkcd()
 
 
-if not _DEBUG:
+if not DEBUG:
     _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
@@ -65,10 +66,11 @@ except (DistributionNotFound, ValueError):
 
 _CONF_FILE = config.CONFIG_FILE if not _env('STAGPY_NO_CONFIG') else None
 # pylint: disable=invalid-name
-conf = config.StagpyConfiguration(_CONF_FILE, _DEBUG)
+conf = ConfigurationManager(config.CONF_DEF, config_file=_CONF_FILE)
 # pylint: enable=invalid-name
+PARSING_OUT = conf.read_config_()
 
 _load_mpl()
 
-if not _DEBUG:
+if not DEBUG:
     signal.signal(signal.SIGINT, _PREV_INT)

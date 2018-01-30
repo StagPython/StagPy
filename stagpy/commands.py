@@ -3,10 +3,10 @@
 from itertools import zip_longest
 from math import ceil
 from shutil import get_terminal_size
-from subprocess import call
 from textwrap import TextWrapper
-import shlex
-from . import conf, config, phyvars, __version__
+import sys
+import loam.tools
+from . import DEBUG, conf, phyvars, __version__
 from . import stagyydata
 from .misc import baredoc
 
@@ -110,6 +110,30 @@ def version_cmd():
     print('stagpy version: {}'.format(__version__))
 
 
+def report_parsing_problems(missing_sections, missing_opts):
+    """Output message about potential parsing problems."""
+    need_update = False
+    if missing_opts is None or missing_sections is None:
+        print('Unable to read config file {}'.format(conf.config_file_),
+              'Please run stagpy config --create',
+              sep='\n', end='\n\n', file=sys.stderr)
+        return
+    for sub_cmd, missing in missing_opts.items():
+        if DEBUG and missing:
+            print('WARNING! Missing options in {} section of config file:'.
+                  format(sub_cmd), *missing, sep='\n', end='\n\n',
+                  file=sys.stderr)
+        need_update |= bool(missing)
+    if DEBUG and missing_sections:
+        print('WARNING! Missing sections in config file:',
+              *missing_sections, sep='\n', end='\n\n', file=sys.stderr)
+    need_update |= bool(missing_sections)
+    if need_update:
+        print('Missing entries in config file!',
+              'Please run stagpy config --update',
+              end='\n\n', file=sys.stderr)
+
+
 def config_pp(subs):
     """Pretty print of configuration options.
 
@@ -121,10 +145,10 @@ def config_pp(subs):
           end='\n\n')
     for sub in subs:
         hlp_lst = []
-        for opt, meta in conf[sub].defaults():
+        for opt, meta in conf[sub].defaults_():
             if meta.cmd_arg ^ meta.conf_arg:
                 opt += ' (c)' if meta.cmd_arg else ' (f)'
-            hlp_lst.append((opt, meta.help_string))
+            hlp_lst.append((opt, meta.help))
         if hlp_lst:
             print('{}:'.format(sub))
             _pretty_print(hlp_lst, sep=' -- ',
@@ -136,21 +160,9 @@ def config_cmd():
     """Configuration handling.
 
     Other Parameters:
-        conf.config_file (:class:`pathlib.Path`): path of the config file.
-        conf.config.create (bool): whether to create conf.config file.
-        conf.config.update (bool): create conf.config_file. If it already
-            exists, its content is read and only the missing parameters are set
-            to their default value.
-        conf.config.edit (bool): update conf.config_file and open it in
-            conf.editor.
-        conf.config.editor (str): the editor used by conf.config.edit to open
-            the config file.
+        conf.config
     """
     if not (conf.common.config or conf.config.create or conf.config.update or
             conf.config.edit):
-        config_pp(conf.subs())
-    if conf.config.create or conf.config.update:
-        conf.create_config()
-    if conf.config.edit:
-        call(shlex.split('{} {}'.format(conf.config.editor,
-                                        config.CONFIG_FILE)))
+        config_pp(conf.subs_())
+    loam.tools.config_cmd_handler(conf)

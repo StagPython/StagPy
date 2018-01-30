@@ -10,11 +10,6 @@ def repo_dir():
 def example_dir(request, repo_dir):
     return repo_dir / 'Examples' / request.param
 
-@pytest.fixture
-def cleanconf():
-    import stagpy.config
-    return stagpy.config.StagpyConfiguration(None)
-
 @pytest.fixture(scope='module')
 def sdat(example_dir):
     import stagpy.stagyydata

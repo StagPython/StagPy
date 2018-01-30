@@ -15,5 +15,5 @@ stagpy
 
    .. data:: conf
 
-      Global :class:`~stagpy.config.StagpyConfiguration` instance, holding
+      Global :class:`loam.manager.ConfigurationManager` instance, holding
       configuration options.

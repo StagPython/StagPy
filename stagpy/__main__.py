@@ -5,12 +5,12 @@ import importlib
 import signal
 import sys
 import warnings
-from . import conf, sigint_handler
+from . import DEBUG, sigint_handler
 
 
 def main():
     """StagPy entry point"""
-    if not conf.debug:
+    if not DEBUG:
         signal.signal(signal.SIGINT, sigint_handler)
         warnings.simplefilter('ignore')
     args = importlib.import_module('stagpy.args')
@@ -18,7 +18,7 @@ def main():
     try:
         args.parse_args()()
     except error.StagpyError as err:
-        if conf.debug:
+        if DEBUG:
             raise
         print('Oops! StagPy encountered the following problem while '
               'processing your request.',
