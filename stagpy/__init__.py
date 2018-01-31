@@ -54,7 +54,10 @@ def _load_mpl():
         plt.xkcd()
 
 
-if not DEBUG:
+if DEBUG:
+    print('StagPy runs in DEBUG mode because the environment variable',
+          'STAGPY_DEBUG is set to "True"', sep='\n', end='\n\n')
+else:
     _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
