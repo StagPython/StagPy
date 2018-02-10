@@ -75,7 +75,8 @@ def parse_args(arglist=None):
     Returns:
         function: the function implementing the sub command to be executed.
     """
-    main_parser = conf.build_parser_(SUB_CMDS)
+    conf.sub_cmds_ = SUB_CMDS
+    main_parser = conf.build_parser_()
     argcomplete.autocomplete(main_parser)
 
     cmd_args, all_subs = conf.parse_args_(arglist)
@@ -85,7 +86,7 @@ def parse_args(arglist=None):
         return cmd_args.func
 
     if sub_cmd != 'config':
-        commands.report_parsing_problems(*PARSING_OUT)
+        commands.report_parsing_problems(PARSING_OUT)
 
     _update_func(cmd_args)
 

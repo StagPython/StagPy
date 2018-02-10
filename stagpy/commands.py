@@ -6,7 +6,7 @@ from shutil import get_terminal_size
 from textwrap import TextWrapper
 import sys
 import loam.tools
-from . import DEBUG, conf, phyvars, __version__
+from . import conf, phyvars, __version__
 from . import stagyydata
 from .misc import baredoc
 
@@ -110,28 +110,13 @@ def version_cmd():
     print('stagpy version: {}'.format(__version__))
 
 
-def report_parsing_problems(missing_sections, missing_opts):
+def report_parsing_problems(parsing_out):
     """Output message about potential parsing problems."""
-    need_update = False
-    if missing_opts is None or missing_sections is None:
-        print('Unable to read config file {}'.format(conf.config_file_),
-              'Please run stagpy config --create',
+    problems = list(map(str, set(parsing_out[1]) | set(parsing_out[2])))
+    if problems:
+        print('Unable to read config files:', *problems, file=sys.stderr)
+        print('Please run stagpy config --create',
               sep='\n', end='\n\n', file=sys.stderr)
-        return
-    for sub_cmd, missing in missing_opts.items():
-        if DEBUG and missing:
-            print('WARNING! Missing options in {} section of config file:'.
-                  format(sub_cmd), *missing, sep='\n', end='\n\n',
-                  file=sys.stderr)
-        need_update |= bool(missing)
-    if DEBUG and missing_sections:
-        print('WARNING! Missing sections in config file:',
-              *missing_sections, sep='\n', end='\n\n', file=sys.stderr)
-    need_update |= bool(missing_sections)
-    if need_update:
-        print('Missing entries in config file!',
-              'Please run stagpy config --update',
-              end='\n\n', file=sys.stderr)
 
 
 def config_pp(subs):

@@ -13,7 +13,7 @@ from loam.tools import switch_opt, config_conf_section
 # remove doc of stagpy.config
 HOME_DIR = pathlib.Path(expanduser('~'))
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
-CONFIG_FILE = CONFIG_DIR / 'config'
+CONFIG_FILE = CONFIG_DIR / 'config.toml'
 
 CONF_DEF = OrderedDict()
 

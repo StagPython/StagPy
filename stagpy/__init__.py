@@ -67,11 +67,11 @@ except LookupError:
 except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
-_CONF_FILE = config.CONFIG_FILE if not _env('STAGPY_NO_CONFIG') else None
+_CONF_FILES = ([config.CONFIG_FILE] if not _env('STAGPY_NO_CONFIG') else [])
 # pylint: disable=invalid-name
-conf = ConfigurationManager(config.CONF_DEF, config_file=_CONF_FILE)
+conf = ConfigurationManager(config.CONF_DEF, *_CONF_FILES)
 # pylint: enable=invalid-name
-PARSING_OUT = conf.read_config_()
+PARSING_OUT = conf.read_configs_()
 
 _load_mpl()
 
