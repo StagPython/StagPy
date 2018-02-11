@@ -76,7 +76,7 @@ def parse_args(arglist=None):
         function: the function implementing the sub command to be executed.
     """
     conf.sub_cmds_ = SUB_CMDS
-    main_parser = conf.build_parser_()
+    conf.build_parser_()
 
     zsh_dir = CONFIG_DIR / 'zsh'
     if not zsh_dir.is_dir():
