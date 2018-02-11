@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 
 from setuptools import setup
@@ -17,7 +15,7 @@ DEPENDENCIES = [
     'loam>=0.2.0',
     'f90nml>=1.0.2',
     'setuptools_scm>=1.15',
-    ]
+]
 
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 if ON_RTD:  # heavy dependencies are mocked out
@@ -44,12 +42,12 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        ],
+    ],
 
-    packages = ['stagpy'],
-    entry_points = {
+    packages=['stagpy'],
+    entry_points={
         'console_scripts': ['stagpy = stagpy.__main__:main']
-        },
+    },
     setup_requires=['setuptools_scm'],
-    install_requires = DEPENDENCIES,
+    install_requires=DEPENDENCIES,
 )
