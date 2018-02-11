@@ -15,7 +15,6 @@ COMP=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
 .PHONY: all install config clean uninstall autocomplete
 .PHONY: info infopath infozsh infobash
 
-CONF_FILE=~/.config/stagpy/config
 OBJS=setup.py stagpy/*.py
 COMP_ZSH=$(BLD_DIR)/comp.zsh
 COMP_SH=$(BLD_DIR)/comp.sh
@@ -39,13 +38,9 @@ $(COMP_ZSH): $(LINK)
 $(COMP_SH): $(LINK)
 	@echo 'eval "$$($(COMP) $(LINK_NAME))"' > $@
 
-config: $(STAGPY) $(CONF_FILE)
+config: $(STAGPY)
 	@$(STAGPY) config --update
 	@echo 'Config file updated!'
-
-$(CONF_FILE):
-	@$(STAGPY) config --create
-	@echo 'Config file created!'
 
 $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
