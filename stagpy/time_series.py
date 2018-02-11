@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+
 from . import conf, misc, phyvars
 from .error import UnknownTimeVarError
 from .stagyydata import StagyyData

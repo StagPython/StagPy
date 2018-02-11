@@ -5,7 +5,9 @@ from math import ceil
 from shutil import get_terminal_size
 from textwrap import TextWrapper
 import sys
+
 import loam.tools
+
 from . import conf, phyvars, __version__
 from . import stagyydata
 from .config import CONFIG_FILE, CONFIG_LOCAL

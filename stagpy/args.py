@@ -2,7 +2,9 @@
 
 from collections import OrderedDict
 from inspect import isfunction
+
 from loam.tools import Subcmd, set_conf_str
+
 from . import conf, PARSING_OUT
 from . import commands, field, rprof, time_series, plates
 from .misc import baredoc

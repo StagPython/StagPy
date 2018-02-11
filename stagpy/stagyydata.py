@@ -8,7 +8,9 @@ Note:
 
 import re
 import pathlib
+
 import numpy as np
+
 from . import conf, error, parfile, phyvars, stagyyparsers
 
 

@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
 from . import conf, misc, phyvars
 from .error import NotAvailableError
 from .stagyydata import StagyyData

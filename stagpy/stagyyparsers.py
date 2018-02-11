@@ -11,9 +11,11 @@ from operator import itemgetter
 from xml.etree import ElementTree as xmlET
 import re
 import struct
+
 import numpy as np
 import pandas as pd
 import h5py
+
 from .error import ParsingError
 
 

@@ -2,9 +2,11 @@
 
 from copy import deepcopy
 import pathlib
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
+
 from . import conf, error, field, misc, phyvars
 from .stagyydata import StagyyData
 

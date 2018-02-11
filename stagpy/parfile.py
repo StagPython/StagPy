@@ -1,6 +1,7 @@
 """StagYY par file handling."""
 
 import f90nml
+
 from .config import CONFIG_DIR
 from .error import NoParFileError
 

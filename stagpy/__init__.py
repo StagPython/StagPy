@@ -13,13 +13,15 @@ warnings are ignored and only a short form of encountered StagpyErrors is
 printed.
 """
 
-from setuptools_scm import get_version
-from pkg_resources import get_distribution, DistributionNotFound
 import importlib
 import os
 import signal
 import sys
+
+from pkg_resources import get_distribution, DistributionNotFound
+from setuptools_scm import get_version
 from loam.manager import ConfigurationManager
+
 from . import config
 
 

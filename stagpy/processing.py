@@ -10,6 +10,7 @@ second element is None.
 
 import numpy as np
 from scipy import integrate
+
 from . import misc
 from .error import NotAvailableError
 

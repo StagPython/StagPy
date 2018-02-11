@@ -4,7 +4,9 @@ from inspect import getdoc
 import pathlib
 import shutil
 import tempfile
+
 import matplotlib.pyplot as plt
+
 from . import conf
 
 INT_FMT = '{:05d}'

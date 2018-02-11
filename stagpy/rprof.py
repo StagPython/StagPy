@@ -1,6 +1,7 @@
 """Plot radial profiles."""
 
 import matplotlib.pyplot as plt
+
 from . import conf, misc, phyvars
 from .error import UnknownRprofVarError
 from .stagyydata import StagyyData

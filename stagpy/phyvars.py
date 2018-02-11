@@ -6,6 +6,7 @@ be computed from other variables.
 """
 
 from collections import OrderedDict, namedtuple
+
 from . import processing
 
 Varf = namedtuple('Varf', ['description', 'shortname', 'popts'])
