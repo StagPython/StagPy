@@ -2,11 +2,11 @@
 
 from collections import OrderedDict
 from inspect import isfunction
-import argcomplete
 from loam.tools import Subcmd, set_conf_str
 from . import conf, PARSING_OUT
 from . import commands, field, rprof, time_series, plates
 from .misc import baredoc
+from .config import CONFIG_DIR
 
 
 def _sub(extra, func):
@@ -77,7 +77,17 @@ def parse_args(arglist=None):
     """
     conf.sub_cmds_ = SUB_CMDS
     main_parser = conf.build_parser_()
-    argcomplete.autocomplete(main_parser)
+
+    zsh_dir = CONFIG_DIR / 'zsh'
+    if not zsh_dir.is_dir():
+        zsh_dir.mkdir(parents=True)
+    conf.zsh_complete_(zsh_dir / '_stagpy.sh', 'stagpy', 'stagpy-git',
+                       sourceable=True)
+
+    bash_dir = CONFIG_DIR / 'bash'
+    if not bash_dir.is_dir():
+        bash_dir.mkdir(parents=True)
+    conf.bash_complete_(bash_dir / 'stagpy.sh', 'stagpy', 'stagpy-git')
 
     cmd_args, all_subs = conf.parse_args_(arglist)
     sub_cmd = cmd_args.loam_sub_name

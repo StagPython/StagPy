@@ -80,10 +80,8 @@ allowing you to launch the development version of StagPy directly by running
 ``stagpy-git`` in a terminal (provided that ``~/bin`` is in your ``PATH``
 environment variable).
 
-Two files ``comp.zsh`` and ``comp.sh`` are created in the ``bld`` folder.
-Source them respectively in ``~/.zshrc`` and ``~/.bashrc`` to enjoy command
-line completion with zsh and bash.  Run ``make info`` to obtain the right
-sourcing commands.
+See :ref:`somesetup` to enable command line completion (replacing the ``stagpy``
+command with ``stagpy-git``).
 
 To check that everything works fine, go to any subdirectory of the ``Examples``
 directory of the repository and run::
@@ -109,14 +107,4 @@ If you want to uninstall the development version, you can simply run::
 
     % python3 -m pip uninstall stagpy
 
-Add the following to your ``.zshrc``::
-
-    autoload bashcompinit
-    bashcompinit
-    eval "$(register-python-argcomplete stagpy)"
-
-or only this line to your ``.bashrc``::
-
-    eval "$(register-python-argcomplete stagpy)"
-
-to enjoy command line completion with zsh and bash.
+See :ref:`somesetup` to enable command line completion.

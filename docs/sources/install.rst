@@ -11,7 +11,7 @@ installed in Miniconda later, this choice doesn't matter; pick Miniconda if you
 want a faster and lighter installation). Then, use ``conda`` to install the
 following dependencies::
 
-    % conda install numpy scipy pandas h5py matplotlib seaborn argcomplete setuptools_scm
+    % conda install numpy scipy pandas h5py matplotlib seaborn setuptools_scm
 
 .. _Miniconda: http://conda.pydata.org/miniconda.html
 .. _Anaconda: https://www.continuum.io/downloads
@@ -41,28 +41,24 @@ entry-point location, e.g. ``~/.local/bin``).
 See the `Some setup`_ subsection to enable autocompletion and create your
 config file.
 
+.. _somesetup:
+
 Some setup
 ----------
 
-Once you have installed, you can enable command-line auto-completion if you use
-either bash or zsh.
-
-Add this to your ``~/.bashrc`` file::
-
-    eval "$(register-python-argcomplete stagpy)"
-
-Or this to your ``~/.zshrc`` file::
-
-    autoload bashcompinit
-    bashcompinit
-    eval "$(register-python-argcomplete stagpy)"
-
-
-Finally, run the following once to create your config file (in
-``~/.config/stagpy/``)::
+Run the following once to create your config file (in ``~/.config/stagpy/``)::
 
     % stagpy config --create
 
-Enjoy!
+You can enable command-line auto-completion if you use either bash or zsh.
 
+Add this to your ``~/.bashrc`` file::
+
+    source ~/.config/stagpy/bash/stagpy.sh
+
+Or this to your ``~/.zshrc`` file::
+
+    source ~/.config/stagpy/zsh/_stagpy.sh
+
+Enjoy!
 

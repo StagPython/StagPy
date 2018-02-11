@@ -10,14 +10,10 @@ STAGPY=$(VENV_DIR)/bin/stagpy
 VPY=$(VENV_DIR)/bin/python
 VPIP=$(VPY) -m pip
 
-COMP=$(PWD)/$(VENV_DIR)/bin/register-python-argcomplete
-
 .PHONY: all install config clean uninstall autocomplete
 .PHONY: info infopath infozsh infobash
 
 OBJS=setup.py stagpy/*.py
-COMP_ZSH=$(BLD_DIR)/comp.zsh
-COMP_SH=$(BLD_DIR)/comp.sh
 
 all: install
 
@@ -28,15 +24,7 @@ install: $(LINK) config infopath autocomplete
 	@echo
 	@echo 'Installation completed!'
 
-autocomplete: $(COMP_ZSH) $(COMP_SH) infozsh infobash
-
-$(COMP_ZSH): $(LINK)
-	@echo 'autoload bashcompinit' > $@
-	@echo 'bashcompinit' >> $@
-	@echo 'eval "$$($(COMP) $(LINK_NAME))"' >> $@
-
-$(COMP_SH): $(LINK)
-	@echo 'eval "$$($(COMP) $(LINK_NAME))"' > $@
+autocomplete: infozsh infobash
 
 config: $(STAGPY)
 	@$(STAGPY) config --update
@@ -52,7 +40,6 @@ $(STAGPY): $(VENV_DIR) $(OBJS)
 
 $(VENV_DIR):
 	$(PY) -m venv --system-site-packages $@
-	$(VPIP) install -I argcomplete
 
 info: infopath infozsh infobash
 
@@ -63,13 +50,13 @@ infopath:
 infozsh:
 	@echo
 	@echo 'Add'
-	@echo ' source $(PWD)/$(COMP_ZSH)'
+	@echo ' source ~/.config/stagpy/zsh/_stagpy.sh'
 	@echo 'to your ~/.zshrc to enjoy command line completion with zsh!'
 
 infobash:
 	@echo
 	@echo 'Add'
-	@echo ' source $(PWD)/$(COMP_SH)'
+	@echo ' source ~/.config/stagpy/bash/stagpy.sh'
 	@echo 'to your ~/.bashrc to enjoy command line completion with bash!'
 
 clean: uninstall

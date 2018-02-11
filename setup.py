@@ -15,7 +15,6 @@ DEPENDENCIES = [
     'seaborn>=0.8.1',
     'loam>=0.2.0',
     'f90nml>=1.0.2',
-    'argcomplete>=1.8',
     'setuptools_scm>=1.15',
     ]
 

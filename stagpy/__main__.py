@@ -1,4 +1,3 @@
-# PYTHON_ARGCOMPLETE_OK
 """The stagpy module is callable"""
 
 import importlib
