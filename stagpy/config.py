@@ -8,7 +8,7 @@ from collections import OrderedDict
 from os.path import expanduser
 import pathlib
 from loam.tools import ConfOpt as Conf
-from loam.tools import switch_opt, config_conf_section
+from loam.tools import switch_opt, config_conf_section, set_conf_opt
 
 # remove doc of stagpy.config
 HOME_DIR = pathlib.Path(expanduser('~'))
@@ -21,6 +21,7 @@ CONF_DEF = OrderedDict()
 CONF_DEF['common'] = OrderedDict((
     ('config', Conf(None, True, None, {'action': 'store_true'},
                     False, 'print config options')),
+    ('set', set_conf_opt()),
 ))
 
 CONF_DEF['core'] = OrderedDict((

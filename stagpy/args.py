@@ -3,7 +3,7 @@
 from collections import OrderedDict
 from inspect import isfunction
 import argcomplete
-from loam.tools import Subcmd
+from loam.tools import Subcmd, set_conf_str
 from . import conf, PARSING_OUT
 from . import commands, field, rprof, time_series, plates
 from .misc import baredoc
@@ -89,6 +89,9 @@ def parse_args(arglist=None):
         commands.report_parsing_problems(PARSING_OUT)
 
     _update_func(cmd_args)
+
+    if conf.common.set:
+        set_conf_str(conf, conf.common.set)
 
     if conf.common.config:
         commands.config_pp(all_subs)
