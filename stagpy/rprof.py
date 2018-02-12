@@ -21,6 +21,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
                 fname += rvar + '_'
                 rad = rads[rvar] if rvar in rads else rprofs['r']
                 axes[iplt].plot(rprofs[rvar], rad,
+                                linestyle=conf.rprof.style,
                                 label=metas[rvar].description)
                 if xlabel is None:
                     xlabel = metas[rvar].shortname
