@@ -455,6 +455,8 @@ def read_geom_h5(xdmf_file, snapshot):
     """
     header = {}
     xdmf_root = xmlET.parse(xdmf_file).getroot()
+    if snapshot is None:
+        return None, xdmf_root
 
     # Domain, Temporal Collection, Snapshot
     # should check that this is indeed the required snapshot
