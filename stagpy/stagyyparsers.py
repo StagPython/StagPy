@@ -454,7 +454,7 @@ def read_geom_h5(xdmf_file, snapshot):
         (dict, root): geometry information and root of xdmf document.
     """
     header = {}
-    xdmf_root = xmlET.parse(xdmf_file).getroot()
+    xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
     if snapshot is None:
         return None, xdmf_root
 
@@ -548,7 +548,7 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
     if header is None:
         header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
     else:
-        xdmf_root = xmlET.parse(xdmf_file).getroot()
+        xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
 
     npc = header['nts'] // header['ncs']  # number of grid point per node
     flds = np.zeros(_flds_shape(fieldname, header))
