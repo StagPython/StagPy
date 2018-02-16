@@ -27,8 +27,7 @@ install: $(LINK) config infopath autocomplete
 autocomplete: infozsh infobash
 
 config: $(STAGPY)
-	@$(STAGPY) config --update
-	@echo 'Config file updated!'
+	$(STAGPY) config --update
 
 $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
@@ -60,14 +59,10 @@ infobash:
 	@echo 'to your ~/.bashrc to enjoy command line completion with bash!'
 
 clean: uninstall
-	@echo 'Removing build files'
-	@-rm -rf $(BLD_DIR)
+	-rm -rf $(BLD_DIR)
 
 uninstall:
-	@echo 'Removing config files...'
-	@-rm -rf ~/.config/stagpy/
-	@echo 'Removing link...'
-	@-rm -f $(LINK)
-	@echo 'Done.'
+	-rm -rf ~/.config/stagpy/
+	-rm -f $(LINK)
 
 again: clean all
