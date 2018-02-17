@@ -338,15 +338,17 @@ def _ncores(meshes, twod):
                meshes[nns[0] - 1]['X'][-1, 0, 0]):
             nns[0] += 1
             nnpb -= 1
+    cpu = lambda icy: icy * nns[0]
     if twod is None or 'Y' in twod:
         while (nnpb > 1 and
-               meshes[nns[1]]['Y'][0, 0, 0] ==
-               meshes[nns[1] - 1]['Y'][0, -1, 0]):
+               meshes[cpu(nns[1])]['Y'][0, 0, 0] ==
+               meshes[cpu(nns[1] - 1)]['Y'][0, -1, 0]):
             nns[1] += 1
-            nnpb -= 1
+            nnpb -= nns[0]
+    cpu = lambda icz: icz * (nns[0] * nns[1])
     while (nnpb > 1 and
-           meshes[nns[2]]['Z'][0, 0, 0] ==
-           meshes[nns[2] - 1]['Z'][0, 0, -1]):
+           meshes[cpu(nns[2])]['Z'][0, 0, 0] ==
+           meshes[cpu(nns[2] - 1)]['Z'][0, 0, -1]):
         nns[2] += 1
         nnpb -= 1
     return np.array(nns)
