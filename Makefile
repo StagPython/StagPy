@@ -35,7 +35,6 @@ $(LINK): $(STAGPY)
 
 $(STAGPY): $(VENV_DIR) $(OBJS)
 	$(VPIP) install -e .
-	@-rm -rf stagpy.egg-info
 
 $(VENV_DIR):
 	$(PY) -m venv --system-site-packages $@
@@ -60,6 +59,7 @@ infobash:
 
 clean: uninstall
 	-rm -rf $(BLD_DIR)
+	-rm -rf stagpy.egg-info
 
 uninstall:
 	-rm -rf ~/.config/stagpy/
