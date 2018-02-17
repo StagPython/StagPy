@@ -30,4 +30,4 @@ See `the complete documentation`__ for more information on the installation and
 explanations on how to use StagPy.
 
 .. __: https://pypi.python.org/pypi/stagpy
-.. __: http://stagpy.readthedocs.org/en/latest/
+.. __: http://stagpy.readthedocs.org
