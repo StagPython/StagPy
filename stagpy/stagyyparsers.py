@@ -350,7 +350,7 @@ def _ncores(meshes, twod):
            meshes[cpu(nns[2])]['Z'][0, 0, 0] ==
            meshes[cpu(nns[2] - 1)]['Z'][0, 0, -1]):
         nns[2] += 1
-        nnpb -= 1
+        nnpb -= nns[0] * nns[1]
     return np.array(nns)
 
 
