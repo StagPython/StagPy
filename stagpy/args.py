@@ -12,7 +12,7 @@ from .config import CONFIG_DIR
 
 
 def _sub(extra, func):
-    """Build Subcmd unsing doc of func."""
+    """Build Subcmd using doc of func."""
     return Subcmd(extra, dict(func=func), baredoc(func))
 
 
