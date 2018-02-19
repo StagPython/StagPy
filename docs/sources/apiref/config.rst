@@ -4,12 +4,22 @@ config
 .. automodule:: stagpy.config
    :members:
 
+   .. data:: HOME_DIR
+      :annotation: = pathlib.Path(os.path.expanduser('~'))
+
+      Home directory.
+
    .. data:: CONFIG_DIR
-      :annotation: = pathlib.Path(os.path.expanduser(~)) / '.config' / 'stagpy'
+      :annotation: = HOME_DIR / '.config' / 'stagpy'
 
       StagPy configuration directory.
 
    .. data:: CONFIG_FILE
-      :annotation: = config.CONFIG_DIR / 'config'
+      :annotation: = CONFIG_DIR / 'config.toml'
 
-      Path of default configuration file.
+      Path of global configuration file.
+
+   .. data:: CONFIG_LOCAL
+      :annotation: = pathlib.Path('.stagpy.toml')
+
+      Path of local configuration file.
