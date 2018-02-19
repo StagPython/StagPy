@@ -11,7 +11,6 @@ import pathlib
 from loam.tools import ConfOpt as Conf
 from loam.tools import switch_opt, config_conf_section, set_conf_opt
 
-# remove doc of stagpy.config
 HOME_DIR = pathlib.Path(expanduser('~'))
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 CONFIG_FILE = CONFIG_DIR / 'config.toml'
