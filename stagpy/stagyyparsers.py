@@ -63,6 +63,37 @@ def time_series(timefile, colnames):
     return data
 
 
+def time_series_h5(timefile, colnames):
+    """Read temporal series HDF5 file.
+
+    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    additional numeric column names will be deduced from the content of the
+    file.
+
+    Args:
+        timefile (:class:`pathlib.Path`): path of the TimeSeries.h5 file.
+        colnames (list of names): names of the variables expected in
+            :data:`timefile` (may be modified).
+
+    Returns:
+        :class:`pandas.DataFrame`:
+            Time series, with the variables in columns and the time steps in
+            rows.
+    """
+    if not timefile.is_file():
+        return None
+    with h5py.File(timefile, 'r') as h5f:
+        dset = h5f['tseries']
+        _, ncols = dset.shape
+        ncols -= 1  # first is istep
+        if len(colnames) < ncols:
+            colnames.extend(h5f['names'].value[len(colnames) + 1:])
+            colnames.extend(range(ncols - len(colnames)))
+        data = dset.value
+    return pd.DataFrame(data[:, 1:],
+                        index=np.int_(data[:, 0]), columns=colnames)
+
+
 def _extract_rsnap_isteps(rproffile):
     """Extract istep and compute list of rows to delete"""
     step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')

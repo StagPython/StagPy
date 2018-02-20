@@ -729,6 +729,11 @@ class StagyyData:
         names as columns.
         """
         if self._stagdat['tseries'] is UNDETERMINED:
+            timefile = self.filename('TimeSeries.h5')
+            self._stagdat['tseries'] = stagyyparsers.time_series_h5(
+                timefile, list(phyvars.TIME.keys()))
+            if self._stagdat['tseries'] is not None:
+                return self._stagdat['tseries']
             timefile = self.filename('time.dat')
             if self.hdf5 and not timefile.is_file():
                 # check legacy folder as well
