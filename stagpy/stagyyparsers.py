@@ -67,8 +67,7 @@ def time_series_h5(timefile, colnames):
     """Read temporal series HDF5 file.
 
     If :data:`colnames` is too long, it will be truncated. If it is too short,
-    additional numeric column names will be deduced from the content of the
-    file.
+    additional column names will be deduced from the content of the file.
 
     Args:
         timefile (:class:`pathlib.Path`): path of the TimeSeries.h5 file.
