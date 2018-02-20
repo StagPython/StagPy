@@ -175,6 +175,53 @@ def rprof(rproffile, colnames):
     return data, df_times
 
 
+def rprof_h5(rproffile, colnames):
+    """Extract radial profiles data
+
+    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    additional column names will be deduced from the content of the file.
+
+    Args:
+        rproffile (:class:`pathlib.Path`): path of the rprof.dat file.
+        colnames (list of names): names of the variables expected in
+            :data:`rproffile`.
+
+    Returns:
+        tuple of :class:`pandas.DataFrame`: (profs, times)
+            :data:`profs` are the radial profiles, with the variables in
+            columns and rows double-indexed with the time step and the radial
+            index of numerical cells.
+
+            :data:`times` is the dimensionless time indexed by time steps.
+    """
+    if not rproffile.is_file():
+        return None, None
+    isteps = []
+    with h5py.File(rproffile) as h5f:
+        dnames = sorted(dname for dname in h5f.keys()
+                        if dname.startswith('rprof_'))
+        ncols = h5f['names'].shape[0]
+        if len(colnames) < ncols:
+            colnames.extend(h5f['names'].value[len(colnames):])
+            colnames.extend(range(ncols - len(colnames)))
+        data = np.zeros((0, ncols))
+        for dname in dnames:
+            dset = h5f[dname]
+            data = np.concatenate((data, dset.value))
+            isteps.append((dset.attrs['istep'], dset.attrs['time'],
+                           dset.shape[0]))
+
+    id_arr = [[], []]
+    for istep, _, n_z in isteps:
+        id_arr[0].extend(repeat(istep, n_z))
+        id_arr[1].extend(range(n_z))
+
+    df_data = pd.DataFrame(data, index=id_arr, columns=colnames)
+    df_times = pd.DataFrame(list(map(itemgetter(1), isteps)),
+                            index=map(itemgetter(0), isteps))
+    return df_data, df_times
+
+
 def _readbin(fid, fmt='i', nwords=1, file64=False):
     """Read n words of 4 or 8 bytes with fmt format.
 
