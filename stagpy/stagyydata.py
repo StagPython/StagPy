@@ -748,7 +748,7 @@ class StagyyData:
             rproffile = self.filename('rprof.h5')
             self._stagdat['rprof'] = stagyyparsers.rprof_h5(
                 rproffile, list(phyvars.RPROF.keys()))
-            if self._stagdat['rprof'] is not None:
+            if self._stagdat['rprof'][0] is not None:
                 return self._stagdat['rprof']
             rproffile = self.filename('rprof.dat')
             if self.hdf5 and not rproffile.is_file():
