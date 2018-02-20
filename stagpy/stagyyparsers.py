@@ -19,6 +19,23 @@ import h5py
 from .error import ParsingError
 
 
+def _tidy_names(names, nnames, extra_names=None):
+    """Truncate or extend names so that its len is nnames.
+
+    The list is modified, this function returns nothing.
+
+    Args:
+        names (list): list of names.
+        nnames (int): desired number of names.
+        extra_names (list of str): list of names to be used to extend the list
+            if needed. If this list isn't provided, a range is used instead.
+    """
+    if len(names) < nnames and extra_names is not None:
+        names.extend(extra_names)
+    names.extend(range(nnames - len(names)))
+    del names[nnames:]
+
+
 def time_series(timefile, colnames):
     """Read temporal series text file.
 
@@ -29,7 +46,7 @@ def time_series(timefile, colnames):
     Args:
         timefile (:class:`pathlib.Path`): path of the time.dat file.
         colnames (list of names): names of the variables expected in
-            :data:`timefile`.
+            :data:`timefile` (may be modified).
 
     Returns:
         :class:`pandas.DataFrame`:
@@ -58,7 +75,8 @@ def time_series(timefile, colnames):
         data = data.take(list(rows_to_keep), convert=False)
 
     ncols = data.shape[1]
-    data.columns = colnames[:ncols] + list(range(0, ncols - len(colnames)))
+    _tidy_names(colnames, ncols)
+    data.columns = colnames
 
     return data
 
@@ -85,10 +103,7 @@ def time_series_h5(timefile, colnames):
         dset = h5f['tseries']
         _, ncols = dset.shape
         ncols -= 1  # first is istep
-        colnames = colnames[:ncols]
-        if len(colnames) < ncols:
-            colnames.extend(h5f['names'].value[len(colnames) + 1:])
-            colnames.extend(range(ncols - len(colnames)))
+        _tidy_names(colnames, ncols, h5f['names'].value[len(colnames) + 1:])
         data = dset.value
     return pd.DataFrame(data[:, 1:],
                         index=np.int_(data[:, 0]), columns=colnames)
@@ -138,7 +153,7 @@ def rprof(rproffile, colnames):
     Args:
         rproffile (:class:`pathlib.Path`): path of the rprof.dat file.
         colnames (list of names): names of the variables expected in
-            :data:`rproffile`.
+            :data:`rproffile` (may be modified).
 
     Returns:
         tuple of :class:`pandas.DataFrame`: (profs, times)
@@ -169,7 +184,8 @@ def rprof(rproffile, colnames):
     data.index = id_arr
 
     ncols = data.shape[1]
-    data.columns = colnames[:ncols] + list(range(0, ncols - len(colnames)))
+    _tidy_names(colnames, ncols)
+    data.columns = colnames
 
     df_times = pd.DataFrame(list(map(itemgetter(1), isteps)),
                             index=map(itemgetter(0), isteps))
@@ -202,10 +218,7 @@ def rprof_h5(rproffile, colnames):
         dnames = sorted(dname for dname in h5f.keys()
                         if dname.startswith('rprof_'))
         ncols = h5f['names'].shape[0]
-        colnames = colnames[:ncols]
-        if len(colnames) < ncols:
-            colnames.extend(h5f['names'].value[len(colnames):])
-            colnames.extend(range(ncols - len(colnames)))
+        _tidy_names(colnames, ncols, h5f['names'].value[len(colnames):])
         data = np.zeros((0, ncols))
         for dname in dnames:
             dset = h5f[dname]

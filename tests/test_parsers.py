@@ -3,7 +3,7 @@ from stagpy import stagyyparsers as prs
 
 def test_time_series_prs(sdat):
     names = ['aa', 'bb', 'cc']
-    data = prs.time_series(sdat.filename('time.dat'), names)
+    data = prs.time_series(sdat.filename('time.dat'), list(names))
     assert (data.columns[:3] == names).all()
     assert (data.columns[3:] == list(range(data.shape[1] - 3))).all()
 
@@ -12,7 +12,7 @@ def test_time_series_invalid_prs():
 
 def test_rprof_prs(sdat):
     names = ['aa', 'bb', 'cc']
-    data, time = prs.rprof(sdat.filename('rprof.dat'), names)
+    data, time = prs.rprof(sdat.filename('rprof.dat'), list(names))
     assert (data.columns[:3] == names).all()
     assert (data.columns[3:] == list(range(data.shape[1] - 3))).all()
 
