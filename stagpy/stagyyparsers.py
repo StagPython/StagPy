@@ -85,6 +85,7 @@ def time_series_h5(timefile, colnames):
         dset = h5f['tseries']
         _, ncols = dset.shape
         ncols -= 1  # first is istep
+        colnames = colnames[:ncols]
         if len(colnames) < ncols:
             colnames.extend(h5f['names'].value[len(colnames) + 1:])
             colnames.extend(range(ncols - len(colnames)))
@@ -201,6 +202,7 @@ def rprof_h5(rproffile, colnames):
         dnames = sorted(dname for dname in h5f.keys()
                         if dname.startswith('rprof_'))
         ncols = h5f['names'].shape[0]
+        colnames = colnames[:ncols]
         if len(colnames) < ncols:
             colnames.extend(h5f['names'].value[len(colnames):])
             colnames.extend(range(ncols - len(colnames)))
