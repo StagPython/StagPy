@@ -26,7 +26,7 @@ CONF_DEF['common'] = OrderedDict((
 
 CONF_DEF['core'] = OrderedDict((
     ('path', Conf('./', True, 'p', {},
-                  True, 'StagYY run directory', '_files -/')),
+                  True, 'path of StagYY run directory or par file', '_files')),
     ('outname', Conf('stagpy', True, 'n', {},
                      True, 'StagPy output file name prefix')),
     ('timesteps', Conf(None, True, 't',
