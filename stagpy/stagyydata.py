@@ -661,7 +661,10 @@ class StagyyData:
         """Initialization of instances:
 
         Args:
-            path (pathlike): path of the StagYY run.
+            path (pathlike): path of the StagYY run. It can either be the path
+                of the directory containing the par file, or the path of the
+                par file. If the path given is a directory, the path of the par
+                file is assumed to be path/par.
             nfields_max (int): the maximum number of scalar fields that should
                 be kept in memory. Set to a value smaller than 6 if you want no
                 limit.
@@ -675,10 +678,17 @@ class StagyyData:
             collected_fields (list of (int, str)): list of fields currently in
                 memory, described by istep and field name.
         """
-        self._rundir = {'path': pathlib.Path(path),
+        runpath = pathlib.Path(path)
+        if runpath.is_file():
+            parname = runpath.name
+            runpath = runpath.parent
+        else:
+            parname = 'par'
+        self._rundir = {'path': runpath,
+                        'par': parname,
                         'hdf5': UNDETERMINED,
                         'ls': UNDETERMINED}
-        self._stagdat = {'par': parfile.readpar(self.path),
+        self._stagdat = {'par': parfile.readpar(self.parpath),
                          'tseries': UNDETERMINED,
                          'rprof': UNDETERMINED}
         self.steps = _Steps(self)
@@ -700,6 +710,14 @@ class StagyyData:
         :class:`pathlib.Path` instance.
         """
         return self._rundir['path']
+
+    @property
+    def parpath(self):
+        """Path of par file.
+
+        :class:`pathlib.Path` instance.
+        """
+        return self.path / self._rundir['par']
 
     @property
     def hdf5(self):

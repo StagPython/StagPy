@@ -630,20 +630,19 @@ def _read_default():
     return PAR_DEFAULT
 
 
-def readpar(path):
+def readpar(par_file):
     """Read StagYY par file.
 
     :data:`PAR_DFLT_FILE` and ultimately :data:`PAR_DEFAULT` are used to fill
     missing entries.
 
     Args:
-        path (:class:`pathlib.Path`): path of par file.
+        par_file (:class:`pathlib.Path`): path of par file.
     Returns:
         :class:`f90nml.namelist.Namelist`: case insensitive dict of dict of
         values with first key being the namelist and second key the variables'
         name.
     """
-    par_file = path / 'par'
     par_dflt = _read_default()
     if par_file.is_file():
         par_nml = f90nml.read(str(par_file))
