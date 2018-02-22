@@ -56,7 +56,7 @@ def ebalance(sdat, tstart=None, tend=None):
     rbot, rtop = misc.get_rbounds(sdat.steps.last)
     if rbot != 0:  # spherical
         coefsurf = (rtop / rbot)**2
-        volume = rbot * (1 - (rtop / rbot)**3) / 3
+        volume = rbot * ((rtop / rbot)**3 - 1) / 3
     else:
         coefsurf = 1.
         volume = 1.
