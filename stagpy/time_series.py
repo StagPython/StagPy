@@ -23,7 +23,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                 fname.append(tvar)
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
-                                linestyle=conf.time.style,
+                                conf.time.style,
                                 label=metas[tvar].description,
                                 linewidth=conf.plot.linewidth)
                 lbl = metas[tvar].shortname
