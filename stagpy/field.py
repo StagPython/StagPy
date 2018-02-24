@@ -150,6 +150,9 @@ def plot_scalar(step, var, scaling=None, **extra):
     cbar.set_label(r'${}$'.format(meta.shortname))
     plt.axis('equal')
     plt.axis('off')
+    axis.set_adjustable('box')
+    axis.set_xlim(xmesh.min(), xmesh.max())
+    axis.set_ylim(ymesh.min(), ymesh.max())
     return fig, axis, surf, cbar
 
 
