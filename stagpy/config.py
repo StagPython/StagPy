@@ -43,6 +43,8 @@ CONF_DEF['plot'] = OrderedDict((
                     True, 'figure format (pdf, eps, svg, png)')),
     ('fontsize', Conf(16, False, None, {},
                       True, 'font size')),
+    ('dpi', Conf(150, True, None, {},
+                 True, 'resolution in DPI')),
     ('linewidth', Conf(2, False, None, {},
                        True, 'line width')),
     ('matplotback', Conf('agg', False, None, {},
