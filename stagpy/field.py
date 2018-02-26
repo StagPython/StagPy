@@ -147,7 +147,8 @@ def plot_scalar(step, var, scaling=None, **extra):
                            shading='gouraud', **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
-    cbar.set_label(r'${}$'.format(meta.shortname))
+    cbar.set_label(r'${}$'.format(meta.shortname),
+                   rotation='horizontal', va='center')
     plt.axis('equal')
     plt.axis('off')
     axis.set_adjustable('box')
