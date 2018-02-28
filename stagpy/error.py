@@ -105,6 +105,24 @@ class InvalidTimestepError(StagpyError):
         super().__init__(sdat, istep, msg)
 
 
+class InvalidTimeFractionError(StagpyError):
+
+    """Raised when invalid fraction of series is requested."""
+
+    def __init__(self, fraction):
+        """Initialization of instances:
+
+        Args:
+            fraction (float): the invalid fraction.
+
+        Attributes:
+            fraction (float): the invalid fraction.
+        """
+        self.fraction = fraction
+        super().__init__('Fraction should be in (0,1] (received {})'
+                         .format(fraction))
+
+
 class InvalidZoomError(StagpyError):
 
     """Raised when invalid zoom is requested."""

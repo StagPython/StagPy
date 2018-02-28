@@ -105,6 +105,9 @@ CONF_DEF['time'] = OrderedDict((
     ('tend',
         Conf(None, True, None, {'type': float},
              False, 'end time')),
+    ('fraction',
+        Conf(None, True, None, {'type': float},
+             False, 'ending fraction of series to process')),
 ))
 
 CONF_DEF['plates'] = OrderedDict((

@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from . import conf, misc, phyvars
-from .error import UnknownTimeVarError
+from .error import UnknownTimeVarError, InvalidTimeFractionError
 from .stagyydata import StagyyData
 
 
@@ -148,6 +148,15 @@ def cmd():
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return
+
+    if conf.time.fraction is not None:
+        if not 0 < conf.time.fraction <= 1:
+            raise InvalidTimeFractionError(conf.time.fraction)
+        conf.time.tend = None
+        t_0 = sdat.tseries.iloc[0].loc['t']
+        t_f = sdat.tseries.iloc[-1].loc['t']
+        conf.time.tstart = (t_0 * conf.time.fraction
+                            + t_f * (1 - conf.time.fraction))
 
     lovs = misc.list_of_vars(conf.time.plot)
     if lovs:
