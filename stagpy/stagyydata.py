@@ -606,6 +606,20 @@ class _StepsView:
             'fields': [],
             'func': lambda _: True,
         }
+        self._dflt_func = self._flt['func']
+
+    def __repr__(self):
+        rep = 'snaps' if isinstance(self._col, _Snaps) else 'steps'
+        rep += '[{}:{}:{}]'.format(*self._idx)
+        flts = []
+        for flt in ('snap', 'rprof', 'fields'):
+            if self._flt[flt]:
+                flts.append('{}={}'.format(flt, repr(self._flt[flt])))
+        if self._flt['func'] is not self._dflt_func:
+            flts.append('func={}'.format(repr(self._flt['func'])))
+        if flts:
+            rep += '.filter({})'.format(', '.join(flts))
+        return rep
 
     def _pass(self, step):
         """Check whether a :class:`_Step` passes the filters."""
