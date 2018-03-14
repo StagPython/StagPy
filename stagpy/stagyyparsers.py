@@ -103,7 +103,8 @@ def time_series_h5(timefile, colnames):
         dset = h5f['tseries']
         _, ncols = dset.shape
         ncols -= 1  # first is istep
-        _tidy_names(colnames, ncols, h5f['names'].value[len(colnames) + 1:])
+        h5names = map(bytes.decode, h5f['names'].value[len(colnames) + 1:])
+        _tidy_names(colnames, ncols, h5names)
         data = dset.value
     return pd.DataFrame(data[:, 1:],
                         index=np.int_(data[:, 0]), columns=colnames)
@@ -218,7 +219,8 @@ def rprof_h5(rproffile, colnames):
         dnames = sorted(dname for dname in h5f.keys()
                         if dname.startswith('rprof_'))
         ncols = h5f['names'].shape[0]
-        _tidy_names(colnames, ncols, h5f['names'].value[len(colnames):])
+        h5names = map(bytes.decode, h5f['names'].value[len(colnames):])
+        _tidy_names(colnames, ncols, h5names)
         data = np.zeros((0, ncols))
         for dname in dnames:
             dset = h5f[dname]
