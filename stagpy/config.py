@@ -8,7 +8,7 @@ from collections import OrderedDict
 from os.path import expanduser
 import pathlib
 
-from loam.tools import ConfOpt as Conf
+from loam.manager import ConfOpt as Conf
 from loam.tools import switch_opt, config_conf_section, set_conf_opt
 
 HOME_DIR = pathlib.Path(expanduser('~'))

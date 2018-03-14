@@ -3,7 +3,8 @@
 from collections import OrderedDict
 from inspect import isfunction
 
-from loam.tools import Subcmd, set_conf_str
+from loam.tools import set_conf_str, create_complete_files
+from loam.cli import Subcmd, CLIManager
 
 from . import conf, PARSING_OUT
 from . import commands, field, rprof, time_series, plates
@@ -11,23 +12,22 @@ from .misc import baredoc
 from .config import CONFIG_DIR
 
 
-def _sub(extra, func):
-    """Build Subcmd using doc of func."""
-    return Subcmd(extra, dict(func=func), baredoc(func))
+def _sub(cmd, *sections):
+    """Build Subcmd instance."""
+    return Subcmd(baredoc(cmd), *sections, func=cmd)
 
 
 SUB_CMDS = OrderedDict((
-    (None, Subcmd(['common'],
-                  dict(func=lambda: print('stagpy -h for usage')),
-                  'read and process StagYY binary data')),
-    ('field', _sub(['core', 'plot'], field)),
-    ('rprof', _sub(['core', 'plot'], rprof)),
-    ('time', _sub(['core', 'plot'], time_series)),
-    ('plates', _sub(['core', 'plot', 'scaling'], plates)),
-    ('info', _sub(['core'], commands.info_cmd)),
-    ('var', _sub([], commands.var_cmd)),
-    ('version', _sub([], commands.version_cmd)),
-    ('config', _sub([], commands.config_cmd)),
+    ('common_', Subcmd('read and process StagYY binary data', 'common',
+                       func=lambda: print('stagpy -h for usage'))),
+    ('field', _sub(field, 'core', 'plot')),
+    ('rprof', _sub(rprof, 'core', 'plot')),
+    ('time', _sub(time_series, 'core', 'plot')),
+    ('plates', _sub(plates, 'core', 'plot', 'scaling')),
+    ('info', _sub(commands.info_cmd, 'core')),
+    ('var', _sub(commands.var_cmd)),
+    ('version', _sub(commands.version_cmd)),
+    ('config', _sub(commands.config_cmd)),
 ))
 
 
@@ -77,21 +77,12 @@ def parse_args(arglist=None):
     Returns:
         function: the function implementing the sub command to be executed.
     """
-    conf.sub_cmds_ = SUB_CMDS
-    conf.build_parser_()
+    climan = CLIManager(conf, **SUB_CMDS)
 
-    zsh_dir = CONFIG_DIR / 'zsh'
-    if not zsh_dir.is_dir():
-        zsh_dir.mkdir(parents=True)
-    conf.zsh_complete_(zsh_dir / '_stagpy.sh', 'stagpy', 'stagpy-git',
-                       sourceable=True)
+    create_complete_files(climan, CONFIG_DIR, 'stagpy', 'stagpy-git',
+                          zsh_sourceable=True)
 
-    bash_dir = CONFIG_DIR / 'bash'
-    if not bash_dir.is_dir():
-        bash_dir.mkdir(parents=True)
-    conf.bash_complete_(bash_dir / 'stagpy.sh', 'stagpy', 'stagpy-git')
-
-    cmd_args, all_subs = conf.parse_args_(arglist)
+    cmd_args, all_subs = climan.parse_args(arglist)
     sub_cmd = cmd_args.loam_sub_name
 
     if sub_cmd is None:

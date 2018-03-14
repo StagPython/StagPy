@@ -157,5 +157,5 @@ def config_cmd():
     if not (conf.common.config or conf.config.create
             or conf.config.create_local or conf.config.update
             or conf.config.edit):
-        config_pp(conf.subs_())
+        config_pp(conf.sections_())
     loam.tools.config_cmd_handler(conf)
