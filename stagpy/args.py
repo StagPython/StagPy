@@ -33,16 +33,18 @@ SUB_CMDS = OrderedDict((
 
 def _steps_to_slices():
     """parse timesteps and snapshots arguments and return slices"""
-    if conf.core.timesteps is None and conf.core.snapshots is None:
+    if not (conf.core.timesteps or conf.core.snapshots):
         # default to the last snap
+        conf.core.timesteps = None
         conf.core.snapshots = slice(-1, None, None)
         return
-    elif conf.core.snapshots is not None:
+    elif conf.core.snapshots:
         # snapshots take precedence over timesteps
         # if both are defined
         conf.core.timesteps = None
         steps = conf.core.snapshots
     else:
+        conf.core.snapshots = None
         steps = conf.core.timesteps
     steps = steps.split(':')
     steps[0] = int(steps[0]) if steps[0] else None

@@ -30,10 +30,10 @@ CONF_DEF['core'] = OrderedDict((
     ('outname', Conf('stagpy', True, 'n', {},
                      True, 'StagPy output file name prefix')),
     ('timesteps', Conf(None, True, 't',
-                       {'nargs': '?', 'const': ':', 'type': str},
+                       {'nargs': '?', 'const': '', 'type': str},
                        False, 'timesteps slice')),
     ('snapshots', Conf(None, True, 's',
-                       {'nargs': '?', 'const': ':', 'type': str},
+                       {'nargs': '?', 'const': '', 'type': str},
                        False, 'snapshots slice')),
 ))
 
