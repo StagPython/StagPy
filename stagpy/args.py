@@ -14,7 +14,8 @@ from .config import CONFIG_DIR
 
 def _sub(cmd, *sections):
     """Build Subcmd instance."""
-    return Subcmd(baredoc(cmd), *sections, func=cmd)
+    cmd_func = cmd if isfunction(cmd) else cmd.cmd
+    return Subcmd(baredoc(cmd), *sections, func=cmd_func)
 
 
 SUB_CMDS = OrderedDict((
@@ -61,12 +62,6 @@ def _steps_to_slices():
         conf.core.timesteps = steps
 
 
-def _update_func(cmd_args):
-    """Extract command func if necessary"""
-    if not isfunction(cmd_args.func):
-        cmd_args.func = cmd_args.func.cmd
-
-
 def parse_args(arglist=None):
     """Parse cmd line arguments.
 
@@ -92,8 +87,6 @@ def parse_args(arglist=None):
 
     if sub_cmd != 'config':
         commands.report_parsing_problems(PARSING_OUT)
-
-    _update_func(cmd_args)
 
     if conf.common.set:
         set_conf_str(conf, conf.common.set)
