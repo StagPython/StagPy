@@ -432,6 +432,9 @@ class _Steps(dict):
         super().__init__()
         super().__setitem__(None, _EmptyStep())  # for non existent snaps
 
+    def __repr__(self):
+        return '{}.steps'.format(repr(self.sdat))
+
     def __setitem__(self, key, value):
         pass
 
@@ -509,6 +512,9 @@ class _Snaps(_Steps):
         self._isteps = {}
         self._all_isteps_known = False
         super().__init__(sdat)
+
+    def __repr__(self):
+        return '{}.snaps'.format(repr(self.sdat))
 
     def __getitem__(self, key):
         try:
@@ -611,7 +617,7 @@ class _StepsView:
         self._dflt_func = self._flt['func']
 
     def __repr__(self):
-        rep = 'snaps' if isinstance(self._col, _Snaps) else 'steps'
+        rep = repr(self._col)
         rep += '[{}:{}:{}]'.format(*self._idx)
         flts = []
         for flt in ('snap', 'rprof', 'fields'):
