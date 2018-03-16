@@ -436,9 +436,10 @@ class _Steps(dict):
         pass
 
     def __getitem__(self, key):
-        if isinstance(key, slice):
+        try:
             return _StepsView(self, key)
-        return super().__getitem__(key)
+        except AttributeError:
+            return super().__getitem__(key)
 
     def __missing__(self, istep):
         try:
@@ -510,9 +511,10 @@ class _Snaps(_Steps):
         super().__init__(sdat)
 
     def __getitem__(self, key):
-        if isinstance(key, slice):
+        try:
             return _StepsView(self, key)
-        return self.__missing__(key)
+        except AttributeError:
+            return self.__missing__(key)
 
     def __missing__(self, isnap):
         if isnap < 0:
