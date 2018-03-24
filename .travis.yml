@@ -1,25 +1,21 @@
 sudo: false
 language: python
 
-python:
-    - "3.4"
-    - "3.5"
-    - "3.6"
+matrix:
+    include:
+        - python: 3.4
+          env: TOXENV=py34
+        - python: 3.5
+          env: TOXENV=py35
+        - python: 3.6
+          env: TOXENV=py36
 
 cache: pip
 
 git:
     depth: false
 
-env:
-    global:
-        - STAGPY_NO_CONFIG=True
-
 install:
-    - pip install -q "pytest>=3.3"
-    - pip install -q .
+    - pip install --upgrade tox
 
-before_script:
-    - stagpy version
-
-script: pytest
+script: tox
