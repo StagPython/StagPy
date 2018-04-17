@@ -38,6 +38,7 @@ $(STAGPY): $(VENV_DIR) $(OBJS)
 
 $(VENV_DIR):
 	$(PY) -m venv --system-site-packages $@
+	$(VPIP) install -U pip
 
 info: infopath infozsh infobash
 
