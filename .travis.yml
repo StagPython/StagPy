@@ -13,6 +13,7 @@ matrix:
         - python: 3.7-dev
           env: TOXENV=py37
     allow_failures:
+        - python: 3.4
         - python: 3.7-dev
 
 cache: pip
@@ -21,6 +22,7 @@ git:
     depth: false
 
 install:
+    - pip install --upgrade pip
     - pip install --upgrade tox
 
 script: tox
