@@ -48,6 +48,5 @@ setup(
     entry_points={
         'console_scripts': ['stagpy = stagpy.__main__:main']
     },
-    setup_requires=['setuptools_scm'],
     install_requires=DEPENDENCIES,
 )
