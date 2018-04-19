@@ -29,5 +29,5 @@ You can install StagPy with ``pip`` from the `Python Package Index`__.
 See `the complete documentation`__ for more information on the installation and
 explanations on how to use StagPy.
 
-.. __: https://pypi.python.org/pypi/stagpy
+.. __: https://pypi.org/project/stagpy/
 .. __: http://stagpy.readthedocs.org
