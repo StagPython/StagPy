@@ -187,6 +187,7 @@ TIME = OrderedDict((
 TIME_EXTRA = OrderedDict((
     ('dTdt', Vart(processing.dt_dt, r'dT/dt')),
     ('ebalance', Vart(processing.ebalance, r'\mathrm{Nu}')),
+    ('mobility', Vart(processing.mobility, 'M')),
 ))
 
 Varp = namedtuple('Varp', ['description'])

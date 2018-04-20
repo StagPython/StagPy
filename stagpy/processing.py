@@ -67,6 +67,30 @@ def ebalance(sdat, tstart=None, tend=None):
     return ebal, time
 
 
+def mobility(sdat, tstart=None, tend=None):
+    """Plates mobility.
+
+    Compute the ratio vsurf / vrms.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        tstart (float): time at which the computation should start. Use the
+            beginning of the time series data if set to None.
+        tend (float): time at which the computation should end. Use the
+            end of the time series data if set to None.
+    Returns:
+        tuple of :class:`numpy.array`: mobility and time arrays.
+    """
+    tseries = sdat.tseries_between(tstart, tend)
+    steps = sdat.steps[tseries.index[0]:tseries.index[-1]]
+    time = []
+    mob = []
+    for step in steps.filter(rprof=True):
+        time.append(step.timeinfo['t'])
+        mob.append(step.rprof.iloc[-1].loc['vrms'] / step.timeinfo['vrms'])
+    return np.array(mob), np.array(time)
+
+
 def r_edges(step):
     """Cell border.
 
