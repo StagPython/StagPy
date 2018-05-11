@@ -615,8 +615,7 @@ PAR_DEFAULT = f90nml.namelist.Namelist({
 
 def _write_default():
     """create default par file"""
-    if not PAR_DFLT_FILE.parent.is_dir():
-        PAR_DFLT_FILE.parent.mkdir()
+    PAR_DFLT_FILE.parent.mkdir(exist_ok=True)
     if not PAR_DFLT_FILE.is_file():
         f90nml.write(PAR_DEFAULT, str(PAR_DFLT_FILE))
 
