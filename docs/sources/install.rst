@@ -1,7 +1,7 @@
 Installation
 ============
 
-You will need Python 3.4 or higher to use StagPy. StagPy is available on
+You will need Python 3.5 or higher to use StagPy. StagPy is available on
 the Python Package Index, via ``pip``.
 
 If Python3 is not installed on your system or you don't have sufficient

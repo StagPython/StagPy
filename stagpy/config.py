@@ -11,7 +11,7 @@ import pathlib
 from loam.manager import ConfOpt as Conf
 from loam.tools import switch_opt, config_conf_section, set_conf_opt
 
-HOME_DIR = pathlib.Path(expanduser('~'))
+HOME_DIR = pathlib.Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 CONFIG_FILE = CONFIG_DIR / 'config.toml'
 CONFIG_LOCAL = pathlib.Path('.stagpy.toml')
