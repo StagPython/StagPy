@@ -149,7 +149,10 @@ def plot_scalar(step, var, scaling=None, **extra):
     cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
     cbar.set_label(r'${}$'.format(meta.shortname),
                    rotation='horizontal', va='center')
-    plt.axis('equal')
+    if step.geom.spherical or conf.plot.ratio is None:
+        plt.axis('equal')
+    else:
+        axis.set_aspect(conf.plot.ratio / axis.get_data_ratio())
     plt.axis('off')
     axis.set_adjustable('box')
     axis.set_xlim(xmesh.min(), xmesh.max())
