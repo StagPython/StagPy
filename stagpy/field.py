@@ -187,9 +187,14 @@ def plot_vec(axis, step, var):
         var (str): the vector field name.
     """
     xmesh, ymesh, vec1, vec2 = get_meshes_vec(step, var)
-    dip = step.geom.nztot // 10
-    axis.quiver(xmesh[::dip, ::dip], ymesh[::dip, ::dip],
-                vec1[::dip, ::dip], vec2[::dip, ::dip],
+    dipz = step.geom.nztot // 10
+    if step.geom.spherical or conf.plot.ratio is None:
+        dipx = dipz
+    else:
+        dipx = (step.geom.nytot if step.geom.twod_yz else step.geom.nxtot) // 10
+        dipx = int(dipx * conf.plot.ratio / axis.get_data_ratio()) + 1
+    axis.quiver(xmesh[::dipx, ::dipz], ymesh[::dipx, ::dipz],
+                vec1[::dipx, ::dipz], vec2[::dipx, ::dipz],
                 linewidths=1)
 
 
