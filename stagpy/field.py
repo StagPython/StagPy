@@ -191,8 +191,8 @@ def plot_vec(axis, step, var):
     if step.geom.spherical or conf.plot.ratio is None:
         dipx = dipz
     else:
-        dipx = (step.geom.nytot if step.geom.twod_yz else step.geom.nxtot) // 10
-        dipx = int(dipx * conf.plot.ratio / axis.get_data_ratio()) + 1
+        dipx = step.geom.nytot if step.geom.twod_yz else step.geom.nxtot
+        dipx = int(dipx // 10 * conf.plot.ratio) + 1
     axis.quiver(xmesh[::dipx, ::dipz], ymesh[::dipx, ::dipz],
                 vec1[::dipx, ::dipz], vec2[::dipx, ::dipz],
                 linewidths=1)
