@@ -151,9 +151,9 @@ def plot_scalar(step, var, scaling=None, **extra):
                    rotation='horizontal', va='center')
     if step.geom.spherical or conf.plot.ratio is None:
         plt.axis('equal')
+        plt.axis('off')
     else:
         axis.set_aspect(conf.plot.ratio / axis.get_data_ratio())
-    plt.axis('off')
     axis.set_adjustable('box')
     axis.set_xlim(xmesh.min(), xmesh.max())
     axis.set_ylim(ymesh.min(), ymesh.max())
