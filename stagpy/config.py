@@ -5,7 +5,6 @@ and deal with the config file
 """
 
 from collections import OrderedDict
-from os.path import expanduser
 import pathlib
 
 from loam.manager import ConfOpt as Conf
