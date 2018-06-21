@@ -646,6 +646,8 @@ def readpar(par_file):
     if par_file.is_file():
         par_nml = f90nml.read(str(par_file))
         for section in par_nml:
+            if section not in par_dflt:
+                par_dflt[section] = {}
             par_dflt[section].update(par_nml[section])
     else:
         raise NoParFileError(par_file)
