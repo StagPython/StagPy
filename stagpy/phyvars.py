@@ -185,6 +185,7 @@ TIME = OrderedDict((
 ))
 
 TIME_EXTRA = OrderedDict((
+    ('dt', Vart(processing.dtime, 'dt')),
     ('dTdt', Vart(processing.dt_dt, r'dT/dt')),
     ('ebalance', Vart(processing.ebalance, r'\mathrm{Nu}')),
     ('mobility', Vart(processing.mobility, 'M')),

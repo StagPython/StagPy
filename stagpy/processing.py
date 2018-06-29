@@ -15,6 +15,25 @@ from . import misc
 from .error import NotAvailableError
 
 
+def dtime(sdat, tstart=None, tend=None):
+    """Time increment dt.
+
+    Compute dt as a function of time.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
+        tstart (float): time at which the computation should start. Use the
+            beginning of the time series data if set to None.
+        tend (float): time at which the computation should end. Use the
+            end of the time series data if set to None.
+    Returns:
+        tuple of :class:`numpy.array`: dt and time arrays.
+    """
+    tseries = sdat.tseries_between(tstart, tend)
+    time = tseries['t'].values
+    return time[1:] - time[:-1], time[:-1]
+
+
 def dt_dt(sdat, tstart=None, tend=None):
     """Derivative of temperature.
 
