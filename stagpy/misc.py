@@ -97,7 +97,7 @@ def list_of_vars(arg_plot):
     """
     lovs = [[[var for var in svars.split(',') if var]
              for svars in pvars.split('.') if svars]
-            for pvars in arg_plot.split('_') if pvars]
+            for pvars in arg_plot.split('-') if pvars]
     return [lov for lov in lovs if lov]
 
 
