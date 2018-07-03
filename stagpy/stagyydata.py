@@ -83,9 +83,12 @@ class _Geometry:
                 self._coords[0] = np.array(np.pi / 2)
             elif self.twod_xz:
                 self._coords[1] = np.array(0)
+            r_coord = self.z_coord + self.rcmb
+            if par['magma_oceans_in']['evolving_magma_oceans']:
+                r_coord += header['mo_lambda']
+                r_coord *= header['mo_thick_sol']
             t_mesh, p_mesh, r_mesh = np.meshgrid(
-                self.x_coord, self.y_coord, self.z_coord + self.rcmb,
-                indexing='ij')
+                self.x_coord, self.y_coord, r_coord, indexing='ij')
             # compute cartesian coordinates
             # z along rotation axis at theta=0
             # x at th=90, phi=0

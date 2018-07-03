@@ -539,12 +539,21 @@ def _get_field(xdmf_file, data_item):
     return icore, fld
 
 
+def _maybe_get(elt, item, info, conversion=None):
+    """Extract and convert info if item is present."""
+    maybe_item = elt.find(item)
+    if maybe_item is not None:
+        maybe_item = maybe_item.get(info)
+        if conversion is not None:
+            maybe_item = conversion(maybe_item)
+    return maybe_item
+
+
 def read_geom_h5(xdmf_file, snapshot):
     """Extract geometry information from hdf5 files.
 
     Args:
         xdmf_file (:class:`pathlib.Path`): path of the xdmf file.
-        field (str): name of field to extract.
         snapshot (int): snapshot number.
     Returns:
         (dict, root): geometry information and root of xdmf document.
@@ -558,6 +567,9 @@ def read_geom_h5(xdmf_file, snapshot):
     # should check that this is indeed the required snapshot
     elt_snap = xdmf_root[0][0][snapshot]
     header['ti_ad'] = float(elt_snap.find('Time').get('Value'))
+    header['mo_lambda'] = _maybe_get(elt_snap, 'mo_lambda', 'Value', float)
+    header['mo_thick_sol'] = _maybe_get(elt_snap, 'mo_thick_sol', 'Value',
+                                        float)
     header['ntb'] = 1
     coord_h5 = []  # all the coordinate files
     coord_shape = []  # shape of meshes
