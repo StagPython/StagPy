@@ -610,6 +610,11 @@ PAR_DEFAULT = f90nml.namelist.Namelist({
         'atm_model': 'simple',
     },
 
+    'magma_oceans_in': {
+        'magma_oceans_mode': False,
+        'evolving_magma_oceans': False,
+    },
+
 })
 
 
