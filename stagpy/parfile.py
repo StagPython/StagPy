@@ -630,6 +630,8 @@ def _read_default():
     _write_default()
     par_conf = f90nml.read(str(PAR_DFLT_FILE))
     for section in par_conf:
+        if section not in PAR_DEFAULT:
+            PAR_DEFAULT[section] = {}
         PAR_DEFAULT[section].update(par_conf[section])
     return PAR_DEFAULT
 
