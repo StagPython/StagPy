@@ -541,7 +541,7 @@ def lithospheric_stress(step, trench, ridge, time):
                            rasterized=conf.plot.raster, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
     cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
-    cbar.set_label(r'${}$'.format(phyvars.FIELD['sII'].shortname))
+    cbar.set_label(phyvars.FIELD['sII'].description)
     plt.axis('equal')
     plt.axis('off')
     # Annotation with time and step

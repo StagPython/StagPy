@@ -127,8 +127,7 @@ def plot_scalar(step, var, scaling=None, **extra):
         meta = phyvars.FIELD[var]
     else:
         meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(misc.baredoc(meta.description),
-                            meta.shortname, meta.popts)
+        meta = phyvars.Varf(misc.baredoc(meta.description), meta.popts)
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
@@ -147,8 +146,7 @@ def plot_scalar(step, var, scaling=None, **extra):
                            shading='gouraud', **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
-    cbar.set_label(r'${}$'.format(meta.shortname),
-                   rotation='horizontal', va='center')
+    cbar.set_label(meta.description)
     if step.geom.spherical or conf.plot.ratio is None:
         plt.axis('equal')
         plt.axis('off')

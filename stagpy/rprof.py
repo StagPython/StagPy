@@ -28,7 +28,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
                 elif xlabel != metas[rvar].shortname:
                     xlabel = ''
             if xlabel:
-                axes[iplt].set_xlabel(r'${}$'.format(xlabel))
+                axes[iplt].set_xlabel(xlabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_xscale('log')
             axes[iplt].legend()

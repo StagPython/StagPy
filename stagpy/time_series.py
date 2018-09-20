@@ -32,8 +32,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                 elif ylabel != lbl:
                     ylabel = ''
             if ylabel:
-                axes[iplt].set_ylabel(r'${}$'.format(ylabel),
-                                      fontsize=conf.plot.fontsize)
+                axes[iplt].set_ylabel(ylabel, fontsize=conf.plot.fontsize)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
             axes[iplt].legend(fontsize=conf.plot.fontsize)
