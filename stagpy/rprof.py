@@ -32,7 +32,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_xscale('log')
             axes[iplt].legend()
-        axes[0].set_ylabel(r'$r$')
+        axes[0].set_ylabel('Radius')
         misc.saveplot(fig, fname + stepstr)
 
 
