@@ -37,7 +37,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                 axes[iplt].set_yscale('log')
             axes[iplt].legend(fontsize=conf.plot.fontsize)
             axes[iplt].tick_params(labelsize=conf.plot.fontsize)
-        axes[-1].set_xlabel(r'$t$', fontsize=conf.plot.fontsize)
+        axes[-1].set_xlabel('Time', fontsize=conf.plot.fontsize)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
         axes[-1].tick_params(labelsize=conf.plot.fontsize)
         misc.saveplot(fig, '_'.join(fname))
