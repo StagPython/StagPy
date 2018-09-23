@@ -90,6 +90,7 @@ CONF_DEF['rprof'] = OrderedDict((
              True, 'matplotlib line style')),
     ('average', switch_opt(False, 'a', 'plot temporal average')),
     ('grid', switch_opt(False, 'g', 'plot grid')),
+    ('depth', switch_opt(False, 'd', 'depth as vertical axis')),
 ))
 
 CONF_DEF['time'] = OrderedDict((

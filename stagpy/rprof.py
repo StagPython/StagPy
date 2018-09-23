@@ -20,9 +20,13 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
             for ivar, rvar in enumerate(vplt):
                 fname += rvar + '_'
                 rad = rads[rvar] if rvar in rads else rprofs['r']
+                if conf.rprof.depth:
+                    rad = rprofs['bounds'][1] - rad
                 axes[iplt].plot(rprofs[rvar], rad,
                                 conf.rprof.style,
                                 label=metas[rvar].description)
+                if conf.rprof.depth:
+                    axes[iplt].invert_yaxis()
                 if xlabel is None:
                     xlabel = metas[rvar].shortname
                 elif xlabel != metas[rvar].shortname:
@@ -35,7 +39,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
                 axes[iplt].set_xscale('log')
             if ivar:
                 axes[iplt].legend()
-        axes[0].set_ylabel('Radius')
+        axes[0].set_ylabel('Depth' if conf.rprof.depth else 'Radius')
         misc.saveplot(fig, fname + stepstr)
 
 
@@ -133,8 +137,8 @@ def plot_average(sdat, lovs):
     ilast = step.istep
     for rvar in sovs:
         rprof_averaged[rvar] /= nprofs
-    rprof_averaged['r'] = step.rprof.loc[:, 'r'] + \
-        misc.get_rbounds(step)[0]
+    rprof_averaged['bounds'] = misc.get_rbounds(step)
+    rprof_averaged['r'] = step.rprof.loc[:, 'r'] + rprof_averaged['bounds'][0]
 
     stepstr = '{}_{}'.format(istart, ilast)
 
@@ -165,7 +169,8 @@ def plot_every_step(sdat, lovs):
             metas[rvar] = meta
             if rad is not None:
                 rads[rvar] = rad
-        rprofs['r'] = step.rprof.loc[:, 'r'] + misc.get_rbounds(step)[0]
+        rprofs['bounds'] = misc.get_rbounds(step)
+        rprofs['r'] = step.rprof.loc[:, 'r'] + rprofs['bounds'][0]
         stepstr = str(step.istep)
 
         _plot_rprof_list(lovs, rprofs, metas, stepstr, rads)
