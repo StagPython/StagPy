@@ -19,7 +19,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
         fname = ['time']
         for iplt, vplt in enumerate(vfig):
             ylabel = None
-            for tvar in vplt:
+            for ivar, tvar in enumerate(vplt):
                 fname.append(tvar)
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
@@ -31,11 +31,14 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                     ylabel = lbl
                 elif ylabel != lbl:
                     ylabel = ''
+            if ivar == 0:
+                ylabel = metas[tvar].description
             if ylabel:
                 axes[iplt].set_ylabel(ylabel, fontsize=conf.plot.fontsize)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
-            axes[iplt].legend(fontsize=conf.plot.fontsize)
+            if ivar:
+                axes[iplt].legend(fontsize=conf.plot.fontsize)
             axes[iplt].tick_params(labelsize=conf.plot.fontsize)
         axes[-1].set_xlabel('Time', fontsize=conf.plot.fontsize)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))

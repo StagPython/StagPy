@@ -17,7 +17,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
         fname = 'rprof_'
         for iplt, vplt in enumerate(vfig):
             xlabel = None
-            for rvar in vplt:
+            for ivar, rvar in enumerate(vplt):
                 fname += rvar + '_'
                 rad = rads[rvar] if rvar in rads else rprofs['r']
                 axes[iplt].plot(rprofs[rvar], rad,
@@ -27,11 +27,14 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
                     xlabel = metas[rvar].shortname
                 elif xlabel != metas[rvar].shortname:
                     xlabel = ''
+            if ivar == 0:
+                xlabel = metas[rvar].description
             if xlabel:
                 axes[iplt].set_xlabel(xlabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_xscale('log')
-            axes[iplt].legend()
+            if ivar:
+                axes[iplt].legend()
         axes[0].set_ylabel('Radius')
         misc.saveplot(fig, fname + stepstr)
 
