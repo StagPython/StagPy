@@ -65,7 +65,7 @@ def get_rprof(step, var):
         if var in phyvars.RPROF:
             meta = phyvars.RPROF[var]
         else:
-            meta = phyvars.Varr(None, None)
+            meta = phyvars.Varr(var, None)
     elif var in phyvars.RPROF_EXTRA:
         meta = phyvars.RPROF_EXTRA[var]
         rprof, rad = meta.description(step)

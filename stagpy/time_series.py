@@ -72,7 +72,7 @@ def get_time_series(sdat, var, tstart, tend):
         if var in phyvars.TIME:
             meta = phyvars.TIME[var]
         else:
-            meta = phyvars.Varr(None, None)
+            meta = phyvars.Vart(var, None)
     elif var in phyvars.TIME_EXTRA:
         meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
