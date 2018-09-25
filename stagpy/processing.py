@@ -333,7 +333,8 @@ def stream_function(step):
                                 '2D cartesian and spherical annulus')
     psi = np.zeros_like(v_x)
     if step.geom.spherical:  # YZ annulus
-        r_coord = step.geom.r_coord + step.geom.rcmb
+        # to make sure this is the physically meaningful radius
+        r_coord = step.geom.r_mesh[0, 0, :]
         psi[0, :] = integrate.cumtrapz(r_coord * v_x[0, :],
                                        x=r_coord,
                                        initial=0)
