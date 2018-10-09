@@ -82,7 +82,7 @@ def ebalance(sdat, tstart=None, tend=None):
     dtdt, time = dt_dt(sdat, tstart, tend)
     ftop = tseries['ftop'].values * coefsurf
     fbot = tseries['fbot'].values
-    ebal = ftop[:-1] - fbot[:-1] + volume * dtdt
+    ebal = ftop[1:] - fbot[1:] + volume * dtdt
     return ebal, time
 
 
