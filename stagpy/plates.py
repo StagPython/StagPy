@@ -112,7 +112,6 @@ def detect_plates(step, vrms_surface, fids, time):
         # thermal boundary layer
         indsurf = np.argmin(abs((1 - dsa) - step.geom.r_coord)) - 4
     else:
-        dsa = 0.
         indsurf = -1
 
     vph2 = 0.5 * (vphi + np.roll(vphi, 1, 0))  # interpolate to the same phi
