@@ -528,8 +528,11 @@ class _Snaps(_Steps):
     def __missing__(self, isnap):
         if isnap < 0:
             isnap += len(self)
-        istep = self._isteps.get(
-            isnap, None if self._all_isteps_known else UNDETERMINED)
+        if isnap < 0 or isnap >= len(self):
+            istep = None
+        else:
+            istep = self._isteps.get(
+                isnap, None if self._all_isteps_known else UNDETERMINED)
         if istep is UNDETERMINED:
             binfiles = self.sdat.binfiles_set(isnap)
             if binfiles:
@@ -538,16 +541,32 @@ class _Snaps(_Steps):
                 istep = None
             if istep is not None:
                 self.bind(isnap, istep)
-            elif self.sdat.hdf5:
-                for isn, ist in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self.bind(isn, ist)
-                self._all_isteps_known = True
             else:
                 self._isteps[isnap] = None
         return self.sdat.steps[istep]
 
     def __len__(self):
-        return self.last.isnap + 1
+        if self._last is UNDETERMINED:
+            self._last = -1
+            if self.sdat.hdf5:
+                isnap = -1
+                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                    self.bind(isnap, istep)
+                self._last = isnap
+                self._all_isteps_known = True
+            if self._last < 0:
+                out_stem = re.escape(pathlib.Path(
+                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
+                rgx = re.compile(
+                    '^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
+                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
+                for fname in self.sdat.files:
+                    match = rgx.match(fname.name)
+                    if match is not None and match.group(1) in fstems:
+                        self._last = max(int(match.group(2)), self._last)
+            if self._last < 0:
+                raise error.NoSnapshotError(self.sdat)
+        return self._last + 1
 
     def bind(self, isnap, istep):
         """Register the isnap / istep correspondence.
@@ -569,27 +588,7 @@ class _Snaps(_Steps):
             >>> sdat = StagyyData('path/to/run')
             >>> assert(sdat.snaps.last is sdat.snaps[-1])
         """
-        if self._last is UNDETERMINED:
-            self._last = -1
-            if self.sdat.hdf5:
-                isnap = -1
-                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self.bind(isnap, istep)
-                self._last = isnap
-                self._all_isteps_known = True
-            if self._last < 0:
-                out_stem = re.escape(pathlib.Path(
-                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
-                rgx = re.compile(
-                    '^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
-                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-                for fname in self.sdat.files:
-                    match = rgx.match(fname.name)
-                    if match is not None and match.group(1) in fstems:
-                        self._last = max(int(match.group(2)), self._last)
-            if self._last < 0:
-                raise error.NoSnapshotError(self.sdat)
-        return self[self._last]
+        return self[len(self) - 1]
 
 
 class _StepsView:
