@@ -223,6 +223,10 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     else:
         dsa = 0.
 
+    length_scale = step.sdat.par['geometry']['d_dimensional']
+    ref = step.sdat.par['refstate']
+    kappa = ref['tcond_dimensional'] / (ref['dens_dimensional'] *
+                                        ref['Cp_dimensional'])
     lwd = conf.plot.linewidth
     vphi = step.fields['v2'][0, :, :, 0]
     tempfld = step.fields['T'][0, :, :, 0]
@@ -233,8 +237,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         agefld = step.fields['age'][0, :, :, 0]
     if 'str' in conf.plates.plot:
         stressfld = step.fields['sII'][0, :, :, 0]
-        scale_stress = (conf.scaling.kappa * conf.scaling.viscosity /
-                        conf.scaling.length**2)
+        scale_stress = kappa * conf.scaling.viscosity / length_scale**2
 
     if step.sdat.par['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
@@ -471,7 +474,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-             topo[:, 1] * conf.scaling.length / 1.e3,
+             topo[:, 1] * length_scale / 1.e3,
              color='black')
     ax2.set_xlim(0, 2 * np.pi)
     ax2.set_ylim(conf.plates.topomin, conf.plates.topomax)
@@ -522,8 +525,11 @@ def lithospheric_stress(step, trench, ridge, time):
     timestep = step.isnap
     lwd = conf.plot.linewidth
     base_lith = step.geom.rcmb + 1 - 0.105
-    scale_dist = conf.scaling.length
-    scale_stress = conf.scaling.kappa * conf.scaling.viscosity / scale_dist**2
+    scale_dist = step.sdat.par['geometry']['d_dimensional']
+    ref = step.sdat.par['refstate']
+    kappa = ref['tcond_dimensional'] / (ref['dens_dimensional'] *
+                                        ref['Cp_dimensional'])
+    scale_stress = kappa * conf.scaling.viscosity / scale_dist**2
 
     stressfld = step.fields['sII'][0, :, :, 0]
     stressfld = np.ma.masked_where(step.geom.r_mesh[0] < base_lith, stressfld)
@@ -685,8 +691,11 @@ def cmd():
 
                 rcmb = step.geom.rcmb
                 if 'str' in conf.plates.plot:
-                    scale_stress = conf.scaling.kappa * \
-                        conf.scaling.viscosity / conf.scaling.length**2
+                    length = sdat.par['geometry']['d_dimensional']
+                    ref = step.sdat.par['refstate']
+                    kappa = (ref['tcond_dimensional'] /
+                             (ref['dens_dimensional'] * ref['Cp_dimensional']))
+                    scale_stress = kappa * conf.scaling.viscosity / length**2
 
                 # topography
                 fname = sdat.filename('sc', timestep=timestep, suffix='.dat')

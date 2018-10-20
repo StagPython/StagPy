@@ -62,10 +62,6 @@ CONF_DEF['scaling'] = OrderedDict((
                      True, 'year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
                       True, 'transit time in My')),
-    ('kappa', Conf(1.0e-6, False, None, {},
-                   True, 'mantle thermal diffusivity m2/s')),
-    ('length', Conf(2890.0e3, False, None, {},
-                    True, 'thickness of mantle m')),
     ('viscosity', Conf(5.86e22, False, None, {},
                        True, 'reference viscosity Pa s')),
 ))
