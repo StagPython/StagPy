@@ -205,13 +205,27 @@ def cmd():
     """
     sdat = StagyyData(conf.core.path)
     sovs = set_of_vars(conf.field.plot)
+    minmax = {}
+    if conf.plot.cminmax:
+        for step in sdat.walk.filter(snap=True):
+            for var, _ in sovs:
+                field = step.fields[var]
+                if field is not None:
+                    if var in minmax:
+                        minmax[var] = (min(minmax[var][0], np.nanmin(field)),
+                                       max(minmax[var][1], np.nanmax(field)))
+                    else:
+                        minmax[var] = np.nanmin(field), np.nanmax(field)
     for step in sdat.walk.filter(snap=True):
         for var in sovs:
             if step.fields[var[0]] is None:
                 print("'{}' field on snap {} not found".format(var,
                                                                step.isnap))
                 continue
-            fig, axis, _, _ = plot_scalar(step, var[0])
+            opts = {}
+            if var[0] in minmax:
+                opts = dict(vmin=minmax[var[0]][0], vmax=minmax[var[0]][1])
+            fig, axis, _, _ = plot_scalar(step, var[0], **opts)
             if valid_field_var(var[1]):
                 plot_iso(axis, step, var[1])
             elif var[1]:

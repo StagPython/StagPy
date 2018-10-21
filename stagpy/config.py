@@ -43,6 +43,7 @@ CONF_DEF['plot'] = OrderedDict((
     ('raster', switch_opt(True, None, 'rasterize field plots')),
     ('format', Conf('pdf', True, None, {},
                     True, 'figure format (pdf, eps, svg, png)')),
+    ('cminmax', switch_opt(False, 'C', 'constant min max across plots')),
     ('fontsize', Conf(16, False, None, {},
                       True, 'font size')),
     ('dpi', Conf(150, True, None, {},
