@@ -1,7 +1,3 @@
-.. image:: https://landscape.io/github/StagPython/StagPy/master/landscape.svg?style=flat-square
-   :target: https://landscape.io/github/StagPython/StagPy/master
-   :alt: Code Health
-
 .. image:: https://travis-ci.org/StagPython/StagPy.svg?branch=master
    :target: https://travis-ci.org/StagPython/StagPy
    :alt: Travis CI
