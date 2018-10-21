@@ -1,4 +1,6 @@
-import stagpy.phyvars, stagpy.time_series
+import stagpy.phyvars
+import stagpy.time_series
+
 
 def test_get_time_series(sdat):
     series, time, meta = stagpy.time_series.get_time_series(
@@ -6,6 +8,7 @@ def test_get_time_series(sdat):
     assert time is None
     assert series.shape == (sdat.tseries.shape[0],)
     assert meta == stagpy.phyvars.TIME['Tmean']
+
 
 def test_get_time_series_extra(sdat):
     series, time, meta = stagpy.time_series.get_time_series(

@@ -157,8 +157,8 @@ def cmd():
         conf.time.tend = None
         t_0 = sdat.tseries.iloc[0].loc['t']
         t_f = sdat.tseries.iloc[-1].loc['t']
-        conf.time.tstart = (t_0 * conf.time.fraction
-                            + t_f * (1 - conf.time.fraction))
+        conf.time.tstart = (t_0 * conf.time.fraction +
+                            t_f * (1 - conf.time.fraction))
 
     lovs = misc.list_of_vars(conf.time.plot)
     if lovs:

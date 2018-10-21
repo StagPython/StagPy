@@ -458,8 +458,8 @@ def _conglomerate_meshes(meshin, header):
     for coord in meshin[0]:
         meshout[coord] = np.zeros(shp)
     for icore in range(np.prod(header['ncs'])):
-        ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
-               * npc[i] for i in range(3)]
+        ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i] * npc[i]
+               for i in range(3)]
         for coord, mesh in meshin[icore].items():
             meshout[coord][ifs[0]:ifs[0] + npc[0] + x_p,
                            ifs[1]:ifs[1] + npc[1] + y_p,
@@ -601,7 +601,7 @@ def _to_spherical(flds, header):
     sph = np.sin(header['p_mesh'][:, :, :-1])
     fout = np.copy(flds)
     fout[0] = cth * cph * flds[0] + cth * sph * flds[1] - sth * flds[2]
-    fout[1] = sph * flds[0] - cph * flds[1]  # need to take the opposite here...
+    fout[1] = sph * flds[0] - cph * flds[1]  # need to take the opposite here
     fout[2] = sth * cph * flds[0] + sth * sph * flds[1] + cth * flds[2]
     return fout
 
@@ -678,8 +678,8 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                 fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
                 if header['rcmb'] < 0:
                     fld = fld[(0, 2, 1), ...]
-            ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
-                   * npc[i] for i in range(3)]
+            ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i] *
+                   npc[i] for i in range(3)]
             if header['zp']:  # remove top row
                 fld = fld[:, :, :, :-1]
             flds[:,
