@@ -6,7 +6,7 @@ import stagpy.parfile
 
 @pytest.fixture
 def par_nml(example_dir):
-    return stagpy.parfile.readpar(example_dir / 'par')
+    return stagpy.parfile.readpar(example_dir / 'par', example_dir)
 
 
 def test_section_present(par_nml):
@@ -25,5 +25,5 @@ def test_option_case_insensitive(par_nml):
 def test_no_par_file():
     invalid = pathlib.Path('dummyinvalidpar')
     with pytest.raises(stagpy.error.NoParFileError) as err:
-        stagpy.parfile.readpar(invalid)
+        stagpy.parfile.readpar(invalid, invalid)
     assert err.value.parfile == invalid

@@ -712,7 +712,7 @@ class StagyyData:
                         'par': parname,
                         'hdf5': UNDETERMINED,
                         'ls': UNDETERMINED}
-        self._stagdat = {'par': parfile.readpar(self.parpath),
+        self._stagdat = {'par': parfile.readpar(self.parpath, self.path),
                          'tseries': UNDETERMINED,
                          'rprof': UNDETERMINED}
         self.steps = _Steps(self)

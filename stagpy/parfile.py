@@ -629,14 +629,21 @@ def _enrich_with_par(par_nml, par_file):
         par_nml[section].update(par_new[section])
 
 
-def readpar(par_file):
+def readpar(par_file, root):
     """Read StagYY par file.
 
-    :data:`PAR_DFLT_FILE` and ultimately :data:`PAR_DEFAULT` are used to fill
-    missing entries.
+    The namelist is populated in chronological order with:
+
+    - :data:`PAR_DEFAULT`, an internal dictionary defining defaults;
+    - :data:`PAR_DFLT_FILE`, the global configuration par file;
+    - ``par_name_defaultparameters`` if it is defined in ``par_file``;
+    - ``par_file`` itself;
+    - ``parameters.dat`` if it can be found in the StagYY output directories.
 
     Args:
         par_file (:class:`pathlib.Path`): path of par file.
+        root (:class:`pathlib.Path`): path on which other paths are rooted.
+            This is usually par.parent.
     Returns:
         :class:`f90nml.namelist.Namelist`: case insensitive dict of dict of
         values with first key being the namelist and second key the variables'
@@ -657,10 +664,17 @@ def readpar(par_file):
     if 'default_parameters_parfile' in par_main:
         par_dflt = par_main['default_parameters_parfile'].get(
             'par_name_defaultparameters', 'par_defaults')
-        par_dflt = par_file.parent / par_dflt
+        par_dflt = root / par_dflt
         if not par_dflt.is_file():
             raise NoParFileError(par_dflt)
         _enrich_with_par(par_nml, par_dflt)
 
     _enrich_with_par(par_nml, par_file)
+
+    par_out = root / par_nml['ioin']['output_file_stem'] / '_parameters.dat'
+    if par_out.is_file():
+        _enrich_with_par(par_nml, par_out)
+    par_out = root / par_nml['ioin']['hdf5_output_folder'] / 'parameters.dat'
+    if par_out.is_file():
+        _enrich_with_par(par_nml, par_out)
     return par_nml
