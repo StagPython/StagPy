@@ -1,5 +1,7 @@
 """StagYY par file handling."""
 
+from copy import deepcopy
+
 import f90nml
 
 from .config import CONFIG_DIR
@@ -618,22 +620,13 @@ PAR_DEFAULT = f90nml.namelist.Namelist({
 })
 
 
-def _write_default():
-    """create default par file"""
-    PAR_DFLT_FILE.parent.mkdir(exist_ok=True)
-    if not PAR_DFLT_FILE.is_file():
-        f90nml.write(PAR_DEFAULT, str(PAR_DFLT_FILE))
-
-
-def _read_default():
-    """read default par file"""
-    _write_default()
-    par_conf = f90nml.read(str(PAR_DFLT_FILE))
-    for section in par_conf:
-        if section not in PAR_DEFAULT:
-            PAR_DEFAULT[section] = {}
-        PAR_DEFAULT[section].update(par_conf[section])
-    return PAR_DEFAULT
+def _enrich_with_par(par_nml, par_file):
+    """Enrich a par namelist with the content of a file."""
+    par_new = f90nml.read(str(par_file))
+    for section in par_new:
+        if section not in par_nml:
+            par_nml[section] = {}
+        par_nml[section].update(par_new[section])
 
 
 def readpar(par_file):
@@ -649,14 +642,25 @@ def readpar(par_file):
         values with first key being the namelist and second key the variables'
         name.
     """
-    par_dflt = _read_default()
-    if par_file.is_file():
-        par_nml = f90nml.read(str(par_file))
-        for section in par_nml:
-            if section not in par_dflt:
-                par_dflt[section] = {}
-            par_dflt[section].update(par_nml[section])
+    par_nml = deepcopy(PAR_DEFAULT)
+
+    if PAR_DFLT_FILE.is_file():
+        _enrich_with_par(par_nml, PAR_DFLT_FILE)
     else:
+        PAR_DFLT_FILE.parent.mkdir(exist_ok=True)
+        f90nml.write(par_nml, str(PAR_DFLT_FILE))
+
+    if not par_file.is_file():
         raise NoParFileError(par_file)
-    par_nml = par_dflt
+
+    par_main = f90nml.read(str(par_file))
+    if 'default_parameters_parfile' in par_main:
+        par_dflt = par_main['default_parameters_parfile'].get(
+            'par_name_defaultparameters', 'par_defaults')
+        par_dflt = par_file.parent / par_dflt
+        if not par_dflt.is_file():
+            raise NoParFileError(par_dflt)
+        _enrich_with_par(par_nml, par_dflt)
+
+    _enrich_with_par(par_nml, par_file)
     return par_nml
