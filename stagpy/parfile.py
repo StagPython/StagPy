@@ -623,10 +623,15 @@ PAR_DEFAULT = f90nml.namelist.Namelist({
 def _enrich_with_par(par_nml, par_file):
     """Enrich a par namelist with the content of a file."""
     par_new = f90nml.read(str(par_file))
-    for section in par_new:
+    for section, content in par_new.items():
         if section not in par_nml:
             par_nml[section] = {}
-        par_nml[section].update(par_new[section])
+        for par, value in content.items():
+            try:
+                content[par] = value.strip()
+            except AttributeError:
+                pass
+        par_nml[section].update(content)
 
 
 def readpar(par_file, root):
