@@ -228,7 +228,6 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         # depth to detect the continents
         indcont = np.argmin(abs((1 - dsa) - np.array(step.geom.r_coord))) - 10
     else:
-        dsa = 0.
         indsurf = -1
         indcont = -1  # depth to detect continents
 
