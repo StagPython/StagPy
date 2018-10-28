@@ -24,12 +24,11 @@ protocol`__ if you prefer)::
 Testing
 -------
 
-StagPy uses pytest_ and tox_ for code testing. Make sure they are installed
-and up to date on your system::
+StagPy uses tox_ for code testing.  Make sure it is installed and up to date on
+your system::
 
-    % python3 -m pip install -U --user pytest tox
+    % python3 -m pip install -U --user tox
 
-.. _pytest: https://docs.pytest.org
 .. _tox: https://tox.readthedocs.io
 
 Launching ``tox`` in the root of the repository will automatically run the
