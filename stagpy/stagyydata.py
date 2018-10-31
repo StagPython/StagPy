@@ -275,6 +275,42 @@ class _Fields(dict):
         return self._geom
 
 
+class _Tracers(dict):
+
+    """Tracers data structure.
+
+    The :attr:`_Step.tracers` attribute is an instance of this class.
+
+    :class:`_Tracers` inherits from :class:`dict`. Keys are attribute names
+    such as 'Type' or 'Mass'.  The position of tracers are the 'x', 'y' and
+    'z' attributes.
+
+    Attributes:
+        step (:class:`_Step`): the step object owning the :class:`_Tracers`
+            instance.
+    """
+
+    def __init__(self, step):
+        self.step = step
+        super().__init__()
+
+    def __missing__(self, name):
+        data = stagyyparsers.tracers(
+            self.step.sdat.filename('tra', timestep=self.step.istep,
+                                    force_legacy=True))
+        if data is None and self.step.sdat.hdf5:
+            position = any(axis not in self for axis in 'xyz')
+            self.update(
+                stagyyparsers.read_tracers_h5(
+                    self.step.sdat.hdf5 / 'DataTracers.xmf', name,
+                    self.step.istep, position))
+        elif data is not None:
+            self.update(data)
+        if name not in self:
+            self[name] = None
+        return self[name]
+
+
 class _Step:
 
     """Time step data structure.
@@ -313,10 +349,12 @@ class _Step:
             sdat (:class:`StagyyData`): the StagyyData instance owning the
                 :class:`_Step` instance.
             fields (:class:`_Fields`): fields available at this time step.
+            tracers (:class:`_Tracers`): tracers available at this time step.
         """
         self.istep = istep
         self.sdat = sdat
         self.fields = _Fields(self)
+        self.tracers = _Tracers(self)
         self._isnap = UNDETERMINED
 
     @property
