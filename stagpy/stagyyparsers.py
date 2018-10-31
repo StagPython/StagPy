@@ -10,7 +10,6 @@ from itertools import product, repeat
 from operator import itemgetter
 from xml.etree import ElementTree as xmlET
 import re
-import struct
 
 import numpy as np
 import pandas as pd
@@ -242,18 +241,16 @@ def rprof_h5(rproffile, colnames):
 def _readbin(fid, fmt='i', nwords=1, file64=False, unpack=True):
     """Read n words of 4 or 8 bytes with fmt format.
 
-    fmt: 'i' or 'f' (integer or float)
+    fmt: 'i' or 'f' or 'b' (integer or float or bytes)
     4 or 8 bytes: depends on header
 
     Return an array of elements if more than one element.
 
     Default: read 1 word formatted as an integer.
     """
-    if file64:
-        fmt = fmt.replace('i', 'q')
-        fmt = fmt.replace('f', 'd')
-    nbytes = struct.calcsize(fmt)
-    elts = np.array(struct.unpack(fmt * nwords, fid.read(nwords * nbytes)))
+    if fmt in 'if':
+        fmt += '8' if file64 else '4'
+    elts = np.fromfile(fid, fmt, nwords)
     if unpack and len(elts) == 1:
         elts = elts[0]
     return elts
@@ -424,7 +421,7 @@ def tracers(tracersfile):
             readbin('f')  # r_cmb
         infos = []  # list of info names
         for _ in range(ninfo):
-            infos.append(b''.join(readbin('c', 16)).strip().decode())
+            infos.append(b''.join(readbin('b', 16)).strip().decode())
             tra[infos[-1]] = []
         if magic > 200:
             ntrace_elt = readbin()
