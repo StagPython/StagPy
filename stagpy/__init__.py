@@ -60,9 +60,6 @@ def _load_mpl():
     if conf.plot.matplotback:
         mpl.use(conf.plot.matplotback, warn=DEBUG)
     plt = importlib.import_module('matplotlib.pyplot')
-    if conf.plot.useseaborn:
-        sns = importlib.import_module('seaborn')
-        sns.set()
     if conf.plot.xkcd:
         plt.xkcd()
 

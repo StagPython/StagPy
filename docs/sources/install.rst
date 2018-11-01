@@ -11,7 +11,7 @@ installed in Miniconda later, this choice doesn't matter; pick Miniconda if you
 want a faster and lighter installation). Then, use ``conda`` to install the
 following dependencies::
 
-    % conda install numpy scipy pandas h5py matplotlib seaborn setuptools_scm
+    % conda install numpy scipy pandas h5py matplotlib setuptools_scm
 
 .. _Miniconda: http://conda.pydata.org/miniconda.html
 .. _Anaconda: https://www.continuum.io/downloads
