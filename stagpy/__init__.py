@@ -71,10 +71,8 @@ except (DistributionNotFound, ValueError):
 
 _CONF_FILES = ([config.CONFIG_FILE, config.CONFIG_LOCAL]
                if not _env('STAGPY_NO_CONFIG') else [])
-# pylint: disable=invalid-name
 conf = ConfigurationManager.from_dict_(config.CONF_DEF)
 conf.set_config_files_(*_CONF_FILES)
-# pylint: enable=invalid-name
 PARSING_OUT = conf.read_configs_()
 
 _load_mpl()
