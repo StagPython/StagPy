@@ -45,8 +45,13 @@ def sigint_handler(*_):
 
 def _check_config():
     """Create config files as necessary."""
-    if not config.CONFIG_FILE.is_file():
-        conf.create_config_()
+    config.CONFIG_DIR.mkdir(exist_ok=True)
+    verfile = config.CONFIG_DIR / '.version'
+    uptodate = verfile.is_file() and verfile.read_text() == __version__
+    if not uptodate:
+        verfile.write_text(__version__)
+    if not (uptodate and config.CONFIG_FILE.is_file()):
+        conf.create_config_(update=True)
 
 
 def _load_mpl():
