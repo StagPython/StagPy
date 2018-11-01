@@ -50,8 +50,6 @@ CONF_DEF['plot'] = OrderedDict((
                  True, 'resolution in DPI')),
     ('linewidth', Conf(2, False, None, {},
                        True, 'line width')),
-    ('matplotback', Conf('agg', False, None, {},
-                         True, 'graphical backend')),
     ('xkcd', Conf(False, False, None, {},
                   True, 'use the xkcd style')),
 ))

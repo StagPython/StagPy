@@ -56,9 +56,6 @@ def _check_config():
 
 def _load_mpl():
     """Load matplotlib and set some configuration"""
-    mpl = importlib.import_module('matplotlib')
-    if conf.plot.matplotback:
-        mpl.use(conf.plot.matplotback, warn=DEBUG)
     plt = importlib.import_module('matplotlib.pyplot')
     if conf.plot.xkcd:
         plt.xkcd()
