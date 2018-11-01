@@ -43,6 +43,12 @@ def sigint_handler(*_):
     sys.exit()
 
 
+def _check_config():
+    """Create config files as necessary."""
+    if not config.CONFIG_FILE.is_file():
+        conf.create_config_()
+
+
 def _load_mpl():
     """Load matplotlib and set some configuration"""
     mpl = importlib.import_module('matplotlib')
@@ -73,6 +79,8 @@ _CONF_FILES = ([config.CONFIG_FILE, config.CONFIG_LOCAL]
                if not _env('STAGPY_NO_CONFIG') else [])
 conf = ConfigurationManager.from_dict_(config.CONF_DEF)
 conf.set_config_files_(*_CONF_FILES)
+if not _env('STAGPY_NO_CONFIG'):
+    _check_config()
 PARSING_OUT = conf.read_configs_()
 
 _load_mpl()
