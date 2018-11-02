@@ -14,7 +14,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
         times = {}
     for vfig in lovs:
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
-                                 figsize=(30, 5 * len(vfig)))
+                                 figsize=(12, 2 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
         fname = ['time']
         for iplt, vplt in enumerate(vfig):
