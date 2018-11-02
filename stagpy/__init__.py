@@ -54,7 +54,8 @@ def _check_config():
         verfile.write_text(__version__)
     if not (uptodate and config.CONFIG_FILE.is_file()):
         conf.create_config_(update=True)
-    for stfile in ('stagpy-paper.mplstyle',):
+    for stfile in ('stagpy-paper.mplstyle',
+                   'stagpy-slides.mplstyle'):
         stfile_conf = config.CONFIG_DIR / stfile
         if not (uptodate and stfile_conf.is_file()):
             stfile_local = pathlib.Path(__file__).parent / stfile
