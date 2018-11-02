@@ -54,9 +54,16 @@ def _check_config():
         conf.create_config_(update=True)
 
 
-def _load_mpl():
-    """Load matplotlib and set some configuration"""
+def load_mplstyle():
+    """Try to load conf.plot.mplstyle matplotlib style."""
     plt = importlib.import_module('matplotlib.pyplot')
+    if conf.plot.mplstyle:
+        try:
+            plt.style.use(conf.plot.mplstyle)
+        except OSError:
+            print('Cannot import style {}.'.format(conf.plot.mplstyle),
+                  file=sys.stderr)
+            conf.plot.mplstyle = ''
     if conf.plot.xkcd:
         plt.xkcd()
 
@@ -82,7 +89,7 @@ if not _env('STAGPY_NO_CONFIG'):
     _check_config()
 PARSING_OUT = conf.read_configs_()
 
-_load_mpl()
+load_mplstyle()
 
 if not DEBUG:
     signal.signal(signal.SIGINT, _PREV_INT)
