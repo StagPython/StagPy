@@ -48,5 +48,6 @@ setup(
     entry_points={
         'console_scripts': ['stagpy = stagpy.__main__:main']
     },
+    include_package_data=True,
     install_requires=DEPENDENCIES,
 )

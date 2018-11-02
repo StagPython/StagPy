@@ -15,6 +15,8 @@ printed.
 
 import importlib
 import os
+import pathlib
+import shutil
 import signal
 import sys
 
@@ -52,12 +54,20 @@ def _check_config():
         verfile.write_text(__version__)
     if not (uptodate and config.CONFIG_FILE.is_file()):
         conf.create_config_(update=True)
+    for stfile in ('stagpy-paper.mplstyle',):
+        stfile_conf = config.CONFIG_DIR / stfile
+        if not (uptodate and stfile_conf.is_file()):
+            stfile_local = pathlib.Path(__file__).parent / stfile
+            shutil.copy(str(stfile_local), str(stfile_conf))
 
 
 def load_mplstyle():
     """Try to load conf.plot.mplstyle matplotlib style."""
     plt = importlib.import_module('matplotlib.pyplot')
     if conf.plot.mplstyle:
+        stfile = config.CONFIG_DIR / (conf.plot.mplstyle + '.mplstyle')
+        if stfile.is_file():
+            conf.plot.mplstyle = str(stfile)
         try:
             plt.style.use(conf.plot.mplstyle)
         except OSError:
