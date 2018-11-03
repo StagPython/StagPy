@@ -15,6 +15,8 @@ printed.
 
 import importlib
 import os
+import pathlib
+import shutil
 import signal
 import sys
 
@@ -52,17 +54,28 @@ def _check_config():
         verfile.write_text(__version__)
     if not (uptodate and config.CONFIG_FILE.is_file()):
         conf.create_config_(update=True)
+    for stfile in ('stagpy-paper.mplstyle',
+                   'stagpy-slides.mplstyle'):
+        stfile_conf = config.CONFIG_DIR / stfile
+        if not (uptodate and stfile_conf.is_file()):
+            stfile_local = pathlib.Path(__file__).parent / stfile
+            shutil.copy(str(stfile_local), str(stfile_conf))
 
 
-def _load_mpl():
-    """Load matplotlib and set some configuration"""
-    mpl = importlib.import_module('matplotlib')
-    if conf.plot.matplotback:
-        mpl.use(conf.plot.matplotback, warn=DEBUG)
+def load_mplstyle():
+    """Try to load conf.plot.mplstyle matplotlib style."""
     plt = importlib.import_module('matplotlib.pyplot')
-    if conf.plot.useseaborn:
-        sns = importlib.import_module('seaborn')
-        sns.set()
+    if conf.plot.mplstyle:
+        for style in conf.plot.mplstyle.split():
+            stfile = config.CONFIG_DIR / (style + '.mplstyle')
+            if stfile.is_file():
+                style = str(stfile)
+            try:
+                plt.style.use(style)
+            except OSError:
+                print('Cannot import style {}.'.format(style),
+                      file=sys.stderr)
+                conf.plot.mplstyle = ''
     if conf.plot.xkcd:
         plt.xkcd()
 
@@ -88,7 +101,7 @@ if not _env('STAGPY_NO_CONFIG'):
     _check_config()
 PARSING_OUT = conf.read_configs_()
 
-_load_mpl()
+load_mplstyle()
 
 if not DEBUG:
     signal.signal(signal.SIGINT, _PREV_INT)

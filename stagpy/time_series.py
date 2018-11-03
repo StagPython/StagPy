@@ -14,7 +14,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
         times = {}
     for vfig in lovs:
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
-                                 figsize=(30, 5 * len(vfig)))
+                                 figsize=(12, 2 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
         fname = ['time']
         for iplt, vplt in enumerate(vfig):
@@ -24,8 +24,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
                                 conf.time.style,
-                                label=metas[tvar].description,
-                                linewidth=conf.plot.linewidth)
+                                label=metas[tvar].description)
                 lbl = metas[tvar].shortname
                 if ylabel is None:
                     ylabel = lbl
@@ -34,15 +33,15 @@ def _plot_time_list(lovs, tseries, metas, times=None):
             if ivar == 0:
                 ylabel = metas[tvar].description
             if ylabel:
-                axes[iplt].set_ylabel(ylabel, fontsize=conf.plot.fontsize)
+                axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
             if ivar:
-                axes[iplt].legend(fontsize=conf.plot.fontsize)
-            axes[iplt].tick_params(labelsize=conf.plot.fontsize)
-        axes[-1].set_xlabel('Time', fontsize=conf.plot.fontsize)
+                axes[iplt].legend()
+            axes[iplt].tick_params()
+        axes[-1].set_xlabel('Time')
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
-        axes[-1].tick_params(labelsize=conf.plot.fontsize)
+        axes[-1].tick_params()
         misc.saveplot(fig, '_'.join(fname))
 
 

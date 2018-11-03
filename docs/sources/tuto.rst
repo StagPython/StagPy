@@ -108,3 +108,16 @@ until ``sdat.snaps[-1].fields['T']`` is asked for.
 See the :doc:`dedicated section <stagyydata>` for more information on how to
 use the :class:`~stagpy.stagyydata.StagyyData` class.
 
+Plotting style
+--------------
+
+StagPy defines two custom plotting styles for matplotlib, ``stagpy-paper`` (the
+default) and ``stagpy-slides``.  You can edit them to your convenience, they
+are in the ``~/.config/stagpy`` directory.  You can specify which style to use
+with ``plot.mplstyle``, available in the command line interface with the
+``--mplstyle`` option.  You can specify a space-separated list to combine
+several styles.  For example, if you want a dark-background figure with a
+font size adapted for slides, you can use the following command::
+
+   % stagpy field --mplstyle='dark_backgroud stagpy-slides'
+

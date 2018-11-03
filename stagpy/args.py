@@ -6,7 +6,7 @@ from inspect import isfunction
 from loam.tools import set_conf_str, create_complete_files
 from loam.cli import Subcmd, CLIManager
 
-from . import conf, PARSING_OUT
+from . import conf, PARSING_OUT, load_mplstyle
 from . import commands, field, rprof, time_series, plates
 from .misc import baredoc
 from .config import CONFIG_DIR
@@ -93,6 +93,8 @@ def parse_args(arglist=None):
 
     if conf.common.config:
         commands.config_pp(all_subs)
+
+    load_mplstyle()
 
     try:
         _steps_to_slices()
