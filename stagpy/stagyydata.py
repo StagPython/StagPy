@@ -456,7 +456,7 @@ class _EmptyStep(_Step):
         return False
 
 
-class _Steps(dict):
+class _Steps(Mapping):
 
     """Collections of time steps.
 
@@ -491,22 +491,18 @@ class _Steps(dict):
         """
         self.sdat = sdat
         self._last = UNDETERMINED
-        super().__init__()
-        super().__setitem__(None, _EmptyStep())  # for non existent snaps
+        self._data = {None: _EmptyStep()}  # for non existent snaps
 
     def __repr__(self):
         return '{}.steps'.format(repr(self.sdat))
 
-    def __setitem__(self, key, value):
-        pass
-
-    def __getitem__(self, key):
+    def __getitem__(self, istep):
+        if istep is None:
+            return self._data[None]
         try:
-            return _StepsView(self, key)
+            return _StepsView(self, istep)
         except AttributeError:
-            return super().__getitem__(key)
-
-    def __missing__(self, istep):
+            pass
         try:
             istep = int(istep)
         except ValueError:
@@ -519,9 +515,9 @@ class _Steps(dict):
                 raise error.InvalidTimestepError(
                     self.sdat, istep,
                     'Last istep is {}'.format(self.last.istep))
-        if not self.__contains__(istep):
-            super().__setitem__(istep, _Step(istep, self.sdat))
-        return super().__getitem__(istep)
+        if istep not in self._data:
+            self._data[istep] = _Step(istep, self.sdat)
+        return self._data[istep]
 
     def __len__(self):
         return self.last.istep + 1
@@ -578,13 +574,11 @@ class _Snaps(_Steps):
     def __repr__(self):
         return '{}.snaps'.format(repr(self.sdat))
 
-    def __getitem__(self, key):
+    def __getitem__(self, isnap):
         try:
-            return _StepsView(self, key)
+            return _StepsView(self, isnap)
         except AttributeError:
-            return self.__missing__(key)
-
-    def __missing__(self, isnap):
+            pass
         if isnap < 0:
             isnap += len(self)
         if isnap < 0 or isnap >= len(self):
