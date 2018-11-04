@@ -4,7 +4,7 @@ StagPy is both a CLI tool and a powerful Python library. See the
 documentation at
 http://stagpy.readthedocs.io/en/stable/
 
-If the environment variable STAGPY_NO_CONFIG is set to 'True', StagPy does not
+If the environment variable STAGPY_ISOLATED is set to 'True', StagPy does not
 attempt to read any configuration file.
 
 When using the CLI interface, if the environment variable STAGPY_DEBUG is set
@@ -94,10 +94,10 @@ except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
 _CONF_FILES = ([config.CONFIG_FILE, config.CONFIG_LOCAL]
-               if not _env('STAGPY_NO_CONFIG') else [])
+               if not _env('STAGPY_ISOLATED') else [])
 conf = ConfigurationManager.from_dict_(config.CONF_DEF)
 conf.set_config_files_(*_CONF_FILES)
-if not _env('STAGPY_NO_CONFIG'):
+if not _env('STAGPY_ISOLATED'):
     _check_config()
 PARSING_OUT = conf.read_configs_()
 
