@@ -293,15 +293,15 @@ class _Fields(Mapping):
         return self._geom
 
 
-class _Tracers(dict):
+class _Tracers:
 
     """Tracers data structure.
 
     The :attr:`_Step.tracers` attribute is an instance of this class.
 
-    :class:`_Tracers` inherits from :class:`dict`. Keys are attribute names
-    such as 'Type' or 'Mass'.  The position of tracers are the 'x', 'y' and
-    'z' attributes.
+    :class:`_Tracers` implements the getitem mechanism. Items are tracervar
+    names such as 'Type' or 'Mass'.  The position of tracers are the 'x', 'y'
+    and 'z' items.
 
     Attributes:
         step (:class:`_Step`): the step object owning the :class:`_Tracers`
@@ -310,23 +310,26 @@ class _Tracers(dict):
 
     def __init__(self, step):
         self.step = step
+        self._data = {}
         super().__init__()
 
-    def __missing__(self, name):
+    def __getitem__(self, name):
+        if name in self._data:
+            return self._data[name]
         data = stagyyparsers.tracers(
             self.step.sdat.filename('tra', timestep=self.step.istep,
                                     force_legacy=True))
         if data is None and self.step.sdat.hdf5:
             position = any(axis not in self for axis in 'xyz')
-            self.update(
+            self._data.update(
                 stagyyparsers.read_tracers_h5(
                     self.step.sdat.hdf5 / 'DataTracers.xmf', name,
                     self.step.istep, position))
         elif data is not None:
-            self.update(data)
-        if name not in self:
-            self[name] = None
-        return self[name]
+            self._data.update(data)
+        if name not in self._data:
+            self._data[name] = None
+        return self._data[name]
 
 
 class _Step:
