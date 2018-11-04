@@ -6,6 +6,7 @@ Note:
     only instantiate :class:`StagyyData`.
 """
 
+from collections.abc import Mapping
 import re
 import pathlib
 
@@ -176,14 +177,14 @@ class _Geometry:
         return self._header[attr]
 
 
-class _Fields(dict):
+class _Fields(Mapping):
 
     """Fields data structure.
 
     The :attr:`_Step.fields` attribute is an instance of this class.
 
-    :class:`_Fields` inherits from :class:`dict`. Keys are fields names defined
-    in :data:`stagpy.phyvars.FIELD`.
+    :class:`_Fields` inherits from :class:`collections.abc.Mapping`. Keys are
+    fields names defined in :data:`stagpy.phyvars.FIELD`.
 
     Attributes:
         step (:class:`_Step`): the step object owning the :class:`_Fields`
@@ -194,14 +195,17 @@ class _Fields(dict):
         self.step = step
         self._header = UNDETERMINED
         self._geom = UNDETERMINED
+        self._data = {}
         super().__init__()
 
-    def __missing__(self, name):
+    def __getitem__(self, name):
+        if name in self._data:
+            return self._data[name]
         if name in phyvars.FIELD:
             fld_names, parsed_data = self._get_raw_data(name)
         elif name in phyvars.FIELD_EXTRA:
-            self[name] = phyvars.FIELD_EXTRA[name].description(self.step)
-            return self[name]
+            self._data[name] = phyvars.FIELD_EXTRA[name].description(self.step)
+            return self._data[name]
         else:
             raise error.UnknownFieldVarError(name)
         if parsed_data is None:
@@ -216,8 +220,19 @@ class _Fields(dict):
                 if not self.geom.twod_xz:
                     newline = (fld[:, :1, :, :] + fld[:, -1:, :, :]) / 2
                     fld = np.concatenate((fld, newline), axis=1)
-            self[fld_name] = fld
-        return self[name]
+            self._set(fld_name, fld)
+        return self._data[name]
+
+    def __iter__(self, name):
+        for fld in phyvars.FIELD:
+            if self[fld] is not None:
+                yield self._data[fld]
+        for fld in phyvars.FIELD_EXTRA:
+            if self[fld] is not None:
+                yield self[fld]
+
+    def __len__(self, name):
+        return len(iter(self))
 
     def _get_raw_data(self, name):
         """Find file holding data and return its content."""
@@ -239,14 +254,17 @@ class _Fields(dict):
                 self.step.sdat.hdf5 / 'Data.xmf', filestem, self.step.isnap)
         return list_fvar, parsed_data
 
-    def __setitem__(self, name, fld):
+    def _set(self, name, fld):
         sdat = self.step.sdat
         col_fld = sdat.collected_fields
         col_fld.append((self.step.istep, name))
         while len(col_fld) > sdat.nfields_max > 5:
             istep, fld_name = col_fld.pop(0)
             del sdat.steps[istep].fields[fld_name]
-        super().__setitem__(name, fld)
+        self._data[name] = fld
+
+    def __delitem__(self, name):
+        del self._data[name]
 
     @property
     def geom(self):
