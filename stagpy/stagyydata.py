@@ -7,6 +7,7 @@ Note:
 """
 
 from collections.abc import Mapping
+from itertools import chain
 import re
 import pathlib
 
@@ -223,13 +224,9 @@ class _Fields(Mapping):
             self._set(fld_name, fld)
         return self._data[name]
 
-    def __iter__(self, name):
-        for fld in phyvars.FIELD:
-            if self[fld] is not None:
-                yield self._data[fld]
-        for fld in phyvars.FIELD_EXTRA:
-            if self[fld] is not None:
-                yield self[fld]
+    def __iter__(self):
+        return (fld for fld in chain(phyvars.FIELD, phyvars.FIELD_EXTRA)
+                if self[fld] is not None)
 
     def __len__(self, name):
         return len(iter(self))

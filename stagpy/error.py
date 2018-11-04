@@ -160,7 +160,7 @@ class StagnantLidError(StagpyError):
         super().__init__('Stagnant lid regime for {}'.format(sdat))
 
 
-class UnknownVarError(StagpyError):
+class UnknownVarError(StagpyError, KeyError):
 
     """Raised when invalid var is requested."""
 
