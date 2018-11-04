@@ -453,7 +453,7 @@ class _EmptyStep(_Step):
         return False
 
 
-class _Steps(Mapping):
+class _Steps:
 
     """Collections of time steps.
 
