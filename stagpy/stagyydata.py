@@ -231,6 +231,9 @@ class _Fields(Mapping):
     def __len__(self):
         return len(iter(self))
 
+    def __eq__(self, other):
+        return self is other
+
     def _get_raw_data(self, name):
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
