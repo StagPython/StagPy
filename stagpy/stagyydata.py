@@ -228,7 +228,7 @@ class _Fields(Mapping):
         return (fld for fld in chain(phyvars.FIELD, phyvars.FIELD_EXTRA)
                 if self[fld] is not None)
 
-    def __len__(self, name):
+    def __len__(self):
         return len(iter(self))
 
     def _get_raw_data(self, name):
