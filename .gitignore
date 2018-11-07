@@ -3,6 +3,7 @@
 */__pycache__/
 .cache
 .pytest_cache
+.coverage
 .tox
 stagpy.egg-info/
 bld/
