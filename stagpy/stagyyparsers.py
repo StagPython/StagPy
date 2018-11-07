@@ -324,7 +324,7 @@ def fields(fieldfile, only_header=False, only_istep=False):
         else:
             header['rgeom'] = np.array(range(0, header['nts'][2] * 2 + 1))\
                 * 0.5 / header['nts'][2]
-        header['rgeom'].resize((header['nts'][2] + 1, 2))
+        header['rgeom'] = np.resize(header['rgeom'], (header['nts'][2] + 1, 2))
 
         header['rcmb'] = readbin('f') if magic >= 7 else None
 
