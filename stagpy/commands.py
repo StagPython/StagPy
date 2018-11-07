@@ -19,10 +19,6 @@ def info_cmd():
     sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps.last
     lstep = sdat.steps.last
-    lfields = []
-    for fvar in phyvars.FIELD:
-        if lsnap.fields[fvar] is not None:
-            lfields.append(fvar)
     print('StagYY run in {}'.format(sdat.path))
     print('Last timestep:',
           '  istep: {}'.format(lstep.istep),
@@ -32,7 +28,7 @@ def info_cmd():
     print('Last snapshot (istep {}):'.format(lsnap.istep),
           '  isnap: {}'.format(lsnap.isnap),
           '  time:  {}'.format(lsnap.timeinfo['t']),
-          '  output fields: {}'.format(','.join(lfields)),
+          '  output fields: {}'.format(','.join(lsnap.fields)),
           sep='\n')
 
 

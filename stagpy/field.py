@@ -209,8 +209,8 @@ def cmd():
     if conf.plot.cminmax:
         for step in sdat.walk.filter(snap=True):
             for var, _ in sovs:
-                field = step.fields[var]
-                if field is not None:
+                if var in step.fields:
+                    field = step.fields[var]
                     if var in minmax:
                         minmax[var] = (min(minmax[var][0], np.nanmin(field)),
                                        max(minmax[var][1], np.nanmax(field)))
@@ -218,8 +218,8 @@ def cmd():
                         minmax[var] = np.nanmin(field), np.nanmax(field)
     for step in sdat.walk.filter(snap=True):
         for var in sovs:
-            if step.fields[var[0]] is None:
-                print("'{}' field on snap {} not found".format(var,
+            if var[0] not in step.fields:
+                print("'{}' field on snap {} not found".format(var[0],
                                                                step.isnap))
                 continue
             opts = {}

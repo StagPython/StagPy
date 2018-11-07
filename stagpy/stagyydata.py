@@ -210,7 +210,8 @@ class _Fields(Mapping):
         else:
             raise error.UnknownFieldVarError(name)
         if parsed_data is None:
-            return None
+            raise error.MissingData('Missing field {} in step {}'
+                                    .format(name, self.step.istep))
         header, fields = parsed_data
         self._header = header
         for fld_name, fld in zip(fld_names, fields):
@@ -226,7 +227,7 @@ class _Fields(Mapping):
 
     def __iter__(self):
         return (fld for fld in chain(phyvars.FIELD, phyvars.FIELD_EXTRA)
-                if self[fld] is not None)
+                if fld in self)
 
     def __len__(self, name):
         return len(iter(self))
@@ -686,8 +687,7 @@ class _StepsView:
         okf = True
         okf = okf and (not self._flt['snap'] or step.isnap is not None)
         okf = okf and (not self._flt['rprof'] or step.rprof is not None)
-        okf = okf and all(
-            step.fields[f] is not None for f in self._flt['fields'])
+        okf = okf and all(f in step.fields for f in self._flt['fields'])
         okf = okf and bool(self._flt['func'](step))
         return okf
 
