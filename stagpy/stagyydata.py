@@ -210,8 +210,8 @@ class _Fields(Mapping):
         else:
             raise error.UnknownFieldVarError(name)
         if parsed_data is None:
-            raise error.MissingData('Missing field {} in step {}'
-                                    .format(name, self.step.istep))
+            raise error.MissingDataError('Missing field {} in step {}'
+                                         .format(name, self.step.istep))
         header, fields = parsed_data
         self._header = header
         for fld_name, fld in zip(fld_names, fields):
@@ -229,8 +229,11 @@ class _Fields(Mapping):
         return (fld for fld in chain(phyvars.FIELD, phyvars.FIELD_EXTRA)
                 if fld in self)
 
-    def __len__(self, name):
+    def __len__(self):
         return len(iter(self))
+
+    def __eq__(self, other):
+        return self is other
 
     def _get_raw_data(self, name):
         """Find file holding data and return its content."""
