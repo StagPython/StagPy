@@ -3,6 +3,7 @@ import pytest
 import f90nml
 import pandas
 import stagpy.stagyydata
+import stagpy._step
 
 
 def test_sdat_path(example_dir, sdat):
@@ -53,7 +54,7 @@ def test_snaps_last(sdat):
 
 def test_snaps_empty(sdat):
     empty = sdat.snaps[len(sdat.snaps)]
-    assert isinstance(empty, stagpy.stagyydata._EmptyStep)
+    assert isinstance(empty, stagpy._step.EmptyStep)
 
 
 def test_step_is_snap(sdat):
