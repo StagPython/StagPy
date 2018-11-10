@@ -208,10 +208,6 @@ def plot_plate_limits_field(axis, rcmb, ridges, trenches):
 def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                 topo, fids):
     """handle ploting stuff"""
-    length_scale = step.sdat.par['geometry']['d_dimensional']
-    ref = step.sdat.par['refstate']
-    kappa = ref['tcond_dimensional'] / (ref['dens_dimensional'] *
-                                        ref['Cp_dimensional'])
     vphi = step.fields['v2'][0, :, :, 0]
     tempfld = step.fields['T'][0, :, :, 0]
     concfld = step.fields['c'][0, :, :, 0]
@@ -328,8 +324,6 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     # plotting velocity and second invariant of stress
     if 'str' in conf.plates.plot:
         stressfld = step.fields['sII'][0, :, :, 0]
-        scale_stress = (kappa * step.sdat.par['viscosity']['eta0'] /
-                        length_scale**2)
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -339,7 +333,8 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                  transform=ax1.transAxes)
         ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
                  transform=ax1.transAxes)
-        ax2.plot(ph_coord[:-1], stressfld[:-1, indsurf] * scale_stress / 1.e6,
+        ax2.plot(ph_coord[:-1],
+                 stressfld[:-1, indsurf] * step.sdat.scales.stress / 1.e6,
                  color='k', label='Stress')
         ax2.set_ylim(conf.plates.stressmin, conf.plates.stressmax)
         ax2.set_ylabel("Stress [MPa]")
@@ -449,7 +444,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax2.plot(topo[:, 0],
-             topo[:, 1] * length_scale / 1.e3,
+             topo[:, 1] * step.sdat.scales.length / 1.e3,
              color='black')
     ax2.set_xlim(0, 2 * np.pi)
     ax2.set_ylim(conf.plates.topomin, conf.plates.topomax)
@@ -499,11 +494,6 @@ def lithospheric_stress(step, trench, ridge, time):
     """calculate stress in the lithosphere"""
     timestep = step.isnap
     base_lith = step.geom.rcmb + 1 - 0.105
-    scale_dist = step.sdat.par['geometry']['d_dimensional']
-    ref = step.sdat.par['refstate']
-    kappa = ref['tcond_dimensional'] / (ref['dens_dimensional'] *
-                                        ref['Cp_dimensional'])
-    scale_stress = kappa * step.sdat.par['viscosity']['eta0'] / scale_dist**2
 
     stressfld = step.fields['sII'][0, :, :, 0]
     stressfld = np.ma.masked_where(step.geom.r_mesh[0] < base_lith, stressfld)
@@ -516,7 +506,7 @@ def lithospheric_stress(step, trench, ridge, time):
     # plot stress in the lithosphere
     fig, axis = plt.subplots(ncols=1)
     surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
-                           stressfld * scale_stress / 1.e6,
+                           stressfld * step.sdat.scales.stress / 1.e6,
                            cmap='plasma_r',
                            rasterized=conf.plot.raster, shading='gouraud')
     surf.set_clim(vmin=0, vmax=300)
@@ -577,8 +567,8 @@ def lithospheric_stress(step, trench, ridge, time):
     ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
              transform=ax1.transAxes)
 
-    ax2.plot(ph_coord, stress_lith * scale_stress * scale_dist / 1.e12,
-             color='k', label='Stress')
+    intstr_scale = step.sdat.scales.stress * step.sdat.scales.length / 1.e12
+    ax2.plot(ph_coord, stress_lith * intstr_scale, color='k', label='Stress')
     ax2.set_ylabel(r"Integrated stress [$TN\,m^{-1}$]")
 
     plot_plate_limits(ax1, ridge, trench, conf.plates.vmin,
@@ -730,15 +720,8 @@ def main_plates(sdat):
 
             # plot stress field with position of trenches and ridges
             if 'str' in conf.plates.plot:
-                length = sdat.par['geometry']['d_dimensional']
-                ref = sdat.par['refstate']
-                kappa = (ref['tcond_dimensional'] /
-                         (ref['dens_dimensional'] * ref['Cp_dimensional']))
-                scale_stress = (kappa * sdat.par['viscosity']['eta0'] /
-                                length**2)
-
                 fig, axis, surf, cbar = field.plot_scalar(
-                    step, 'sII', scale_stress / 1.e6)
+                    step, 'sII', sdat.scales.stress / 1.e6)
                 surf.set_clim(vmin=0, vmax=300)
                 cbar.set_label('Stress [MPa]')
 

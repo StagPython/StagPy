@@ -13,6 +13,60 @@ from . import conf, error, parfile, phyvars, stagyyparsers, _step
 from ._step import UNDETERMINED
 
 
+class _Scales:
+
+    """Dimensionful scales."""
+
+    def __init__(self, sdat):
+        """Initialization of instances:
+
+        Args:
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Scales` instance.
+        """
+        self._sdat = sdat
+
+    @property
+    def length(self):
+        """Length in m."""
+        return self._sdat.par['geometry']['d_dimensional']
+
+    @property
+    def density(self):
+        """Density in kg/m3."""
+        return self._sdat.par['refstate']['dens_dimensional']
+
+    @property
+    def th_cond(self):
+        """Thermal conductivity in W/(m.K)."""
+        return self._sdat.par['refstate']['tcond_dimensional']
+
+    @property
+    def sp_heat(self):
+        """Specific heat capacity in J/(kg.K)."""
+        return self._sdat.par['refstate']['Cp_dimensional']
+
+    @property
+    def dyn_visc(self):
+        """Dynamic viscosity in Pa.s."""
+        return self._sdat.par['viscosity']['eta0']
+
+    @property
+    def th_diff(self):
+        """Thermal diffusivity in m2/s."""
+        return self.th_cond / (self.density * self.sp_heat)
+
+    @property
+    def time(self):
+        """Time in s."""
+        return self.length**2 / self.th_diff
+
+    @property
+    def stress(self):
+        """Stress in Pa."""
+        return self.dyn_visc / self.time
+
+
 class _Steps:
 
     """Collections of time steps.
@@ -305,6 +359,7 @@ class StagyyData:
         Attributes:
             steps (:class:`_Steps`): collection of time steps.
             snaps (:class:`_Snaps`): collection of snapshots.
+            scales (:class:`_Scales`): dimensionful scaling factors.
             nfields_max (int): the maximum number of scalar fields that should
                 be kept in memory. Set to a value smaller than 6 if you want no
                 limit.
@@ -324,6 +379,7 @@ class StagyyData:
         self._stagdat = {'par': parfile.readpar(self.parpath, self.path),
                          'tseries': UNDETERMINED,
                          'rprof': UNDETERMINED}
+        self.scales = _Scales(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self.nfields_max = nfields_max
