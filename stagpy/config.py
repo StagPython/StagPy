@@ -56,8 +56,6 @@ CONF_DEF['scaling'] = OrderedDict((
                      True, 'year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
                       True, 'transit time in My')),
-    ('viscosity', Conf(5.86e22, False, None, {},
-                       True, 'reference viscosity Pa s')),
 ))
 
 CONF_DEF['field'] = OrderedDict((

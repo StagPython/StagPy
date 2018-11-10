@@ -328,7 +328,8 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     # plotting velocity and second invariant of stress
     if 'str' in conf.plates.plot:
         stressfld = step.fields['sII'][0, :, :, 0]
-        scale_stress = kappa * conf.scaling.viscosity / length_scale**2
+        scale_stress = (kappa * step.sdat.par['viscosity']['eta0'] /
+                        length_scale**2)
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -502,7 +503,7 @@ def lithospheric_stress(step, trench, ridge, time):
     ref = step.sdat.par['refstate']
     kappa = ref['tcond_dimensional'] / (ref['dens_dimensional'] *
                                         ref['Cp_dimensional'])
-    scale_stress = kappa * conf.scaling.viscosity / scale_dist**2
+    scale_stress = kappa * step.sdat.par['viscosity']['eta0'] / scale_dist**2
 
     stressfld = step.fields['sII'][0, :, :, 0]
     stressfld = np.ma.masked_where(step.geom.r_mesh[0] < base_lith, stressfld)
@@ -730,10 +731,11 @@ def main_plates(sdat):
             # plot stress field with position of trenches and ridges
             if 'str' in conf.plates.plot:
                 length = sdat.par['geometry']['d_dimensional']
-                ref = step.sdat.par['refstate']
+                ref = sdat.par['refstate']
                 kappa = (ref['tcond_dimensional'] /
                          (ref['dens_dimensional'] * ref['Cp_dimensional']))
-                scale_stress = kappa * conf.scaling.viscosity / length**2
+                scale_stress = (kappa * sdat.par['viscosity']['eta0'] /
+                                length**2)
 
                 fig, axis, surf, cbar = field.plot_scalar(
                     step, 'sII', scale_stress / 1.e6)
