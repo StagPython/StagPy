@@ -9,34 +9,33 @@ from collections import OrderedDict, namedtuple
 
 from . import processing
 
-Varf = namedtuple('Varf', ['description', 'popts'])
+Varf = namedtuple('Varf', ['description'])
 FIELD = OrderedDict((
-    ('T', Varf('Temperature', {})),
-    ('v1', Varf('x Velocity', {})),
-    ('v2', Varf('y Velocity', {})),
-    ('v3', Varf('z Velocity', {})),
-    ('p', Varf('Pressure', {})),
-    ('eta', Varf('Viscosity', {'cmap': 'viridis_r'})),
-    ('rho', Varf('Density', {'cmap': 'RdBu'})),
-    ('sII', Varf('Second invariant of stress tensor',
-                 {'cmap': 'plasma_r'})),
-    ('sx1', Varf('1st comp. of principal stress eigenvector', {})),
-    ('sx2', Varf('2nd comp. of principal stress eigenvector', {})),
-    ('sx3', Varf('3rd comp. of principal stress eigenvector', {})),
-    ('s1val', Varf('Principal stress eigenvalue', {})),
-    ('edot', Varf('Strain rate', {'cmap': 'Reds'})),
-    ('Tcond1', Varf('x Conductivity', {})),
-    ('Tcond2', Varf('y Conductivity', {})),
-    ('Tcond3', Varf('z Conductivity', {})),
-    ('c', Varf('Composition', {})),
-    ('cFe', Varf('FeO content', {})),
-    ('wtr', Varf('Water concentration', {})),
-    ('age', Varf('Age', {})),
-    ('contID', Varf('ID of continents', {})),
+    ('T', Varf('Temperature')),
+    ('v1', Varf('x Velocity')),
+    ('v2', Varf('y Velocity')),
+    ('v3', Varf('z Velocity')),
+    ('p', Varf('Pressure')),
+    ('eta', Varf('Viscosity')),
+    ('rho', Varf('Density')),
+    ('sII', Varf('Second invariant of stress tensor')),
+    ('sx1', Varf('1st comp. of principal stress eigenvector')),
+    ('sx2', Varf('2nd comp. of principal stress eigenvector')),
+    ('sx3', Varf('3rd comp. of principal stress eigenvector')),
+    ('s1val', Varf('Principal stress eigenvalue')),
+    ('edot', Varf('Strain rate')),
+    ('Tcond1', Varf('x Conductivity')),
+    ('Tcond2', Varf('y Conductivity')),
+    ('Tcond3', Varf('z Conductivity')),
+    ('c', Varf('Composition')),
+    ('cFe', Varf('FeO content')),
+    ('wtr', Varf('Water concentration')),
+    ('age', Varf('Age')),
+    ('contID', Varf('ID of continents')),
 ))
 
 FIELD_EXTRA = OrderedDict((
-    ('stream', Varf(processing.stream_function, {})),
+    ('stream', Varf(processing.stream_function)),
 ))
 
 FIELD_FILES = OrderedDict((

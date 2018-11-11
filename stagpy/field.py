@@ -127,7 +127,7 @@ def plot_scalar(step, var, scaling=None, **extra):
         meta = phyvars.FIELD[var]
     else:
         meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(misc.baredoc(meta.description), meta.popts)
+        meta = phyvars.Varf(misc.baredoc(meta.description))
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
@@ -137,8 +137,9 @@ def plot_scalar(step, var, scaling=None, **extra):
         fld = np.copy(fld) * scaling
 
     fig, axis = plt.subplots(ncols=1)
-    extra_opts = {'cmap': 'RdBu_r'}
-    extra_opts.update(meta.popts)
+    extra_opts = {}
+    if var in conf.field.cmap:
+        extra_opts.update(cmap=conf.field.cmap[var])
     extra_opts.update({} if var != 'eta'
                       else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)

@@ -66,6 +66,13 @@ CONF_DEF['field'] = OrderedDict((
     ('shrinkcb',
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
+    ('cmap',
+        Conf({'T': 'RdBu_r',
+              'eta': 'viridis_r',
+              'rho': 'RdBu',
+              'sII': 'plasma_r',
+              'edot': 'Reds'},
+             False, None, {}, True, 'custom colormaps')),
 ))
 
 CONF_DEF['rprof'] = OrderedDict((
