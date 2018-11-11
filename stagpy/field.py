@@ -127,7 +127,7 @@ def plot_scalar(step, var, scaling=None, **extra):
         meta = phyvars.FIELD[var]
     else:
         meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(misc.baredoc(meta.description))
+        meta = phyvars.Varf(misc.baredoc(meta.description), meta.kind)
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 

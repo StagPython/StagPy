@@ -9,33 +9,33 @@ from collections import OrderedDict, namedtuple
 
 from . import processing
 
-Varf = namedtuple('Varf', ['description'])
+Varf = namedtuple('Varf', ['description', 'kind'])
 FIELD = OrderedDict((
-    ('T', Varf('Temperature')),
-    ('v1', Varf('x Velocity')),
-    ('v2', Varf('y Velocity')),
-    ('v3', Varf('z Velocity')),
-    ('p', Varf('Pressure')),
-    ('eta', Varf('Viscosity')),
-    ('rho', Varf('Density')),
-    ('sII', Varf('Second invariant of stress tensor')),
-    ('sx1', Varf('1st comp. of principal stress eigenvector')),
-    ('sx2', Varf('2nd comp. of principal stress eigenvector')),
-    ('sx3', Varf('3rd comp. of principal stress eigenvector')),
-    ('s1val', Varf('Principal stress eigenvalue')),
-    ('edot', Varf('Strain rate')),
-    ('Tcond1', Varf('x Conductivity')),
-    ('Tcond2', Varf('y Conductivity')),
-    ('Tcond3', Varf('z Conductivity')),
-    ('c', Varf('Composition')),
-    ('cFe', Varf('FeO content')),
-    ('wtr', Varf('Water concentration')),
-    ('age', Varf('Age')),
-    ('contID', Varf('ID of continents')),
+    ('T', Varf('Temperature', 'Temperature')),
+    ('v1', Varf('x Velocity', 'Velocity')),
+    ('v2', Varf('y Velocity', 'Velocity')),
+    ('v3', Varf('z Velocity', 'Velocity')),
+    ('p', Varf('Pressure', 'Stress')),
+    ('eta', Varf('Viscosity', 'Viscosity')),
+    ('rho', Varf('Density', 'Density')),
+    ('sII', Varf('Second invariant of stress tensor', 'Stress')),
+    ('sx1', Varf('1st comp. of principal stress eigenvector', 'Stress')),
+    ('sx2', Varf('2nd comp. of principal stress eigenvector', 'Stress')),
+    ('sx3', Varf('3rd comp. of principal stress eigenvector', 'Stress')),
+    ('s1val', Varf('Principal stress eigenvalue', 'Stress')),
+    ('edot', Varf('Strain rate', 'Rate')),
+    ('Tcond1', Varf('x Conductivity', 'Conductivity')),
+    ('Tcond2', Varf('y Conductivity', 'Conductivity')),
+    ('Tcond3', Varf('z Conductivity', 'Conductivity')),
+    ('c', Varf('Composition', 'Composition')),
+    ('cFe', Varf('FeO content', 'Composition')),
+    ('wtr', Varf('Water concentration', 'Composition')),
+    ('age', Varf('Age', 'Time')),
+    ('contID', Varf('ID of continents', 'ID')),
 ))
 
 FIELD_EXTRA = OrderedDict((
-    ('stream', Varf(processing.stream_function)),
+    ('stream', Varf(processing.stream_function, 'Stream')),
 ))
 
 FIELD_FILES = OrderedDict((
@@ -192,13 +192,13 @@ TIME_EXTRA = OrderedDict((
     ('mobility', Vart(processing.mobility, 'Mobility')),
 ))
 
-Varp = namedtuple('Varp', ['description'])
+Varp = namedtuple('Varp', ['description', 'kind'])
 PLATES = OrderedDict((
-    ('c', Varp('Composition')),
-    ('eta', Varp('Viscosity')),
-    ('sc', Varp('Topography')),
-    ('age', Varp('Age')),
-    ('str', Varp('Stress')),
-    ('sx', Varp('Principal deviatoric stress')),
-    ('ed', Varp('Strain rate')),
+    ('c', Varp('Composition', 'Composition')),
+    ('eta', Varp('Viscosity', 'Viscosity')),
+    ('sc', Varp('Topography', 'Topography')),
+    ('age', Varp('Age', 'Time')),
+    ('str', Varp('Stress', 'Stress')),
+    ('sx', Varp('Principal deviatoric stress', 'Stress')),
+    ('ed', Varp('Strain rate', 'Strain')),
 ))
