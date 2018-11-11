@@ -44,7 +44,7 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
 
 
 def get_rprof(step, var):
-    """Extract or compute a radial profile.
+    """Extract or compute and rescale requested radial profile.
 
     Args:
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
@@ -72,6 +72,9 @@ def get_rprof(step, var):
         meta = phyvars.Varr(misc.baredoc(meta.description), meta.kind)
     else:
         raise UnknownRprofVarError(var)
+    rprof = step.sdat.scale(rprof, meta.kind)
+    if rad is not None:
+        rad = step.sdat.scale(rad, 'Radius')
 
     return rprof, rad, meta
 
@@ -85,8 +88,8 @@ def plot_grid(step):
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
             instance.
     """
-    rad = step.rprof['r']
-    drad, _, _ = get_rprof(step, 'dr')
+    rad = get_rprof(step, 'r')[0]
+    drad = get_rprof(step, 'dr')[0]
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(rad, '-ko')
     ax1.set_ylabel('$r$')
@@ -137,8 +140,10 @@ def plot_average(sdat, lovs):
     ilast = step.istep
     for rvar in sovs:
         rprof_averaged[rvar] /= nprofs
-    rprof_averaged['bounds'] = misc.get_rbounds(step)
-    rprof_averaged['r'] = step.rprof.loc[:, 'r'] + rprof_averaged['bounds'][0]
+    rcmb, rsurf = misc.get_rbounds(step)
+    rprof_averaged['bounds'] = (step.sdat.scale(rcmb, 'Radius'),
+                                step.sdat.scale(rsurf, 'Radius'))
+    rprof_averaged['r'] = get_rprof(step, 'r')[0] + rprof_averaged['bounds'][0]
 
     stepstr = '{}_{}'.format(istart, ilast)
 
@@ -170,7 +175,10 @@ def plot_every_step(sdat, lovs):
             if rad is not None:
                 rads[rvar] = rad
         rprofs['bounds'] = misc.get_rbounds(step)
-        rprofs['r'] = step.rprof.loc[:, 'r'] + rprofs['bounds'][0]
+        rcmb, rsurf = misc.get_rbounds(step)
+        rprofs['bounds'] = (step.sdat.scale(rcmb, 'Radius'),
+                            step.sdat.scale(rsurf, 'Radius'))
+        rprofs['r'] = get_rprof(step, 'r')[0] + rprofs['bounds'][0]
         stepstr = str(step.istep)
 
         _plot_rprof_list(lovs, rprofs, metas, stepstr, rads)

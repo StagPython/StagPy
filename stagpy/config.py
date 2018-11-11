@@ -56,6 +56,7 @@ CONF_DEF['scaling'] = OrderedDict((
                      True, 'year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
                       True, 'transit time in My')),
+    ('dimensional', switch_opt(False, None, 'use dimensional units')),
 ))
 
 CONF_DEF['field'] = OrderedDict((

@@ -6,6 +6,7 @@ be computed from other variables.
 """
 
 from collections import OrderedDict, namedtuple
+from operator import attrgetter
 
 from . import processing
 
@@ -200,5 +201,23 @@ PLATES = OrderedDict((
     ('age', Varp('Age', 'Time')),
     ('str', Varp('Stress', 'Stress')),
     ('sx', Varp('Principal deviatoric stress', 'Stress')),
-    ('ed', Varp('Strain rate', 'Strain')),
+    ('ed', Varp('Strain rate', 'Strain rate')),
 ))
+
+SCALES = {
+    'Radius': attrgetter('length'),
+    'dr': attrgetter('length'),
+    'Topography': attrgetter('length'),
+    'Density': attrgetter('density'),
+    'Temperature': attrgetter('temperature'),
+    'Heat flux': attrgetter('heat_flux'),
+    'Stress': attrgetter('stress'),
+    'Viscosity': attrgetter('dyn_visc'),
+    'Time': attrgetter('time'),
+    'dt': attrgetter('time'),
+    'Strain rate': lambda scl: 1 / scl.time,
+    'dT/dt': lambda scl: scl.temperature / scl.time,
+    'Velocity': lambda scl: scl.length / scl.time,
+    'Divergence': lambda scl: 1 / scl.time,
+    'Vorticity': lambda scl: 1 / scl.time,
+}

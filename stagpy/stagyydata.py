@@ -32,6 +32,11 @@ class _Scales:
         return self._sdat.par['geometry']['d_dimensional']
 
     @property
+    def temperature(self):
+        """Temperature in K."""
+        return self._sdat.par['refstate']['deltaT_dimensional']
+
+    @property
     def density(self):
         """Density in kg/m3."""
         return self._sdat.par['refstate']['dens_dimensional']
@@ -60,6 +65,16 @@ class _Scales:
     def time(self):
         """Time in s."""
         return self.length**2 / self.th_diff
+
+    @property
+    def power(self):
+        """Power in W."""
+        return self.th_cond * self.temperature * self.length
+
+    @property
+    def heat_flux(self):
+        """Local heat flux in W/m2."""
+        return self.power / self.length**2
 
     @property
     def stress(self):
@@ -507,6 +522,23 @@ class StagyyData:
         elif conf.core.timesteps is not None:
             return self.steps[conf.core.timesteps]
         return self.snaps[-1:]
+
+    def scale(self, data, kind):
+        """Scales quantity to obtain dimensionful quantity.
+
+        Args:
+            kind (str): the kind of variable as defined in phyvars.
+        Return:
+            float: scaling factor.
+        Other Parameters:
+            conf.scaling.dimensional: if set to False (default), the factor is
+                always 1.
+        """
+        if self.par['switches']['dimensional_units'] or \
+           not conf.scaling.dimensional or \
+           kind not in phyvars.SCALES:
+            return data
+        return data * phyvars.SCALES[kind](self.scales)
 
     def tseries_between(self, tstart=None, tend=None):
         """Return time series data between requested times.

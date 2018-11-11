@@ -21,9 +21,9 @@ def _sub(cmd, *sections):
 SUB_CMDS = OrderedDict((
     ('common_', Subcmd('read and process StagYY binary data', 'common',
                        func=lambda: print('stagpy -h for usage'))),
-    ('field', _sub(field, 'core', 'plot')),
-    ('rprof', _sub(rprof, 'core', 'plot')),
-    ('time', _sub(time_series, 'core', 'plot')),
+    ('field', _sub(field, 'core', 'plot', 'scaling')),
+    ('rprof', _sub(rprof, 'core', 'plot', 'scaling')),
+    ('time', _sub(time_series, 'core', 'plot', 'scaling')),
     ('plates', _sub(plates, 'core', 'plot', 'scaling')),
     ('info', _sub(commands.info_cmd, 'core')),
     ('var', _sub(commands.var_cmd)),

@@ -134,7 +134,8 @@ def plot_scalar(step, var, scaling=None, **extra):
     xmesh, ymesh, fld = get_meshes_fld(step, var)
 
     if scaling is not None:
-        fld = np.copy(fld) * scaling
+        fld = fld * scaling
+    fld = step.sdat.scale(fld, meta.kind)
 
     fig, axis = plt.subplots(ncols=1)
     extra_opts = {}
@@ -211,7 +212,11 @@ def cmd():
         for step in sdat.walk.filter(snap=True):
             for var, _ in sovs:
                 if var in step.fields:
-                    field = step.fields[var]
+                    if var in phyvars.FIELD:
+                        kind = phyvars.FIELD[var].kind
+                    else:
+                        kind = phyvars.FIELD_EXTRA[var].kind
+                    field = sdat.scale(step.fields[var], kind)
                     if var in minmax:
                         minmax[var] = (min(minmax[var][0], np.nanmin(field)),
                                        max(minmax[var][1], np.nanmax(field)))

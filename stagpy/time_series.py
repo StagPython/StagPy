@@ -46,7 +46,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
 
 
 def get_time_series(sdat, var, tstart, tend):
-    """Extract or compute a time series.
+    """Extract or compute and rescale a time series.
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
@@ -79,6 +79,9 @@ def get_time_series(sdat, var, tstart, tend):
     else:
         raise UnknownTimeVarError(var)
 
+    series = sdat.scale(series, meta.kind)
+    if time is not None:
+        time = sdat.scale(time, 'Time')
     return series, time, meta
 
 
