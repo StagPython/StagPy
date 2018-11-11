@@ -69,7 +69,7 @@ FIELD_FILES_H5 = OrderedDict((
     ('StrainRate', ['edot']),
 ))
 
-Varr = namedtuple('Varr', ['description', 'shortname'])
+Varr = namedtuple('Varr', ['description', 'kind'])
 RPROF = OrderedDict((
     ('r', Varr('Radial coordinate', 'Radius')),
     ('Tmean', Varr('Temperature', 'Temperature')),
@@ -152,7 +152,7 @@ RPROF_EXTRA = OrderedDict((
     ('cfover', Varr(processing.c_overturned, 'Concentration')),
 ))
 
-Vart = namedtuple('Vart', ['description', 'shortname'])
+Vart = namedtuple('Vart', ['description', 'kind'])
 TIME = OrderedDict((
     ('t', Vart('Time', 'Time')),
     ('ftop', Vart('Heat flux at top', 'Heat flux')),

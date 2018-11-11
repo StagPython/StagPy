@@ -25,7 +25,7 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                 axes[iplt].plot(time, tseries[tvar],
                                 conf.time.style,
                                 label=metas[tvar].description)
-                lbl = metas[tvar].shortname
+                lbl = metas[tvar].kind
                 if ylabel is None:
                     ylabel = lbl
                 elif ylabel != lbl:
@@ -75,7 +75,7 @@ def get_time_series(sdat, var, tstart, tend):
     elif var in phyvars.TIME_EXTRA:
         meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
-        meta = phyvars.Vart(misc.baredoc(meta.description), meta.shortname)
+        meta = phyvars.Vart(misc.baredoc(meta.description), meta.kind)
     else:
         raise UnknownTimeVarError(var)
 

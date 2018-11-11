@@ -28,8 +28,8 @@ def _plot_rprof_list(lovs, rprofs, metas, stepstr, rads=None):
                 if conf.rprof.depth:
                     axes[iplt].invert_yaxis()
                 if xlabel is None:
-                    xlabel = metas[rvar].shortname
-                elif xlabel != metas[rvar].shortname:
+                    xlabel = metas[rvar].kind
+                elif xlabel != metas[rvar].kind:
                     xlabel = ''
             if ivar == 0:
                 xlabel = metas[rvar].description
@@ -69,7 +69,7 @@ def get_rprof(step, var):
     elif var in phyvars.RPROF_EXTRA:
         meta = phyvars.RPROF_EXTRA[var]
         rprof, rad = meta.description(step)
-        meta = phyvars.Varr(misc.baredoc(meta.description), meta.shortname)
+        meta = phyvars.Varr(misc.baredoc(meta.description), meta.kind)
     else:
         raise UnknownRprofVarError(var)
 
