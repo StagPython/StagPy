@@ -8,7 +8,7 @@ from .error import UnknownTimeVarError, InvalidTimeFractionError
 from .stagyydata import StagyyData
 
 
-def _plot_time_list(lovs, tseries, metas, times=None):
+def _plot_time_list(sdat, lovs, tseries, metas, times=None):
     """Plot requested profiles"""
     if times is None:
         times = {}
@@ -33,13 +33,19 @@ def _plot_time_list(lovs, tseries, metas, times=None):
             if ivar == 0:
                 ylabel = metas[tvar].description
             if ylabel:
+                _, unit = sdat.scale(1, metas[tvar].kind)
+                if unit:
+                    ylabel += ' ({})'.format(unit)
                 axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
             if ivar:
                 axes[iplt].legend()
             axes[iplt].tick_params()
-        axes[-1].set_xlabel('Time')
+        _, unit = sdat.scale(1, 'Time')
+        if unit:
+            unit = ' ({})'.format(unit)
+        axes[-1].set_xlabel('Time' + unit)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
         axes[-1].tick_params()
         misc.saveplot(fig, '_'.join(fname))
@@ -79,9 +85,9 @@ def get_time_series(sdat, var, tstart, tend):
     else:
         raise UnknownTimeVarError(var)
 
-    series = sdat.scale(series, meta.kind)
+    series, _ = sdat.scale(series, meta.kind)
     if time is not None:
-        time = sdat.scale(time, 'Time')
+        time, _ = sdat.scale(time, 'Time')
     return series, time, meta
 
 
@@ -111,7 +117,7 @@ def plot_time_series(sdat, lovs):
     tseries['t'] = get_time_series(
         sdat, 't', conf.time.tstart, conf.time.tend)[0]
 
-    _plot_time_list(lovs, tseries, metas, times)
+    _plot_time_list(sdat, lovs, tseries, metas, times)
 
 
 def compstat(sdat, tstart=None, tend=None):

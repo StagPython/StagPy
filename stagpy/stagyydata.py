@@ -529,7 +529,7 @@ class StagyyData:
         Args:
             kind (str): the kind of variable as defined in phyvars.
         Return:
-            float: scaling factor.
+            (float, str): scaling factor and unit string.
         Other Parameters:
             conf.scaling.dimensional: if set to False (default), the factor is
                 always 1.
@@ -537,8 +537,22 @@ class StagyyData:
         if self.par['switches']['dimensional_units'] or \
            not conf.scaling.dimensional or \
            kind not in phyvars.SCALES:
-            return data
-        return data * phyvars.SCALES[kind](self.scales)
+            return data, ''
+        scaling, unit = phyvars.SCALES[kind]
+        scaling = scaling(self.scales)
+        if conf.scaling.time_in_y and kind == 'Time':
+            scaling /= conf.scaling.yearins
+            unit = 'yr'
+        elif conf.scaling.vel_in_cmpy and kind == 'Velocity':
+            scaling *= 100 * conf.scaling.yearins
+            unit = 'cm/y'
+        factor = conf.scaling.factors.get(kind, ' ')
+        try:
+            scaling *= 10**(-3 * ('kMG'.index(factor) + 1))
+            unit = factor + unit
+        except ValueError:
+            pass
+        return data * scaling, unit
 
     def tseries_between(self, tstart=None, tend=None):
         """Return time series data between requested times.

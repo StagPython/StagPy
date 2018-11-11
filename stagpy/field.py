@@ -135,7 +135,7 @@ def plot_scalar(step, var, scaling=None, **extra):
 
     if scaling is not None:
         fld = fld * scaling
-    fld = step.sdat.scale(fld, meta.kind)
+    fld, unit = step.sdat.scale(fld, meta.kind)
 
     fig, axis = plt.subplots(ncols=1)
     extra_opts = {}
@@ -148,7 +148,7 @@ def plot_scalar(step, var, scaling=None, **extra):
                            shading='gouraud', **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
-    cbar.set_label(meta.description)
+    cbar.set_label(meta.description + (' ({})'.format(unit) if unit else ''))
     if step.geom.spherical or conf.plot.ratio is None:
         plt.axis('equal')
         plt.axis('off')
@@ -216,7 +216,7 @@ def cmd():
                         kind = phyvars.FIELD[var].kind
                     else:
                         kind = phyvars.FIELD_EXTRA[var].kind
-                    field = sdat.scale(step.fields[var], kind)
+                    field, _ = sdat.scale(step.fields[var], kind)
                     if var in minmax:
                         minmax[var] = (min(minmax[var][0], np.nanmin(field)),
                                        max(minmax[var][1], np.nanmax(field)))

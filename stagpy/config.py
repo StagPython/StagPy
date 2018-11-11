@@ -57,6 +57,14 @@ CONF_DEF['scaling'] = OrderedDict((
     ('ttransit', Conf(1.78e15, False, None, {},
                       True, 'transit time in My')),
     ('dimensional', switch_opt(False, None, 'use dimensional units')),
+    ('time_in_y', switch_opt(True, None, 'dimensionful time is in year')),
+    ('vel_in_cmpy', switch_opt(True, None,
+                               'dimensionful velocity is in cm/year')),
+    ('factors', Conf({'Time': 'M',
+                      'Radius': 'k',
+                      'dr': 'k',
+                      'Stress': 'G'},
+                     False, None, {}, True, 'custom factors')),
 ))
 
 CONF_DEF['field'] = OrderedDict((
