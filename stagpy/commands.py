@@ -88,17 +88,22 @@ def var_cmd():
     See :mod:`stagpy.phyvars` where the lists of variables organized by command
     are defined.
     """
-    print('field:')
-    _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
-    print()
-    print('rprof:')
-    _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)
-    print()
-    print('time:')
-    _layout(phyvars.TIME, phyvars.TIME_EXTRA)
-    print()
-    print('plates:')
-    _layout(phyvars.PLATES, {})
+    print_all = not any(val for _, val in conf.var.opt_vals_())
+    if print_all or conf.var.field:
+        print('field:')
+        _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
+        print()
+    if print_all or conf.var.rprof:
+        print('rprof:')
+        _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)
+        print()
+    if print_all or conf.var.time:
+        print('time:')
+        _layout(phyvars.TIME, phyvars.TIME_EXTRA)
+        print()
+    if print_all or conf.var.plates:
+        print('plates:')
+        _layout(phyvars.PLATES, {})
 
 
 def version_cmd():

@@ -160,4 +160,15 @@ CONF_DEF['plates'] = OrderedDict((
                         True, 'max lithospheric stress in plots')),
 ))
 
+CONF_DEF['var'] = OrderedDict((
+    ('field', Conf(None, True, None, {'action': 'store_true'},
+                   False, 'print field variables')),
+    ('rprof', Conf(None, True, None, {'action': 'store_true'},
+                   False, 'print rprof variables')),
+    ('time', Conf(None, True, None, {'action': 'store_true'},
+                  False, 'print time variables')),
+    ('plates', Conf(None, True, None, {'action': 'store_true'},
+                    False, 'print plates variables')),
+))
+
 CONF_DEF['config'] = config_conf_section()
