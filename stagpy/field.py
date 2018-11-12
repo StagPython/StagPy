@@ -141,6 +141,10 @@ def plot_scalar(step, var, scaling=None, **extra):
     extra_opts = {}
     if var in conf.field.cmap:
         extra_opts.update(cmap=conf.field.cmap[var])
+    if conf.plot.vmin is not None:
+        extra_opts.update(vmin=conf.plot.vmin)
+    if conf.plot.vmax is not None:
+        extra_opts.update(vmax=conf.plot.vmax)
     extra_opts.update({} if var != 'eta'
                       else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)
@@ -209,6 +213,8 @@ def cmd():
     sovs = set_of_vars(conf.field.plot)
     minmax = {}
     if conf.plot.cminmax:
+        conf.plot.vmin = None
+        conf.plot.vmax = None
         for step in sdat.walk.filter(snap=True):
             for var, _ in sovs:
                 if var in step.fields:

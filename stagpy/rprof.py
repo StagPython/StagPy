@@ -40,6 +40,7 @@ def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
                 axes[iplt].set_xlabel(xlabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_xscale('log')
+            axes[iplt].set_xlim(left=conf.plot.vmin, right=conf.plot.vmax)
             if ivar:
                 axes[iplt].legend()
         ylabel = 'Depth' if conf.rprof.depth else 'Radius'

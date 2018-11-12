@@ -39,6 +39,7 @@ def _plot_time_list(sdat, lovs, tseries, metas, times=None):
                 axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
+            axes[iplt].set_ylim(bottom=conf.plot.vmin, top=conf.plot.vmax)
             if ivar:
                 axes[iplt].legend()
             axes[iplt].tick_params()
