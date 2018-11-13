@@ -8,6 +8,7 @@ Note:
 
 import re
 import pathlib
+from itertools import zip_longest
 
 from . import conf, error, parfile, phyvars, stagyyparsers, _step
 from ._step import UNDETERMINED
@@ -353,6 +354,9 @@ class _StepsView:
     def __iter__(self):
         return (self._col[i] for i in range(*self._idx)
                 if self._pass(self._col[i]))
+
+    def __eq__(self, other):
+        return all(s1 is s2 for s1, s2 in zip_longest(self, other))
 
 
 class StagyyData:

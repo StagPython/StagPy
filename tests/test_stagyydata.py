@@ -1,4 +1,3 @@
-from itertools import zip_longest as zlong
 import pytest
 import f90nml
 import pandas
@@ -30,22 +29,21 @@ def test_sdat_walk_dflt(sdat):
 
 
 def test_steps_iter(sdat):
-    assert all(a is b for a, b in zlong(sdat.steps, sdat.steps[:]))
+    assert sdat.steps[:] == sdat.steps
 
 
 def test_snaps_iter(sdat):
-    assert all(a is b for a, b in zlong(sdat.snaps, sdat.snaps[:]))
+    assert sdat.snaps[:] == sdat.snaps
 
 
 def test_filter_snap(sdat):
     snaps = (s for s in sdat.snaps if s)
-    assert all(
-        a is b for a, b in zlong(snaps, sdat.steps.filter(snap=True)))
+    assert sdat.steps.filter(snap=True) == snaps
 
 
 def test_filter_even_steps(sdat):
     even = sdat.steps.filter(func=lambda step: step.istep % 2 == 0)
-    assert all(a is b for a, b in zlong(sdat.steps[::2], even))
+    assert sdat.steps[::2] == even
 
 
 def test_snaps_last(sdat):
