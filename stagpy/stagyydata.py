@@ -551,11 +551,9 @@ class StagyyData:
             scaling *= 100 * conf.scaling.yearins
             unit = 'cm/y'
         factor = conf.scaling.factors.get(kind, ' ')
-        try:
-            scaling *= 10**(-3 * ('kMG'.index(factor) + 1))
+        if factor in phyvars.PREFIXES:
+            scaling *= 10**(-3 * (phyvars.PREFIXES.index(factor) + 1))
             unit = factor + unit
-        except ValueError:
-            pass
         return data * scaling, unit
 
     def tseries_between(self, tstart=None, tend=None):

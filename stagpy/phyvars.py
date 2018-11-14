@@ -221,3 +221,5 @@ SCALES = {
     'Divergence': (lambda scl: 1 / scl.time, '1/s'),
     'Vorticity': (lambda scl: 1 / scl.time, '1/s'),
 }
+
+PREFIXES = ('k', 'M', 'G')
