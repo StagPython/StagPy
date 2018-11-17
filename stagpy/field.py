@@ -139,17 +139,13 @@ def plot_scalar(step, var, scaling=None, **extra):
 
     fig, axis = plt.subplots(ncols=1)
     extra_opts = dict(
+        cmap=conf.field.cmap.get(var),
+        vmin=conf.plot.vmin,
+        vmax=conf.plot.vmax,
+        norm=mpl.colors.LogNorm() if var == 'eta' else None,
         rasterized=conf.plot.raster,
         shading='gouraud',
     )
-    if var in conf.field.cmap:
-        extra_opts.update(cmap=conf.field.cmap[var])
-    if conf.plot.vmin is not None:
-        extra_opts.update(vmin=conf.plot.vmin)
-    if conf.plot.vmax is not None:
-        extra_opts.update(vmax=conf.plot.vmax)
-    extra_opts.update({} if var != 'eta'
-                      else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)
     surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
 
