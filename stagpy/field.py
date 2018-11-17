@@ -138,7 +138,10 @@ def plot_scalar(step, var, scaling=None, **extra):
     fld, unit = step.sdat.scale(fld, meta.kind)
 
     fig, axis = plt.subplots(ncols=1)
-    extra_opts = {}
+    extra_opts = dict(
+        rasterized=conf.plot.raster,
+        shading='gouraud',
+    )
     if var in conf.field.cmap:
         extra_opts.update(cmap=conf.field.cmap[var])
     if conf.plot.vmin is not None:
@@ -148,8 +151,7 @@ def plot_scalar(step, var, scaling=None, **extra):
     extra_opts.update({} if var != 'eta'
                       else {'norm': mpl.colors.LogNorm()})
     extra_opts.update(extra)
-    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=conf.plot.raster,
-                           shading='gouraud', **extra_opts)
+    surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
 
     cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
     cbar.set_label(meta.description + (' ({})'.format(unit) if unit else ''))
