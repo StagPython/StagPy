@@ -76,6 +76,7 @@ CONF_DEF['field'] = OrderedDict((
         Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
              True, 'variables to plot (see stagpy var)')),
+    ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
     ('shrinkcb',
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),

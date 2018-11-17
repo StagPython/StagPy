@@ -144,7 +144,7 @@ def plot_scalar(step, var, scaling=None, **extra):
         vmax=conf.plot.vmax,
         norm=mpl.colors.LogNorm() if var == 'eta' else None,
         rasterized=conf.plot.raster,
-        shading='gouraud',
+        shading='gouraud' if conf.field.interpolate else 'flat',
     )
     extra_opts.update(extra)
     surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
