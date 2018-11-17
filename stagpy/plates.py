@@ -23,11 +23,7 @@ def detect_plates_vzcheck(step, seuil_memz):
     radiusgrid = step.geom.rgeom[:, 0] + rcmb
     dphi = 1 / nphi
 
-    # calculing tmean
-    tmean = step.timeinfo.loc['Tmean']
-
-    # calculing temperature on the grid and vz_mean/v_rms
-    v_rms = step.timeinfo.loc['vrms']
+    # calculing temperature on the grid and vz_mean
     vz_mean = 0
     tgrid = np.zeros((nphi, n_z + 1))
     tgrid[:, 0] = 1
@@ -43,20 +39,17 @@ def detect_plates_vzcheck(step, seuil_memz):
     flux_c = n_z * [0]
     for i_z in range(1, n_z - 1):
         for phi in range(nphi):
-            flux_c[i_z] += (tgrid[phi, i_z] - tmean) * \
+            flux_c[i_z] += (tgrid[phi, i_z] - step.timeinfo.loc['Tmean']) * \
                 v_z[phi, i_z] * radiusgrid[i_z] * dphi
 
     # checking stagnant lid
-    stagnant_lid = True
-    max_flx = np.max(flux_c)
-    stagnant_lid = all(abs(flux_c[i_z]) <= max_flx / 50
-                       for i_z in range(n_z - n_z // 20, n_z))
-    if stagnant_lid:
+    if all(abs(flux_c[i_z]) <= np.max(flux_c) / 50
+           for i_z in range(n_z - n_z // 20, n_z)):
         raise error.StagnantLidError(step.sdat)
     else:
         # verifying horizontal plate speed and closeness of plates
         dvphi = nphi * [0]
-        dvx_thres = 16 * v_rms
+        dvx_thres = 16 * step.timeinfo.loc['vrms']
 
         for phi in range(0, nphi):
             dvphi[phi] = (v_x[phi, n_z - 1] -
@@ -598,8 +591,7 @@ def set_of_vars(arg_plot):
     Returns:
         set of str: set of variables.
     """
-    sovs = set(var for var in arg_plot.split(',') if var in phyvars.PLATES)
-    return sovs
+    return set(var for var in arg_plot.split(',') if var in phyvars.PLATES)
 
 
 def main_plates(sdat):
