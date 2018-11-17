@@ -1,6 +1,5 @@
 """Plate analysis."""
 
-from copy import deepcopy
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -110,7 +109,7 @@ def detect_plates(step, vrms_surface, fids, time):
     myorder_ridge = 20  # threshold
 
     # finding trenches
-    pom2 = deepcopy(dvph2)
+    pom2 = np.copy(dvph2)
     if step.sdat.par['boundaries']['air_layer']:
         maskbigdvel = -30 * vrms_surface
     else:
@@ -123,7 +122,7 @@ def detect_plates(step, vrms_surface, fids, time):
     dv_trench = dvph2[argless_dv]
 
     # finding ridges
-    pom2 = deepcopy(dvph2)
+    pom2 = np.copy(dvph2)
     masksmalldvel = np.amax(dvph2) * 0.2
     pom2[pom2 < masksmalldvel] = masksmalldvel
     arggreat_dv = argrelextrema(
