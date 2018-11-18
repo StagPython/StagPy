@@ -34,7 +34,7 @@ def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
             if ivar == 0:
                 xlabel = metas[rvar].description
             if xlabel:
-                _, unit = sdat.scale(1, metas[rvar].kind)
+                _, unit = sdat.scale(1, metas[rvar].dim)
                 if unit:
                     xlabel += ' ({})'.format(unit)
                 axes[iplt].set_xlabel(xlabel)
@@ -44,7 +44,7 @@ def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
             if ivar:
                 axes[iplt].legend()
         ylabel = 'Depth' if conf.rprof.depth else 'Radius'
-        _, unit = sdat.scale(1, 'Radius')
+        _, unit = sdat.scale(1, 'm')
         if unit:
             ylabel += ' ({})'.format(unit)
         axes[0].set_ylabel(ylabel)
@@ -77,12 +77,13 @@ def get_rprof(step, var):
     elif var in phyvars.RPROF_EXTRA:
         meta = phyvars.RPROF_EXTRA[var]
         rprof, rad = meta.description(step)
-        meta = phyvars.Varr(misc.baredoc(meta.description), meta.kind)
+        meta = phyvars.Varr(misc.baredoc(meta.description),
+                            meta.kind, meta.dim)
     else:
         raise UnknownRprofVarError(var)
-    rprof, _ = step.sdat.scale(rprof, meta.kind)
+    rprof, _ = step.sdat.scale(rprof, meta.dim)
     if rad is not None:
-        rad, _ = step.sdat.scale(rad, 'Radius')
+        rad, _ = step.sdat.scale(rad, 'm')
 
     return rprof, rad, meta
 
@@ -98,7 +99,7 @@ def plot_grid(step):
     """
     rad = get_rprof(step, 'r')[0]
     drad = get_rprof(step, 'dr')[0]
-    _, unit = step.sdat.scale(1, 'Radius')
+    _, unit = step.sdat.scale(1, 'm')
     if unit:
         unit = ' ({})'.format(unit)
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
@@ -152,8 +153,8 @@ def plot_average(sdat, lovs):
     for rvar in sovs:
         rprof_averaged[rvar] /= nprofs
     rcmb, rsurf = misc.get_rbounds(step)
-    rprof_averaged['bounds'] = (step.sdat.scale(rcmb, 'Radius')[0],
-                                step.sdat.scale(rsurf, 'Radius')[0])
+    rprof_averaged['bounds'] = (step.sdat.scale(rcmb, 'm')[0],
+                                step.sdat.scale(rsurf, 'm')[0])
     rprof_averaged['r'] = get_rprof(step, 'r')[0] + rprof_averaged['bounds'][0]
 
     stepstr = '{}_{}'.format(istart, ilast)
@@ -187,8 +188,8 @@ def plot_every_step(sdat, lovs):
                 rads[rvar] = rad
         rprofs['bounds'] = misc.get_rbounds(step)
         rcmb, rsurf = misc.get_rbounds(step)
-        rprofs['bounds'] = (step.sdat.scale(rcmb, 'Radius')[0],
-                            step.sdat.scale(rsurf, 'Radius')[0])
+        rprofs['bounds'] = (step.sdat.scale(rcmb, 'm')[0],
+                            step.sdat.scale(rsurf, 'm')[0])
         rprofs['r'] = get_rprof(step, 'r')[0] + rprofs['bounds'][0]
         stepstr = str(step.istep)
 

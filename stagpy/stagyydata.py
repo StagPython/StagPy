@@ -527,11 +527,12 @@ class StagyyData:
             return self.steps[conf.core.timesteps]
         return self.snaps[-1:]
 
-    def scale(self, data, kind):
+    def scale(self, data, unit):
         """Scales quantity to obtain dimensionful quantity.
 
         Args:
-            kind (str): the kind of variable as defined in phyvars.
+            data (numpy.array): the quantity that should be scaled.
+            dim (str): the dimension of data as defined in phyvars.
         Return:
             (float, str): scaling factor and unit string.
         Other Parameters:
@@ -540,17 +541,16 @@ class StagyyData:
         """
         if self.par['switches']['dimensional_units'] or \
            not conf.scaling.dimensional or \
-           kind not in phyvars.SCALES:
+           unit == '1':
             return data, ''
-        scaling, unit = phyvars.SCALES[kind]
-        scaling = scaling(self.scales)
-        if conf.scaling.time_in_y and kind == 'Time':
+        scaling = phyvars.SCALES[unit](self.scales)
+        factor = conf.scaling.factors.get(unit, ' ')
+        if conf.scaling.time_in_y and unit == 's':
             scaling /= conf.scaling.yearins
             unit = 'yr'
-        elif conf.scaling.vel_in_cmpy and kind == 'Velocity':
+        elif conf.scaling.vel_in_cmpy and unit == 'm/s':
             scaling *= 100 * conf.scaling.yearins
             unit = 'cm/y'
-        factor = conf.scaling.factors.get(kind, ' ')
         if factor in phyvars.PREFIXES:
             scaling *= 10**(-3 * (phyvars.PREFIXES.index(factor) + 1))
             unit = factor + unit

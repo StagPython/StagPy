@@ -127,7 +127,7 @@ def plot_scalar(step, var, scaling=None, **extra):
         meta = phyvars.FIELD[var]
     else:
         meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(misc.baredoc(meta.description), meta.kind)
+        meta = phyvars.Varf(misc.baredoc(meta.description), meta.dim)
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
@@ -135,7 +135,7 @@ def plot_scalar(step, var, scaling=None, **extra):
 
     if scaling is not None:
         fld = fld * scaling
-    fld, unit = step.sdat.scale(fld, meta.kind)
+    fld, unit = step.sdat.scale(fld, meta.dim)
 
     fig, axis = plt.subplots(ncols=1)
     extra_opts = dict(
@@ -217,10 +217,10 @@ def cmd():
             for var, _ in sovs:
                 if var in step.fields:
                     if var in phyvars.FIELD:
-                        kind = phyvars.FIELD[var].kind
+                        dim = phyvars.FIELD[var].dim
                     else:
-                        kind = phyvars.FIELD_EXTRA[var].kind
-                    field, _ = sdat.scale(step.fields[var], kind)
+                        dim = phyvars.FIELD_EXTRA[var].dim
+                    field, _ = sdat.scale(step.fields[var], dim)
                     if var in minmax:
                         minmax[var] = (min(minmax[var][0], np.nanmin(field)),
                                        max(minmax[var][1], np.nanmax(field)))

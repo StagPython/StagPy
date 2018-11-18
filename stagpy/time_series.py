@@ -33,7 +33,7 @@ def _plot_time_list(sdat, lovs, tseries, metas, times=None):
             if ivar == 0:
                 ylabel = metas[tvar].description
             if ylabel:
-                _, unit = sdat.scale(1, metas[tvar].kind)
+                _, unit = sdat.scale(1, metas[tvar].dim)
                 if unit:
                     ylabel += ' ({})'.format(unit)
                 axes[iplt].set_ylabel(ylabel)
@@ -43,7 +43,7 @@ def _plot_time_list(sdat, lovs, tseries, metas, times=None):
             if ivar:
                 axes[iplt].legend()
             axes[iplt].tick_params()
-        _, unit = sdat.scale(1, 'Time')
+        _, unit = sdat.scale(1, 's')
         if unit:
             unit = ' ({})'.format(unit)
         axes[-1].set_xlabel('Time' + unit)
@@ -82,13 +82,14 @@ def get_time_series(sdat, var, tstart, tend):
     elif var in phyvars.TIME_EXTRA:
         meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
-        meta = phyvars.Vart(misc.baredoc(meta.description), meta.kind)
+        meta = phyvars.Vart(misc.baredoc(meta.description),
+                            meta.kind, meta.dim)
     else:
         raise UnknownTimeVarError(var)
 
-    series, _ = sdat.scale(series, meta.kind)
+    series, _ = sdat.scale(series, meta.dim)
     if time is not None:
-        time, _ = sdat.scale(time, 'Time')
+        time, _ = sdat.scale(time, 's')
     return series, time, meta
 
 

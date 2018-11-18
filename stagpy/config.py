@@ -64,10 +64,9 @@ CONF_DEF['scaling'] = OrderedDict((
     ('time_in_y', switch_opt(True, None, 'dimensionful time is in year')),
     ('vel_in_cmpy', switch_opt(True, None,
                                'dimensionful velocity is in cm/year')),
-    ('factors', Conf({'Time': 'M',
-                      'Radius': 'k',
-                      'dr': 'k',
-                      'Stress': 'G'},
+    ('factors', Conf({'s': 'M',
+                      'm': 'k',
+                      'Pa': 'G'},
                      False, None, {}, True, 'custom factors')),
 ))
 
