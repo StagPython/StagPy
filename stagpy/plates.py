@@ -496,16 +496,8 @@ def lithospheric_stress(step, trench, ridge, time):
     ph_coord = step.geom.p_coord  # probably doesn't need alias
 
     # plot stress in the lithosphere
-    fig, axis = plt.subplots(ncols=1)
-    surf = axis.pcolormesh(step.geom.x_mesh[0], step.geom.y_mesh[0],
-                           stressfld * step.sdat.scales.stress / 1.e6,
-                           cmap='plasma_r',
-                           rasterized=conf.plot.raster, shading='gouraud')
-    surf.set_clim(vmin=0, vmax=300)
-    cbar = plt.colorbar(surf, shrink=conf.plates.shrinkcb)
-    cbar.set_label(phyvars.FIELD['sII'].description)
-    plt.axis('equal')
-    plt.axis('off')
+    fig, axis, _, _ = field.plot_scalar(step, 'sII', stressfld,
+                                        cmap='plasma_r', vmin=0, vmax=300)
     # Annotation with time and step
     axis.text(1., 0.9, str(round(time, 0)) + ' My', transform=axis.transAxes)
     axis.text(1., 0.1, str(timestep), transform=axis.transAxes)
@@ -664,15 +656,14 @@ def main_plates(sdat):
                            step.fields['age'][0, :, isurf, 0])
 
             # plot viscosity field with position of trenches and ridges
-            fig, axis, surf, _ = field.plot_scalar(step, 'eta')
-            etamax = sdat.par['viscosity']['eta_max']
-            surf.set_clim(vmin=1e-2, vmax=etamax)
+            etamin, _ = sdat.scale(1e-2, 'Pa')
+            etamax, _ = sdat.scale(sdat.par['viscosity']['eta_max'], 'Pa')
+            fig, axis, _, _ = field.plot_scalar(step, 'eta',
+                                                vmin=etamin, vmax=etamax)
 
             # plotting continents
-            xmesh, ymesh = step.geom.x_mesh[0], step.geom.y_mesh[0]
-            axis.pcolormesh(xmesh, ymesh, continentsfld,
-                            rasterized=conf.plot.raster, cmap='cool_r',
-                            vmin=0, vmax=0, shading='gouraud')
+            field.plot_scalar(step, 'c', continentsfld, axis, False,
+                              cmap='cool_r', vmin=0, vmax=0)
             cmap2 = plt.cm.ocean
             cmap2.set_over('m')
 
@@ -711,10 +702,8 @@ def main_plates(sdat):
 
             # plot stress field with position of trenches and ridges
             if 'str' in conf.plates.plot:
-                fig, axis, surf, cbar = field.plot_scalar(
-                    step, 'sII', sdat.scales.stress / 1.e6)
-                surf.set_clim(vmin=0, vmax=300)
-                cbar.set_label('Stress [MPa]')
+                fig, axis, _, _ = field.plot_scalar(step, 'sII',
+                                                    vmin=0, vmax=300)
 
                 # Annotation with time and step
                 axis.text(1., 0.9, str(round(time, 0)) + ' My',
@@ -743,10 +732,8 @@ def main_plates(sdat):
                                                     alpha=0.1)
 
                 # plotting continents
-                axis.pcolormesh(xmesh, ymesh, continentsfld,
-                                rasterized=conf.plot.raster,
-                                cmap='cool_r',
-                                vmin=0, vmax=0, shading='goaround')
+                field.plot_scalar(step, 'c', continentsfld, axis, False,
+                                  cmap='cool_r', vmin=0, vmax=0)
                 cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
 
@@ -788,6 +775,8 @@ def cmd():
     sdat = StagyyData(conf.core.path)
     conf.plates.plot = set_of_vars(conf.plates.plot)
     if not conf.plates.vzcheck:
+        conf.scaling.dimensional = True
+        conf.scaling.factors['Pa'] = 'M'
         main_plates(sdat)
     else:
         seuil_memz = 0

@@ -104,16 +104,21 @@ def set_of_vars(arg_plot):
     return sovs
 
 
-def plot_scalar(step, var, scaling=None, **extra):
+def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
     """Plot scalar field.
 
     Args:
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
             instance.
         var (str): the scalar field name.
-        scaling (float): if not None, the scalar field values are multiplied by
-            this factor before plotting. This can be used e.g. to obtain
-            dimensionful values.
+        field (:class:`numpy.array`): if not None, it is plotted instead of
+            step.fields[var].  This is useful to plot a masked or rescaled
+            array.  Note that if conf.scaling.dimensional is True, this
+            field will be scaled accordingly.
+        axis (:class:`matplotlib.axes.Axes`): the axis objet where the field
+            should be plotted.  If set to None, a new figure with one subplot
+            is created.
+        set_cbar (bool): whether to add a colorbar to the plot.
         extra (dict): options that will be passed on to
             :func:`matplotlib.axes.Axes.pcolormesh`.
     Returns:
@@ -133,11 +138,15 @@ def plot_scalar(step, var, scaling=None, **extra):
 
     xmesh, ymesh, fld = get_meshes_fld(step, var)
 
-    if scaling is not None:
-        fld = fld * scaling
+    if field is not None:
+        fld = field
+
     fld, unit = step.sdat.scale(fld, meta.dim)
 
-    fig, axis = plt.subplots(ncols=1)
+    if axis is None:
+        fig, axis = plt.subplots(ncols=1)
+    else:
+        fig = axis.get_figure()
     extra_opts = dict(
         cmap=conf.field.cmap.get(var),
         vmin=conf.plot.vmin,
@@ -149,8 +158,11 @@ def plot_scalar(step, var, scaling=None, **extra):
     extra_opts.update(extra)
     surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
 
-    cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
-    cbar.set_label(meta.description + (' ({})'.format(unit) if unit else ''))
+    cbar = None
+    if set_cbar:
+        cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
+        cbar.set_label(meta.description +
+                       (' ({})'.format(unit) if unit else ''))
     if step.geom.spherical or conf.plot.ratio is None:
         plt.axis('equal')
         plt.axis('off')
