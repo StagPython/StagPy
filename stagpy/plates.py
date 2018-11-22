@@ -149,7 +149,7 @@ def detect_plates(step, vrms_surface, fids, time):
 
     # elimination of ridges that are too close to trench
     argdel = []
-    if trench and ridge:
+    if trench.any() and ridge.any():
         for i, ridge_i in enumerate(ridge):
             mdistance = np.amin(abs(trench - ridge_i))
             if mdistance < 0.016:
