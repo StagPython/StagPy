@@ -104,16 +104,21 @@ def set_of_vars(arg_plot):
     return sovs
 
 
-def plot_scalar(step, var, scaling=None, **extra):
+def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
     """Plot scalar field.
 
     Args:
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
             instance.
         var (str): the scalar field name.
-        scaling (float): if not None, the scalar field values are multiplied by
-            this factor before plotting. This can be used e.g. to obtain
-            dimensionful values.
+        field (:class:`numpy.array`): if not None, it is plotted instead of
+            step.fields[var].  This is useful to plot a masked or rescaled
+            array.  Note that if conf.scaling.dimensional is True, this
+            field will be scaled accordingly.
+        axis (:class:`matplotlib.axes.Axes`): the axis objet where the field
+            should be plotted.  If set to None, a new figure with one subplot
+            is created.
+        set_cbar (bool): whether to add a colorbar to the plot.
         extra (dict): options that will be passed on to
             :func:`matplotlib.axes.Axes.pcolormesh`.
     Returns:
@@ -127,26 +132,37 @@ def plot_scalar(step, var, scaling=None, **extra):
         meta = phyvars.FIELD[var]
     else:
         meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(misc.baredoc(meta.description), meta.popts)
+        meta = phyvars.Varf(misc.baredoc(meta.description), meta.dim)
     if step.geom.threed:
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
     xmesh, ymesh, fld = get_meshes_fld(step, var)
 
-    if scaling is not None:
-        fld = np.copy(fld) * scaling
+    if field is not None:
+        fld = field
 
-    fig, axis = plt.subplots(ncols=1)
-    extra_opts = {'cmap': 'RdBu_r'}
-    extra_opts.update(meta.popts)
-    extra_opts.update({} if var != 'eta'
-                      else {'norm': mpl.colors.LogNorm()})
+    fld, unit = step.sdat.scale(fld, meta.dim)
+
+    if axis is None:
+        fig, axis = plt.subplots(ncols=1)
+    else:
+        fig = axis.get_figure()
+    extra_opts = dict(
+        cmap=conf.field.cmap.get(var),
+        vmin=conf.plot.vmin,
+        vmax=conf.plot.vmax,
+        norm=mpl.colors.LogNorm() if var == 'eta' else None,
+        rasterized=conf.plot.raster,
+        shading='gouraud' if conf.field.interpolate else 'flat',
+    )
     extra_opts.update(extra)
-    surf = axis.pcolormesh(xmesh, ymesh, fld, rasterized=conf.plot.raster,
-                           shading='gouraud', **extra_opts)
+    surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
 
-    cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
-    cbar.set_label(meta.description)
+    cbar = None
+    if set_cbar:
+        cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
+        cbar.set_label(meta.description +
+                       (' ({})'.format(unit) if unit else ''))
     if step.geom.spherical or conf.plot.ratio is None:
         plt.axis('equal')
         plt.axis('off')
@@ -205,13 +221,33 @@ def cmd():
     """
     sdat = StagyyData(conf.core.path)
     sovs = set_of_vars(conf.field.plot)
+    minmax = {}
+    if conf.plot.cminmax:
+        conf.plot.vmin = None
+        conf.plot.vmax = None
+        for step in sdat.walk.filter(snap=True):
+            for var, _ in sovs:
+                if var in step.fields:
+                    if var in phyvars.FIELD:
+                        dim = phyvars.FIELD[var].dim
+                    else:
+                        dim = phyvars.FIELD_EXTRA[var].dim
+                    field, _ = sdat.scale(step.fields[var], dim)
+                    if var in minmax:
+                        minmax[var] = (min(minmax[var][0], np.nanmin(field)),
+                                       max(minmax[var][1], np.nanmax(field)))
+                    else:
+                        minmax[var] = np.nanmin(field), np.nanmax(field)
     for step in sdat.walk.filter(snap=True):
         for var in sovs:
-            if step.fields[var[0]] is None:
-                print("'{}' field on snap {} not found".format(var,
+            if var[0] not in step.fields:
+                print("'{}' field on snap {} not found".format(var[0],
                                                                step.isnap))
                 continue
-            fig, axis, _, _ = plot_scalar(step, var[0])
+            opts = {}
+            if var[0] in minmax:
+                opts = dict(vmin=minmax[var[0]][0], vmax=minmax[var[0]][1])
+            fig, axis, _, _ = plot_scalar(step, var[0], **opts)
             if valid_field_var(var[1]):
                 plot_iso(axis, step, var[1])
             elif var[1]:

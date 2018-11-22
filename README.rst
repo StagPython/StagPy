@@ -1,6 +1,6 @@
-.. image:: https://landscape.io/github/StagPython/StagPy/master/landscape.svg?style=flat-square
-   :target: https://landscape.io/github/StagPython/StagPy/master
-   :alt: Code Health
+.. image:: https://img.shields.io/lgtm/grade/python/g/StagPython/StagPy.svg?logo=lgtm&logoWidth=18
+   :target: https://lgtm.com/projects/g/StagPython/StagPy
+   :alt: Language grade: Python
 
 .. image:: https://travis-ci.org/StagPython/StagPy.svg?branch=master
    :target: https://travis-ci.org/StagPython/StagPy

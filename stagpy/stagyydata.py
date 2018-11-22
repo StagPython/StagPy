@@ -8,405 +8,91 @@ Note:
 
 import re
 import pathlib
+from itertools import zip_longest
 
-import numpy as np
-
-from . import conf, error, parfile, phyvars, stagyyparsers
-
-
-UNDETERMINED = object()
-# dummy object with a unique identifier,
-# useful to mark stuff as yet undetermined,
-# as opposed to either some value or None if
-# non existent
+from . import conf, error, parfile, phyvars, stagyyparsers, _step
+from ._step import UNDETERMINED
 
 
-class _Geometry:
+class _Scales:
 
-    """Geometry information.
+    """Dimensionful scales."""
 
-    It is deduced from the information in the header of binary field files
-    output by StagYY.
-
-    Attributes:
-        nxtot, nytot, nztot, nttot, nptot, nrtot, nbtot (int): number of grid
-            point in the various directions. Note that nxtot==nttot,
-            nytot==nptot, nztot==nrtot.
-        x_coord, y_coord, z_coord, t_coord, p_coord, r_coord (numpy.array):
-            positions of cell centers in the various directions. Note that
-            x_coord==t_coord, y_coord==p_coord, z_coord==r_coord.
-        x_mesh, y_mesh, z_mesh, t_mesh, p_mesh, r_mesh (numpy.array):
-            mesh in cartesian and curvilinear frames. The last three are
-            not defined if the geometry is cartesian.
-    """
-
-    _regexes = (re.compile(r'^n([xyztprb])tot$'),  # ntot
-                re.compile(r'^([xyztpr])_coord$'),  # coord
-                re.compile(r'^([xyz])_mesh$'),  # cartesian mesh
-                re.compile(r'^([tpr])_mesh$'))  # curvilinear mesh
-
-    def __init__(self, header, par):
-        self._header = header
-        self._par = par
-        self._coords = None
-        self._cart_meshes = None
-        self._curv_meshes = None
-        self._shape = {'sph': False, 'cyl': False, 'axi': False,
-                       'ntot': list(header['nts']) + [header['ntb']]}
-        self._init_shape()
-
-        self._coords = [header['e1_coord'],
-                        header['e2_coord'],
-                        header['e3_coord']]
-
-        # instead of adding horizontal rows, should construct two grids:
-        # - center of cells coordinates (the current one);
-        # - vertices coordinates on which vector fields are determined,
-        #   which geometrically contains one more row.
-
-        # add theta, phi / x, y row to have a continuous field
-        if not self.twod_yz:
-            self._coords[0] = np.append(
-                self.t_coord,
-                self.t_coord[-1] + self.t_coord[1] - self.t_coord[0])
-        if not self.twod_xz:
-            self._coords[1] = np.append(
-                self.p_coord,
-                self.p_coord[-1] + self.p_coord[1] - self.p_coord[0])
-
-        if self.cartesian:
-            self._cart_meshes = np.meshgrid(self.x_coord, self.y_coord,
-                                            self.z_coord, indexing='ij')
-            self._curv_meshes = (None, None, None)
-        else:
-            if self.twod_yz:
-                self._coords[0] = np.array(np.pi / 2)
-            elif self.twod_xz:
-                self._coords[1] = np.array(0)
-            r_coord = self.z_coord + self.rcmb
-            if par['magma_oceans_in']['evolving_magma_oceans']:
-                r_coord += header['mo_lambda']
-                r_coord *= header['mo_thick_sol']
-            t_mesh, p_mesh, r_mesh = np.meshgrid(
-                self.x_coord, self.y_coord, r_coord, indexing='ij')
-            # compute cartesian coordinates
-            # z along rotation axis at theta=0
-            # x at th=90, phi=0
-            # y at th=90, phi=90
-            x_mesh = r_mesh * np.cos(p_mesh) * np.sin(t_mesh)
-            y_mesh = r_mesh * np.sin(p_mesh) * np.sin(t_mesh)
-            z_mesh = r_mesh * np.cos(t_mesh)
-            self._cart_meshes = (x_mesh, y_mesh, z_mesh)
-            self._curv_meshes = (t_mesh, p_mesh, r_mesh)
-
-    def _init_shape(self):
-        """Determine shape of geometry"""
-        shape = self._par['geometry']['shape'].lower()
-        aspect = self._header['aspect']
-        if self.rcmb is not None and self.rcmb >= 0:
-            # curvilinear
-            self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
-                                                   aspect[0] >= np.pi)
-            self._shape['sph'] = not self._shape['cyl']
-        elif self.rcmb is None:
-            self._header['rcmb'] = self._par['geometry']['r_cmb']
-            if self.rcmb >= 0:
-                if self.twod_xz and shape == 'cylindrical':
-                    self._shape['cyl'] = True
-                elif shape == 'spherical':
-                    self._shape['sph'] = True
-        self._shape['axi'] = self.cartesian and self.twod_xz and \
-            shape == 'axisymmetric'
-
-    @property
-    def cartesian(self):
-        """Whether the grid is in cartesian geometry."""
-        return not self.curvilinear
-
-    @property
-    def curvilinear(self):
-        """Whether the grid is in curvilinear geometry."""
-        return self.spherical or self.cylindrical
-
-    @property
-    def cylindrical(self):
-        """Whether the grid is in cylindrical geometry (2D spherical)."""
-        return self._shape['cyl']
-
-    @property
-    def spherical(self):
-        """Whether the grid is in spherical geometry."""
-        return self._shape['sph']
-
-    @property
-    def yinyang(self):
-        """Whether the grid is in Yin-yang geometry (3D spherical)."""
-        return self.spherical and self.nbtot == 2
-
-    @property
-    def twod_xz(self):
-        """Whether the grid is in the XZ plane only."""
-        return self.nytot == 1
-
-    @property
-    def twod_yz(self):
-        """Whether the grid is in the YZ plane only."""
-        return self.nxtot == 1
-
-    @property
-    def twod(self):
-        """Whether the grid is 2 dimensional."""
-        return self.twod_xz or self.twod_yz
-
-    @property
-    def threed(self):
-        """Whether the grid is 3 dimensional."""
-        return not self.twod
-
-    def __getattr__(self, attr):
-        # provide nDtot, D_coord, D_mesh and nbtot
-        # with D = x, y, z or t, p, r
-        for reg, dat in zip(self._regexes, (self._shape['ntot'],
-                                            self._coords,
-                                            self._cart_meshes,
-                                            self._curv_meshes)):
-            match = reg.match(attr)
-            if match is not None:
-                return dat['xtypzrb'.index(match.group(1)) // 2]
-        return self._header[attr]
-
-
-class _Fields(dict):
-
-    """Fields data structure.
-
-    The :attr:`_Step.fields` attribute is an instance of this class.
-
-    :class:`_Fields` inherits from :class:`dict`. Keys are fields names defined
-    in :data:`stagpy.phyvars.FIELD`.
-
-    Attributes:
-        step (:class:`_Step`): the step object owning the :class:`_Fields`
-            instance.
-    """
-
-    def __init__(self, step):
-        self.step = step
-        self._header = UNDETERMINED
-        self._geom = UNDETERMINED
-        super().__init__()
-
-    def __missing__(self, name):
-        if name in phyvars.FIELD:
-            fld_names, parsed_data = self._get_raw_data(name)
-        elif name in phyvars.FIELD_EXTRA:
-            self[name] = phyvars.FIELD_EXTRA[name].description(self.step)
-            return self[name]
-        else:
-            raise error.UnknownFieldVarError(name)
-        if parsed_data is None:
-            return None
-        header, fields = parsed_data
-        self._header = header
-        for fld_name, fld in zip(fld_names, fields):
-            if self._header['xyp'] == 0:
-                if not self.geom.twod_yz:
-                    newline = (fld[:1, :, :, :] + fld[-1:, :, :, :]) / 2
-                    fld = np.concatenate((fld, newline), axis=0)
-                if not self.geom.twod_xz:
-                    newline = (fld[:, :1, :, :] + fld[:, -1:, :, :]) / 2
-                    fld = np.concatenate((fld, newline), axis=1)
-            self[fld_name] = fld
-        return self[name]
-
-    def _get_raw_data(self, name):
-        """Find file holding data and return its content."""
-        # try legacy first, then hdf5
-        filestem = ''
-        for filestem, list_fvar in phyvars.FIELD_FILES.items():
-            if name in list_fvar:
-                break
-        fieldfile = self.step.sdat.filename(filestem, self.step.isnap,
-                                            force_legacy=True)
-        parsed_data = None
-        if fieldfile.is_file():
-            parsed_data = stagyyparsers.fields(fieldfile)
-        elif self.step.sdat.hdf5:
-            for filestem, list_fvar in phyvars.FIELD_FILES_H5.items():
-                if name in list_fvar:
-                    break
-            parsed_data = stagyyparsers.read_field_h5(
-                self.step.sdat.hdf5 / 'Data.xmf', filestem, self.step.isnap)
-        return list_fvar, parsed_data
-
-    def __setitem__(self, name, fld):
-        sdat = self.step.sdat
-        col_fld = sdat.collected_fields
-        col_fld.append((self.step.istep, name))
-        while len(col_fld) > sdat.nfields_max > 5:
-            istep, fld_name = col_fld.pop(0)
-            del sdat.steps[istep].fields[fld_name]
-        super().__setitem__(name, fld)
-
-    @property
-    def geom(self):
-        """Geometry information.
-
-        :class:`_Geometry` instance holding geometry information. It is
-        issued from binary files holding field information. It is set to
-        None if not available for this time step.
-        """
-        if self._header is UNDETERMINED:
-            binfiles = self.step.sdat.binfiles_set(self.step.isnap)
-            if binfiles:
-                self._header = stagyyparsers.fields(binfiles.pop(),
-                                                    only_header=True)
-            elif self.step.sdat.hdf5:
-                xmf = self.step.sdat.hdf5 / 'Data.xmf'
-                self._header, _ = stagyyparsers.read_geom_h5(xmf,
-                                                             self.step.isnap)
-            else:
-                self._header = None
-        if self._geom is UNDETERMINED:
-            if self._header is None:
-                self._geom = None
-            else:
-                self._geom = _Geometry(self._header, self.step.sdat.par)
-        return self._geom
-
-
-class _Step:
-
-    """Time step data structure.
-
-    Elements of :class:`_Steps` and :class:`_Snaps` instances are all
-    :class:`_Step` instances. Note that :class:`_Step` objects are not
-    duplicated.
-
-    Examples:
-        Here are a few examples illustrating some properties of :class:`_Step`
-        instances.
-
-        >>> sdat = StagyyData('path/to/run')
-        >>> istep_last_snap = sdat.snaps.last.istep
-        >>> assert(sdat.steps[istep_last_snap] is sdat.snaps.last)
-        >>> n = 0  # or any valid time step / snapshot index
-        >>> assert(sdat.steps[n].sdat is sdat)
-        >>> assert(sdat.steps[n].istep == n)
-        >>> assert(sdat.snaps[n].isnap == n)
-        >>> assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
-        >>> assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
-    """
-
-    def __init__(self, istep, sdat):
+    def __init__(self, sdat):
         """Initialization of instances:
 
         Args:
-            istep (int): the index of the time step that the instance
-                represents.
             sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Step` instance.
-
-        Attributes:
-            istep (int): the index of the time step that the instance
-                represents.
-            sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Step` instance.
-            fields (:class:`_Fields`): fields available at this time step.
+                :class:`_Scales` instance.
         """
-        self.istep = istep
-        self.sdat = sdat
-        self.fields = _Fields(self)
-        self._isnap = UNDETERMINED
+        self._sdat = sdat
 
     @property
-    def geom(self):
-        """Geometry information.
-
-        :class:`_Geometry` instance holding geometry information. It is
-        issued from binary files holding field information. It is set to
-        None if not available for this time step.
-        """
-        return self.fields.geom
+    def length(self):
+        """Length in m."""
+        return self._sdat.par['geometry']['d_dimensional']
 
     @property
-    def timeinfo(self):
-        """Time series data of the time step.
-
-        Set to None if no time series data is available for this time step.
-        """
-        if self.istep not in self.sdat.tseries.index:
-            return None
-        return self.sdat.tseries.loc[self.istep]
+    def temperature(self):
+        """Temperature in K."""
+        return self._sdat.par['refstate']['deltaT_dimensional']
 
     @property
-    def rprof(self):
-        """Radial profiles data of the time step.
-
-        Set to None if no radial profiles data is available for this time step.
-        """
-        if self.istep not in self.sdat.rprof.index.levels[0]:
-            return None
-        return self.sdat.rprof.loc[self.istep]
+    def density(self):
+        """Density in kg/m3."""
+        return self._sdat.par['refstate']['dens_dimensional']
 
     @property
-    def isnap(self):
-        """Snapshot index corresponding to time step.
+    def th_cond(self):
+        """Thermal conductivity in W/(m.K)."""
+        return self._sdat.par['refstate']['tcond_dimensional']
 
-        It is set to None if no snapshot exists for the time step.
-        """
-        if self._isnap is UNDETERMINED:
-            istep = None
-            isnap = -1
-            # could be more efficient if do 0 and -1 then bisection
-            # (but loose intermediate <- would probably use too much
-            # memory for what it's worth if search algo is efficient)
-            while (istep is None or istep < self.istep) and isnap < 99999:
-                isnap += 1
-                istep = self.sdat.snaps[isnap].istep
-                self.sdat.snaps.bind(isnap, istep)
-                # all intermediate istep could have their ._isnap to None
-            if istep != self.istep:
-                self._isnap = None
-        return self._isnap
+    @property
+    def sp_heat(self):
+        """Specific heat capacity in J/(kg.K)."""
+        return self._sdat.par['refstate']['Cp_dimensional']
 
-    @isnap.setter
-    def isnap(self, isnap):
-        """Fields snap corresponding to time step"""
-        try:
-            self._isnap = int(isnap)
-        except ValueError:
-            pass
+    @property
+    def dyn_visc(self):
+        """Dynamic viscosity in Pa.s."""
+        return self._sdat.par['viscosity']['eta0']
 
+    @property
+    def th_diff(self):
+        """Thermal diffusivity in m2/s."""
+        return self.th_cond / (self.density * self.sp_heat)
 
-class _EmptyStep(_Step):
+    @property
+    def time(self):
+        """Time in s."""
+        return self.length**2 / self.th_diff
 
-    """Dummy step object for nonexistent snaps.
+    @property
+    def power(self):
+        """Power in W."""
+        return self.th_cond * self.temperature * self.length
 
-    This class inherits from :class:`_Step`, but its :meth:`__getattribute__`
-    method always return :obj:`None`. Its instances are falsy values.
-    """
+    @property
+    def heat_flux(self):
+        """Local heat flux in W/m2."""
+        return self.power / self.length**2
 
-    def __init__(self):
-        super().__init__(None, None)
-
-    def __getattribute__(self, name):
-        return None
-
-    def __bool__(self):
-        return False
+    @property
+    def stress(self):
+        """Stress in Pa."""
+        return self.dyn_visc / self.time
 
 
-class _Steps(dict):
+class _Steps:
 
     """Collections of time steps.
 
     The :attr:`StagyyData.steps` attribute is an instance of this class.
-    Time steps (which are :class:`_Step` instances) can be accessed with the
-    item accessor::
+    Time steps (which are :class:`~stagpy._step.Step` instances) can be
+    accessed with the item accessor::
 
         sdat = StagyyData('path/to/run')
-        sdat.steps[istep]  # _Step object of the istep-th time step
+        sdat.steps[istep]  # Step object of the istep-th time step
 
     Slices of :class:`_Steps` object are :class:`_StepsView` instances that
     you can iterate and filter::
@@ -432,22 +118,18 @@ class _Steps(dict):
         """
         self.sdat = sdat
         self._last = UNDETERMINED
-        super().__init__()
-        super().__setitem__(None, _EmptyStep())  # for non existent snaps
+        self._data = {None: _step.EmptyStep()}  # for non existent snaps
 
     def __repr__(self):
         return '{}.steps'.format(repr(self.sdat))
 
-    def __setitem__(self, key, value):
-        pass
-
-    def __getitem__(self, key):
+    def __getitem__(self, istep):
+        if istep is None:
+            return self._data[None]
         try:
-            return _StepsView(self, key)
+            return _StepsView(self, istep)
         except AttributeError:
-            return super().__getitem__(key)
-
-    def __missing__(self, istep):
+            pass
         try:
             istep = int(istep)
         except ValueError:
@@ -460,9 +142,9 @@ class _Steps(dict):
                 raise error.InvalidTimestepError(
                     self.sdat, istep,
                     'Last istep is {}'.format(self.last.istep))
-        if not self.__contains__(istep):
-            super().__setitem__(istep, _Step(istep, self.sdat))
-        return super().__getitem__(istep)
+        if istep not in self._data:
+            self._data[istep] = _step.Step(istep, self.sdat)
+        return self._data[istep]
 
     def __len__(self):
         return self.last.istep + 1
@@ -493,11 +175,11 @@ class _Snaps(_Steps):
     """Collections of snapshots.
 
     The :attr:`StagyyData.snaps` attribute is an instance of this class.
-    Snapshots (which are :class:`_Step` instances) can be accessed with the
-    item accessor::
+    Snapshots (which are :class:`~stagpy._step.Step` instances) can be accessed
+    with the item accessor::
 
         sdat = StagyyData('path/to/run')
-        sdat.snaps[isnap]  # _Step object of the isnap-th snapshot
+        sdat.snaps[isnap]  # Step object of the isnap-th snapshot
 
     This class inherits from :class:`_Steps`.
     """
@@ -519,17 +201,18 @@ class _Snaps(_Steps):
     def __repr__(self):
         return '{}.snaps'.format(repr(self.sdat))
 
-    def __getitem__(self, key):
+    def __getitem__(self, isnap):
         try:
-            return _StepsView(self, key)
+            return _StepsView(self, isnap)
         except AttributeError:
-            return self.__missing__(key)
-
-    def __missing__(self, isnap):
+            pass
         if isnap < 0:
             isnap += len(self)
-        istep = self._isteps.get(
-            isnap, None if self._all_isteps_known else UNDETERMINED)
+        if isnap < 0 or isnap >= len(self):
+            istep = None
+        else:
+            istep = self._isteps.get(
+                isnap, None if self._all_isteps_known else UNDETERMINED)
         if istep is UNDETERMINED:
             binfiles = self.sdat.binfiles_set(isnap)
             if binfiles:
@@ -538,16 +221,32 @@ class _Snaps(_Steps):
                 istep = None
             if istep is not None:
                 self.bind(isnap, istep)
-            elif self.sdat.hdf5:
-                for isn, ist in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self.bind(isn, ist)
-                self._all_isteps_known = True
             else:
                 self._isteps[isnap] = None
         return self.sdat.steps[istep]
 
     def __len__(self):
-        return self.last.isnap + 1
+        if self._last is UNDETERMINED:
+            self._last = -1
+            if self.sdat.hdf5:
+                isnap = -1
+                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                    self.bind(isnap, istep)
+                self._last = isnap
+                self._all_isteps_known = True
+            if self._last < 0:
+                out_stem = re.escape(pathlib.Path(
+                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
+                rgx = re.compile(
+                    '^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
+                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
+                for fname in self.sdat.files:
+                    match = rgx.match(fname.name)
+                    if match is not None and match.group(1) in fstems:
+                        self._last = max(int(match.group(2)), self._last)
+            if self._last < 0:
+                raise error.NoSnapshotError(self.sdat)
+        return self._last + 1
 
     def bind(self, isnap, istep):
         """Register the isnap / istep correspondence.
@@ -569,27 +268,7 @@ class _Snaps(_Steps):
             >>> sdat = StagyyData('path/to/run')
             >>> assert(sdat.snaps.last is sdat.snaps[-1])
         """
-        if self._last is UNDETERMINED:
-            self._last = -1
-            if self.sdat.hdf5:
-                isnap = -1
-                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self.bind(isnap, istep)
-                self._last = isnap
-                self._all_isteps_known = True
-            if self._last < 0:
-                out_stem = re.escape(pathlib.Path(
-                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
-                rgx = re.compile(
-                    '^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
-                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-                for fname in self.sdat.files:
-                    match = rgx.match(fname.name)
-                    if match is not None and match.group(1) in fstems:
-                        self._last = max(int(match.group(2)), self._last)
-            if self._last < 0:
-                raise error.NoSnapshotError(self.sdat)
-        return self[self._last]
+        return self[len(self) - 1]
 
 
 class _StepsView:
@@ -633,12 +312,11 @@ class _StepsView:
         return rep
 
     def _pass(self, step):
-        """Check whether a :class:`_Step` passes the filters."""
+        """Check whether a :class:`~stagpy._step.Step` passes the filters."""
         okf = True
         okf = okf and (not self._flt['snap'] or step.isnap is not None)
         okf = okf and (not self._flt['rprof'] or step.rprof is not None)
-        okf = okf and all(
-            step.fields[f] is not None for f in self._flt['fields'])
+        okf = okf and all(f in step.fields for f in self._flt['fields'])
         okf = okf and bool(self._flt['func'](step))
         return okf
 
@@ -660,9 +338,9 @@ class _StepsView:
             snap (bool): the step must be a snapshot to pass.
             rprof (bool): the step must have rprof data to pass.
             fields (list): list of fields that must be present to pass.
-            func (function): arbitrary function taking a :class:`_Step` as
-                argument and returning a True value if the step should pass
-                the filter.
+            func (function): arbitrary function taking a
+                :class:`~stagpy._step.Step` as argument and returning a True
+                value if the step should pass the filter.
 
         Returns:
             self.
@@ -676,6 +354,9 @@ class _StepsView:
     def __iter__(self):
         return (self._col[i] for i in range(*self._idx)
                 if self._pass(self._col[i]))
+
+    def __eq__(self, other):
+        return all(s1 is s2 for s1, s2 in zip_longest(self, other))
 
 
 class StagyyData:
@@ -697,6 +378,7 @@ class StagyyData:
         Attributes:
             steps (:class:`_Steps`): collection of time steps.
             snaps (:class:`_Snaps`): collection of snapshots.
+            scales (:class:`_Scales`): dimensionful scaling factors.
             nfields_max (int): the maximum number of scalar fields that should
                 be kept in memory. Set to a value smaller than 6 if you want no
                 limit.
@@ -713,9 +395,10 @@ class StagyyData:
                         'par': parname,
                         'hdf5': UNDETERMINED,
                         'ls': UNDETERMINED}
-        self._stagdat = {'par': parfile.readpar(self.parpath),
+        self._stagdat = {'par': parfile.readpar(self.parpath, self.path),
                          'tseries': UNDETERMINED,
                          'rprof': UNDETERMINED}
+        self.scales = _Scales(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self.nfields_max = nfields_max
@@ -843,6 +526,35 @@ class StagyyData:
         elif conf.core.timesteps is not None:
             return self.steps[conf.core.timesteps]
         return self.snaps[-1:]
+
+    def scale(self, data, unit):
+        """Scales quantity to obtain dimensionful quantity.
+
+        Args:
+            data (numpy.array): the quantity that should be scaled.
+            dim (str): the dimension of data as defined in phyvars.
+        Return:
+            (float, str): scaling factor and unit string.
+        Other Parameters:
+            conf.scaling.dimensional: if set to False (default), the factor is
+                always 1.
+        """
+        if self.par['switches']['dimensional_units'] or \
+           not conf.scaling.dimensional or \
+           unit == '1':
+            return data, ''
+        scaling = phyvars.SCALES[unit](self.scales)
+        factor = conf.scaling.factors.get(unit, ' ')
+        if conf.scaling.time_in_y and unit == 's':
+            scaling /= conf.scaling.yearins
+            unit = 'yr'
+        elif conf.scaling.vel_in_cmpy and unit == 'm/s':
+            scaling *= 100 * conf.scaling.yearins
+            unit = 'cm/y'
+        if factor in phyvars.PREFIXES:
+            scaling *= 10**(-3 * (phyvars.PREFIXES.index(factor) + 1))
+            unit = factor + unit
+        return data * scaling, unit
 
     def tseries_between(self, tstart=None, tend=None):
         """Return time series data between requested times.

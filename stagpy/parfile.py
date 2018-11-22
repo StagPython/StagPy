@@ -1,5 +1,7 @@
 """StagYY par file handling."""
 
+from copy import deepcopy
+
 import f90nml
 
 from .config import CONFIG_DIR
@@ -618,45 +620,66 @@ PAR_DEFAULT = f90nml.namelist.Namelist({
 })
 
 
-def _write_default():
-    """create default par file"""
-    PAR_DFLT_FILE.parent.mkdir(exist_ok=True)
-    if not PAR_DFLT_FILE.is_file():
-        f90nml.write(PAR_DEFAULT, str(PAR_DFLT_FILE))
+def _enrich_with_par(par_nml, par_file):
+    """Enrich a par namelist with the content of a file."""
+    par_new = f90nml.read(str(par_file))
+    for section, content in par_new.items():
+        if section not in par_nml:
+            par_nml[section] = {}
+        for par, value in content.items():
+            try:
+                content[par] = value.strip()
+            except AttributeError:
+                pass
+        par_nml[section].update(content)
 
 
-def _read_default():
-    """read default par file"""
-    _write_default()
-    par_conf = f90nml.read(str(PAR_DFLT_FILE))
-    for section in par_conf:
-        if section not in PAR_DEFAULT:
-            PAR_DEFAULT[section] = {}
-        PAR_DEFAULT[section].update(par_conf[section])
-    return PAR_DEFAULT
-
-
-def readpar(par_file):
+def readpar(par_file, root):
     """Read StagYY par file.
 
-    :data:`PAR_DFLT_FILE` and ultimately :data:`PAR_DEFAULT` are used to fill
-    missing entries.
+    The namelist is populated in chronological order with:
+
+    - :data:`PAR_DEFAULT`, an internal dictionary defining defaults;
+    - :data:`PAR_DFLT_FILE`, the global configuration par file;
+    - ``par_name_defaultparameters`` if it is defined in ``par_file``;
+    - ``par_file`` itself;
+    - ``parameters.dat`` if it can be found in the StagYY output directories.
 
     Args:
         par_file (:class:`pathlib.Path`): path of par file.
+        root (:class:`pathlib.Path`): path on which other paths are rooted.
+            This is usually par.parent.
     Returns:
         :class:`f90nml.namelist.Namelist`: case insensitive dict of dict of
         values with first key being the namelist and second key the variables'
         name.
     """
-    par_dflt = _read_default()
-    if par_file.is_file():
-        par_nml = f90nml.read(str(par_file))
-        for section in par_nml:
-            if section not in par_dflt:
-                par_dflt[section] = {}
-            par_dflt[section].update(par_nml[section])
+    par_nml = deepcopy(PAR_DEFAULT)
+
+    if PAR_DFLT_FILE.is_file():
+        _enrich_with_par(par_nml, PAR_DFLT_FILE)
     else:
+        PAR_DFLT_FILE.parent.mkdir(exist_ok=True)
+        f90nml.write(par_nml, str(PAR_DFLT_FILE))
+
+    if not par_file.is_file():
         raise NoParFileError(par_file)
-    par_nml = par_dflt
+
+    par_main = f90nml.read(str(par_file))
+    if 'default_parameters_parfile' in par_main:
+        par_dflt = par_main['default_parameters_parfile'].get(
+            'par_name_defaultparameters', 'par_defaults')
+        par_dflt = root / par_dflt
+        if not par_dflt.is_file():
+            raise NoParFileError(par_dflt)
+        _enrich_with_par(par_nml, par_dflt)
+
+    _enrich_with_par(par_nml, par_file)
+
+    par_out = root / par_nml['ioin']['output_file_stem'] / '_parameters.dat'
+    if par_out.is_file():
+        _enrich_with_par(par_nml, par_out)
+    par_out = root / par_nml['ioin']['hdf5_output_folder'] / 'parameters.dat'
+    if par_out.is_file():
+        _enrich_with_par(par_nml, par_out)
     return par_nml

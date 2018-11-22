@@ -185,3 +185,14 @@ temperature field of the 100th snapshot is obtained with
 running ``% stagpy var``. Fields are four dimensional arrays, with indices in
 the order x, y, z and block.
 
+Tracers data
+------------
+
+Tracer data (position, mass, composition...) are accessible through
+:attr:`_Step.tracers<stagpy.stagyydata._Step.tracers>` using the
+property name as key.  They are organized by block.  For example,
+the masses of tracers in the first block is obtained with
+``sdat.snaps.last.tracers['Mass'][0]``. This is a one dimensional
+array containing the mass of each tracers. Their positions can be
+recovered through the ``'x'``, ``'y'`` and ``'z'`` items.
+

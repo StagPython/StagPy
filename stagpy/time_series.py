@@ -8,13 +8,13 @@ from .error import UnknownTimeVarError, InvalidTimeFractionError
 from .stagyydata import StagyyData
 
 
-def _plot_time_list(lovs, tseries, metas, times=None):
+def _plot_time_list(sdat, lovs, tseries, metas, times=None):
     """Plot requested profiles"""
     if times is None:
         times = {}
     for vfig in lovs:
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
-                                 figsize=(30, 5 * len(vfig)))
+                                 figsize=(12, 2 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
         fname = ['time']
         for iplt, vplt in enumerate(vfig):
@@ -24,9 +24,8 @@ def _plot_time_list(lovs, tseries, metas, times=None):
                 time = times[tvar] if tvar in times else tseries['t']
                 axes[iplt].plot(time, tseries[tvar],
                                 conf.time.style,
-                                label=metas[tvar].description,
-                                linewidth=conf.plot.linewidth)
-                lbl = metas[tvar].shortname
+                                label=metas[tvar].description)
+                lbl = metas[tvar].kind
                 if ylabel is None:
                     ylabel = lbl
                 elif ylabel != lbl:
@@ -34,20 +33,27 @@ def _plot_time_list(lovs, tseries, metas, times=None):
             if ivar == 0:
                 ylabel = metas[tvar].description
             if ylabel:
-                axes[iplt].set_ylabel(ylabel, fontsize=conf.plot.fontsize)
+                _, unit = sdat.scale(1, metas[tvar].dim)
+                if unit:
+                    ylabel += ' ({})'.format(unit)
+                axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
+            axes[iplt].set_ylim(bottom=conf.plot.vmin, top=conf.plot.vmax)
             if ivar:
-                axes[iplt].legend(fontsize=conf.plot.fontsize)
-            axes[iplt].tick_params(labelsize=conf.plot.fontsize)
-        axes[-1].set_xlabel('Time', fontsize=conf.plot.fontsize)
+                axes[iplt].legend()
+            axes[iplt].tick_params()
+        _, unit = sdat.scale(1, 's')
+        if unit:
+            unit = ' ({})'.format(unit)
+        axes[-1].set_xlabel('Time' + unit)
         axes[-1].set_xlim((tseries['t'].iloc[0], tseries['t'].iloc[-1]))
-        axes[-1].tick_params(labelsize=conf.plot.fontsize)
+        axes[-1].tick_params()
         misc.saveplot(fig, '_'.join(fname))
 
 
 def get_time_series(sdat, var, tstart, tend):
-    """Extract or compute a time series.
+    """Extract or compute and rescale a time series.
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
@@ -72,14 +78,18 @@ def get_time_series(sdat, var, tstart, tend):
         if var in phyvars.TIME:
             meta = phyvars.TIME[var]
         else:
-            meta = phyvars.Vart(var, None)
+            meta = phyvars.Vart(var, None, '1')
     elif var in phyvars.TIME_EXTRA:
         meta = phyvars.TIME_EXTRA[var]
         series, time = meta.description(sdat, tstart, tend)
-        meta = phyvars.Vart(misc.baredoc(meta.description), meta.shortname)
+        meta = phyvars.Vart(misc.baredoc(meta.description),
+                            meta.kind, meta.dim)
     else:
         raise UnknownTimeVarError(var)
 
+    series, _ = sdat.scale(series, meta.dim)
+    if time is not None:
+        time, _ = sdat.scale(time, 's')
     return series, time, meta
 
 
@@ -109,7 +119,7 @@ def plot_time_series(sdat, lovs):
     tseries['t'] = get_time_series(
         sdat, 't', conf.time.tstart, conf.time.tend)[0]
 
-    _plot_time_list(lovs, tseries, metas, times)
+    _plot_time_list(sdat, lovs, tseries, metas, times)
 
 
 def compstat(sdat, tstart=None, tend=None):
@@ -157,8 +167,8 @@ def cmd():
         conf.time.tend = None
         t_0 = sdat.tseries.iloc[0].loc['t']
         t_f = sdat.tseries.iloc[-1].loc['t']
-        conf.time.tstart = (t_0 * conf.time.fraction
-                            + t_f * (1 - conf.time.fraction))
+        conf.time.tstart = (t_0 * conf.time.fraction +
+                            t_f * (1 - conf.time.fraction))
 
     lovs = misc.list_of_vars(conf.time.plot)
     if lovs:

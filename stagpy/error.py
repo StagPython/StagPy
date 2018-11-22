@@ -160,7 +160,14 @@ class StagnantLidError(StagpyError):
         super().__init__('Stagnant lid regime for {}'.format(sdat))
 
 
-class UnknownVarError(StagpyError):
+class MissingDataError(StagpyError, KeyError):
+
+    """Raised when requested data is not present in output."""
+
+    pass
+
+
+class UnknownVarError(StagpyError, KeyError):
 
     """Raised when invalid var is requested."""
 

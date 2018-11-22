@@ -10,7 +10,6 @@ from itertools import product, repeat
 from operator import itemgetter
 from xml.etree import ElementTree as xmlET
 import re
-import struct
 
 import numpy as np
 import pandas as pd
@@ -239,24 +238,20 @@ def rprof_h5(rproffile, colnames):
     return df_data, df_times
 
 
-def _readbin(fid, fmt='i', nwords=1, file64=False):
+def _readbin(fid, fmt='i', nwords=1, file64=False, unpack=True):
     """Read n words of 4 or 8 bytes with fmt format.
 
-    fmt: 'i' or 'f' (integer or float)
+    fmt: 'i' or 'f' or 'b' (integer or float or bytes)
     4 or 8 bytes: depends on header
 
     Return an array of elements if more than one element.
 
     Default: read 1 word formatted as an integer.
     """
-    if file64:
-        nbytes = 8
-        fmt = fmt.replace('i', 'q')
-        fmt = fmt.replace('f', 'd')
-    else:
-        nbytes = 4
-    elts = np.array(struct.unpack(fmt * nwords, fid.read(nwords * nbytes)))
-    if len(elts) == 1:
+    if fmt in 'if':
+        fmt += '8' if file64 else '4'
+    elts = np.fromfile(fid, fmt, nwords)
+    if unpack and len(elts) == 1:
         elts = elts[0]
     return elts
 
@@ -329,7 +324,7 @@ def fields(fieldfile, only_header=False, only_istep=False):
         else:
             header['rgeom'] = np.array(range(0, header['nts'][2] * 2 + 1))\
                 * 0.5 / header['nts'][2]
-        header['rgeom'].resize((header['nts'][2] + 1, 2))
+        header['rgeom'] = np.resize(header['rgeom'], (header['nts'][2] + 1, 2))
 
         header['rcmb'] = readbin('f') if magic >= 7 else None
 
@@ -389,6 +384,54 @@ def fields(fieldfile, only_header=False, only_istep=False):
                      (nbk, npc[2], npc[1] + header['xyp'],
                       npc[0] + header['xyp'], nval)))
     return header, flds
+
+
+def tracers(tracersfile):
+    """Extract tracers data.
+
+    Args:
+        tracersfile (:class:`pathlib.Path`): path of the binary tracers file.
+
+    Returns:
+        dict of list of numpy.array:
+            Tracers data organized by attribute and block.
+    """
+    if not tracersfile.is_file():
+        return None
+    tra = {}
+    with tracersfile.open('rb') as fid:
+        readbin = partial(_readbin, fid)
+        magic = readbin()
+        if magic > 8000:  # 64 bits
+            magic -= 8000
+            readbin()
+            readbin = partial(readbin, file64=True)
+        if magic < 100:
+            raise ParsingError(tracersfile,
+                               'magic > 100 expected to get tracervar info')
+        nblk = magic % 100
+        readbin('f', 2)  # aspect ratio
+        readbin()  # istep
+        readbin('f')  # time
+        ninfo = readbin()
+        ntra = readbin(nwords=nblk, unpack=False)
+        readbin('f')  # tracer ideal mass
+        curv = readbin()
+        if curv:
+            readbin('f')  # r_cmb
+        infos = []  # list of info names
+        for _ in range(ninfo):
+            infos.append(b''.join(readbin('b', 16)).strip().decode())
+            tra[infos[-1]] = []
+        if magic > 200:
+            ntrace_elt = readbin()
+            if ntrace_elt > 0:
+                readbin('f', ntrace_elt)  # outgassed
+        for ntrab in ntra:  # blocks
+            data = readbin('f', ntrab * ninfo)
+            for idx, info in enumerate(infos):
+                tra[info].append(data[idx::ninfo])
+    return tra
 
 
 def _read_group_h5(filename, groupname):
@@ -458,8 +501,8 @@ def _conglomerate_meshes(meshin, header):
     for coord in meshin[0]:
         meshout[coord] = np.zeros(shp)
     for icore in range(np.prod(header['ncs'])):
-        ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
-               * npc[i] for i in range(3)]
+        ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i] * npc[i]
+               for i in range(3)]
         for coord, mesh in meshin[icore].items():
             meshout[coord][ifs[0]:ifs[0] + npc[0] + x_p,
                            ifs[1]:ifs[1] + npc[1] + y_p,
@@ -601,7 +644,7 @@ def _to_spherical(flds, header):
     sph = np.sin(header['p_mesh'][:, :, :-1])
     fout = np.copy(flds)
     fout[0] = cth * cph * flds[0] + cth * sph * flds[1] - sth * flds[2]
-    fout[1] = sph * flds[0] - cph * flds[1]  # need to take the opposite here...
+    fout[1] = sph * flds[0] - cph * flds[1]  # need to take the opposite here
     fout[2] = sth * cph * flds[0] + sth * sph * flds[1] + cth * flds[2]
     return fout
 
@@ -678,8 +721,8 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                 fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
                 if header['rcmb'] < 0:
                     fld = fld[(0, 2, 1), ...]
-            ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i]
-                   * npc[i] for i in range(3)]
+            ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i] *
+                   npc[i] for i in range(3)]
             if header['zp']:  # remove top row
                 fld = fld[:, :, :, :-1]
             flds[:,
@@ -691,6 +734,45 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
     flds = _post_read_flds(flds, header)
 
     return header, flds
+
+
+def read_tracers_h5(xdmf_file, infoname, snapshot, position):
+    """Extract tracers data from hdf5 files.
+
+    Args:
+        xdmf_file (:class:`pathlib.Path`): path of the xdmf file.
+        infoname (str): name of information to extract.
+        snapshot (int): snapshot number.
+        position (bool): whether to extract position of tracers.
+    Returns:
+        dict of list of numpy.array:
+            Tracers data organized by attribute and block.
+    """
+    xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
+    tra = {}
+    tra[infoname] = [{}, {}]  # two blocks, ordered by cores
+    if position:
+        for axis in 'xyz':
+            tra[axis] = [{}, {}]
+    for elt_subdomain in xdmf_root[0][0][snapshot].findall('Grid'):
+        ibk = int(elt_subdomain.get('Name').startswith('meshYang'))
+        if position:
+            for data_attr in elt_subdomain.findall('Geometry'):
+                for data_item, axis in zip(data_attr.findall('DataItem'),
+                                           'xyz'):
+                    icore, data = _get_field(xdmf_file, data_item)
+                    tra[axis][ibk][icore] = data
+        for data_attr in elt_subdomain.findall('Attribute'):
+            if data_attr.get('Name') != infoname:
+                continue
+            icore, data = _get_field(xdmf_file, data_attr.find('DataItem'))
+            tra[infoname][ibk][icore] = data
+    for info in tra:
+        tra[info] = [trab for trab in tra[info] if trab]  # remove empty blocks
+        for iblk, trab in enumerate(tra[info]):
+            tra[info][iblk] = np.concatenate([trab[icore]
+                                              for icore in range(len(trab))])
+    return tra
 
 
 def read_time_h5(h5folder):

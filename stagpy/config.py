@@ -43,16 +43,14 @@ CONF_DEF['plot'] = OrderedDict((
     ('raster', switch_opt(True, None, 'rasterize field plots')),
     ('format', Conf('pdf', True, None, {},
                     True, 'figure format (pdf, eps, svg, png)')),
-    ('fontsize', Conf(16, False, None, {},
-                      True, 'font size')),
-    ('dpi', Conf(150, True, None, {},
-                 True, 'resolution in DPI')),
-    ('linewidth', Conf(2, False, None, {},
-                       True, 'line width')),
-    ('matplotback', Conf('agg', False, None, {},
-                         True, 'graphical backend')),
-    ('useseaborn', Conf(False, False, None, {},
-                        True, 'use or not seaborn')),
+    ('vmin', Conf(None, True, None, {'type': float},
+                  False, 'minimal value on plot')),
+    ('vmax', Conf(None, True, None, {'type': float},
+                  False, 'maximal value on plot')),
+    ('cminmax', switch_opt(False, 'C', 'constant min max across plots')),
+    ('mplstyle', Conf('stagpy-paper', True, None,
+                      {'nargs': '?', 'const': '', 'type': str},
+                      True, 'matplotlib style')),
     ('xkcd', Conf(False, False, None, {},
                   True, 'use the xkcd style')),
 ))
@@ -62,12 +60,14 @@ CONF_DEF['scaling'] = OrderedDict((
                      True, 'year in seconds')),
     ('ttransit', Conf(1.78e15, False, None, {},
                       True, 'transit time in My')),
-    ('kappa', Conf(1.0e-6, False, None, {},
-                   True, 'mantle thermal diffusivity m2/s')),
-    ('length', Conf(2890.0e3, False, None, {},
-                    True, 'thickness of mantle m')),
-    ('viscosity', Conf(5.86e22, False, None, {},
-                       True, 'reference viscosity Pa s')),
+    ('dimensional', switch_opt(False, None, 'use dimensional units')),
+    ('time_in_y', switch_opt(True, None, 'dimensionful time is in year')),
+    ('vel_in_cmpy', switch_opt(True, None,
+                               'dimensionful velocity is in cm/year')),
+    ('factors', Conf({'s': 'M',
+                      'm': 'k',
+                      'Pa': 'G'},
+                     False, None, {}, True, 'custom factors')),
 ))
 
 CONF_DEF['field'] = OrderedDict((
@@ -75,9 +75,17 @@ CONF_DEF['field'] = OrderedDict((
         Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
              True, 'variables to plot (see stagpy var)')),
+    ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
     ('shrinkcb',
         Conf(0.5, False, None, {},
              True, 'color bar shrink factor')),
+    ('cmap',
+        Conf({'T': 'RdBu_r',
+              'eta': 'viridis_r',
+              'rho': 'RdBu',
+              'sII': 'plasma_r',
+              'edot': 'Reds'},
+             False, None, {}, True, 'custom colormaps')),
 ))
 
 CONF_DEF['rprof'] = OrderedDict((
@@ -150,6 +158,17 @@ CONF_DEF['plates'] = OrderedDict((
                        True, 'max stress in plots')),
     ('lstressmax', Conf(50, False, None, {},
                         True, 'max lithospheric stress in plots')),
+))
+
+CONF_DEF['var'] = OrderedDict((
+    ('field', Conf(None, True, None, {'action': 'store_true'},
+                   False, 'print field variables')),
+    ('rprof', Conf(None, True, None, {'action': 'store_true'},
+                   False, 'print rprof variables')),
+    ('time', Conf(None, True, None, {'action': 'store_true'},
+                  False, 'print time variables')),
+    ('plates', Conf(None, True, None, {'action': 'store_true'},
+                    False, 'print plates variables')),
 ))
 
 CONF_DEF['config'] = config_conf_section()

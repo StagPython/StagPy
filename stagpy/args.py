@@ -6,7 +6,7 @@ from inspect import isfunction
 from loam.tools import set_conf_str, create_complete_files
 from loam.cli import Subcmd, CLIManager
 
-from . import conf, PARSING_OUT
+from . import conf, PARSING_OUT, load_mplstyle
 from . import commands, field, rprof, time_series, plates
 from .misc import baredoc
 from .config import CONFIG_DIR
@@ -21,9 +21,9 @@ def _sub(cmd, *sections):
 SUB_CMDS = OrderedDict((
     ('common_', Subcmd('read and process StagYY binary data', 'common',
                        func=lambda: print('stagpy -h for usage'))),
-    ('field', _sub(field, 'core', 'plot')),
-    ('rprof', _sub(rprof, 'core', 'plot')),
-    ('time', _sub(time_series, 'core', 'plot')),
+    ('field', _sub(field, 'core', 'plot', 'scaling')),
+    ('rprof', _sub(rprof, 'core', 'plot', 'scaling')),
+    ('time', _sub(time_series, 'core', 'plot', 'scaling')),
     ('plates', _sub(plates, 'core', 'plot', 'scaling')),
     ('info', _sub(commands.info_cmd, 'core')),
     ('var', _sub(commands.var_cmd)),
@@ -93,6 +93,8 @@ def parse_args(arglist=None):
 
     if conf.common.config:
         commands.config_pp(all_subs)
+
+    load_mplstyle()
 
     try:
         _steps_to_slices()

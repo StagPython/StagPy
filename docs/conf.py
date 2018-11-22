@@ -31,6 +31,9 @@ else:
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
+# do not try to create/read config files
+os.environ['STAGPY_ISOLATED'] = 'True'
+
 # -- To mock out heavy dependencies ---------------------------------------
 from unittest.mock import MagicMock
 
@@ -40,7 +43,7 @@ class Mock(MagicMock):
         return MagicMock()
 
 MOCK_MODULES = ['numpy', 'scipy', 'scipy.signal', 'pandas', 'h5py',
-                'matplotlib', 'matplotlib.pyplot', 'seaborn']
+                'matplotlib', 'matplotlib.pyplot']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # -- General configuration ------------------------------------------------

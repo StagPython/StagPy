@@ -19,10 +19,6 @@ def info_cmd():
     sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps.last
     lstep = sdat.steps.last
-    lfields = []
-    for fvar in phyvars.FIELD:
-        if lsnap.fields[fvar] is not None:
-            lfields.append(fvar)
     print('StagYY run in {}'.format(sdat.path))
     print('Last timestep:',
           '  istep: {}'.format(lstep.istep),
@@ -32,7 +28,7 @@ def info_cmd():
     print('Last snapshot (istep {}):'.format(lsnap.istep),
           '  isnap: {}'.format(lsnap.isnap),
           '  time:  {}'.format(lsnap.timeinfo['t']),
-          '  output fields: {}'.format(','.join(lfields)),
+          '  output fields: {}'.format(','.join(lsnap.fields)),
           sep='\n')
 
 
@@ -92,17 +88,22 @@ def var_cmd():
     See :mod:`stagpy.phyvars` where the lists of variables organized by command
     are defined.
     """
-    print('field:')
-    _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
-    print()
-    print('rprof:')
-    _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)
-    print()
-    print('time:')
-    _layout(phyvars.TIME, phyvars.TIME_EXTRA)
-    print()
-    print('plates:')
-    _layout(phyvars.PLATES, {})
+    print_all = not any(val for _, val in conf.var.opt_vals_())
+    if print_all or conf.var.field:
+        print('field:')
+        _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
+        print()
+    if print_all or conf.var.rprof:
+        print('rprof:')
+        _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)
+        print()
+    if print_all or conf.var.time:
+        print('time:')
+        _layout(phyvars.TIME, phyvars.TIME_EXTRA)
+        print()
+    if print_all or conf.var.plates:
+        print('plates:')
+        _layout(phyvars.PLATES, {})
 
 
 def version_cmd():
@@ -117,11 +118,13 @@ def report_parsing_problems(parsing_out):
     """Output message about potential parsing problems."""
     _, empty, faulty = parsing_out
     if CONFIG_FILE in empty or CONFIG_FILE in faulty:
-        print('Unable to read global config file', CONFIG_FILE, file=sys.stderr)
+        print('Unable to read global config file', CONFIG_FILE,
+              file=sys.stderr)
         print('Please run stagpy config --create',
               sep='\n', end='\n\n', file=sys.stderr)
     if CONFIG_LOCAL in faulty:
-        print('Unable to read local config file', CONFIG_LOCAL, file=sys.stderr)
+        print('Unable to read local config file', CONFIG_LOCAL,
+              file=sys.stderr)
         print('Please run stagpy config --create_local',
               sep='\n', end='\n\n', file=sys.stderr)
 
@@ -154,8 +157,8 @@ def config_cmd():
     Other Parameters:
         conf.config
     """
-    if not (conf.common.config or conf.config.create
-            or conf.config.create_local or conf.config.update
-            or conf.config.edit):
+    if not (conf.common.config or conf.config.create or
+            conf.config.create_local or conf.config.update or
+            conf.config.edit):
         config_pp(conf.sections_())
     loam.tools.config_cmd_handler(conf)
