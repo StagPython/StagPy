@@ -151,6 +151,7 @@ RPROF_EXTRA = OrderedDict((
     ('energy', Varr(processing.energy_prof, 'Heat flux', 'W/m2')),
     ('ciover', Varr(processing.init_c_overturn, 'Concentration', '1')),
     ('cfover', Varr(processing.c_overturned, 'Concentration', '1')),
+    ('advth', Varr(processing.advth, 'Heat Flux', 'W/m2')),
 ))
 
 Vart = namedtuple('Vart', ['description', 'kind', 'dim'])

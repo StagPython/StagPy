@@ -152,7 +152,7 @@ def _scale_prof(step, rprof, rad=None):
         return rprof
     if rad is None:
         rad = step.rprof['r'].values + rbot
-    return rprof * (rad / rtop)**2
+    return rprof * (2 * rad / (rtop + rbot))**2
 
 
 def diff_prof(step):
@@ -254,6 +254,30 @@ def energy_prof(step):
     adv, _ = advts_prof(step)
     return (diff + np.append(adv, 0)), rad
 
+def advth(step):
+    """Theoretical advection.
+
+    This compute the theoretical profile of total advection as function of 
+    radius.
+ 
+    Args:
+        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+            instance.
+    Returns:
+        tuple of :class:`numpy.array` and None: the theoretical advection.
+        The second element of the tuple is None.
+    """
+    rbot, rtop = misc.get_rbounds(step)
+    rmean = 0.5 * (rbot + rtop)
+    rad = step.rprof['r'].values + rbot
+    radio = step.timeinfo['H_int']
+    if rbot != 0:  # spherical
+        th_adv = - (rtop ** 3 - np.power(rad, 3)) / rmean ** 2 / 3
+    else:
+        th_adv = rad - rtop
+    th_adv *=radio
+    th_adv += step.timeinfo['Nutop']
+    return th_adv, None
 
 def init_c_overturn(step):
     """Initial concentration.
