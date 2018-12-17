@@ -152,12 +152,7 @@ def _scale_prof(step, rprof, rad=None):
         return rprof
     if rad is None:
         rad = step.rprof['r'].values + rbot
-<<<<<<< HEAD
     return rprof * (2 * rad / (rtop + rbot))**2
-=======
-    return rprof * (2 * rad / (rbot + rtop))**2
->>>>>>> 6b2b0964b43677d9cf4c1f9d26d85380e5b5fc0a
-
 
 def diff_prof(step):
     """Diffusion.
