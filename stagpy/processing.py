@@ -73,7 +73,6 @@ def ebalance(sdat, tstart=None, tend=None):
     """
     tseries = sdat.tseries_between(tstart, tend)
     rbot, rtop = misc.get_rbounds(sdat.steps.last)
-    radio = sdat.par['refstate']['rh'][0]
     if rbot != 0:  # spherical
         coefsurf = (rtop / rbot)**2
         volume = rbot * ((rtop / rbot)**3 - 1) / 3
@@ -83,7 +82,8 @@ def ebalance(sdat, tstart=None, tend=None):
     dtdt, time = dt_dt(sdat, tstart, tend)
     ftop = tseries['ftop'].values * coefsurf
     fbot = tseries['fbot'].values
-    ebal = ftop[1:] - fbot[1:] + volume * (dtdt - radio)
+    radio = tseries['H_int'].values
+    ebal = ftop[1:] - fbot[1:] + volume * (dtdt - radio[1:])
     return ebal, time
 
 
@@ -152,7 +152,11 @@ def _scale_prof(step, rprof, rad=None):
         return rprof
     if rad is None:
         rad = step.rprof['r'].values + rbot
+<<<<<<< HEAD
     return rprof * (2 * rad / (rtop + rbot))**2
+=======
+    return rprof * (2 * rad / (rbot + rtop))**2
+>>>>>>> 6b2b0964b43677d9cf4c1f9d26d85380e5b5fc0a
 
 
 def diff_prof(step):
