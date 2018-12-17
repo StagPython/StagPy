@@ -73,7 +73,6 @@ def ebalance(sdat, tstart=None, tend=None):
     """
     tseries = sdat.tseries_between(tstart, tend)
     rbot, rtop = misc.get_rbounds(sdat.steps.last)
-    radio = sdat.par['refstate']['rh'][0]
     if rbot != 0:  # spherical
         coefsurf = (rtop / rbot)**2
         volume = rbot * ((rtop / rbot)**3 - 1) / 3
@@ -83,7 +82,8 @@ def ebalance(sdat, tstart=None, tend=None):
     dtdt, time = dt_dt(sdat, tstart, tend)
     ftop = tseries['ftop'].values * coefsurf
     fbot = tseries['fbot'].values
-    ebal = ftop[1:] - fbot[1:] + volume * (dtdt - radio)
+    radio = tseries['H_int'].values
+    ebal = ftop[1:] - fbot[1:] + volume * (dtdt - radio[1:])
     return ebal, time
 
 
