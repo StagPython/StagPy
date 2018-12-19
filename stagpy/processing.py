@@ -360,23 +360,30 @@ def stream_function(step):
                                 '2D cartesian and spherical annulus')
     psi = np.zeros_like(v_x)
     if step.geom.spherical:  # YZ annulus
-        r_coord = step.geom.r_mesh[0, 0, :]  # physical radius
-        r_grid = step.geom.r_coord + step.geom.rcmb  # numerical radius
-        psi[0, :] = integrate.cumtrapz(r_coord * v_x[0, :],
-                                       x=r_grid,
-                                       initial=0)
-        for i_z, r_pos in enumerate(r_coord):
-            psi[:, i_z] = psi[0, i_z] - \
-                integrate.cumtrapz(r_pos**2 * v_z[:, i_z],
-                                   x=x_coord, initial=0)
+        # positions
+        r_nc = step.geom.r_coord + step.geom.rcmb  # numerical centers
+        r_pc = step.geom.r_mesh[0, 0, :]  # physical centers
+        r_nw = r_edges(step)[0][:2]  # numerical walls of first cell
+        # vz at center of bottom cells
+        vz0 = ((r_nw[1] - r_nc[0]) * v_z[:, 0] +
+               (r_nc[0] - r_nw[0]) * v_z[:, 1]) / (r_nw[1] - r_nw[0])
+        psi[1:, 0] = -integrate.cumtrapz(r_pc[0]**2 * vz0, x=x_coord)
+        # vx at center
+        vxc = (v_x + np.roll(v_x, -1, axis=0)) / 2
+        for i_x in range(len(x_coord)):
+            psi[i_x, 1:] = psi[i_x, 0] + \
+                integrate.cumtrapz(r_pc * vxc[i_x], x=r_nc)
     else:  # assume cartesian geometry
-        psi[0, :] = integrate.cumtrapz(v_x[0, :],
-                                       x=step.geom.z_coord,
-                                       initial=0)
-        for i_z in range(step.geom.nztot):
-            psi[:, i_z] = psi[0, i_z] - integrate.cumtrapz(v_z[:, i_z],
-                                                           x=x_coord,
-                                                           initial=0)
+        z_nc = step.geom.z_coord
+        z_nw = r_edges(step)[0][:2]
+        vz0 = ((z_nw[1] - z_nc[0]) * v_z[:, 0] +
+               (z_nc[0] - z_nw[0]) * v_z[:, 1]) / (z_nw[1] - z_nw[0])
+        psi[1:, 0] = -integrate.cumtrapz(vz0, x=x_coord)
+        # vx at center
+        vxc = (v_x + np.roll(v_x, -1, axis=0)) / 2
+        for i_x in range(len(x_coord)):
+            psi[i_x, 1:] = psi[i_x, 0] + \
+                integrate.cumtrapz(vxc[i_x], x=z_nc)
     if step.geom.twod_xz:
         psi = - psi
     psi = np.reshape(psi, shape)
