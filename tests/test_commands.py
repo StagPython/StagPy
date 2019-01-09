@@ -7,8 +7,8 @@ def test_info_cmd(capsys, example_dir):
     stagpy.commands.info_cmd()
     output = capsys.readouterr()
     expected = re.compile(
-        r'^StagYY run in.*\nLast timestep:\n.*\n.*\n.*\nLast snapshot .*\n'
-        r'.*\n.*\n.*\n$')
+        r'^StagYY run in.*\n.* x .*\nLast timestep:\n.*\n.*\n.*\n'
+        r'Last snapshot .*\n.*\n.*\n.*\n$')
     assert expected.fullmatch(output.out)
     del stagpy.conf.core.path
 

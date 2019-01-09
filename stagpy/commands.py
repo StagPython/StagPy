@@ -20,6 +20,22 @@ def info_cmd():
     lsnap = sdat.snaps.last
     lstep = sdat.steps.last
     print('StagYY run in {}'.format(sdat.path))
+    if lsnap.geom.threed:
+        dimension = '{} x {} x {}'.format(lsnap.geom.nxtot,
+                                          lsnap.geom.nytot,
+                                          lsnap.geom.nztot)
+    elif lsnap.geom.twod_xz:
+        dimension = '{} x {}'.format(lsnap.geom.nxtot,
+                                     lsnap.geom.nztot)
+    else:
+        dimension = '{} x {}'.format(lsnap.geom.nytot,
+                                     lsnap.geom.nztot)
+    if lsnap.geom.cartesian:
+        print('Cartesian', dimension)
+    elif lsnap.geom.cylindrical:
+        print('Cylindrical', dimension)
+    else:
+        print('Spherical', dimension)
     print('Last timestep:',
           '  istep: {}'.format(lstep.istep),
           '  time:  {}'.format(lstep.timeinfo['t']),
