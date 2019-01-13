@@ -13,8 +13,6 @@ VPIP=$(VPY) -m pip
 .PHONY: all install config clean uninstall autocomplete
 .PHONY: info infopath infozsh infobash
 
-OBJS=setup.py stagpy/*.py
-
 all: install
 
 $(BLD_DIR):
@@ -33,7 +31,7 @@ $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
 	ln -sf $(PWD)/$(STAGPY) $(LINK)
 
-$(STAGPY): $(VENV_DIR) $(OBJS)
+$(STAGPY): $(VENV_DIR) setup.py
 	$(VPIP) install -e .
 
 $(VENV_DIR):
