@@ -15,9 +15,6 @@ VPIP=$(VPY) -m pip
 
 all: install
 
-$(BLD_DIR):
-	@mkdir -p $@
-
 install: $(LINK) config infopath autocomplete
 	@echo
 	@echo 'Installation completed!'
