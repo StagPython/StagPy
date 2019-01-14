@@ -694,7 +694,8 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
         snapshot (int): snapshot number.
         header (dict): geometry information.
     Returns:
-        (dict, numpy.array): geometry information and field data.
+        (dict, numpy.array): geometry information and field data. None
+            is returned if data is unavailable.
     """
     if header is None:
         header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
@@ -703,6 +704,7 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
 
     npc = header['nts'] // header['ncs']  # number of grid point per node
     flds = np.zeros(_flds_shape(fieldname, header))
+    data_found = False
 
     for elt_subdomain in xdmf_root[0][0][snapshot].findall('Grid'):
         ibk = int(elt_subdomain.get('Name').startswith('meshYang'))
@@ -732,10 +734,11 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                  ifs[1]:ifs[1] + npc[1] + header['yp'],
                  ifs[2]:ifs[2] + npc[2],
                  ibk] = fld
+            data_found = True
 
     flds = _post_read_flds(flds, header)
 
-    return header, flds
+    return (header, flds) if data_found else None
 
 
 def read_tracers_h5(xdmf_file, infoname, snapshot, position):
