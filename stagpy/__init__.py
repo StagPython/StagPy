@@ -47,7 +47,7 @@ def sigint_handler(*_):
 
 def _check_config():
     """Create config files as necessary."""
-    config.CONFIG_DIR.mkdir(exist_ok=True)
+    config.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     verfile = config.CONFIG_DIR / '.version'
     uptodate = verfile.is_file() and verfile.read_text() == __version__
     if not uptodate:
