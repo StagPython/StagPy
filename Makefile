@@ -10,7 +10,10 @@ STAGPY=$(VENV_DIR)/bin/stagpy
 VPY=$(VENV_DIR)/bin/python
 VPIP=$(VPY) -m pip
 
-.PHONY: all install config clean uninstall autocomplete
+BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+VERSION=$(shell git describe --exact-match HEAD 2>/dev/null)
+
+.PHONY: all install config clean uninstall autocomplete again release
 .PHONY: info infopath infozsh infobash
 
 all: install
@@ -62,3 +65,23 @@ uninstall:
 	-rm -f $(LINK)
 
 again: clean all
+
+release:
+ifneq ($(BRANCH),master)
+	@echo 'Please run git checkout master'
+	@echo 'Then rerun make release'
+else
+ifeq ($(VERSION),)
+	@echo -n 'Please tag HEAD with the desired version number'
+	@echo ' (last version: $(shell git describe HEAD --abbrev=0))'
+	@echo 'git tag -a vX.Y.Z'
+	@echo 'Then rerun make release'
+else
+	@echo 'Release $(VERSION)'
+	git push --follow-tags
+	$(PY) -m pip install -U --user pip setuptools twine wheel
+	$(PY) setup.py sdist bdist_wheel
+	$(PY) -m twine upload dist/*
+	-rm -rf build/ dist/
+endif
+endif
