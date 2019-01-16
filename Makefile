@@ -12,19 +12,14 @@ VPIP=$(VPY) -m pip
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 VERSION=$(shell git describe --exact-match HEAD 2>/dev/null)
 
-.PHONY: all install config clean uninstall autocomplete again release
+.PHONY: all install clean uninstall again release
 .PHONY: info infopath infozsh infobash
 
 all: install
 
-install: $(LINK) config infopath autocomplete
+install: $(LINK) info
 	@echo
 	@echo 'Installation completed!'
-
-autocomplete: infozsh infobash
-
-config: $(STAGPY)
-	$(STAGPY) config --update
 
 $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
@@ -34,6 +29,7 @@ $(STAGPY): setup.py
 	$(PY) -m venv $(VENV_DIR)
 	$(VPIP) install -U pip
 	$(VPIP) install -e .
+	@$(STAGPY) version
 
 info: infopath infozsh infobash
 
