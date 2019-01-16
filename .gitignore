@@ -6,7 +6,7 @@
 .coverage
 .tox
 stagpy.egg-info/
-bld/
+.venv_dev/
 docs/_build/
 docs/_static/
 docs/_templates/

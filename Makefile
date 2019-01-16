@@ -4,8 +4,7 @@ LINK=$(LINK_DIR)/$(LINK_NAME)
 
 PY=python3
 
-BLD_DIR=bld
-VENV_DIR=$(BLD_DIR)/venv
+VENV_DIR=.venv_dev
 STAGPY=$(VENV_DIR)/bin/stagpy
 VPY=$(VENV_DIR)/bin/python
 VPIP=$(VPY) -m pip
@@ -31,12 +30,10 @@ $(LINK): $(STAGPY)
 	@mkdir -p $(LINK_DIR)
 	ln -sf $(PWD)/$(STAGPY) $(LINK)
 
-$(STAGPY): $(VENV_DIR) setup.py
-	$(VPIP) install -e .
-
-$(VENV_DIR):
-	$(PY) -m venv $@
+$(STAGPY): setup.py
+	$(PY) -m venv $(VENV_DIR)
 	$(VPIP) install -U pip
+	$(VPIP) install -e .
 
 info: infopath infozsh infobash
 
@@ -57,7 +54,7 @@ infobash:
 	@echo 'to your ~/.bashrc to enjoy command line completion with bash!'
 
 clean: uninstall
-	-rm -rf $(BLD_DIR)
+	-rm -rf $(VENV_DIR)
 	-rm -rf stagpy.egg-info
 
 uninstall:
