@@ -61,17 +61,3 @@ Or this to your ``~/.zshrc`` file::
     source ~/.config/stagpy/zsh/_stagpy.sh
 
 Enjoy!
-
-.. _advancedsetup:
-
-Advanced setup for Python interface
------------------------------------
-
-Use ``setup.py`` to install stagpy as a regular package and use the developer version in your own scripts::
-   
-    python3 setup.py develop --user
-    
-In the Python interpretor, you can make sure you have the latest version of stagpy::
-
-    import stagpy
-    stagpy.__version__
