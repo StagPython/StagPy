@@ -109,6 +109,10 @@ def var_cmd():
         print('field:')
         _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
         print()
+    if print_all or conf.var.sfield:
+        print('surface field:')
+        _layout(phyvars.SFIELD, {})
+        print()
     if print_all or conf.var.rprof:
         print('rprof:')
         _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)

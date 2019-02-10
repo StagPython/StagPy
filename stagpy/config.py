@@ -163,6 +163,8 @@ CONF_DEF['plates'] = OrderedDict((
 CONF_DEF['var'] = OrderedDict((
     ('field', Conf(None, True, None, {'action': 'store_true'},
                    False, 'print field variables')),
+    ('sfield', Conf(None, True, None, {'action': 'store_true'},
+                    False, 'print surface field variables')),
     ('rprof', Conf(None, True, None, {'action': 'store_true'},
                    False, 'print rprof variables')),
     ('time', Conf(None, True, None, {'action': 'store_true'},
