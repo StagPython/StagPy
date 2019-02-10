@@ -184,27 +184,31 @@ class _Fields(Mapping):
     The :attr:`Step.fields` attribute is an instance of this class.
 
     :class:`_Fields` inherits from :class:`collections.abc.Mapping`. Keys are
-    fields names defined in :data:`stagpy.phyvars.FIELD`.
+    fields names defined in :data:`stagpy.phyvars.[S]FIELD[_EXTRA]`.
 
     Attributes:
         step (:class:`Step`): the step object owning the :class:`_Fields`
             instance.
     """
 
-    def __init__(self, step):
+    def __init__(self, step, variables, extravars, files, filesh5):
         self.step = step
         self._header = UNDETERMINED
         self._geom = UNDETERMINED
+        self._vars = variables
+        self._extra = extravars
+        self._files = files
+        self._filesh5 = filesh5
         self._data = {}
         super().__init__()
 
     def __getitem__(self, name):
         if name in self._data:
             return self._data[name]
-        if name in phyvars.FIELD:
+        if name in self._vars:
             fld_names, parsed_data = self._get_raw_data(name)
-        elif name in phyvars.FIELD_EXTRA:
-            self._data[name] = phyvars.FIELD_EXTRA[name].description(self.step)
+        elif name in self._extra:
+            self._data[name] = self._extra[name].description(self.step)
             return self._data[name]
         else:
             raise error.UnknownFieldVarError(name)
@@ -225,7 +229,7 @@ class _Fields(Mapping):
         return self._data[name]
 
     def __iter__(self):
-        return (fld for fld in chain(phyvars.FIELD, phyvars.FIELD_EXTRA)
+        return (fld for fld in chain(self._vars, self._extra)
                 if fld in self)
 
     def __len__(self):
@@ -238,16 +242,18 @@ class _Fields(Mapping):
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
         filestem = ''
-        for filestem, list_fvar in phyvars.FIELD_FILES.items():
+        for filestem, list_fvar in self._files.items():
             if name in list_fvar:
                 break
         fieldfile = self.step.sdat.filename(filestem, self.step.isnap,
                                             force_legacy=True)
+        if not fieldfile.is_file():
+            fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
         parsed_data = None
         if fieldfile.is_file():
             parsed_data = stagyyparsers.fields(fieldfile)
-        elif self.step.sdat.hdf5:
-            for filestem, list_fvar in phyvars.FIELD_FILES_H5.items():
+        elif self.step.sdat.hdf5 and self._filesh5:
+            for filestem, list_fvar in self._filesh5.items():
                 if name in list_fvar:
                     break
             parsed_data = stagyyparsers.read_field_h5(
@@ -370,11 +376,16 @@ class Step:
             sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
                 instance owning the :class:`Step` instance.
             fields (:class:`_Fields`): fields available at this time step.
+            sfields (:class:`_Fields`): surface fields available at this time
+                step.
             tracers (:class:`_Tracers`): tracers available at this time step.
         """
         self.istep = istep
         self.sdat = sdat
-        self.fields = _Fields(self)
+        self.fields = _Fields(self, phyvars.FIELD, phyvars.FIELD_EXTRA,
+                              phyvars.FIELD_FILES, phyvars.FIELD_FILES_H5)
+        self.sfields = _Fields(self, phyvars.SFIELD, [],
+                               phyvars.SFIELD_FILES, [])
         self.tracers = _Tracers(self)
         self._isnap = UNDETERMINED
 

@@ -33,8 +33,6 @@ FIELD = OrderedDict((
     ('wtr', Varf('Water concentration', '1')),
     ('age', Varf('Age', 's')),
     ('contID', Varf('ID of continents', '1')),
-    ('geoid', Varf('Geoid', 'm')),
-    ('topo', Varf('Topography', 'm')),
 ))
 
 FIELD_EXTRA = OrderedDict((
@@ -54,8 +52,6 @@ FIELD_FILES = OrderedDict((
     ('sx', ['sx1', 'sx2', 'sx3', 's1val']),
     ('ed', ['edot']),
     ('tcond', ['Tcond1', 'Tcond2', 'Tcond3']),
-    ('g', ['geoid']),
-    ('cs', ['topo']),
 ))
 
 FIELD_FILES_H5 = OrderedDict((
@@ -72,6 +68,16 @@ FIELD_FILES_H5 = OrderedDict((
     ('Stress', ['sII']),
     ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3', 's1val']),
     ('StrainRate', ['edot']),
+))
+
+SFIELD = OrderedDict((
+    ('geoid', Varf('Geoid', 'm')),
+    ('topo', Varf('Topography', 'm')),
+))
+
+SFIELD_FILES = OrderedDict((
+    ('g', ['geoid']),
+    ('cs', ['topo']),
 ))
 
 Varr = namedtuple('Varr', ['description', 'kind', 'dim'])
