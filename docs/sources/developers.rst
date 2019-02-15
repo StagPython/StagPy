@@ -52,32 +52,29 @@ Then, in the ``docs`` directory, run::
 Open the produced file ``_build/html/index.html`` in your navigator to browse
 your local version of the documentation.
 
-Installation
-------------
-
-You can install the development version in two ways:
-
-1. in a virtual environment, allowing to have the development version alongside
-   the stable one on your system;
-2. as a regular package, allowing you to import the development version of
-   StagPy even from outside the virtual environment.
-
-The second option should only be used if necessary for your purpose.
-
 Installation in a virtual environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------
 
-A ``Makefile`` in the git repository allows you to install StagPy in a virtual
-environment with all the necessary dependencies.
+A ``Makefile`` in the git repository allows you to install the development
+version of StagPy in a virtual environment with all the necessary dependencies.
+Simply run ``make`` to do so.
 
 The version installed in the virtual environment points directly towards the
 source files. It means that you don't need to run ``make`` again for your
 changes to the source files to be taken into account.
 
-A soft link named ``stagpy-git`` is created in your ``~/bin`` directory,
-allowing you to launch the development version of StagPy directly by running
-``stagpy-git`` in a terminal (provided that ``~/bin`` is in your ``PATH``
-environment variable).
+To activate the virtual environment, source the relevant script::
+
+    % source .venv_dev/bin/activate
+
+Once this is done, launching the ``stagpy`` command and importing StagPy in a
+Python script (``import stagpy``) will use the development version of StagPy.
+Launch the ``deactivate`` command to get out of the virtual environment.
+
+As a convenience, a soft link named ``stagpy-git`` is created in your ``~/bin``
+directory, allowing you to launch the development version CLI tool without
+activating the virtual environment by running ``stagpy-git`` in a terminal
+(provided that ``~/bin`` is in your ``PATH`` environment variable).
 
 See :ref:`somesetup` to enable command line completion (replacing the ``stagpy``
 command with ``stagpy-git``).
@@ -89,21 +86,3 @@ directory of the repository and run::
 
 This should create a PDF file showing a plot of the temperature field with
 streamlines.
-
-Installation as a regular package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you have installed the stable version of StagPy, uninstall it::
-
-    % python3 -m pip uninstall stagpy
-
-You can use the following command to install StagPy as a regular package::
-
-    % python3 -m pip install -U --user -e .
-
-You *don't* need to run this command everytime you modify the source files.
-If you want to uninstall the development version, you can simply run::
-
-    % python3 -m pip uninstall stagpy
-
-See :ref:`somesetup` to enable command line completion.
