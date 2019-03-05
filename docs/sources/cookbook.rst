@@ -5,8 +5,6 @@ shell, working in the directory where the StagYY par file is located.
 You can also use the examples on the data available in the Examples
 directory. 
 
-cookbook/time
-
 Snapshots
 ---------
 The next use of stagpy is to create images of snapshots of the

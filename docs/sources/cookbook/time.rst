@@ -1,3 +1,10 @@
+Simple command lines
+====================
+For the examples here, simply copy and paste the command line in your
+shell, working in the directory where the StagYY par file is located. 
+You can also use the examples on the data available in the Examples
+directory. 
+
 Time series
 -----------
 

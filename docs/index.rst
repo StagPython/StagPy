@@ -20,7 +20,11 @@ Welcome to StagPy's documentation!
    :maxdepth: 2
    :caption: Cookbook
    
-   sources/cookbook
+   sources/cookbook/time
+   sources/cookbook/rprof
+   sources/cookbook/field
+   sources/cookbook/nura
+   sources/cookbook/vrmsra
 
 .. toctree::
    :maxdepth: 2
