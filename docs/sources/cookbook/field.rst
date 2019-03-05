@@ -1,5 +1,11 @@
-Snapshots
----------
+Snapshots using command line
+============================
+
+For the examples here, simply copy and paste the command line in your
+shell, working in the directory where the StagYY par file is located. 
+You can also use the examples on the data available in the Examples
+directory. 
+
 The next use of stagpy is to create images of snapshots of the
 different fields.
 

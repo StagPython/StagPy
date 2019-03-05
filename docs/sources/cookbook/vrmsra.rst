@@ -1,5 +1,5 @@
 Plotting a scalar diagnostic as function of time for several parameter sets
----------------------------------------------------------------------------
+===========================================================================
 
 Instead of plotting just the last value of a diagnostic, or its average, you
 may want to plot its evolution of time for different values of the control

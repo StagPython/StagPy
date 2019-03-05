@@ -1,10 +1,8 @@
-Scripts using StagyyData
-========================
-
 Plotting a scalar diagnostic as function of control parameter
--------------------------------------------------------------
+=============================================================
 
-Suppose you have a group of directories, each for a given set of parameters,
+Stagpy is suitable for scripting using StagyyData. Suppose you have a group 
+of directories, each for a given set of parameters,
 and you want to plot the results of all cases on the same figure, compute
 statistics etc. The :class:`~stagpy.stagyydata.StagyyData` class comes in handy
 for that. The following script can be used to make a loglog plot of the Nusselt
