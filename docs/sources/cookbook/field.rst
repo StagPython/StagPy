@@ -28,3 +28,9 @@ on separate figures.
 
 will plot the temperature field with isocontours of the stream function from
 the third to the eighth snapshot, every two snapshots.
+
+::
+
+   % stagpy field -o T -s 1:5 --vmin=0.8 --vmax=1.0
+   
+will plot the temperature field from the first to the fifth snapshot while keeping the range of the colorbar fixed between 0.8 and 1. 
