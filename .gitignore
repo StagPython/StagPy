@@ -6,6 +6,7 @@
 .coverage
 .tox
 stagpy.egg-info/
+pip-wheel-metadata/
 .venv_dev/
 docs/_build/
 docs/_static/
