@@ -479,7 +479,7 @@ class StagyyData:
             rproffile = self.filename('rprof.dat')
             if self.hdf5 and not rproffile.is_file():
                 # check legacy folder as well
-                rproffile = self.filename('time.dat', force_legacy=True)
+                rproffile = self.filename('rprof.dat', force_legacy=True)
             self._stagdat['rprof'] = stagyyparsers.rprof(
                 rproffile, list(phyvars.RPROF.keys()))
         return self._stagdat['rprof']
