@@ -166,7 +166,7 @@ def rprof(rproffile, colnames):
     if not rproffile.is_file():
         return None, None
     data = pd.read_csv(rproffile, delim_whitespace=True, dtype=str,
-                       header=None, comment='*',
+                       header=None, comment='*', skiprows=1,
                        engine='c', memory_map=True,
                        error_bad_lines=False, warn_bad_lines=False)
     data = data.apply(pd.to_numeric, raw=True, errors='coerce')
