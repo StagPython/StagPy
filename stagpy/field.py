@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpat
 
 from . import conf, misc, phyvars
 from .error import NotAvailableError
@@ -137,6 +138,8 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
         raise NotAvailableError('plot_scalar only implemented for 2D fields')
 
     xmesh, ymesh, fld = get_meshes_fld(step, var)
+    xmin, xmax = xmesh.min(), xmesh.max()
+    ymin, ymax = ymesh.min(), ymesh.max()
 
     if field is not None:
         fld = field
@@ -147,6 +150,18 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
         fig, axis = plt.subplots(ncols=1)
     else:
         fig = axis.get_figure()
+
+    if step.sdat.par['magma_oceans_in']['magma_oceans_mode']:
+        cmb = mpat.Circle((0, 0), step.sdat.par['geometry']['r_cmb'], color='dimgray')
+        psurf = mpat.Circle((0, 0), step.sdat.par['geometry']['r_cmb'] + 1,
+                            color='indianred', zorder=0)
+        axis.add_patch(psurf)
+        axis.add_patch(cmb)
+        xmax = step.sdat.par['geometry']['r_cmb'] + 1
+        ymax = xmax
+        xmin = -xmax
+        ymin = -ymax
+
     extra_opts = dict(
         cmap=conf.field.cmap.get(var),
         vmin=conf.plot.vmin,
@@ -169,8 +184,8 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
     else:
         axis.set_aspect(conf.plot.ratio / axis.get_data_ratio())
     axis.set_adjustable('box')
-    axis.set_xlim(xmesh.min(), xmesh.max())
-    axis.set_ylim(ymesh.min(), ymesh.max())
+    axis.set_xlim(xmin, xmax)
+    axis.set_ylim(ymin, ymax)
     return fig, axis, surf, cbar
 
 

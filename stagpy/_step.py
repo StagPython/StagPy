@@ -85,7 +85,7 @@ class _Geometry:
             elif self.twod_xz:
                 self._coords[1] = np.array(0)
             r_coord = self.z_coord + self.rcmb
-            if par['magma_oceans_in']['evolving_magma_oceans']:
+            if par['magma_oceans_in']['magma_oceans_mode']:
                 r_coord += header['mo_lambda']
                 r_coord *= header['mo_thick_sol']
             t_mesh, p_mesh, r_mesh = np.meshgrid(
