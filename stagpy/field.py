@@ -152,7 +152,8 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
         fig = axis.get_figure()
 
     if step.sdat.par['magma_oceans_in']['magma_oceans_mode']:
-        cmb = mpat.Circle((0, 0), step.sdat.par['geometry']['r_cmb'], color='dimgray')
+        cmb = mpat.Circle((0, 0), step.sdat.par['geometry']['r_cmb'],
+                          color='dimgray')
         psurf = mpat.Circle((0, 0), step.sdat.par['geometry']['r_cmb'] + 1,
                             color='indianred', zorder=0)
         axis.add_patch(psurf)
