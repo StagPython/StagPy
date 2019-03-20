@@ -152,16 +152,17 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
         fig = axis.get_figure()
 
     if step.sdat.par['magma_oceans_in']['magma_oceans_mode']:
-        cmb = mpat.Circle((0, 0), step.sdat.par['geometry']['r_cmb'],
-                          color='dimgray')
-        psurf = mpat.Circle((0, 0), step.sdat.par['geometry']['r_cmb'] + 1,
-                            color='indianred', zorder=0)
-        axis.add_patch(psurf)
-        axis.add_patch(cmb)
-        xmax = step.sdat.par['geometry']['r_cmb'] + 1
+        rcmb = step.sdat.par['geometry']['r_cmb']
+        xmax = rcmb + 1
         ymax = xmax
         xmin = -xmax
         ymin = -ymax
+        rsurf = xmax if step.timeinfo['thick_tmo'] > 0 \
+            else step.geom.r_mesh[0, 0, -3]
+        cmb = mpat.Circle((0, 0), rcmb, color='dimgray', zorder=0)
+        psurf = mpat.Circle((0, 0), rsurf, color='indianred', zorder=0)
+        axis.add_patch(psurf)
+        axis.add_patch(cmb)
 
     extra_opts = dict(
         cmap=conf.field.cmap.get(var),
