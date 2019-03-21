@@ -102,9 +102,9 @@ def time_series_h5(timefile, colnames):
         dset = h5f['tseries']
         _, ncols = dset.shape
         ncols -= 1  # first is istep
-        h5names = map(bytes.decode, h5f['names'].value[len(colnames) + 1:])
+        h5names = map(bytes.decode, h5f['names'][len(colnames) + 1:])
         _tidy_names(colnames, ncols, h5names)
-        data = dset.value
+        data = dset[()]
     return pd.DataFrame(data[:, 1:],
                         index=np.int_(data[:, 0]), columns=colnames)
 
@@ -218,12 +218,12 @@ def rprof_h5(rproffile, colnames):
         dnames = sorted(dname for dname in h5f.keys()
                         if dname.startswith('rprof_'))
         ncols = h5f['names'].shape[0]
-        h5names = map(bytes.decode, h5f['names'].value[len(colnames):])
+        h5names = map(bytes.decode, h5f['names'][len(colnames):])
         _tidy_names(colnames, ncols, h5names)
         data = np.zeros((0, ncols))
         for dname in dnames:
             dset = h5f[dname]
-            data = np.concatenate((data, dset.value))
+            data = np.concatenate((data, dset[()]))
             isteps.append((dset.attrs['istep'], dset.attrs['time'],
                            dset.shape[0]))
 
@@ -444,7 +444,7 @@ def _read_group_h5(filename, groupname):
         :class:`numpy.array`: content of group.
     """
     with h5py.File(filename, 'r') as h5f:
-        data = h5f[groupname].value
+        data = h5f[groupname][()]
     return data  # need to be reshaped
 
 
@@ -526,7 +526,7 @@ def _read_coord_h5(files, shapes, header, twod):
         with h5py.File(h5file, 'r') as h5f:
             for coord, mesh in h5f.items():
                 # for some reason, the array is transposed!
-                meshes[-1][coord] = mesh.value.reshape(shape).T
+                meshes[-1][coord] = mesh[()].reshape(shape).T
                 meshes[-1][coord] = _make_3d(meshes[-1][coord], twod)
 
     header['ncs'] = _ncores(meshes, twod)
@@ -790,4 +790,4 @@ def read_time_h5(h5folder):
     """
     with h5py.File(h5folder / 'time_botT.h5', 'r') as h5f:
         for name, dset in h5f.items():
-            yield int(name[-5:]), int(dset.value[2])
+            yield int(name[-5:]), int(dset[2])
