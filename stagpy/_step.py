@@ -323,14 +323,14 @@ class _Tracers:
         if name in self._data:
             return self._data[name]
         data = stagyyparsers.tracers(
-            self.step.sdat.filename('tra', timestep=self.step.istep,
+            self.step.sdat.filename('tra', timestep=self.step.isnap,
                                     force_legacy=True))
         if data is None and self.step.sdat.hdf5:
-            position = any(axis not in self for axis in 'xyz')
+            position = any(axis not in self._data for axis in 'xyz')
             self._data.update(
                 stagyyparsers.read_tracers_h5(
                     self.step.sdat.hdf5 / 'DataTracers.xmf', name,
-                    self.step.istep, position))
+                    self.step.isnap, position))
         elif data is not None:
             self._data.update(data)
         if name not in self._data:
