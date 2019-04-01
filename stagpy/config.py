@@ -75,6 +75,8 @@ CONF_DEF['field'] = OrderedDict((
         Conf('T+stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
              True, 'variables to plot (see stagpy var)')),
+    ('perturbation', switch_opt(False, None,
+                                'plot departure from average profile')),
     ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
     ('shrinkcb',
         Conf(0.5, False, None, {},

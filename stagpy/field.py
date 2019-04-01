@@ -143,6 +143,8 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
 
     if field is not None:
         fld = field
+    if conf.field.perturbation:
+        fld = fld - np.mean(fld, axis=0)
 
     fld, unit = step.sdat.scale(fld, meta.dim)
 
@@ -179,6 +181,7 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
     if set_cbar:
         cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
         cbar.set_label(meta.description +
+                       (' pert.' if conf.field.perturbation else '') +
                        (' ({})'.format(unit) if unit else ''))
     if step.geom.spherical or conf.plot.ratio is None:
         plt.axis('equal')
