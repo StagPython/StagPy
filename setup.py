@@ -6,19 +6,22 @@ with open('README.rst') as rdm:
     README = rdm.read()
 
 DEPENDENCIES = [
+    'loam>=0.3.1',
+    'f90nml>=1.0.2',
+    'setuptools_scm>=1.15',
+]
+HEAVY = [
     'numpy>=1.12',
     'scipy>=1.0',
     'pandas>=0.22',
     'h5py>=2.7.1',
     'matplotlib>=3.0',
-    'loam>=0.3.1',
-    'f90nml>=1.0.2',
-    'setuptools_scm>=1.15',
 ]
 
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
-if ON_RTD:  # heavy dependencies are mocked out
-    DEPENDENCIES = DEPENDENCIES[5:]
+# heavy dependencies are mocked out on Read the Docs
+if not ON_RTD:
+    DEPENDENCIES.extend(HEAVY)
 
 setup(
     name='stagpy',
