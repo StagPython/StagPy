@@ -28,7 +28,7 @@ $(LINK): $(STAGPY)
 $(STAGPY): setup.py
 	$(PY) -m venv $(VENV_DIR)
 	$(VPIP) install -U pip
-	$(VPIP) install -e .
+	$(VPIP) install --no-use-pep517 -e .
 	@$(STAGPY) version
 
 info: infopath infozsh infobash
