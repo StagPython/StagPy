@@ -145,6 +145,8 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
         fld = field
     if conf.field.perturbation:
         fld = fld - np.mean(fld, axis=0)
+    if conf.field.shift:
+        fld = np.roll(fld, conf.field.shift, axis=0)
 
     fld, unit = step.sdat.scale(fld, meta.dim)
 
@@ -206,6 +208,8 @@ def plot_iso(axis, step, var):
         var (str): the scalar field name.
     """
     xmesh, ymesh, fld = get_meshes_fld(step, var)
+    if conf.field.shift:
+        fld = np.roll(fld, conf.field.shift, axis=0)
     axis.contour(xmesh, ymesh, fld, linewidths=1)
 
 
@@ -222,6 +226,9 @@ def plot_vec(axis, step, var):
     """
     xmesh, ymesh, vec1, vec2 = get_meshes_vec(step, var)
     dipz = step.geom.nztot // 10
+    if conf.field.shift:
+        vec1 = np.roll(vec1, conf.field.shift, axis=0)
+        vec2 = np.roll(vec2, conf.field.shift, axis=0)
     if step.geom.spherical or conf.plot.ratio is None:
         dipx = dipz
     else:

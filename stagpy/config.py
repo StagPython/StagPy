@@ -77,6 +77,8 @@ CONF_DEF['field'] = OrderedDict((
              True, 'variables to plot (see stagpy var)')),
     ('perturbation', switch_opt(False, None,
                                 'plot departure from average profile')),
+    ('shift', Conf(None, True, None, {'type': int},
+                   False, 'Shift plot horizontally')),
     ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
     ('shrinkcb',
         Conf(0.5, False, None, {},
