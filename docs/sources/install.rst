@@ -61,3 +61,11 @@ Or this to your ``~/.zshrc`` file::
     source ~/.config/stagpy/zsh/_stagpy.sh
 
 Enjoy!
+
+Troubleshooting
+---------------
+
+If you get a matplotlib related error stating that Python is not installed as
+a framework, see `this answer on StackOverflow`__.
+
+.. __: https://stackoverflow.com/a/21789908
