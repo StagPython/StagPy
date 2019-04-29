@@ -1,5 +1,5 @@
 Profiles using command line
-========================
+===========================
 
 For the examples here, simply copy and paste the command line in your
 shell, working in the directory where the StagYY par file is located. 
