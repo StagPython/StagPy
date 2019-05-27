@@ -105,8 +105,10 @@ def time_series_h5(timefile, colnames):
         h5names = map(bytes.decode, h5f['names'][len(colnames) + 1:])
         _tidy_names(colnames, ncols, h5names)
         data = dset[()]
-    return pd.DataFrame(data[:, 1:],
-                        index=np.int_(data[:, 0]), columns=colnames)
+    pdf = pd.DataFrame(data[:, 1:],
+                       index=np.int_(data[:, 0]), columns=colnames)
+    # remove duplicated lines in case of restart
+    return pdf.loc[~pdf.index.duplicated(keep='last')]
 
 
 def _extract_rsnap_isteps(rproffile):
