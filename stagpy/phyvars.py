@@ -215,7 +215,7 @@ REFSTATE = OrderedDict((
     ('rho', Varr('Density', 'Density', 'kg/m3')),
     ('expan', Varr('Thermal expansivity', 'Thermal expansivity', '1/K')),
     ('Cp', Varr('Heat capacity', 'Heat capacity', 'J/(kg.K)')),
-    ('tcond', Varr('Conductivity', 'Conductivity', 'W/(m.K)')),
+    ('Tcond', Varr('Conductivity', 'Conductivity', 'W/(m.K)')),
     ('P', Varr('Pressure', 'Pressure', 'Pa')),
 ))
 

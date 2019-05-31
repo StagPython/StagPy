@@ -7,17 +7,6 @@ from .phyvars import REFSTATE
 from .stagyydata import StagyyData
 
 
-_COMB_TO_SIMPLE = {
-    'z': 'z',
-    'T': 'Tref',
-    'rho': 'rhoref',
-    'expan': 'expan',
-    'Cp': 'Cp',
-    'tcond': 'Tcond',
-    'P': 'P',
-}
-
-
 def plot_ref(sdat, var):
     """Plot one reference state.
 
@@ -29,17 +18,13 @@ def plot_ref(sdat, var):
     adbts = sdat.refstate.adiabats
     if len(adbts) > 2:
         for iad, adia in enumerate(adbts[:-1]):
-            try:
-                prof = adia[_COMB_TO_SIMPLE[var]]
-            except KeyError:
-                prof = adia[var]
-            axis.plot(prof, adia['z'],
+            axis.plot(adia[var], adia['z'],
                       conf.refstate.style,
                       label='System {}'.format(iad + 1))
     axis.plot(adbts[-1][var], adbts[-1]['z'],
               conf.refstate.style, color='k',
               label='Combined profile')
-    if var == 'tcond':
+    if var == 'Tcond':
         axis.set_xscale('log')
     axis.set_xlabel(REFSTATE[var].description)
     axis.set_ylabel('z Position')

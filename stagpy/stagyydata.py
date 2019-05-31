@@ -121,7 +121,7 @@ class _Refstate:
             The temperature profile of the 3rd phase in the 1st
             system is
 
-            >>> sdat.refstate.systems[0][2]['Tref']
+            >>> sdat.refstate.systems[0][2]['T']
         """
         if self._data is UNDETERMINED:
             self._read_refstate()
@@ -138,7 +138,7 @@ class _Refstate:
         Example:
             The adiabatic temperature profile of the 2nd system is
 
-            >>> sdat.refstate.adiabats[1]['Tref']
+            >>> sdat.refstate.adiabats[1]['T']
 
             The combined density profile is
 

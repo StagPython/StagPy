@@ -240,6 +240,16 @@ def rprof_h5(rproffile, colnames):
     return df_data, df_times
 
 
+def _clean_names_refstate(names):
+    """Uniformization of refstate profile names."""
+    to_clean = {
+        'Tref': 'T',
+        'rhoref': 'rho',
+        'tcond': 'Tcond',
+    }
+    return [to_clean.get(n, n) for n in names]
+
+
 def refstate(reffile, ncols=7):
     """Extract reference state profiles
 
@@ -277,10 +287,10 @@ def refstate(reffile, ncols=7):
                 if isystem > 0:
                     systems.append([])
             elif line.startswith('z'):
-                systems[isystem].append(line.split())
+                systems[isystem].append(_clean_names_refstate(line.split()))
             elif line.startswith('ADIABAT') or line.startswith('COMBINED'):
                 line = line.partition(':')[-1]
-                adiabats.append(line.split())
+                adiabats.append(_clean_names_refstate(line.split()))
     nprofs = sum(map(len, systems)) + len(adiabats)
     nzprof = len(data) // nprofs
     iprof = 0
