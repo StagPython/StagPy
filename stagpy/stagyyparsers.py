@@ -240,6 +240,79 @@ def rprof_h5(rproffile, colnames):
     return df_data, df_times
 
 
+def refstate(reffile, ncols=7):
+    """Extract reference state profiles
+
+    Args:
+        reffile (:class:`pathlib.Path`): path of the refstate file.
+        ncols (int): number of columns.
+
+    Returns:
+        tuple of list: (syst, adia)
+            :data:`syst` is a list of list of :class:`pandas.DataFrame`
+            containing the reference state profiles for each system and
+            each phase in these systems.
+
+            :data:`adia` is a list of :class:`pandas.DataFrame` containing
+            the adiabatic reference state profiles for each system, the last
+            item being the combined adiabat.
+    """
+    if not reffile.is_file():
+        return None, None
+    data = pd.read_csv(reffile, delim_whitespace=True, dtype=str,
+                       header=None, names=range(ncols),
+                       engine='c', memory_map=True,
+                       error_bad_lines=False, warn_bad_lines=False)
+    data = data.apply(pd.to_numeric, raw=True, errors='coerce')
+    # drop lines corresponding to metadata
+    data.dropna(subset=[0], inplace=True)
+    isystem = -1
+    systems = [[]]
+    adiabats = []
+    with reffile.open() as rsf:
+        for line in rsf:
+            line = line.lstrip()
+            if line.startswith('SYSTEM'):
+                isystem += 1
+                if isystem > 0:
+                    systems.append([])
+            elif line.startswith('z'):
+                systems[isystem].append(line.split())
+            elif line.startswith('ADIABAT') or line.startswith('COMBINED'):
+                line = line.partition(':')[-1]
+                adiabats.append(line.split())
+    nprofs = sum(map(len, systems)) + len(adiabats)
+    nzprof = len(data) // nprofs
+    iprof = 0
+    syst = []
+    adia = []
+    for isys, layers in enumerate(systems):
+        syst.append([])
+        for layer in layers:
+            ibgn = iprof * nzprof
+            iend = ibgn + nzprof
+            syst[isys].append(
+                pd.DataFrame(data.iloc[ibgn:iend, :len(layer)].values,
+                             columns=layer))
+            iprof += 1
+        if len(layers) > 1:
+            ibgn = iprof * nzprof
+            iend = ibgn + nzprof
+            cols = adiabats.pop(0)
+            adia.append(
+                pd.DataFrame(data.iloc[ibgn:iend, :len(cols)].values,
+                             columns=cols))
+            iprof += 1
+        else:
+            adia.append(syst[isys][0])
+    ibgn = iprof * nzprof
+    iend = ibgn + nzprof
+    cols = adiabats.pop(0)
+    adia.append(pd.DataFrame(data.iloc[ibgn:iend, :len(cols)].values,
+                             columns=cols))
+    return syst, adia
+
+
 def _readbin(fid, fmt='i', nwords=1, file64=False, unpack=True):
     """Read n words of 4 or 8 bytes with fmt format.
 

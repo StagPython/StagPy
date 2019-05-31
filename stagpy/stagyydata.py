@@ -83,6 +83,72 @@ class _Scales:
         return self.dyn_visc / self.time
 
 
+class _Refstate:
+
+    """Reference state profiles.
+
+    The :attr:`StagyyData.refstate` attribute is an instance of this class.
+    Reference state profiles are accessed through the attributes of this
+    object.
+    """
+
+    def __init__(self, sdat):
+        """Initialization of instances:
+
+        Args:
+            sdat (:class:`StagyyData`): the StagyyData instance owning the
+                :class:`_Steps` instance.
+        """
+        self._sdat = sdat
+        self._data = UNDETERMINED
+
+    def _read_refstate(self):
+        """Read reference state profile."""
+        reffile = self._sdat.filename('refstat.dat')
+        if self._sdat.hdf5 and not reffile.is_file():
+            # check legacy folder as well
+            reffile = self._sdat.filename('refstat.dat', force_legacy=True)
+        self._data = stagyyparsers.refstate(reffile)
+
+    @property
+    def systems(self):
+        """Reference state profiles of phases.
+
+        It is a list of list of :class:`pandas.DataFrame` containing
+        the reference profiles associated with each phase in each system.
+
+        Example:
+            The temperature profile of the 3rd phase in the 1st
+            system is
+
+            >>> sdat.refstate.systems[0][2]['Tref']
+        """
+        if self._data is UNDETERMINED:
+            self._read_refstate()
+        return self._data[0]
+
+    @property
+    def adiabats(self):
+        """Adiabatic reference state profiles.
+
+        It is a list of :class:`pandas.DataFrame` containing the reference
+        profiles associated with each system.  The last item is the combined
+        adiabat.
+
+        Example:
+            The adiabatic temperature profile of the 2nd system is
+
+            >>> sdat.refstate.adiabats[1]['Tref']
+
+            The combined density profile is
+
+            >>> sdat.refstate.adiabats[-1]['rho']
+        """
+        if self._data is UNDETERMINED:
+            self._read_refstate()
+        return self._data[1]
+
+
 class _Steps:
 
     """Collections of time steps.
@@ -399,6 +465,7 @@ class StagyyData:
                          'tseries': UNDETERMINED,
                          'rprof': UNDETERMINED}
         self.scales = _Scales(self)
+        self.refstate = _Refstate(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self.nfields_max = nfields_max
