@@ -125,6 +125,16 @@ CONF_DEF['time'] = OrderedDict((
              False, 'ending fraction of series to process')),
 ))
 
+CONF_DEF['refstate'] = OrderedDict((
+    ('plot',
+        Conf('T', True, 'o',
+             {'nargs': '?', 'const': ''},
+             True, 'variables to plot (see stagpy var)')),
+    ('style',
+        Conf('-', True, None, {},
+             True, 'matplotlib line style')),
+))
+
 CONF_DEF['plates'] = OrderedDict((
     ('plot',
         Conf('c,eta,sc', True, 'o',
@@ -173,6 +183,8 @@ CONF_DEF['var'] = OrderedDict((
                    False, 'print rprof variables')),
     ('time', Conf(None, True, None, {'action': 'store_true'},
                   False, 'print time variables')),
+    ('refstate', Conf(None, True, None, {'action': 'store_true'},
+                      False, 'print refstate variables')),
     ('plates', Conf(None, True, None, {'action': 'store_true'},
                     False, 'print plates variables')),
 ))

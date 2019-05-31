@@ -209,6 +209,16 @@ TIME_EXTRA = OrderedDict((
     ('mobility', Vart(processing.mobility, 'Mobility', '1')),
 ))
 
+REFSTATE = OrderedDict((
+    ('z', Varr('z position', 'z position', 'm')),
+    ('T', Varr('Temperature', 'Temperature', 'K')),
+    ('rho', Varr('Density', 'Density', 'kg/m3')),
+    ('expan', Varr('Thermal expansivity', 'Thermal expansivity', '1/K')),
+    ('Cp', Varr('Heat capacity', 'Heat capacity', 'J/(kg.K)')),
+    ('tcond', Varr('Conductivity', 'Conductivity', 'W/(m.K)')),
+    ('P', Varr('Pressure', 'Pressure', 'Pa')),
+))
+
 Varp = namedtuple('Varp', ['description'])
 PLATES = OrderedDict((
     ('c', Varp('Composition')),

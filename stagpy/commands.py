@@ -121,6 +121,10 @@ def var_cmd():
         print('time:')
         _layout(phyvars.TIME, phyvars.TIME_EXTRA)
         print()
+    if print_all or conf.var.refstate:
+        print('refstate:')
+        _layout(phyvars.REFSTATE, {})
+        print()
     if print_all or conf.var.plates:
         print('plates:')
         _layout(phyvars.PLATES, {})

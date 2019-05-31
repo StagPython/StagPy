@@ -7,7 +7,7 @@ from loam.tools import set_conf_str, create_complete_files
 from loam.cli import Subcmd, CLIManager
 
 from . import conf, PARSING_OUT, load_mplstyle
-from . import commands, field, rprof, time_series, plates
+from . import commands, field, rprof, time_series, refstate, plates
 from .misc import baredoc
 from .config import CONFIG_DIR
 
@@ -24,6 +24,7 @@ SUB_CMDS = OrderedDict((
     ('field', _sub(field, 'core', 'plot', 'scaling')),
     ('rprof', _sub(rprof, 'core', 'plot', 'scaling')),
     ('time', _sub(time_series, 'core', 'plot', 'scaling')),
+    ('refstate', _sub(refstate, 'core', 'plot')),
     ('plates', _sub(plates, 'core', 'plot', 'scaling')),
     ('info', _sub(commands.info_cmd, 'core')),
     ('var', _sub(commands.var_cmd)),
