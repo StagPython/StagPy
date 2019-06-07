@@ -35,6 +35,7 @@ FIELD = OrderedDict((
     ('wtr', Varf('Water concentration', '1')),
     ('age', Varf('Age', 's')),
     ('contID', Varf('ID of continents', '1')),
+    ('rs', Varf('Residue', '1')),
 ))
 
 FIELD_EXTRA = OrderedDict((
@@ -51,6 +52,7 @@ FIELD_FILES = OrderedDict((
     ('wtr', ['wtr']),
     ('age', ['age']),
     ('nrc', ['contID']),
+    ('rs', ['rs']),
     ('str', ['sII']),
     ('sx', ['sx1', 'sx2', 'sx3', 's1val']),
     ('ed', ['edot']),
@@ -70,6 +72,7 @@ FIELD_FILES_H5 = OrderedDict((
     ('water', ['wtr']),
     ('Age', ['age']),
     ('ContinentNumber', ['contID']),
+    ('Residue', ['rs']),
     ('Stress', ['sII']),
     ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3', 's1val']),
     ('StrainRate', ['edot']),
