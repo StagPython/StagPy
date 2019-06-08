@@ -16,6 +16,7 @@ import pandas as pd
 import h5py
 
 from .error import ParsingError
+from .phyvars import FIELD_FILES_H5
 
 
 def _tidy_names(names, nnames, extra_names=None):
@@ -738,8 +739,7 @@ def _flds_shape(fieldname, header):
     """Compute shape of flds variable."""
     shp = list(header['nts'])
     shp.append(header['ntb'])
-    # probably a better way to handle this
-    if fieldname == 'Velocity':
+    if len(FIELD_FILES_H5['fieldname']) == 3:
         shp.insert(0, 3)
         # extra points
         header['xp'] = int(header['nts'][0] != 1)
