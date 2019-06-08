@@ -35,10 +35,10 @@ FIELD = OrderedDict((
     ('wtr', Varf('Water concentration', '1')),
     ('age', Varf('Age', 's')),
     ('contID', Varf('ID of continents', '1')),
-    ('rs1', Varf('x Residue', '1')),
-    ('rs2', Varf('y Residue', '1')),
-    ('rs3', Varf('z Residue', '1')),
-    ('rsval', Varf('Residue', '1')),
+    ('rs1', Varf('x Momentum residue', '1')),
+    ('rs2', Varf('y Momentum residue', '1')),
+    ('rs3', Varf('z Momentum residue', '1')),
+    ('rsc', Varf('Continuity residue', '1')),
 ))
 
 FIELD_EXTRA = OrderedDict((
@@ -55,7 +55,7 @@ FIELD_FILES = OrderedDict((
     ('wtr', ['wtr']),
     ('age', ['age']),
     ('nrc', ['contID']),
-    ('rs', ['rs1','rs2','rs3','rsval']),
+    ('rs', ['rs1','rs2','rs3','rsc']),
     ('str', ['sII']),
     ('sx', ['sx1', 'sx2', 'sx3', 's1val']),
     ('ed', ['edot']),
@@ -75,7 +75,8 @@ FIELD_FILES_H5 = OrderedDict((
     ('water', ['wtr']),
     ('Age', ['age']),
     ('ContinentNumber', ['contID']),
-    ('Residue', ['rs1','rs2','rs3']),
+    ('ResidualMomentum', ['rs1', 'rs2', 'rs3']),
+    ('ResidualContinuity', ['rsc']),
     ('Stress', ['sII']),
     ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3', 's1val']),
     ('StrainRate', ['edot']),
