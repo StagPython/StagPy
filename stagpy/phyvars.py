@@ -78,7 +78,7 @@ FIELD_FILES_H5 = OrderedDict((
     ('ResidualMomentum', ['rs1', 'rs2', 'rs3']),
     ('ResidualContinuity', ['rsc']),
     ('Stress', ['sII']),
-    ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3', 's1val']),
+    ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3']),
     ('StrainRate', ['edot']),
 ))
 
