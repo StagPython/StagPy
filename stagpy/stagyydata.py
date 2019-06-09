@@ -14,6 +14,17 @@ from . import conf, error, parfile, phyvars, stagyyparsers, _step
 from ._step import UNDETERMINED
 
 
+def _as_view_item(obj):
+    """Return None or a suitable iterable to build a _StepView."""
+    try:
+        iter(obj)
+        return obj
+    except TypeError:
+        pass
+    if isinstance(obj, slice):
+        return (obj,)
+
+
 class _Scales:
 
     """Dimensionful scales."""
@@ -160,8 +171,8 @@ class _Steps:
         sdat = StagyyData('path/to/run')
         sdat.steps[istep]  # Step object of the istep-th time step
 
-    Slices of :class:`_Steps` object are :class:`_StepsView` instances that
-    you can iterate and filter::
+    Slices or tuple of istep and slices of :class:`_Steps` object are
+    :class:`_StepsView` instances that you can iterate and filter::
 
         for step in steps[500:]:
             # iterate through all time steps from the 500-th one
@@ -169,6 +180,10 @@ class _Steps:
 
         for step in steps[-100:].filter(snap=True):
             # iterate through all snapshots present in the last 100 time steps
+            do_something(step)
+
+        for step in steps[0,3,5,-2:]:
+            # iterate through steps 0, 3, 5 and the last two
             do_something(step)
     """
 
@@ -192,10 +207,9 @@ class _Steps:
     def __getitem__(self, istep):
         if istep is None:
             return self._data[None]
-        try:
-            return _StepsView(self, istep)
-        except AttributeError:
-            pass
+        keys = _as_view_item(istep)
+        if keys is not None:
+            return _StepsView(self, keys)
         try:
             istep = int(istep)
         except ValueError:
@@ -268,10 +282,9 @@ class _Snaps(_Steps):
         return '{}.snaps'.format(repr(self.sdat))
 
     def __getitem__(self, isnap):
-        try:
-            return _StepsView(self, isnap)
-        except AttributeError:
-            pass
+        keys = _as_view_item(isnap)
+        if keys is not None:
+            return _StepsView(self, keys)
         if isnap < 0:
             isnap += len(self)
         if isnap < 0 or isnap >= len(self):
@@ -345,17 +358,17 @@ class _StepsView:
     :attr:`StagyyData.steps` or :attr:`StagyyData.snaps` attributes.
     """
 
-    def __init__(self, steps_col, slc):
+    def __init__(self, steps_col, items):
         """Initialization of instances:
 
         Args:
             steps_col (:class:`_Steps` or :class:`_Snaps`): steps collection,
                 i.e. :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
                 attributes.
-            slc (slice): slice of desired isteps or isnap.
+            items (iterable): iterable of isteps/isnaps or slices.
         """
         self._col = steps_col
-        self._idx = slc.indices(len(self._col))
+        self._items = items
         self._flt = {
             'snap': False,
             'rprof': False,
@@ -366,7 +379,13 @@ class _StepsView:
 
     def __repr__(self):
         rep = repr(self._col)
-        rep += '[{}:{}:{}]'.format(*self._idx)
+        items = []
+        for item in self._items:
+            if isinstance(item, slice):
+                items.append('{}:{}:{}'.format(*item.indices(len(self._col))))
+            else:
+                items.append(repr(item))
+        rep += '[{}]'.format(','.join(items))
         flts = []
         for flt in ('snap', 'rprof', 'fields'):
             if self._flt[flt]:
@@ -418,8 +437,13 @@ class _StepsView:
         return self
 
     def __iter__(self):
-        return (self._col[i] for i in range(*self._idx)
-                if self._pass(self._col[i]))
+        for item in self._items:
+            if isinstance(item, slice):
+                idx = item.indices(len(self._col))
+                yield from (self._col[i] for i in range(*idx)
+                            if self._pass(self._col[i]))
+            elif self._pass(self._col[item]):
+                yield self._col[item]
 
     def __eq__(self, other):
         return all(s1 is s2 for s1, s2 in zip_longest(self, other))
