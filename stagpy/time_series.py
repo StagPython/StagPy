@@ -8,10 +8,22 @@ from .error import UnknownTimeVarError, InvalidTimeFractionError
 from .stagyydata import StagyyData
 
 
+def _collect_marks(sdat):
+    """Concatenate mark* config variable."""
+    times = set(conf.time.marktimes.replace(',', ' ').split())
+    times = list(map(float, times))
+    times.extend(step.timeinfo['t']
+                 for step in sdat.snaps[conf.time.marksnaps])
+    times.extend(step.timeinfo['t']
+                 for step in sdat.steps[conf.time.marksteps])
+    return times
+
+
 def _plot_time_list(sdat, lovs, tseries, metas, times=None):
     """Plot requested profiles"""
     if times is None:
         times = {}
+    time_marks = _collect_marks(sdat)
     for vfig in lovs:
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
                                  figsize=(12, 2 * len(vfig)))
@@ -43,6 +55,8 @@ def _plot_time_list(sdat, lovs, tseries, metas, times=None):
             if ivar:
                 axes[iplt].legend()
             axes[iplt].tick_params()
+            for time_mark in time_marks:
+                axes[iplt].axvline(time_mark, color='black', linestyle='--')
         _, unit = sdat.scale(1, 's')
         if unit:
             unit = ' ({})'.format(unit)

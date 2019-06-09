@@ -145,6 +145,15 @@ CONF_DEF['time'] = OrderedDict((
     ('fraction',
         Conf(None, True, None, {'type': float},
              False, 'ending fraction of series to process')),
+    ('marktimes',
+        Conf('', True, 'M', {},
+             False, 'list of times where to put a mark')),
+    ('marksteps',
+        Conf('', True, 'T', {'type': _index_collection},
+             False, 'list of steps where to put a mark')),
+    ('marksnaps',
+        Conf('', True, 'S', {'type': _index_collection},
+             False, 'list of snaps where to put a mark')),
 ))
 
 CONF_DEF['refstate'] = OrderedDict((
