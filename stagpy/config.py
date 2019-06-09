@@ -10,6 +10,28 @@ import pathlib
 from loam.manager import ConfOpt as Conf
 from loam.tools import switch_opt, config_conf_section, set_conf_opt
 
+
+def _actual_index(arg):
+    """Turn a string in a integer or slice."""
+    if ':' in arg:
+        idxs = arg.split(':')
+        if len(idxs) > 3:
+            raise ValueError('{} is an invalid slice'.format(arg))
+        idxs[0] = int(idxs[0]) if idxs[0] else None
+        idxs[1] = int(idxs[1]) if idxs[1] else None
+        if len(idxs) == 3:
+            idxs[2] = int(idxs[2]) if idxs[2] else None
+        else:
+            idxs = idxs[0:2] + [1]
+        return slice(*idxs)
+    return int(arg)
+
+
+def _index_collection(arg):
+    """Build an index collection from a command line input."""
+    return [_actual_index(item) for item in arg.split(',') if item]
+
+
 HOME_DIR = pathlib.Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 CONFIG_FILE = CONFIG_DIR / 'config.toml'
@@ -29,10 +51,10 @@ CONF_DEF['core'] = OrderedDict((
     ('outname', Conf('stagpy', True, 'n', {},
                      True, 'StagPy output file name prefix')),
     ('timesteps', Conf(None, True, 't',
-                       {'nargs': '?', 'const': '', 'type': str},
+                       {'nargs': '?', 'const': '', 'type': _index_collection},
                        False, 'timesteps slice')),
     ('snapshots', Conf(None, True, 's',
-                       {'nargs': '?', 'const': '', 'type': str},
+                       {'nargs': '?', 'const': '', 'type': _index_collection},
                        False, 'snapshots slice')),
 ))
 

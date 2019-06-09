@@ -612,11 +612,11 @@ class StagyyData:
             conf.core.snapshots: the slice of snapshots.
             conf.core.timesteps: the slice of timesteps.
         """
-        if conf.core.snapshots is not None:
+        if conf.core.snapshots:
             return self.snaps[conf.core.snapshots]
-        elif conf.core.timesteps is not None:
+        elif conf.core.timesteps:
             return self.steps[conf.core.timesteps]
-        return self.snaps[-1:]
+        return self.snaps[-1, ]
 
     def scale(self, data, unit):
         """Scales quantity to obtain dimensionful quantity.

@@ -33,36 +33,6 @@ SUB_CMDS = OrderedDict((
 ))
 
 
-def _steps_to_slices():
-    """parse timesteps and snapshots arguments and return slices"""
-    if not (conf.core.timesteps or conf.core.snapshots):
-        # default to the last snap
-        conf.core.timesteps = None
-        conf.core.snapshots = slice(-1, None, None)
-        return
-    elif conf.core.snapshots:
-        # snapshots take precedence over timesteps
-        # if both are defined
-        conf.core.timesteps = None
-        steps = conf.core.snapshots
-    else:
-        conf.core.snapshots = None
-        steps = conf.core.timesteps
-    steps = steps.split(':')
-    steps[0] = int(steps[0]) if steps[0] else None
-    if len(steps) == 1:
-        steps.append(steps[0] + 1)
-    steps[1] = int(steps[1]) if steps[1] else None
-    if len(steps) != 3:
-        steps = steps[0:2] + [1]
-    steps[2] = int(steps[2]) if steps[2] else None
-    steps = slice(*steps)
-    if conf.core.snapshots is not None:
-        conf.core.snapshots = steps
-    else:
-        conf.core.timesteps = steps
-
-
 def parse_args(arglist=None):
     """Parse cmd line arguments.
 
@@ -97,8 +67,4 @@ def parse_args(arglist=None):
 
     load_mplstyle()
 
-    try:
-        _steps_to_slices()
-    except AttributeError:
-        pass
     return cmd_args.func
