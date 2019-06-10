@@ -317,7 +317,6 @@ class _Tracers:
     def __init__(self, step):
         self.step = step
         self._data = {}
-        super().__init__()
 
     def __getitem__(self, name):
         if name in self._data:
