@@ -336,6 +336,9 @@ class _Tracers:
             self._data[name] = None
         return self._data[name]
 
+    def __iter__(self):
+        raise TypeError('tracers collection is not iterable')
+
 
 class Step:
 
