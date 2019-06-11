@@ -35,11 +35,11 @@ setup(
     author='Martina Ulvrova, Adrien Morison, Stéphane Labrosse',
     author_email='adrien.morison@gmail.com',
 
-    license='GPLv2',
+    license='Apache',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
