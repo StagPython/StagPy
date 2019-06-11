@@ -739,7 +739,7 @@ def _flds_shape(fieldname, header):
     """Compute shape of flds variable."""
     shp = list(header['nts'])
     shp.append(header['ntb'])
-    if len(FIELD_FILES_H5['fieldname']) == 3:
+    if len(FIELD_FILES_H5[fieldname]) == 3:
         shp.insert(0, 3)
         # extra points
         header['xp'] = int(header['nts'][0] != 1)
