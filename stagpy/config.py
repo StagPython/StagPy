@@ -205,6 +205,11 @@ CONF_DEF['plates'] = OrderedDict((
                         True, 'max lithospheric stress in plots')),
 ))
 
+CONF_DEF['info'] = OrderedDict((
+    ('output', Conf('t,Tmean,vrms,Nutop,Nubot', True, 'o', {},
+                    True, 'time series to print')),
+))
+
 CONF_DEF['var'] = OrderedDict((
     ('field', Conf(None, True, None, {'action': 'store_true'},
                    False, 'print field variables')),

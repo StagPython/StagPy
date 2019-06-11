@@ -3,7 +3,7 @@
 from itertools import zip_longest
 from math import ceil
 from shutil import get_terminal_size
-from textwrap import TextWrapper
+from textwrap import indent, TextWrapper
 import sys
 
 import loam.tools
@@ -15,7 +15,12 @@ from .misc import baredoc
 
 
 def info_cmd():
-    """Print basic information about StagYY run."""
+    """Print basic information about StagYY run.
+
+    Other Parameters:
+        conf.info
+    """
+    varlist = [var for var in conf.info.output.replace(',', ' ').split()]
     sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps.last
     lstep = sdat.steps.last
@@ -36,16 +41,16 @@ def info_cmd():
         print('Cylindrical', dimension)
     else:
         print('Spherical', dimension)
-    print('Last timestep:',
-          '  istep: {}'.format(lstep.istep),
-          '  time:  {}'.format(lstep.timeinfo['t']),
-          '  <T>:   {}'.format(lstep.timeinfo['Tmean']),
-          sep='\n')
-    print('Last snapshot (istep {}):'.format(lsnap.istep),
-          '  isnap: {}'.format(lsnap.isnap),
-          '  time:  {}'.format(lsnap.timeinfo['t']),
-          '  output fields: {}'.format(','.join(lsnap.fields)),
-          sep='\n')
+    print()
+    for step in sdat.walk:
+        is_snap = step.isnap is not None
+        print('Step {}/{}'.format(step.istep, lstep.istep), end='')
+        if is_snap:
+            print(', snapshot {}/{}'.format(step.isnap, lsnap.isnap))
+        else:
+            print()
+        print(indent(step.timeinfo.loc[varlist].to_string(), '  '))
+        print()
 
 
 def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
