@@ -10,6 +10,38 @@ from .error import NotAvailableError
 from .stagyydata import StagyyData
 
 
+def _threed_extract(step, var):
+    """Return suitable slices and mesh for 3D fields."""
+    is_vector = not valid_field_var(var)
+    i_x = conf.field.ix
+    i_y = conf.field.iy
+    i_z = conf.field.iz
+    if i_x is not None or i_y is not None:
+        i_z = None
+    if i_x is not None or i_z is not None:
+        i_y = None
+    if i_x is None and i_y is None and i_z is None:
+        i_x = 0
+    if i_x is not None:
+        xmesh, ymesh = step.geom.y_mesh[i_x, :, :], step.geom.z_mesh[i_x, :, :]
+        i_y = i_z = slice(None)
+        varx, vary = var + '1', var + '2'
+    elif i_y is not None:
+        xmesh, ymesh = step.geom.x_mesh[:, i_y, :], step.geom.z_mesh[:, i_y, :]
+        i_x = i_z = slice(None)
+        varx, vary = var + '1', var + '3'
+    else:
+        xmesh, ymesh = step.geom.x_mesh[:, :, i_z], step.geom.y_mesh[:, :, i_z]
+        i_x = i_y = slice(None)
+        varx, vary = var + '2', var + '3'
+    if is_vector:
+        data = (step.fields[varx][i_x, i_y, i_z, 0],
+                step.fields[vary][i_x, i_y, i_z, 0])
+    else:
+        data = step.fields[var][i_x, i_y, i_z, 0]
+    return (xmesh, ymesh), data
+
+
 def valid_field_var(var):
     """Whether a field variable is defined.
 
@@ -27,7 +59,7 @@ def valid_field_var(var):
 def get_meshes_fld(step, var):
     """Return scalar field along with coordinates meshes.
 
-    Only works properly in 2D geometry.
+    Only works properly in 2D geometry and 3D cartesian.
 
     Args:
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
@@ -39,7 +71,9 @@ def get_meshes_fld(step, var):
             the value of the requested field.
     """
     fld = step.fields[var]
-    if step.geom.twod_xz:
+    if step.geom.threed and step.geom.cartesian:
+        (xmesh, ymesh), fld = _threed_extract(step, var)
+    elif step.geom.twod_xz:
         xmesh, ymesh = step.geom.x_mesh[:, 0, :], step.geom.z_mesh[:, 0, :]
         fld = fld[:, 0, :, 0]
     elif step.geom.cartesian and step.geom.twod_yz:
@@ -54,7 +88,7 @@ def get_meshes_fld(step, var):
 def get_meshes_vec(step, var):
     """Return vector field components along with coordinates meshes.
 
-    Only works properly in 2D geometry.
+    Only works properly in 2D geometry and 3D cartesian.
 
     Args:
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
@@ -65,7 +99,9 @@ def get_meshes_vec(step, var):
             2D arrays containing respectively the x position, y position, x
             component and y component of the requested vector field.
     """
-    if step.geom.twod_xz:
+    if step.geom.threed and step.geom.cartesian:
+        (xmesh, ymesh), (vec1, vec2) = _threed_extract(step, var)
+    elif step.geom.twod_xz:
         xmesh, ymesh = step.geom.x_mesh[:, 0, :], step.geom.z_mesh[:, 0, :]
         vec1 = step.fields[var + '1'][:, 0, :, 0]
         vec2 = step.fields[var + '3'][:, 0, :, 0]
@@ -134,8 +170,9 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
     else:
         meta = phyvars.FIELD_EXTRA[var]
         meta = phyvars.Varf(misc.baredoc(meta.description), meta.dim)
-    if step.geom.threed:
-        raise NotAvailableError('plot_scalar only implemented for 2D fields')
+    if step.geom.threed and step.geom.spherical:
+        raise NotAvailableError(
+            'plot_scalar not implemented for 3D spherical geometry')
 
     xmesh, ymesh, fld = get_meshes_fld(step, var)
     xmin, xmax = xmesh.min(), xmesh.max()
