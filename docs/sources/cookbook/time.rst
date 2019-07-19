@@ -16,7 +16,16 @@ will give you by default one figure with two subplots. The first subplot
 contains the time series of the Nusselt number at the top and bottom
 boundaries, with a check of the energy balance. The corresponding line should
 be zero at all times for a perfect balance. The second subplot contains the
-time series of the mean temperature.
+time series of the mean temperature. This is equivalent to typing
+
+::
+   % stagpy time -o Nubot,Nutop,ebalance.vrms
+
+A list of all variables that can be accessed is obtained by
+
+::
+   % stagpy var
+under the "time" section. 
 
 ::
 
