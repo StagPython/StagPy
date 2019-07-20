@@ -22,13 +22,7 @@ time series of the mean temperature. This is equivalent to typing
 
     % stagpy time -o Nubot,Nutop,ebalance.vrms
 
-A list of all variables that can be accessed is obtained by
-
-::
-
-    % stagpy var
-
-under the "time" section.
+The command
 
 ::
 
