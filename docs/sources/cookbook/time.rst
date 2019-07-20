@@ -2,15 +2,15 @@ Time series using command line
 ==============================
 
 For the examples here, simply copy and paste the command line in your
-shell, working in the directory where the StagYY par file is located. 
+shell, working in the directory where the StagYY par file is located.
 You can also use the examples on the data available in the Examples
-directory. 
+directory.
 
 The command
 
 ::
 
-   % stagpy time
+    % stagpy time
 
 will give you by default one figure with two subplots. The first subplot
 contains the time series of the Nusselt number at the top and bottom
@@ -19,17 +19,20 @@ be zero at all times for a perfect balance. The second subplot contains the
 time series of the mean temperature. This is equivalent to typing
 
 ::
-   % stagpy time -o Nubot,Nutop,ebalance.vrms
+
+    % stagpy time -o Nubot,Nutop,ebalance.vrms
 
 A list of all variables that can be accessed is obtained by
 
 ::
-   % stagpy var
-under the "time" section. 
+
+    % stagpy var
+
+under the "time" section.
 
 ::
 
-   % stagpy time --tstart 0.02 --tend 0.03
+    % stagpy time --tstart 0.02 --tend 0.03
 
 will give you the same plots but starting at time 0.02 and ending at
 time 0.03.
@@ -49,7 +52,7 @@ figures are separated by underscores ``_``.
 
 ::
 
-   % stagpy time +compstat --tstart 0.02
+    % stagpy time +compstat --tstart 0.02
 
 will create a file containing the average and standard deviation of the time
 series variables from t=0.02 to the end. This is useful when your system has
