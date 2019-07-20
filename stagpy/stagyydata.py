@@ -232,6 +232,34 @@ class _Steps:
     def __iter__(self):
         return iter(self[:])
 
+    def at_time(self, time, after=False):
+        """Return step corresponding to a given physical time.
+
+        Args:
+            time (float): the physical time requested.
+            after (bool): when False (the default), the returned step is such
+                that its time is immediately before the requested physical
+                time. When True, the returned step is the next one instead (if
+                it exists, otherwise the same step is returned).
+
+        Returns:
+            :class:`~stagpy._step.Step`: the relevant step.
+        """
+        if self.sdat.tseries is None:
+            return None
+
+        igm = 0
+        igp = self.sdat.tseries.shape[0] - 1
+        while igp - igm > 1:
+            istart = igm + (igp - igm) // 2
+            if self.sdat.tseries.iloc[istart]['t'] >= time:
+                igp = istart
+            else:
+                igm = istart
+        if self.sdat.tseries.iloc[igp]['t'] > time and not after and igp > 0:
+            igp -= 1
+        return self[igp]
+
     def filter(self, **filters):
         """Build a _StepsView with requested filters."""
         return self[:].filter(**filters)
@@ -326,6 +354,36 @@ class _Snaps(_Steps):
             if self._last < 0:
                 raise error.NoSnapshotError(self.sdat)
         return self._last + 1
+
+    def at_time(self, time, after=False):
+        """Return snap corresponding to a given physical time.
+
+        Args:
+            time (float): the physical time requested.
+            after (bool): when False (the default), the returned snap is such
+                that its time is immediately before the requested physical
+                time. When True, the returned snap is the next one instead (if
+                it exists, otherwise the same snap is returned).
+
+        Returns:
+            :class:`~stagpy._step.Step`: the relevant snap.
+        """
+        if self.sdat.tseries is None:
+            return None
+
+        # in theory, this could be a valid implementation of _Steps.at_time
+        # but this isn't safe against missing data...
+        igm = 0
+        igp = len(self) - 1
+        while igp - igm > 1:
+            istart = igm + (igp - igm) // 2
+            if self[istart].timeinfo['t'] >= time:
+                igp = istart
+            else:
+                igm = istart
+        if self[igp].timeinfo['t'] > time and not after and igp > 0:
+            igp -= 1
+        return self[igp]
 
     def bind(self, isnap, istep):
         """Register the isnap / istep correspondence.
@@ -661,33 +719,15 @@ class StagyyData:
         if self.tseries is None:
             return None
 
-        ndat = self.tseries.shape[0]
-
         if tstart is None:
             istart = 0
         else:
-            igm = 0
-            igp = ndat - 1
-            while igp - igm > 1:
-                istart = igm + (igp - igm) // 2
-                if self.tseries.iloc[istart]['t'] >= tstart:
-                    igp = istart
-                else:
-                    igm = istart
-            istart = igp
+            istart = self.steps.at_time(tstart).istep
 
         if tend is None:
             iend = None
         else:
-            igm = 0
-            igp = ndat - 1
-            while igp - igm > 1:
-                iend = igm + (igp - igm) // 2
-                if self.tseries.iloc[iend]['t'] > tend:
-                    igp = iend
-                else:
-                    igm = iend
-            iend = igm + 1
+            iend = self.steps.at_time(tend, after=True).istep + 1
 
         return self.tseries.iloc[istart:iend]
 
