@@ -141,7 +141,7 @@ def set_of_vars(arg_plot):
     return sovs
 
 
-def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
+def plot_scalar(step, var, field=None, axis=None, **extra):
     """Plot scalar field.
 
     Args:
@@ -155,7 +155,6 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
         axis (:class:`matplotlib.axes.Axes`): the axis objet where the field
             should be plotted.  If set to None, a new figure with one subplot
             is created.
-        set_cbar (bool): whether to add a colorbar to the plot.
         extra (dict): options that will be passed on to
             :func:`matplotlib.axes.Axes.pcolormesh`.
     Returns:
@@ -217,7 +216,7 @@ def plot_scalar(step, var, field=None, axis=None, set_cbar=True, **extra):
     surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
 
     cbar = None
-    if set_cbar:
+    if conf.field.colorbar:
         cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
         cbar.set_label(meta.description +
                        (' pert.' if conf.field.perturbation else '') +
