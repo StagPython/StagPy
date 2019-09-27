@@ -26,6 +26,8 @@ def out_name(stem, timestep=None):
         conf.core.outname (str): the generic name stem, defaults to
             ``'stagpy'``.
     """
+    if conf.core.shortname:
+        return conf.core.outname
     if timestep is not None:
         stem = (stem + INT_FMT).format(timestep)
     return conf.core.outname + '_' + stem

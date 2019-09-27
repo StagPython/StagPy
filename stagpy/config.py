@@ -50,6 +50,8 @@ CONF_DEF['core'] = OrderedDict((
                   True, 'path of StagYY run directory or par file', '_files')),
     ('outname', Conf('stagpy', True, 'n', {},
                      True, 'StagPy output file name prefix')),
+    ('shortname', switch_opt(False, None,
+                             'StagPy output file name is only prefix')),
     ('timesteps', Conf(None, True, 't',
                        {'nargs': '?', 'const': '', 'type': _index_collection},
                        False, 'timesteps slice')),
