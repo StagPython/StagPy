@@ -662,10 +662,13 @@ def main_plates(sdat):
                                                 vmin=etamin, vmax=etamax)
 
             # plotting continents
-            field.plot_scalar(step, 'c', continentsfld, axis, False,
+            cbar = conf.field.colorbar
+            conf.field.colorbar = False
+            field.plot_scalar(step, 'c', continentsfld, axis,
                               cmap='cool_r', vmin=0, vmax=0)
             cmap2 = plt.cm.ocean
             cmap2.set_over('m')
+            conf.field.colorbar = cbar
 
             # plotting velocity vectors
             field.plot_vec(axis, step, 'v')
@@ -732,10 +735,13 @@ def main_plates(sdat):
                                                     alpha=0.1)
 
                 # plotting continents
-                field.plot_scalar(step, 'c', continentsfld, axis, False,
+                cbar = conf.field.colorbar
+                conf.field.colorbar = False
+                field.plot_scalar(step, 'c', continentsfld, axis,
                                   cmap='cool_r', vmin=0, vmax=0)
                 cmap2 = plt.cm.ocean
                 cmap2.set_over('m')
+                conf.field.colorbar = cbar
 
                 # plotting principal deviatoric stress
                 field.plot_vec(axis, step, 'sx')
