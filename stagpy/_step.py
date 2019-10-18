@@ -232,6 +232,12 @@ class _Fields(Mapping):
         return (fld for fld in chain(self._vars, self._extra)
                 if fld in self)
 
+    def __contains__(self, item):
+        try:
+            return self[item] is not None
+        except error.StagpyError:
+            return False
+
     def __len__(self):
         return len(iter(self))
 
