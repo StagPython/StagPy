@@ -318,7 +318,7 @@ class _Snaps(_Steps):
     def __getitem__(self, isnap):
         keys = _as_view_item(isnap)
         if keys is not None:
-            return _StepsView(self, keys)
+            return _StepsView(self, keys).filter(snap=True)
         if isnap < 0:
             isnap += len(self)
         if isnap < 0 or isnap >= len(self):
