@@ -270,7 +270,8 @@ class _Fields(Mapping):
         self._data[name] = fld
 
     def __delitem__(self, name):
-        del self._data[name]
+        if name in self._data:
+            del self._data[name]
 
     @property
     def geom(self):
