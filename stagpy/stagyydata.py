@@ -226,6 +226,12 @@ class _Steps:
             self._data[istep] = _step.Step(istep, self.sdat)
         return self._data[istep]
 
+    def __delitem__(self, istep):
+        if istep is not None and istep in self._data:
+            self.sdat.collected_fields = [
+                (i, f) for i, f in self.sdat.collected_fields if i != istep]
+            del self._data[istep]
+
     def __len__(self):
         return self.last.istep + 1
 
@@ -331,6 +337,10 @@ class _Snaps(_Steps):
             else:
                 self._isteps[isnap] = None
         return self.sdat.steps[istep]
+
+    def __delitem__(self, isnap):
+        istep = self._isteps.get(isnap)
+        del self.sdat.steps[istep]
 
     def __len__(self):
         if self._last is UNDETERMINED:
