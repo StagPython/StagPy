@@ -25,7 +25,7 @@ def _threed_extract(step, var):
     if i_x is not None:
         xmesh, ymesh = step.geom.y_mesh[i_x, :, :], step.geom.z_mesh[i_x, :, :]
         i_y = i_z = slice(None)
-        varx, vary = var + '1', var + '2'
+        varx, vary = var + '2', var + '3'
     elif i_y is not None:
         xmesh, ymesh = step.geom.x_mesh[:, i_y, :], step.geom.z_mesh[:, i_y, :]
         i_x = i_z = slice(None)
@@ -33,7 +33,7 @@ def _threed_extract(step, var):
     else:
         xmesh, ymesh = step.geom.x_mesh[:, :, i_z], step.geom.y_mesh[:, :, i_z]
         i_x = i_y = slice(None)
-        varx, vary = var + '2', var + '3'
+        varx, vary = var + '1', var + '2'
     if is_vector:
         data = (step.fields[varx][i_x, i_y, i_z, 0],
                 step.fields[vary][i_x, i_y, i_z, 0])
