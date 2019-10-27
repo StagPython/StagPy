@@ -333,7 +333,7 @@ class _Snaps(_Steps):
             else:
                 istep = None
             if istep is not None:
-                self.bind(isnap, istep)
+                self._bind(isnap, istep)
             else:
                 self._isteps[isnap] = None
         return self.sdat.steps[istep]
@@ -348,7 +348,7 @@ class _Snaps(_Steps):
             if self.sdat.hdf5:
                 isnap = -1
                 for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self.bind(isnap, istep)
+                    self._bind(isnap, istep)
                 self._last = isnap
                 self._all_isteps_known = True
             if self._last < 0:
@@ -395,10 +395,8 @@ class _Snaps(_Steps):
             igp -= 1
         return self[igp]
 
-    def bind(self, isnap, istep):
+    def _bind(self, isnap, istep):
         """Register the isnap / istep correspondence.
-
-        Users of :class:`StagyyData` should not use this method.
 
         Args:
             isnap (int): snapshot index.

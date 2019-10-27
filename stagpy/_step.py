@@ -443,7 +443,6 @@ class Step:
             while (istep is None or istep < self.istep) and isnap < 99999:
                 isnap += 1
                 istep = self.sdat.snaps[isnap].istep
-                self.sdat.snaps.bind(isnap, istep)
                 # all intermediate istep could have their ._isnap to None
             if istep != self.istep:
                 self._isnap = None
