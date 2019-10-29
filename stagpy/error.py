@@ -123,6 +123,24 @@ class InvalidTimeFractionError(StagpyError):
                          .format(fraction))
 
 
+class InvalidNfieldsError(StagpyError):
+
+    """Raised when invalid nfields_max is requested."""
+
+    def __init__(self, nfields):
+        """Initialization of instances:
+
+        Args:
+            nfields (int): the invalid number of fields.
+
+        Attributes:
+            nfields (int): the invalid number of field.
+        """
+        self.nfields = nfields
+        super().__init__('nfields_max should be >5 (received {})'
+                         .format(nfields))
+
+
 class InvalidZoomError(StagpyError):
 
     """Raised when invalid zoom is requested."""

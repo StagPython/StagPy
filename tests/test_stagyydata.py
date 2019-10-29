@@ -3,10 +3,31 @@ import f90nml
 import pandas
 import stagpy.stagyydata
 import stagpy._step
+import stagpy.error
 
 
 def test_sdat_path(example_dir, sdat):
     assert sdat.path == example_dir
+
+
+def test_sdat_deflt_nfields_max(sdat):
+    assert sdat.nfields_max == 50
+
+
+def test_sdat_set_nfields_max(sdat):
+    sdat.nfields_max = 6
+    assert sdat.nfields_max == 6
+
+
+def test_sdat_set_nfields_max_none(sdat):
+    sdat.nfields_max = None
+    assert sdat.nfields_max is None
+
+
+def test_sdat_set_nfields_max_invalid(sdat):
+    with pytest.raises(stagpy.error.InvalidNfieldsError) as err:
+        sdat.nfields_max = 5
+    assert err.value.nfields == 5
 
 
 def test_sdat_par(sdat):

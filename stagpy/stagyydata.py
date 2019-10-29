@@ -519,7 +519,7 @@ class StagyyData:
 
     """Generic lazy interface to StagYY output data."""
 
-    def __init__(self, path, nfields_max=50):
+    def __init__(self, path):
         """Initialization of instances:
 
         Args:
@@ -527,17 +527,11 @@ class StagyyData:
                 of the directory containing the par file, or the path of the
                 par file. If the path given is a directory, the path of the par
                 file is assumed to be path/par.
-            nfields_max (int): the maximum number of scalar fields that should
-                be kept in memory. Set to a value smaller than 6 if you want no
-                limit.
 
         Attributes:
             steps (:class:`_Steps`): collection of time steps.
             snaps (:class:`_Snaps`): collection of snapshots.
             scales (:class:`_Scales`): dimensionful scaling factors.
-            nfields_max (int): the maximum number of scalar fields that should
-                be kept in memory. Set to a value smaller than 6 if you want no
-                limit.
             collected_fields (list of (int, str)): list of fields currently in
                 memory, described by istep and field name.
         """
@@ -558,12 +552,11 @@ class StagyyData:
         self.refstate = _Refstate(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
-        self.nfields_max = nfields_max
+        self._nfields_max = 50
         self.collected_fields = []
 
     def __repr__(self):
-        return 'StagyyData({}, nfields_max={})'.format(
-            repr(self.path), self.nfields_max)
+        return 'StagyyData({})'.format(repr(self.path))
 
     def __str__(self):
         return 'StagyyData in {}'.format(self.path)
@@ -683,6 +676,24 @@ class StagyyData:
         elif conf.core.timesteps:
             return self.steps[conf.core.timesteps]
         return self.snaps[-1, ]
+
+    @property
+    def nfields_max(self):
+        """Maximum number of scalar fields kept in memory.
+
+        Setting this to a value lower or equal to 5 raises a
+        :class:`~stagpy.error.InvalidNfieldsError`.  Set this to ``None`` if
+        you do not want any limit on the number of scalar fields kept in
+        memory.  Defaults to 50.
+        """
+        return self._nfields_max
+
+    @nfields_max.setter
+    def nfields_max(self, nfields):
+        """Check nfields > 5 or None."""
+        if nfields is not None and nfields <= 5:
+            raise error.InvalidNfieldsError(nfields)
+        self._nfields_max = nfields
 
     def scale(self, data, unit):
         """Scales quantity to obtain dimensionful quantity.

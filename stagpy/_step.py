@@ -270,9 +270,10 @@ class _Fields(Mapping):
         sdat = self.step.sdat
         col_fld = sdat.collected_fields
         col_fld.append((self.step.istep, name))
-        while len(col_fld) > sdat.nfields_max > 5:
-            istep, fld_name = col_fld.pop(0)
-            del sdat.steps[istep].fields[fld_name]
+        if sdat.nfields_max is not None:
+            while len(col_fld) > sdat.nfields_max:
+                istep, fld_name = col_fld.pop(0)
+                del sdat.steps[istep].fields[fld_name]
         self._data[name] = fld
 
     def __delitem__(self, name):
