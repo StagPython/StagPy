@@ -529,15 +529,15 @@ class StagyyData:
                 file is assumed to be path/par.  If no path is given (or None)
                 it is set to ``conf.core.path``.
 
+        Other Parameters:
+            conf.core.path: the default path.
+
         Attributes:
             steps (:class:`_Steps`): collection of time steps.
             snaps (:class:`_Snaps`): collection of snapshots.
             scales (:class:`_Scales`): dimensionful scaling factors.
             collected_fields (list of (int, str)): list of fields currently in
                 memory, described by istep and field name.
-
-        Other Parameters:
-            conf.core.path: the default path.
         """
         if path is None:
             path = conf.core.path
