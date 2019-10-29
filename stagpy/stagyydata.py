@@ -519,14 +519,15 @@ class StagyyData:
 
     """Generic lazy interface to StagYY output data."""
 
-    def __init__(self, path):
+    def __init__(self, path=None):
         """Initialization of instances:
 
         Args:
             path (pathlike): path of the StagYY run. It can either be the path
                 of the directory containing the par file, or the path of the
                 par file. If the path given is a directory, the path of the par
-                file is assumed to be path/par.
+                file is assumed to be path/par.  If no path is given (or None)
+                it is set to ``conf.core.path``.
 
         Attributes:
             steps (:class:`_Steps`): collection of time steps.
@@ -534,7 +535,12 @@ class StagyyData:
             scales (:class:`_Scales`): dimensionful scaling factors.
             collected_fields (list of (int, str)): list of fields currently in
                 memory, described by istep and field name.
+
+        Other Parameters:
+            conf.core.path: the default path.
         """
+        if path is None:
+            path = conf.core.path
         runpath = pathlib.Path(path)
         if runpath.is_file():
             parname = runpath.name
