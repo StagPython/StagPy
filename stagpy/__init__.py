@@ -5,7 +5,7 @@ documentation at
 http://stagpy.readthedocs.io/en/stable/
 
 If the environment variable STAGPY_ISOLATED is set to 'True', StagPy does not
-attempt to read any configuration file.
+attempt to read any configuration file (including mplstyle).
 
 When using the CLI interface, if the environment variable STAGPY_DEBUG is set
 to 'True', warnings are issued normally and StagpyError are raised. Otherwise,
@@ -33,6 +33,7 @@ def _env(var):
 
 
 DEBUG = _env('STAGPY_DEBUG')
+ISOLATED = _env('STAGPY_ISOLATED')
 
 
 def sigint_handler(*_):
@@ -70,6 +71,8 @@ def load_mplstyle():
             stfile = config.CONFIG_DIR / (style + '.mplstyle')
             if stfile.is_file():
                 style = str(stfile)
+                if ISOLATED:
+                    break
             try:
                 plt.style.use(style)
             except OSError:
@@ -94,10 +97,10 @@ except (DistributionNotFound, ValueError):
     __version__ = 'unknown'
 
 _CONF_FILES = ([config.CONFIG_FILE, config.CONFIG_LOCAL]
-               if not _env('STAGPY_ISOLATED') else [])
+               if not ISOLATED else [])
 conf = ConfigurationManager.from_dict_(config.CONF_DEF)
 conf.set_config_files_(*_CONF_FILES)
-if not _env('STAGPY_ISOLATED'):
+if not ISOLATED:
     _check_config()
 PARSING_OUT = conf.read_configs_()
 
