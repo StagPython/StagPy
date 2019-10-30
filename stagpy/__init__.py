@@ -68,16 +68,16 @@ def load_mplstyle():
     plt = importlib.import_module('matplotlib.pyplot')
     if conf.plot.mplstyle:
         for style in conf.plot.mplstyle.split():
-            stfile = config.CONFIG_DIR / (style + '.mplstyle')
-            if stfile.is_file():
-                style = str(stfile)
-                if ISOLATED:
-                    break
+            if not ISOLATED:
+                stfile = config.CONFIG_DIR / (style + '.mplstyle')
+                if stfile.is_file():
+                    style = str(stfile)
             try:
                 plt.style.use(style)
             except OSError:
-                print('Cannot import style {}.'.format(style),
-                      file=sys.stderr)
+                if not ISOLATED or DEBUG:
+                    print('Cannot import style {}.'.format(style),
+                          file=sys.stderr)
                 conf.plot.mplstyle = ''
     if conf.plot.xkcd:
         plt.xkcd()
