@@ -4,13 +4,16 @@ StagPy is both a CLI tool and a powerful Python library. See the
 documentation at
 http://stagpy.readthedocs.io/en/stable/
 
-If the environment variable STAGPY_ISOLATED is set to 'True', StagPy does not
-attempt to read any configuration file (including mplstyle).
+If the environment variable STAGPY_ISOLATED is set to a truthy value, StagPy
+does not attempt to read any configuration file (including mplstyle).
 
 When using the CLI interface, if the environment variable STAGPY_DEBUG is set
-to 'True', warnings are issued normally and StagpyError are raised. Otherwise,
-warnings are ignored and only a short form of encountered StagpyErrors is
-printed.
+to a truthy value, warnings are issued normally and StagpyError are raised.
+Otherwise, warnings are ignored and only a short form of encountered
+StagpyErrors is printed.
+
+Truthy values for environment variables are 'true', 't', 'yes', 'y', 'on', '1',
+and uppercase versions of those.
 """
 
 import importlib
@@ -29,7 +32,8 @@ from . import config
 
 def _env(var):
     """Return whether var is set to True."""
-    return os.getenv(var) == 'True'
+    val = os.getenv(var, default='').lower()
+    return val in ('true', 't', 'yes', 'y', 'on', '1')
 
 
 DEBUG = _env('STAGPY_DEBUG')
