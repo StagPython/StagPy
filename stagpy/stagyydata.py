@@ -228,8 +228,8 @@ class _Steps:
 
     def __delitem__(self, istep):
         if istep is not None and istep in self._data:
-            self.sdat.collected_fields = [
-                (i, f) for i, f in self.sdat.collected_fields if i != istep]
+            self.sdat._collected_fields = [
+                (i, f) for i, f in self.sdat._collected_fields if i != istep]
             del self._data[istep]
 
     def __len__(self):
@@ -536,8 +536,6 @@ class StagyyData:
             steps (:class:`_Steps`): collection of time steps.
             snaps (:class:`_Snaps`): collection of snapshots.
             scales (:class:`_Scales`): dimensionful scaling factors.
-            collected_fields (list of (int, str)): list of fields currently in
-                memory, described by istep and field name.
         """
         if path is None:
             path = conf.core.path
@@ -559,7 +557,8 @@ class StagyyData:
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self._nfields_max = 50
-        self.collected_fields = []
+        # list of (istep, field_name) in memory
+        self._collected_fields = []
 
     def __repr__(self):
         return 'StagyyData({})'.format(repr(self.path))

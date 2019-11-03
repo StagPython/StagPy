@@ -268,7 +268,7 @@ class _Fields(Mapping):
 
     def _set(self, name, fld):
         sdat = self.step.sdat
-        col_fld = sdat.collected_fields
+        col_fld = sdat._collected_fields
         col_fld.append((self.step.istep, name))
         if sdat.nfields_max is not None:
             while len(col_fld) > sdat.nfields_max:
