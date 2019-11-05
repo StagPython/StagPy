@@ -15,7 +15,7 @@ from ._step import UNDETERMINED
 
 
 def _as_view_item(obj):
-    """Return None or a suitable iterable to build a _StepView."""
+    """Return None or a suitable iterable to build a _StepsView."""
     try:
         iter(obj)
         return obj
@@ -327,7 +327,7 @@ class _Snaps(_Steps):
             istep = self._isteps.get(
                 isnap, None if self._all_isteps_known else UNDETERMINED)
         if istep is UNDETERMINED:
-            binfiles = self.sdat.binfiles_set(isnap)
+            binfiles = self.sdat._binfiles_set(isnap)
             if binfiles:
                 istep = stagyyparsers.fields(binfiles.pop(), only_istep=True)
             else:
@@ -357,7 +357,7 @@ class _Snaps(_Steps):
                 rgx = re.compile(
                     '^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
                 fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-                for fname in self.sdat.files:
+                for fname in self.sdat._files:
                     match = rgx.match(fname.name)
                     if match is not None and match.group(1) in fstems:
                         self._last = max(int(match.group(2)), self._last)
@@ -536,6 +536,7 @@ class StagyyData:
             steps (:class:`_Steps`): collection of time steps.
             snaps (:class:`_Snaps`): collection of snapshots.
             scales (:class:`_Scales`): dimensionful scaling factors.
+            refstate (:class:`_Refstate`): reference state profiles.
         """
         if path is None:
             path = conf.core.path
@@ -657,7 +658,7 @@ class StagyyData:
         return self._rprof_and_times[1]
 
     @property
-    def files(self):
+    def _files(self):
         """Set of found binary files output by StagYY."""
         if self._rundir['ls'] is UNDETERMINED:
             out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
@@ -778,7 +779,7 @@ class StagyyData:
             fpath = self.path / fpath
         return fpath
 
-    def binfiles_set(self, isnap):
+    def _binfiles_set(self, isnap):
         """Set of existing binary files at a given snap.
 
         Args:
@@ -789,4 +790,4 @@ class StagyyData:
         """
         possible_files = set(self.filename(fstem, isnap, force_legacy=True)
                              for fstem in phyvars.FIELD_FILES)
-        return possible_files & self.files
+        return possible_files & self._files

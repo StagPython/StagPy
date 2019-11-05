@@ -289,7 +289,7 @@ class _Fields(Mapping):
         None if not available for this time step.
         """
         if self._header is UNDETERMINED:
-            binfiles = self.step.sdat.binfiles_set(self.step.isnap)
+            binfiles = self.step.sdat._binfiles_set(self.step.isnap)
             if binfiles:
                 self._header = stagyyparsers.fields(binfiles.pop(),
                                                     only_header=True)
