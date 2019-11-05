@@ -70,19 +70,6 @@ def baredoc(obj):
     return doc.rstrip(' .').lstrip()
 
 
-def fmttime(tin):
-    """Return LaTeX expression with time in scientific notation.
-
-    Args:
-        tin (float): the time.
-    Returns:
-        str: the LaTeX expression.
-    """
-    aaa, bbb = '{:.2e}'.format(tin).split('e')
-    bbb = int(bbb)
-    return r'$t={} \times 10^{{{}}}$'.format(aaa, bbb)
-
-
 def list_of_vars(arg_plot):
     """Construct list of variables per plot.
 

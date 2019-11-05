@@ -25,11 +25,6 @@ def test_baredoc():
     assert stagpy.misc.baredoc(test_baredoc) == expected
 
 
-def test_fmttime():
-    expected = r'$t=1.00 \times 10^{-1}$'
-    assert stagpy.misc.fmttime(0.1) == expected
-
-
 def test_list_of_vars():
     expected = [[['a', 'b'], ['c', 'd', 'e']], [['f', 'g'], ['h']]]
     assert stagpy.misc.list_of_vars('a,b..c,d,,,e-f,g.h-,..,-') == expected
