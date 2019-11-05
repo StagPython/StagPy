@@ -115,8 +115,7 @@ def r_edges(step):
     """Cell border.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array`: the position of the bottom and top walls
         of the cells. The two elements of the tuple are identical.
@@ -135,8 +134,7 @@ def delta_r(step):
     """Cells thickness.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array` and None: the thickness of the cells.
         The second element of the tuple is None.
@@ -159,8 +157,7 @@ def diff_prof(step):
     """Diffusion.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array`: the diffusion and the radial position
         at which it is evaluated.
@@ -183,8 +180,7 @@ def diffs_prof(step):
     This computation takes sphericity into account if necessary.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array`: the diffusion and the radial position
         at which it is evaluated.
@@ -199,8 +195,7 @@ def advts_prof(step):
     This computation takes sphericity into account if necessary.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array` and None: the scaled advection.
         The second element of the tuple is None.
@@ -214,8 +209,7 @@ def advds_prof(step):
     This computation takes sphericity into account if necessary.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array` and None: the scaled downward advection.
         The second element of the tuple is None.
@@ -229,8 +223,7 @@ def advas_prof(step):
     This computation takes sphericity into account if necessary.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array` and None: the scaled upward advection.
         The second element of the tuple is None.
@@ -244,8 +237,7 @@ def energy_prof(step):
     This computation takes sphericity into account if necessary.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array`: the energy flux and the radial position
         at which it is evaluated.
@@ -262,8 +254,7 @@ def advth(step):
     radius.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array` and None: the theoretical advection.
         The second element of the tuple is None.
@@ -288,8 +279,7 @@ def init_c_overturn(step):
     crystallization of a SMO is assumed.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array`: the composition and the radial position
         at which it is evaluated.
@@ -323,8 +313,7 @@ def c_overturned(step):
     overturn happens.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         tuple of :class:`numpy.array`: the composition and the radial position
         at which it is evaluated.
@@ -339,8 +328,7 @@ def stream_function(step):
     """Stream function.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
     Returns:
         :class:`numpy.array`: the stream function field, with four dimensions:
         x-direction, y-direction, z-direction and block.
