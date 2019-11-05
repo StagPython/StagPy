@@ -403,7 +403,7 @@ class _Snaps(_Steps):
             istep (int): time step index.
         """
         self._isteps[isnap] = istep
-        self.sdat.steps[istep].isnap = isnap
+        self.sdat.steps[istep]._isnap = isnap
 
     @property
     def last(self):

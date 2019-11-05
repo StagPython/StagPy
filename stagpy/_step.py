@@ -449,14 +449,6 @@ class Step:
                 self._isnap = None
         return self._isnap
 
-    @isnap.setter
-    def isnap(self, isnap):
-        """Fields snap corresponding to time step"""
-        try:
-            self._isnap = int(isnap)
-        except ValueError:
-            pass
-
 
 class EmptyStep(Step):
 
