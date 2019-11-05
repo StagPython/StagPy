@@ -1,7 +1,7 @@
-"""Handle configuration of StagPy
+"""Define configuration variables for StagPy.
 
-Create the cmd line argument parser
-and deal with the config file
+See :mod:`stagpy.args` for additional definitions related to the command line
+interface.
 """
 
 from collections import OrderedDict

@@ -5,7 +5,7 @@ config
    :members:
 
    .. data:: HOME_DIR
-      :annotation: = pathlib.Path(os.path.expanduser('~'))
+      :annotation: = pathlib.Path.home()
 
       Home directory.
 
