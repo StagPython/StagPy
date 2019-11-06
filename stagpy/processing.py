@@ -72,7 +72,7 @@ def ebalance(sdat, tstart=None, tend=None):
         tuple of :class:`numpy.array`: energy balance and time arrays.
     """
     tseries = sdat.tseries_between(tstart, tend)
-    rbot, rtop = misc.get_rbounds(sdat.steps.last)
+    rbot, rtop = misc.get_rbounds(sdat.steps[-1])
     if rbot != 0:  # spherical
         coefsurf = (rtop / rbot)**2
         volume = rbot * ((rtop / rbot)**3 - 1) / 3

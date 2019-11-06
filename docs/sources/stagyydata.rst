@@ -192,7 +192,7 @@ Tracer data (position, mass, composition...) are accessible through
 :attr:`_Step.tracers<stagpy.stagyydata._Step.tracers>` using the
 property name as key.  They are organized by block.  For example,
 the masses of tracers in the first block is obtained with
-``sdat.snaps.last.tracers['Mass'][0]``. This is a one dimensional
+``sdat.snaps[-1].tracers['Mass'][0]``. This is a one dimensional
 array containing the mass of each tracers. Their positions can be
 recovered through the ``'x'``, ``'y'`` and ``'z'`` items.
 

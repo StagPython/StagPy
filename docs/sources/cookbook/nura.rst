@@ -1,7 +1,7 @@
 Plotting a scalar diagnostic as function of control parameter
 =============================================================
 
-Stagpy is suitable for scripting using StagyyData. Suppose you have a group 
+StagPy is suitable for scripting using StagyyData. Suppose you have a group
 of directories, each for a given set of parameters,
 and you want to plot the results of all cases on the same figure, compute
 statistics etc. The :class:`~stagpy.stagyydata.StagyyData` class comes in handy
@@ -27,7 +27,7 @@ the script is executed::
       # get the value of the Rayleigh number
       ran.append(sdat.par['refstate']['ra0'])
       # get the last value of the Nusselt number
-      nun.append(sdat.steps.last.timeinfo['Nutop'])
+      nun.append(sdat.steps[-1].timeinfo['Nutop'])
 
   ran = np.array(ran)
   nun = np.array(nun)

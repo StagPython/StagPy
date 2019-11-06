@@ -25,22 +25,21 @@ def test_rprof_invalid_prs():
 
 
 def test_fields_prs(sdat):
-    hdr, flds = prs.fields(sdat.filename('t', sdat.snaps.last.isnap))
+    hdr, flds = prs.fields(sdat.filename('t', len(sdat.snaps) - 1))
     assert flds.shape[0] == 1
     assert flds.shape[4] == 1
     assert flds.shape[1:4] == tuple(hdr['nts'])
 
 
 def test_fields_header_only_prs(sdat):
-    hdr = prs.fields(sdat.filename('t', sdat.snaps.last.isnap),
-                     only_header=True)
+    hdr = prs.fields(sdat.filename('t', len(sdat.snaps) - 1), only_header=True)
     assert hdr['nts'].shape == (3,)
 
 
 def test_fields_istep_only_prs(sdat):
-    istep = prs.fields(sdat.filename('t', sdat.snaps.last.isnap),
+    istep = prs.fields(sdat.filename('t', len(sdat.snaps) - 1),
                        only_istep=True)
-    assert istep == sdat.snaps.last.istep
+    assert istep == sdat.snaps[-1].istep
 
 
 def test_fields_invalid_prs():

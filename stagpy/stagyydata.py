@@ -198,7 +198,7 @@ class _Steps:
                 :class:`_Steps` instance.
         """
         self.sdat = sdat
-        self._last = UNDETERMINED
+        self._len = UNDETERMINED
         self._data = {None: _step.EmptyStep()}  # for non existent snaps
 
     def __repr__(self):
@@ -221,7 +221,7 @@ class _Steps:
                 istep -= len(self)
                 raise error.InvalidTimestepError(
                     self.sdat, istep,
-                    'Last istep is {}'.format(self.last.istep))
+                    'Last istep is {}'.format(len(self) - 1))
         if istep not in self._data:
             self._data[istep] = _step.Step(istep, self.sdat)
         return self._data[istep]
@@ -233,7 +233,10 @@ class _Steps:
             del self._data[istep]
 
     def __len__(self):
-        return self.last.istep + 1
+        if self._len is UNDETERMINED:
+            # not necessarily the last one...
+            self._len = self.sdat.tseries.index[-1] + 1
+        return self._len
 
     def __iter__(self):
         return iter(self[:])
@@ -269,19 +272,6 @@ class _Steps:
     def filter(self, **filters):
         """Build a _StepsView with requested filters."""
         return self[:].filter(**filters)
-
-    @property
-    def last(self):
-        """Last time step available.
-
-        Example:
-            >>> sdat = StagyyData('path/to/run')
-            >>> assert(sdat.steps.last is sdat.steps[-1])
-        """
-        if self._last is UNDETERMINED:
-            # not necessarily the last one...
-            self._last = self.sdat.tseries.index[-1]
-        return self[self._last]
 
 
 class _Snaps(_Steps):
@@ -343,15 +333,15 @@ class _Snaps(_Steps):
         del self.sdat.steps[istep]
 
     def __len__(self):
-        if self._last is UNDETERMINED:
-            self._last = -1
+        if self._len is UNDETERMINED:
+            self._len = -1
             if self.sdat.hdf5:
                 isnap = -1
                 for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
                     self._bind(isnap, istep)
-                self._last = isnap
+                self._len = isnap
                 self._all_isteps_known = True
-            if self._last < 0:
+            if self._len < 0:
                 out_stem = re.escape(pathlib.Path(
                     self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
                 rgx = re.compile(
@@ -360,10 +350,11 @@ class _Snaps(_Steps):
                 for fname in self.sdat._files:
                     match = rgx.match(fname.name)
                     if match is not None and match.group(1) in fstems:
-                        self._last = max(int(match.group(2)), self._last)
-            if self._last < 0:
+                        self._len = max(int(match.group(2)), self._len)
+            if self._len < 0:
                 raise error.NoSnapshotError(self.sdat)
-        return self._last + 1
+            self._len += 1
+        return self._len
 
     def at_time(self, time, after=False):
         """Return snap corresponding to a given physical time.
@@ -404,16 +395,6 @@ class _Snaps(_Steps):
         """
         self._isteps[isnap] = istep
         self.sdat.steps[istep]._isnap = isnap
-
-    @property
-    def last(self):
-        """Last snapshot available.
-
-        Example:
-            >>> sdat = StagyyData('path/to/run')
-            >>> assert(sdat.snaps.last is sdat.snaps[-1])
-        """
-        return self[len(self) - 1]
 
 
 class _StepsView:

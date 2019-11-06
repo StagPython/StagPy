@@ -21,4 +21,4 @@ def sdat(example_dir):
 
 @pytest.fixture(scope='module')
 def step(sdat):
-    return sdat.snaps.last
+    return sdat.snaps[-1]

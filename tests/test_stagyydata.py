@@ -68,7 +68,7 @@ def test_filter_even_steps(sdat):
 
 
 def test_snaps_last(sdat):
-    assert sdat.snaps.last is sdat.snaps[-1]
+    assert sdat.snaps[-1] is sdat.snaps[len(sdat.snaps) - 1]
 
 
 def test_snaps_empty(sdat):
@@ -77,8 +77,8 @@ def test_snaps_empty(sdat):
 
 
 def test_step_is_snap(sdat):
-    istep = sdat.snaps.last.istep
-    assert sdat.steps[istep] is sdat.snaps.last
+    istep = sdat.snaps[-1].istep
+    assert sdat.steps[istep] is sdat.snaps[-1]
 
 
 def test_step_sdat(sdat):

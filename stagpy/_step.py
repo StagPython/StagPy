@@ -361,8 +361,8 @@ class Step:
         instances.
 
         >>> sdat = StagyyData('path/to/run')
-        >>> istep_last_snap = sdat.snaps.last.istep
-        >>> assert(sdat.steps[istep_last_snap] is sdat.snaps.last)
+        >>> istep_last_snap = sdat.snaps[-1].istep
+        >>> assert(sdat.steps[istep_last_snap] is sdat.snaps[-1])
         >>> n = 0  # or any valid time step / snapshot index
         >>> assert(sdat.steps[n].sdat is sdat)
         >>> assert(sdat.steps[n].istep == n)
