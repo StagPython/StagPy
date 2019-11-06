@@ -1,12 +1,9 @@
 *.pdf
 *.swp
 */__pycache__/
-.cache
-.pytest_cache
 .coverage
 .tox
 stagpy.egg-info/
-pip-wheel-metadata/
 .venv_dev/
 docs/_build/
 docs/_static/
