@@ -8,7 +8,7 @@ from .stagyydata import StagyyData
 
 
 def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
-    """Plot requested profiles"""
+    """Plot requested profiles."""
     if rads is None:
         rads = {}
     for vfig in lovs:

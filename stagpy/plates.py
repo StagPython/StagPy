@@ -11,7 +11,7 @@ from .stagyydata import StagyyData
 
 
 def detect_plates_vzcheck(step, seuil_memz):
-    """detect plates and check with vz and plate size"""
+    """Detect plates and check with vz and plate size."""
     v_z = step.fields['v3'][0, :, :, 0]
     v_x = step.fields['v2'][0, :, :, 0]
     tcell = step.fields['T'][0, :, :, 0]
@@ -85,7 +85,7 @@ def detect_plates_vzcheck(step, seuil_memz):
 
 
 def detect_plates(step, vrms_surface, fids, time):
-    """detect plates using derivative of horizontal velocity"""
+    """Detect plates using derivative of horizontal velocity."""
     vphi = step.fields['v2'][0, :, :, 0]
     ph_coord = step.geom.p_coord
 
@@ -166,7 +166,7 @@ def detect_plates(step, vrms_surface, fids, time):
 
 
 def plot_plate_limits(axis, ridges, trenches, ymin, ymax):
-    """plot lines designating ridges and trenches"""
+    """Plot lines designating ridges and trenches."""
     for trench in trenches:
         axis.axvline(
             x=trench, ymin=ymin, ymax=ymax,
@@ -180,7 +180,7 @@ def plot_plate_limits(axis, ridges, trenches, ymin, ymax):
 
 
 def plot_plate_limits_field(axis, rcmb, ridges, trenches):
-    """plot arrows designating ridges and trenches in 2D field plots"""
+    """Plot arrows designating ridges and trenches in 2D field plots."""
     for trench in trenches:
         xxd = (rcmb + 1.02) * np.cos(trench)  # arrow begin
         yyd = (rcmb + 1.02) * np.sin(trench)  # arrow begin
@@ -199,7 +199,7 @@ def plot_plate_limits_field(axis, rcmb, ridges, trenches):
 
 def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                 topo, fids):
-    """handle ploting stuff"""
+    """Handle plotting stuff."""
     vphi = step.fields['v2'][0, :, :, 0]
     tempfld = step.fields['T'][0, :, :, 0]
     concfld = step.fields['c'][0, :, :, 0]
@@ -476,14 +476,14 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
 
 
 def io_surface(timestep, time, fid, fld):
-    """Output for surface files"""
+    """Output surface files."""
     fid.write("{} {}".format(timestep, time))
     fid.writelines(["%10.2e" % item for item in fld[:]])
     fid.writelines(["\n"])
 
 
 def lithospheric_stress(step, trench, ridge, time):
-    """calculate stress in the lithosphere"""
+    """Calculate stress in the lithosphere."""
     timestep = step.isnap
     base_lith = step.geom.rcmb + 1 - 0.105
 

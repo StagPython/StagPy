@@ -113,7 +113,7 @@ def time_series_h5(timefile, colnames):
 
 
 def _extract_rsnap_isteps(rproffile):
-    """Extract istep and compute list of rows to delete"""
+    """Extract istep and compute list of rows to delete."""
     step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')
     isteps = []  # list of (istep, time, nz)
     rows_to_del = set()
@@ -147,7 +147,7 @@ def _extract_rsnap_isteps(rproffile):
 
 
 def rprof(rproffile, colnames):
-    """Extract radial profiles data
+    """Extract radial profiles data.
 
     If :data:`colnames` is too long, it will be truncated. If it is too short,
     additional numeric column names from 0 to N-1 will be attributed to the N
@@ -196,7 +196,7 @@ def rprof(rproffile, colnames):
 
 
 def rprof_h5(rproffile, colnames):
-    """Extract radial profiles data
+    """Extract radial profiles data.
 
     If :data:`colnames` is too long, it will be truncated. If it is too short,
     additional column names will be deduced from the content of the file.
@@ -252,7 +252,7 @@ def _clean_names_refstate(names):
 
 
 def refstate(reffile, ncols=7):
-    """Extract reference state profiles
+    """Extract reference state profiles.
 
     Args:
         reffile (:class:`pathlib.Path`): path of the refstate file.

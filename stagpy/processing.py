@@ -144,7 +144,7 @@ def delta_r(step):
 
 
 def _scale_prof(step, rprof, rad=None):
-    """Scale profile to take sphericity into account"""
+    """Scale profile to take sphericity into account."""
     rbot, rtop = misc.get_rbounds(step)
     if rbot == 0:  # not spherical
         return rprof

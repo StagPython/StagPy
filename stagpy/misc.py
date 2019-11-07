@@ -124,7 +124,6 @@ def get_rbounds(step):
 
 
 class InchoateFiles:
-
     """Context manager handling files whose names are not known yet.
 
     Example:
@@ -138,17 +137,15 @@ class InchoateFiles:
 
                 # the three files will be named 'tata', 'titi' and 'toto'
                 incho.fnames = ['tata', 'titi', 'toto']
+
+    Args:
+        nfiles (int): number of files. Defaults to 1.
+        tmp_prefix (str): prefix name of temporary files. Use this
+            parameter if you want to easily track down the temporary files
+            created by the manager.
     """
 
     def __init__(self, nfiles=1, tmp_prefix=None):
-        """Initialization of instances:
-
-        Args:
-            nfiles (int): number of files. Defaults to 1.
-            tmp_prefix (str): prefix name of temporary files. Use this
-                parameter if you want to easily track down the temporary files
-                created by the manager.
-        """
         self._fnames = ['inchoate{}'.format(i) for i in range(nfiles)]
         self._tmpprefix = tmp_prefix
         self._fids = []
@@ -178,7 +175,7 @@ class InchoateFiles:
 
     @fnames.setter
     def fnames(self, names):
-        """Ensure constant size of fnames"""
+        """Ensure constant size of fnames."""
         names = list(names[:len(self._fnames)])
         self._fnames = names + self._fnames[len(names):]
 
@@ -186,7 +183,7 @@ class InchoateFiles:
         return self._fids[idx]
 
     def __enter__(self):
-        """Create temporary files"""
+        """Create temporary files."""
         for fname in self.fnames:
             pfx = fname if self._tmpprefix is None else self._tmpprefix
             self._fids.append(
@@ -195,7 +192,7 @@ class InchoateFiles:
         return self
 
     def __exit__(self, *exc_info):
-        """Give temporary files their final names"""
+        """Give temporary files their final names."""
         for tmp in self._fids:
             tmp.close()
         if exc_info[0] is None:

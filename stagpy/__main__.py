@@ -1,4 +1,4 @@
-"""The stagpy module is callable"""
+"""The stagpy module is callable."""
 
 import importlib
 import signal
@@ -9,7 +9,7 @@ from . import DEBUG, sigint_handler
 
 
 def main():
-    """StagPy entry point"""
+    """Implement StagPy entry point."""
     if not DEBUG:
         signal.signal(signal.SIGINT, sigint_handler)
         warnings.simplefilter('ignore')

@@ -54,7 +54,7 @@ def info_cmd():
 
 
 def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
-    """Print a iterable of key/values
+    """Print a iterable of key/values.
 
     Args:
         key_val (list of (str, str)): the pairs of section names and text.
@@ -96,7 +96,7 @@ def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
 
 
 def _layout(dict_vars, dict_vars_extra):
-    """Print nicely [(var, description)] from phyvars"""
+    """Print nicely [(var, description)] from phyvars."""
     desc = [(v, m.description) for v, m in dict_vars.items()]
     desc.extend((v, baredoc(m.description))
                 for v, m in dict_vars_extra.items())

@@ -4,6 +4,7 @@ Note:
     The helper classes are not designed to be instantiated on their own, but
     only as attributes of StagyyData instances. Users of this module should
     only instantiate :class:`StagyyData`.
+
 """
 
 import re
@@ -26,16 +27,14 @@ def _as_view_item(obj):
 
 
 class _Scales:
+    """Dimensionful scales.
 
-    """Dimensionful scales."""
+    Args:
+        sdat (:class:`StagyyData`): the StagyyData instance owning the
+            :class:`_Scales` instance.
+    """
 
     def __init__(self, sdat):
-        """Initialization of instances:
-
-        Args:
-            sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Scales` instance.
-        """
         self._sdat = sdat
 
     @property
@@ -95,21 +94,18 @@ class _Scales:
 
 
 class _Refstate:
-
     """Reference state profiles.
 
     The :attr:`StagyyData.refstate` attribute is an instance of this class.
     Reference state profiles are accessed through the attributes of this
     object.
+
+    Args:
+        sdat (:class:`StagyyData`): the StagyyData instance owning the
+            :class:`_Steps` instance.
     """
 
     def __init__(self, sdat):
-        """Initialization of instances:
-
-        Args:
-            sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Steps` instance.
-        """
         self._sdat = sdat
         self._data = UNDETERMINED
 
@@ -161,7 +157,6 @@ class _Refstate:
 
 
 class _Steps:
-
     """Collections of time steps.
 
     The :attr:`StagyyData.steps` attribute is an instance of this class.
@@ -185,18 +180,16 @@ class _Steps:
         for step in steps[0,3,5,-2:]:
             # iterate through steps 0, 3, 5 and the last two
             do_something(step)
+
+    Args:
+        sdat (:class:`StagyyData`): the StagyyData instance owning the
+            :class:`_Steps` instance.
+    Attributes:
+        sdat (:class:`StagyyData`): the StagyyData instance owning the
+            :class:`_Steps` instance.
     """
 
     def __init__(self, sdat):
-        """Initialization of instances:
-
-        Args:
-            sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Steps` instance.
-        Attributes:
-            sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Steps` instance.
-        """
         self.sdat = sdat
         self._len = UNDETERMINED
         self._data = {None: _step.EmptyStep()}  # for non existent snaps
@@ -275,7 +268,6 @@ class _Steps:
 
 
 class _Snaps(_Steps):
-
     """Collections of snapshots.
 
     The :attr:`StagyyData.snaps` attribute is an instance of this class.
@@ -286,18 +278,16 @@ class _Snaps(_Steps):
         sdat.snaps[isnap]  # Step object of the isnap-th snapshot
 
     This class inherits from :class:`_Steps`.
+
+    Args:
+        sdat (:class:`StagyyData`): the StagyyData instance owning the
+            :class:`_Snaps` instance.
+    Attributes:
+        sdat (:class:`StagyyData`): the StagyyData instance owning the
+            :class:`_Snaps` instance.
     """
 
     def __init__(self, sdat):
-        """Initialization of instances:
-
-        Args:
-            sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Snaps` instance.
-        Attributes:
-            sdat (:class:`StagyyData`): the StagyyData instance owning the
-                :class:`_Snaps` instance.
-        """
         self._isteps = {}
         self._all_isteps_known = False
         super().__init__(sdat)
@@ -398,22 +388,19 @@ class _Snaps(_Steps):
 
 
 class _StepsView:
-
     """Filtered iterator over steps or snaps.
 
     Instances of this class are returned when taking slices of
     :attr:`StagyyData.steps` or :attr:`StagyyData.snaps` attributes.
+
+    Args:
+        steps_col (:class:`_Steps` or :class:`_Snaps`): steps collection,
+            i.e. :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
+            attributes.
+        items (iterable): iterable of isteps/isnaps or slices.
     """
 
     def __init__(self, steps_col, items):
-        """Initialization of instances:
-
-        Args:
-            steps_col (:class:`_Steps` or :class:`_Snaps`): steps collection,
-                i.e. :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
-                attributes.
-            items (iterable): iterable of isteps/isnaps or slices.
-        """
         self._col = steps_col
         self._items = items
         self._flt = {
@@ -497,28 +484,26 @@ class _StepsView:
 
 
 class StagyyData:
+    """Generic lazy interface to StagYY output data.
 
-    """Generic lazy interface to StagYY output data."""
+    Args:
+        path (pathlike): path of the StagYY run. It can either be the path
+            of the directory containing the par file, or the path of the
+            par file. If the path given is a directory, the path of the par
+            file is assumed to be path/par.  If no path is given (or None)
+            it is set to ``conf.core.path``.
+
+    Other Parameters:
+        conf.core.path: the default path.
+
+    Attributes:
+        steps (:class:`_Steps`): collection of time steps.
+        snaps (:class:`_Snaps`): collection of snapshots.
+        scales (:class:`_Scales`): dimensionful scaling factors.
+        refstate (:class:`_Refstate`): reference state profiles.
+    """
 
     def __init__(self, path=None):
-        """Initialization of instances:
-
-        Args:
-            path (pathlike): path of the StagYY run. It can either be the path
-                of the directory containing the par file, or the path of the
-                par file. If the path given is a directory, the path of the par
-                file is assumed to be path/par.  If no path is given (or None)
-                it is set to ``conf.core.path``.
-
-        Other Parameters:
-            conf.core.path: the default path.
-
-        Attributes:
-            steps (:class:`_Steps`): collection of time steps.
-            snaps (:class:`_Snaps`): collection of snapshots.
-            scales (:class:`_Scales`): dimensionful scaling factors.
-            refstate (:class:`_Refstate`): reference state profiles.
-        """
         if path is None:
             path = conf.core.path
         runpath = pathlib.Path(path)

@@ -23,7 +23,6 @@ UNDETERMINED = object()
 
 
 class _Geometry:
-
     """Geometry information.
 
     It is deduced from the information in the header of binary field files
@@ -101,7 +100,7 @@ class _Geometry:
             self._curv_meshes = (t_mesh, p_mesh, r_mesh)
 
     def _init_shape(self):
-        """Determine shape of geometry"""
+        """Determine shape of geometry."""
         shape = self._par['geometry']['shape'].lower()
         aspect = self._header['aspect']
         if self.rcmb is not None and self.rcmb >= 0:
@@ -178,7 +177,6 @@ class _Geometry:
 
 
 class _Fields(Mapping):
-
     """Fields data structure.
 
     The :attr:`Step.fields` attribute is an instance of this class.
@@ -308,7 +306,6 @@ class _Fields(Mapping):
 
 
 class _Tracers:
-
     """Tracers data structure.
 
     The :attr:`Step.tracers` attribute is an instance of this class.
@@ -349,7 +346,6 @@ class _Tracers:
 
 
 class Step:
-
     """Time step data structure.
 
     Elements of :class:`_Steps` and :class:`_Snaps` instances are all
@@ -369,27 +365,25 @@ class Step:
         >>> assert(sdat.snaps[n].isnap == n)
         >>> assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
         >>> assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
+
+    Args:
+        istep (int): the index of the time step that the instance
+            represents.
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
+            instance owning the :class:`Step` instance.
+
+    Attributes:
+        istep (int): the index of the time step that the instance
+            represents.
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
+            instance owning the :class:`Step` instance.
+        fields (:class:`_Fields`): fields available at this time step.
+        sfields (:class:`_Fields`): surface fields available at this time
+            step.
+        tracers (:class:`_Tracers`): tracers available at this time step.
     """
 
     def __init__(self, istep, sdat):
-        """Initialization of instances:
-
-        Args:
-            istep (int): the index of the time step that the instance
-                represents.
-            sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
-                instance owning the :class:`Step` instance.
-
-        Attributes:
-            istep (int): the index of the time step that the instance
-                represents.
-            sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
-                instance owning the :class:`Step` instance.
-            fields (:class:`_Fields`): fields available at this time step.
-            sfields (:class:`_Fields`): surface fields available at this time
-                step.
-            tracers (:class:`_Tracers`): tracers available at this time step.
-        """
         self.istep = istep
         self.sdat = sdat
         self.fields = _Fields(self, phyvars.FIELD, phyvars.FIELD_EXTRA,
@@ -451,7 +445,6 @@ class Step:
 
 
 class EmptyStep(Step):
-
     """Dummy step object for nonexistent snaps.
 
     This class inherits from :class:`Step`, but its :meth:`__getattribute__`
