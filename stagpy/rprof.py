@@ -203,7 +203,7 @@ def cmd():
         conf.rprof
         conf.core
     """
-    sdat = StagyyData(conf.core.path)
+    sdat = StagyyData()
     if sdat.rprof is None:
         return
 

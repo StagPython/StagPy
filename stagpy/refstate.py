@@ -40,7 +40,7 @@ def cmd():
         conf.core
         conf.plot
     """
-    sdat = StagyyData(conf.core.path)
+    sdat = StagyyData()
     if sdat.refstate.adiabats is None:
         return
 

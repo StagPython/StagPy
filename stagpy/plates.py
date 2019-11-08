@@ -778,7 +778,7 @@ def cmd():
         conf.plot
         conf.core
     """
-    sdat = StagyyData(conf.core.path)
+    sdat = StagyyData()
     conf.plates.plot = set_of_vars(conf.plates.plot)
     if not conf.plates.vzcheck:
         conf.scaling.dimensional = True

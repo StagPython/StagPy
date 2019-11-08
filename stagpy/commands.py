@@ -22,7 +22,7 @@ def info_cmd():
         conf.info
     """
     varlist = [var for var in conf.info.output.replace(',', ' ').split()]
-    sdat = stagyydata.StagyyData(conf.core.path)
+    sdat = stagyydata.StagyyData()
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
     print('StagYY run in {}'.format(sdat.path))

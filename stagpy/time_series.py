@@ -171,7 +171,7 @@ def cmd():
         conf.time
         conf.core
     """
-    sdat = StagyyData(conf.core.path)
+    sdat = StagyyData()
     if sdat.tseries is None:
         return
 

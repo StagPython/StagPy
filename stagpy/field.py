@@ -282,7 +282,7 @@ def cmd():
         conf.field
         conf.core
     """
-    sdat = StagyyData(conf.core.path)
+    sdat = StagyyData()
     sovs = set_of_vars(conf.field.plot)
     minmax = {}
     if conf.plot.cminmax:
