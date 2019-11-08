@@ -7,6 +7,7 @@ from textwrap import indent, TextWrapper
 import sys
 
 import loam.tools
+import pandas
 
 from . import conf, phyvars, __version__
 from . import stagyydata
@@ -49,7 +50,23 @@ def info_cmd():
             print(', snapshot {}/{}'.format(step.isnap, lsnap.isnap))
         else:
             print()
-        print(indent(step.timeinfo.loc[varlist].to_string(), '  '))
+        series = step.timeinfo.loc[varlist]
+        if conf.scaling.dimensional:
+            series = series.copy()
+            dimensions = []
+            for var, val in series.iteritems():
+                dim = phyvars.TIME.get(var) or phyvars.TIME_EXTRA.get(var)
+                dim = dim.dim if dim is not None else '1'
+                if dim == '1':
+                    dimensions.append('')
+                else:
+                    series[var], dim = sdat.scale(val, dim)
+                    dimensions.append(dim)
+            series = pandas.concat(
+                [series,
+                 pandas.DataFrame(data=dimensions, index=series.index)],
+                axis=1)
+        print(indent(series.to_string(header=False), '  '))
         print()
 
 

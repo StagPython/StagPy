@@ -26,7 +26,7 @@ SUB_CMDS = OrderedDict((
     ('time', _sub(time_series, 'core', 'plot', 'scaling')),
     ('refstate', _sub(refstate, 'core', 'plot')),
     ('plates', _sub(plates, 'core', 'plot', 'scaling')),
-    ('info', _sub(commands.info_cmd, 'core')),
+    ('info', _sub(commands.info_cmd, 'core', 'scaling')),
     ('var', _sub(commands.var_cmd)),
     ('version', _sub(commands.version_cmd)),
     ('config', _sub(commands.config_cmd)),
