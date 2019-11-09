@@ -63,8 +63,8 @@ def info_cmd():
                     series[var], dim = sdat.scale(val, dim)
                     dimensions.append(dim)
             series = pandas.concat(
-                [series,
-                 pandas.DataFrame(data=dimensions, index=series.index)],
+                [series, pandas.Series(data=dimensions, index=series.index,
+                                       name='dim')],
                 axis=1)
         print(indent(series.to_string(header=False), '  '))
         print()
