@@ -12,7 +12,8 @@ def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
     if rads is None:
         rads = {}
     for vfig in lovs:
-        fig, axes = plt.subplots(ncols=len(vfig), sharey=True)
+        fig, axes = plt.subplots(ncols=len(vfig), sharey=True,
+                                 figsize=(4 * len(vfig), 6))
         axes = [axes] if len(vfig) == 1 else axes
         fname = 'rprof_'
         for iplt, vplt in enumerate(vfig):
