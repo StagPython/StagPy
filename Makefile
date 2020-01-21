@@ -14,6 +14,7 @@ VERSION=$(shell git describe --exact-match HEAD 2>/dev/null)
 
 .PHONY: all install clean uninstall again release
 .PHONY: info infopath infozsh infobash
+.PHONY: notebook-kernel
 
 all: install
 
@@ -30,6 +31,10 @@ $(STAGPY): setup.py
 	$(VPIP) install -U pip
 	$(VPIP) install -e .
 	@$(STAGPY) version
+
+notebook-kernel: $(STAGPY)
+	$(VPIP) install -U ipykernel
+	$(VPY) -m ipykernel install --user --name=stagpy-git
 
 info: infopath infozsh infobash
 
