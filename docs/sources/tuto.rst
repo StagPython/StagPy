@@ -35,7 +35,7 @@ to have some help on the available options for one particular sub command.
 
 A simple example would be::
 
-    % stagpy field -p path/to/run/ -o T,p -s 42
+    % stagpy field -p path/to/run/ -o T-p -s 42
 
 This asks StagPy to plot the temperature and pressure fields of snapshot 42
 of the run lying in ``./path/to/run``. When not specified, the path defaults to

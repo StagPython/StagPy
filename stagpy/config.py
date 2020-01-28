@@ -96,7 +96,7 @@ CONF_DEF['scaling'] = OrderedDict((
 
 CONF_DEF['field'] = OrderedDict((
     ('plot',
-        Conf('T+stream', True, 'o',
+        Conf('T,stream', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
              True, 'variables to plot (see stagpy var)')),
     ('perturbation', switch_opt(False, None,
@@ -105,9 +105,6 @@ CONF_DEF['field'] = OrderedDict((
                    False, 'Shift plot horizontally')),
     ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
     ('colorbar', switch_opt(True, None, 'add color bar to plot')),
-    ('shrinkcb',
-        Conf(0.5, False, None, {},
-             True, 'color bar shrink factor')),
     ('ix', Conf(None, True, None, {'type': int},
                 False, 'x-index of slice for 3D fields')),
     ('iy', Conf(None, True, None, {'type': int},

@@ -33,7 +33,7 @@ time 0.03.
 
 ::
 
-    % stagpy time -o vrms_Tmin,Tmean,Tmax.dTdt
+    % stagpy time -o vrms-Tmin,Tmean,Tmax.dTdt
 
 creates two figures. The first one contains the time series of the rms
 velocity. The second one contains two subplots, the first one with the time
@@ -42,7 +42,7 @@ time derivative of the mean temperature. The variable names can be found by
 running the ``% stagpy var`` command. The variables you want on the same
 subplot are separated by commas ``,``, the variables you want on different
 subplots are separated by dots ``.``, and the variables you want on different
-figures are separated by underscores ``_``.
+figures are separated by dashes ``-``.
 
 ::
 

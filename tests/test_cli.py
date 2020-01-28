@@ -10,7 +10,8 @@ def dir_isnap(request, repo_dir):
 
 @pytest.fixture(params=[
     ('stagpy field', ['stagpy_T_stream{:05d}.pdf']),
-    ('stagpy field -o=T,v3', ['stagpy_T{:05d}.pdf',
+    ('stagpy field -o=T.v3', ['stagpy_T_v3{:05d}.pdf']),
+    ('stagpy field -o=T-v3', ['stagpy_T{:05d}.pdf',
                               'stagpy_v3{:05d}.pdf']),
 ])
 def all_cmd_field(request, dir_isnap):

@@ -1,9 +1,12 @@
 """Plot scalar and vector fields."""
 
+from itertools import chain
+
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpat
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from . import conf, misc, phyvars
 from .error import NotAvailableError
@@ -119,28 +122,6 @@ def get_meshes_vec(step, var):
     return xmesh, ymesh, vec1, vec2
 
 
-def set_of_vars(arg_plot):
-    """Build set of needed field variables.
-
-    Each var is a tuple, first component is a scalar field, second component is
-    either:
-
-    - a scalar field, isocontours are added to the plot.
-    - a vector field (e.g. 'v' for the (v1,v2,v3) vector), arrows are added to
-      the plot.
-
-    Args:
-        arg_plot (str): string with variable names separated with
-            ``,`` (figures), and ``+`` (same plot).
-    Returns:
-        set of str: set of needed field variables.
-    """
-    sovs = set(tuple((var + '+').split('+')[:2])
-               for var in arg_plot.split(','))
-    sovs.discard(('', ''))
-    return sovs
-
-
 def plot_scalar(step, var, field=None, axis=None, **extra):
     """Plot scalar field.
 
@@ -217,13 +198,15 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
 
     cbar = None
     if conf.field.colorbar:
-        cbar = plt.colorbar(surf, shrink=conf.field.shrinkcb)
+        cax = make_axes_locatable(axis).append_axes(
+            'right', size="3%", pad=0.15)
+        cbar = plt.colorbar(surf, cax=cax)
         cbar.set_label(meta.description +
                        (' pert.' if conf.field.perturbation else '') +
                        (' ({})'.format(unit) if unit else ''))
     if step.geom.spherical or conf.plot.ratio is None:
-        plt.axis('equal')
-        plt.axis('off')
+        axis.set_aspect('equal')
+        axis.set_axis_off()
     else:
         axis.set_aspect(conf.plot.ratio / axis.get_data_ratio())
     axis.set_adjustable('box')
@@ -283,13 +266,16 @@ def cmd():
         conf.core
     """
     sdat = StagyyData()
-    sovs = set_of_vars(conf.field.plot)
+    lovs = misc.list_of_vars(conf.field.plot)
+    # no more than two fields in a subplot
+    lovs = [[slov[:2] for slov in plov] for plov in lovs]
     minmax = {}
     if conf.plot.cminmax:
         conf.plot.vmin = None
         conf.plot.vmax = None
+        sovs = set(slov[0] for plov in lovs for slov in plov)
         for step in sdat.walk.filter(snap=True):
-            for var, _ in sovs:
+            for var in sovs:
                 if var in step.fields:
                     if var in phyvars.FIELD:
                         dim = phyvars.FIELD[var].dim
@@ -302,18 +288,23 @@ def cmd():
                     else:
                         minmax[var] = np.nanmin(field), np.nanmax(field)
     for step in sdat.walk.filter(snap=True):
-        for var in sovs:
-            if var[0] not in step.fields:
-                print("'{}' field on snap {} not found".format(var[0],
-                                                               step.isnap))
-                continue
-            opts = {}
-            if var[0] in minmax:
-                opts = dict(vmin=minmax[var[0]][0], vmax=minmax[var[0]][1])
-            fig, axis, _, _ = plot_scalar(step, var[0], **opts)
-            if valid_field_var(var[1]):
-                plot_iso(axis, step, var[1])
-            elif var[1]:
-                plot_vec(axis, step, var[1])
-            oname = '{}_{}'.format(*var) if var[1] else var[0]
+        for vfig in lovs:
+            fig, axes = plt.subplots(ncols=len(vfig), squeeze=False,
+                                     figsize=(12 * len(vfig), 9))
+            for axis, var in zip(axes[0], vfig):
+                if var[0] not in step.fields:
+                    print("'{}' field on snap {} not found".format(var[0],
+                                                                   step.isnap))
+                    continue
+                opts = {}
+                if var[0] in minmax:
+                    opts = dict(vmin=minmax[var[0]][0], vmax=minmax[var[0]][1])
+                plot_scalar(step, var[0], axis=axis, **opts)
+                if len(var) == 2:
+                    if valid_field_var(var[1]):
+                        plot_iso(axis, step, var[1])
+                    elif valid_field_var(var[1] + '1'):
+                        plot_vec(axis, step, var[1])
+            oname = '_'.join(chain.from_iterable(vfig))
+            plt.tight_layout(w_pad=3)
             misc.saveplot(fig, oname, step.isnap)

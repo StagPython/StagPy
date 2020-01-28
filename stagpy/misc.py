@@ -75,7 +75,7 @@ def list_of_vars(arg_plot):
 
     Args:
         arg_plot (str): string with variable names separated with
-            ``_`` (figures), ``.`` (subplots) and ``,`` (same subplot).
+            ``-`` (figures), ``.`` (subplots) and ``,`` (same subplot).
     Returns:
         three nested lists of str
 

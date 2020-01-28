@@ -23,9 +23,3 @@ def test_get_meshes_vec(step):
     xmesh, ymesh, vec1, vec2 = stagpy.field.get_meshes_vec(step, 'v')
     assert len(vec1.shape) == 2
     assert xmesh.shape == ymesh.shape == vec1.shape == vec2.shape
-
-
-def test_set_of_vars():
-    sovs = stagpy.field.set_of_vars('a+b,c,++,,d++e')
-    expected = set([('a', 'b'), ('c', ''), ('d', '')])
-    assert sovs == expected
