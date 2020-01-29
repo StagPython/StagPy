@@ -259,6 +259,25 @@ def plot_vec(axis, step, var):
                 linewidths=1)
 
 
+def _findminmax(sdat, sovs):
+    """Find min and max values of several fields."""
+    minmax = {}
+    for step in sdat.walk.filter(snap=True):
+        for var in sovs:
+            if var in step.fields:
+                if var in phyvars.FIELD:
+                    dim = phyvars.FIELD[var].dim
+                else:
+                    dim = phyvars.FIELD_EXTRA[var].dim
+                field, _ = sdat.scale(step.fields[var], dim)
+                if var in minmax:
+                    minmax[var] = (min(minmax[var][0], np.nanmin(field)),
+                                   max(minmax[var][1], np.nanmax(field)))
+                else:
+                    minmax[var] = np.nanmin(field), np.nanmax(field)
+    return minmax
+
+
 def cmd():
     """Implementation of field subcommand.
 
@@ -275,19 +294,7 @@ def cmd():
         conf.plot.vmin = None
         conf.plot.vmax = None
         sovs = set(slov[0] for plov in lovs for slov in plov)
-        for step in sdat.walk.filter(snap=True):
-            for var in sovs:
-                if var in step.fields:
-                    if var in phyvars.FIELD:
-                        dim = phyvars.FIELD[var].dim
-                    else:
-                        dim = phyvars.FIELD_EXTRA[var].dim
-                    field, _ = sdat.scale(step.fields[var], dim)
-                    if var in minmax:
-                        minmax[var] = (min(minmax[var][0], np.nanmin(field)),
-                                       max(minmax[var][1], np.nanmax(field)))
-                    else:
-                        minmax[var] = np.nanmin(field), np.nanmax(field)
+        minmax = _findminmax(sdat, sovs)
     for step in sdat.walk.filter(snap=True):
         for vfig in lovs:
             fig, axes = plt.subplots(ncols=len(vfig), squeeze=False,
