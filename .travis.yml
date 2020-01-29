@@ -1,8 +1,8 @@
-sudo: true
 language: python
+os: linux
 dist: xenial
 
-matrix:
+jobs:
     fast_finish: true
     include:
         - python: 3.5
