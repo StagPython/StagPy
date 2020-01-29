@@ -103,6 +103,7 @@ CONF_DEF['field'] = OrderedDict((
                                 'plot departure from average profile')),
     ('shift', Conf(None, True, None, {'type': int},
                    False, 'Shift plot horizontally')),
+    ('timelabel', switch_opt(False, None, 'add label with time')),
     ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
     ('colorbar', switch_opt(True, None, 'add color bar to plot')),
     ('ix', Conf(None, True, None, {'type': int},

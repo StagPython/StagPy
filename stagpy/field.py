@@ -209,6 +209,7 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
         axis.set_axis_off()
     else:
         axis.set_aspect(conf.plot.ratio / axis.get_data_ratio())
+
     axis.set_adjustable('box')
     axis.set_xlim(xmin, xmax)
     axis.set_ylim(ymin, ymax)
@@ -290,7 +291,7 @@ def cmd():
     for step in sdat.walk.filter(snap=True):
         for vfig in lovs:
             fig, axes = plt.subplots(ncols=len(vfig), squeeze=False,
-                                     figsize=(12 * len(vfig), 9))
+                                     figsize=(9 * len(vfig), 6))
             for axis, var in zip(axes[0], vfig):
                 if var[0] not in step.fields:
                     print("'{}' field on snap {} not found".format(var[0],
@@ -305,6 +306,11 @@ def cmd():
                         plot_iso(axis, step, var[1])
                     elif valid_field_var(var[1] + '1'):
                         plot_vec(axis, step, var[1])
+            if conf.field.timelabel:
+                time, unit = sdat.scale(step.timeinfo['t'], 's')
+                time = misc.scilabel(time)
+                axes[0, 0].text(0.02, 1.02, '$t={}$ {}'.format(time, unit),
+                                transform=axes[0, 0].transAxes)
             oname = '_'.join(chain.from_iterable(vfig))
             plt.tight_layout(w_pad=3)
             misc.saveplot(fig, oname, step.isnap)

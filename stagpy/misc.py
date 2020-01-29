@@ -33,6 +33,24 @@ def out_name(stem, timestep=None):
     return conf.core.outname + '_' + stem
 
 
+def scilabel(value, precision=2):
+    """Build scientific notation of some value.
+
+    This is dedicated to use in labels displaying scientific values.
+
+    Args:
+        value (float): numeric value to format.
+        precision (int): number of decimal digits.
+
+    Returns:
+        str: the scientific notation the specified value.
+    """
+    fmt = '{{:.{}e}}'.format(precision)
+    man, exp = fmt.format(value).split('e')
+    exp = int(exp)
+    return r'{}\times 10^{{{}}}'.format(man, exp)
+
+
 def saveplot(fig, *name_args, close=True, **name_kwargs):
     """Save matplotlib figure.
 
