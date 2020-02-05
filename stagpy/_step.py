@@ -170,7 +170,6 @@ class _Geometry:
         """
         return np.argmin(np.abs(self.z_coord - zval))
 
-
     def __getattr__(self, attr):
         # provide nDtot, D_coord, D_mesh and nbtot
         # with D = x, y, z or t, p, r
