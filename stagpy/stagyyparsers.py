@@ -377,10 +377,13 @@ def fields(fieldfile, only_header=False, only_istep=False):
 
         # check nb components
         nval = 1
+        sfield = False
         if magic > 400:
             nval = 4
         elif magic > 300:
             nval = 3
+        elif magic > 100:
+            sfield = True
 
         magic %= 100
 
@@ -469,6 +472,9 @@ def fields(fieldfile, only_header=False, only_istep=False):
                  ] = np.transpose(data_cpu.reshape(
                      (nbk, npc[2], npc[1] + header['xyp'],
                       npc[0] + header['xyp'], nval)))
+        if sfield:
+            # for surface fields, variables are written along z direction
+            flds = np.swapaxes(flds, 0, 3)
     return header, flds
 
 

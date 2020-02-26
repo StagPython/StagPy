@@ -83,13 +83,26 @@ FIELD_FILES_H5 = OrderedDict((
 ))
 
 SFIELD = OrderedDict((
-    ('geoid', Varf('Geoid', 'm')),
-    ('topo', Varf('Topography', 'm')),
+    ('topo_top', Varf('Topography at top', 'm')),
+    ('topo_bot', Varf('Topography at bottom', 'm')),
+    ('geoid_top', Varf('Geoid at top', 'm')),
+    ('geoid_bot', Varf('Geoid at bottom', 'm')),
+    ('topo_g_top', Varf('Topography for geoid at top', 'm')),
+    ('topo_g_bot', Varf('Topography for geoid at bottom', 'm')),
+    ('ftop', Varf('Heat flux at top', 'W/m2')),
+    ('fbot', Varf('Heat flux at bottom', 'W/m2')),
+    ('fstop', Varf('Heat flux from spectrum at top', 'W/m2')),
+    ('fsbot', Varf('Heat flux from spectrum at bottom', 'W/m2')),
+    ('crust', Varf('Crustal thickness', 'm')),
 ))
 
 SFIELD_FILES = OrderedDict((
-    ('g', ['geoid']),
-    ('cs', ['topo']),
+    ('cs', ['topo_bot', 'topo_top']),
+    ('g', ['geoid_bot', 'geoid_top']),
+    ('csg', ['topo_g_bot', 'topo_g_top']),
+    ('hf', ['fbot', 'ftop']),
+    ('hfs', ['fsbot', 'fstop']),
+    ('cr', ['crust']),
 ))
 
 Varr = namedtuple('Varr', ['description', 'kind', 'dim'])
