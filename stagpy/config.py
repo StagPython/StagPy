@@ -63,7 +63,7 @@ CONF_DEF['core'] = OrderedDict((
 CONF_DEF['plot'] = OrderedDict((
     ('ratio', Conf(None, True, None,
                    {'nargs': '?', 'const': 0.6, 'type': float},
-                   False, 'Force aspect ratio of field plot')),
+                   False, 'force aspect ratio of field plot')),
     ('raster', switch_opt(True, None, 'rasterize field plots')),
     ('format', Conf('pdf', True, None, {},
                     True, 'figure format (pdf, eps, svg, png)')),
@@ -102,7 +102,7 @@ CONF_DEF['field'] = OrderedDict((
     ('perturbation', switch_opt(False, None,
                                 'plot departure from average profile')),
     ('shift', Conf(None, True, None, {'type': int},
-                   False, 'Shift plot horizontally')),
+                   False, 'shift plot horizontally')),
     ('timelabel', switch_opt(False, None, 'add label with time')),
     ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
     ('colorbar', switch_opt(True, None, 'add color bar to plot')),
