@@ -43,7 +43,8 @@ class Mock(MagicMock):
         return MagicMock()
 
 MOCK_MODULES = ['numpy', 'scipy', 'scipy.signal', 'pandas', 'h5py',
-                'matplotlib', 'matplotlib.patches', 'matplotlib.pyplot']
+                'matplotlib', 'matplotlib.patches', 'matplotlib.pyplot',
+                'mpl_toolkits.axes_grid1']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # -- General configuration ------------------------------------------------
