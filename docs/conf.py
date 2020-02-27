@@ -315,3 +315,41 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+from pathlib import Path
+from textwrap import dedent
+import stagpy
+dfile = Path('.') / 'sources' / 'config_opts.rst'
+with dfile.open('w') as fid:
+    fid.write(dedent(
+        """\
+        ..
+           This doc is automatically generated in conf.py.
+           Editing it will have no effect.
+           Modify conf.py instead.
+
+        List of configuration options
+        =============================
+
+        These tables list configuration options.
+        """))
+    for section in stagpy.conf.sections_():
+        fid.write(dedent(
+            """
+            .. list-table:: {}
+               :header-rows: 1
+
+               * - Name
+                 - Description
+                 - CLI, config file?
+            """.format(section)))
+        for opt, meta in stagpy.conf[section].defaults_():
+            if meta.cmd_arg and meta.conf_arg:
+                c_f = 'both'
+            elif meta.cmd_arg:
+                c_f = 'CLI'
+            else:
+                c_f = 'config file'
+            fid.write('   * - {}\n'.format(opt))
+            fid.write('     - {}\n'.format(meta.help))
+            fid.write('     - {}\n'.format(c_f))

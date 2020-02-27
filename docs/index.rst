@@ -53,4 +53,5 @@ Welcome to StagPy's documentation!
    sources/apiref/step
    sources/apiref/stagyyparsers
    sources/apiref/time
+   sources/config_opts
 
