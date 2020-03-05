@@ -13,8 +13,8 @@ following dependencies::
 
     % conda install numpy scipy pandas h5py matplotlib setuptools_scm
 
-.. _Miniconda: http://conda.pydata.org/miniconda.html
-.. _Anaconda: https://www.continuum.io/downloads
+.. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
+.. _Anaconda: https://www.anaconda.com/distribution/#download-section
 
 Installation using ``pip``
 --------------------------

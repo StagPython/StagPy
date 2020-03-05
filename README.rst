@@ -7,7 +7,7 @@
    :alt: Travis CI
 
 .. image:: https://readthedocs.org/projects/stagpy/badge/?version=latest
-   :target: http://stagpy.readthedocs.org/en/latest/?badge=latest
+   :target: https://stagpy.readthedocs.org/en/latest/?badge=latest
    :alt: Documentation Status
 
 .. image:: https://badge.fury.io/py/stagpy.svg
@@ -30,4 +30,4 @@ See `the complete documentation`__ for more information on the installation and
 explanations on how to use StagPy.
 
 .. __: https://pypi.org/project/stagpy/
-.. __: http://stagpy.readthedocs.org
+.. __: https://stagpy.readthedocs.org

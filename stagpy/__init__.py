@@ -2,7 +2,7 @@
 
 StagPy is both a CLI tool and a powerful Python library. See the
 documentation at
-http://stagpy.readthedocs.io/en/stable/
+https://stagpy.readthedocs.io/en/stable/
 
 If the environment variable STAGPY_ISOLATED is set to a truthy value, StagPy
 does not attempt to read any configuration file (including mplstyle).

@@ -43,7 +43,7 @@ and update the needed packages::
 
     % python3 -m pip install -U --user sphinx sphinx-rtd-theme
 
-.. _Sphinx: http://www.sphinx-doc.org
+.. _Sphinx: https://www.sphinx-doc.org
 
 Then, in the ``docs`` directory, run::
 
