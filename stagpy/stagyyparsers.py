@@ -72,7 +72,7 @@ def time_series(timefile, colnames):
         irow = iprev
     if rows_to_del:
         rows_to_keep = set(range(len(data))) - set(rows_to_del)
-        data = data.take(list(rows_to_keep), convert=False)
+        data = data.take(list(rows_to_keep))
 
     ncols = data.shape[1]
     _tidy_names(colnames, ncols)
@@ -177,7 +177,7 @@ def rprof(rproffile, colnames):
     isteps, rows_to_del = _extract_rsnap_isteps(rproffile)
     if rows_to_del:
         rows_to_keep = set(range(len(data))) - rows_to_del
-        data = data.take(list(rows_to_keep), convert=False)
+        data = data.take(list(rows_to_keep))
 
     id_arr = [[], []]
     for istep, _, n_z in isteps:
