@@ -95,6 +95,29 @@ class InvalidTimestepError(StagpyError, KeyError):
         super().__init__(sdat, istep, msg)
 
 
+class InvalidSnapshotError(StagpyError, KeyError):
+    """Raised when invalid snapshot is requested.
+
+    Args:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
+            instance for which the request was made.
+        isnap (int): the invalid snapshot index.
+        msg (str): the error message.
+
+    Attributes:
+        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
+            instance for which the request was made.
+        isnap (int): the invalid snapshot index.
+        msg (str): the error message.
+    """
+
+    def __init__(self, sdat, isnap, msg):
+        self.sdat = sdat
+        self.isnap = isnap
+        self.msg = msg
+        super().__init__(sdat, isnap, msg)
+
+
 class InvalidTimeFractionError(StagpyError):
     """Raised when invalid fraction of series is requested.
 

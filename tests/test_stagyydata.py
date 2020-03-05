@@ -72,8 +72,8 @@ def test_snaps_last(sdat):
 
 
 def test_snaps_empty(sdat):
-    empty = sdat.snaps[len(sdat.snaps)]
-    assert isinstance(empty, stagpy._step.EmptyStep)
+    with pytest.raises(stagpy.error.InvalidSnapshotError):
+        sdat.snaps[len(sdat.snaps)]
 
 
 def test_step_is_snap(sdat):

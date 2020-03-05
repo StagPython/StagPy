@@ -444,25 +444,11 @@ class Step:
             # memory for what it's worth if search algo is efficient)
             while (istep is None or istep < self.istep) and isnap < 99999:
                 isnap += 1
-                istep = self.sdat.snaps[isnap].istep
+                try:
+                    istep = self.sdat.snaps[isnap].istep
+                except KeyError:
+                    pass
                 # all intermediate istep could have their ._isnap to None
             if istep != self.istep:
                 self._isnap = None
         return self._isnap
-
-
-class EmptyStep(Step):
-    """Dummy step object for nonexistent snaps.
-
-    This class inherits from :class:`Step`, but its :meth:`__getattribute__`
-    method always return :obj:`None`. Its instances are falsy values.
-    """
-
-    def __init__(self):
-        super().__init__(None, None)
-
-    def __getattribute__(self, name):
-        return None
-
-    def __bool__(self):
-        return False

@@ -192,14 +192,12 @@ class _Steps:
     def __init__(self, sdat):
         self.sdat = sdat
         self._len = UNDETERMINED
-        self._data = {None: _step.EmptyStep()}  # for non existent snaps
+        self._data = {}
 
     def __repr__(self):
         return '{}.steps'.format(repr(self.sdat))
 
     def __getitem__(self, istep):
-        if istep is None:
-            return self._data[None]
         keys = _as_view_item(istep)
         if keys is not None:
             return _StepsView(self, keys)
@@ -316,6 +314,9 @@ class _Snaps(_Steps):
                 self._bind(isnap, istep)
             else:
                 self._isteps[isnap] = None
+        if istep is None:
+            raise error.InvalidSnapshotError(
+                self.sdat, isnap, 'Invalid snapshot index')
         return self.sdat.steps[istep]
 
     def __delitem__(self, isnap):
@@ -430,8 +431,12 @@ class _StepsView:
             rep += '.filter({})'.format(', '.join(flts))
         return rep
 
-    def _pass(self, step):
-        """Check whether a :class:`~stagpy._step.Step` passes the filters."""
+    def _pass(self, item):
+        """Check whether an item passes the filters."""
+        try:
+            step = self._col[item]
+        except KeyError:
+            return False
         okf = True
         okf = okf and (not self._flt['snap'] or step.isnap is not None)
         okf = okf and (not self._flt['rprof'] or step.rprof is not None)
@@ -475,8 +480,8 @@ class _StepsView:
             if isinstance(item, slice):
                 idx = item.indices(len(self._col))
                 yield from (self._col[i] for i in range(*idx)
-                            if self._pass(self._col[i]))
-            elif self._pass(self._col[item]):
+                            if self._pass(i))
+            elif self._pass(item):
                 yield self._col[item]
 
     def __eq__(self, other):
