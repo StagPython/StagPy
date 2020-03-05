@@ -72,7 +72,7 @@ class ParsingError(StagpyError):
         super().__init__(faulty_file, msg)
 
 
-class InvalidTimestepError(StagpyError):
+class InvalidTimestepError(StagpyError, KeyError):
     """Raised when invalid time step is requested.
 
     Args:
