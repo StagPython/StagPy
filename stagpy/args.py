@@ -6,6 +6,7 @@ from inspect import isfunction
 from loam.tools import set_conf_str, create_complete_files
 from loam.cli import Subcmd, CLIManager
 
+from . import __doc__ as doc_module
 from . import conf, PARSING_OUT, load_mplstyle
 from . import commands, field, rprof, time_series, refstate, plates
 from .misc import baredoc
@@ -18,9 +19,14 @@ def _sub(cmd, *sections):
     return Subcmd(baredoc(cmd), *sections, func=cmd_func)
 
 
+def _bare_cmd():
+    """Print help message when no arguments are given."""
+    print(doc_module)
+    print('Run `stagpy -h` for usage')
+
+
 SUB_CMDS = OrderedDict((
-    ('common_', Subcmd('read and process StagYY binary data', 'common',
-                       func=lambda: print('stagpy -h for usage'))),
+    ('common_', Subcmd(doc_module, 'common', func=_bare_cmd)),
     ('field', _sub(field, 'core', 'plot', 'scaling')),
     ('rprof', _sub(rprof, 'core', 'plot', 'scaling')),
     ('time', _sub(time_series, 'core', 'plot', 'scaling')),

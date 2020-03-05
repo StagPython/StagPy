@@ -6,8 +6,11 @@ import stagpy.args
 def test_no_args(capsys):
     stagpy.args.parse_args([])()
     output = capsys.readouterr()
-    expected = 'stagpy -h for usage\n'
-    assert output.out == expected
+    expected = re.compile(
+        r'StagPy is a tool to.*'
+        r'Run `stagpy -h` for usage\n$',
+        flags=re.DOTALL)
+    assert expected.fullmatch(output.out)
 
 
 def test_help(capsys):
@@ -15,7 +18,7 @@ def test_help(capsys):
         stagpy.args.parse_args(['-h'])
     output = capsys.readouterr()
     expected = re.compile(
-        r'^usage:.*\nread and process StagYY binary data.*'
+        r'^usage:.*\nStagPy is a tool to.*'
         r'\npositional arguments.*\noptional arguments.*$',
         flags=re.DOTALL)
     assert expected.fullmatch(output.out)
