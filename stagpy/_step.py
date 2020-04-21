@@ -167,10 +167,20 @@ class _Geometry:
         """Return iz closest to given zval position.
 
         In spherical geometry, the bottom boundary is considered to be at z=0.
+        Use :func:`~_step._Geometry.at_r` to find a cell at a given radial
+        position.
         """
         if self.curvilinear:
             zval += self.rcmb
         return np.argmin(np.abs(self.z_coord - zval))
+
+    def at_r(self, rval):
+        """Return ir closest to given rval position.
+
+        If called in cartesian geometry, this is equivalent to
+        :func:`~_step._Geometry.at_z`.
+        """
+        return np.argmin(np.abs(self.r_coord - rval))
 
     def __getattr__(self, attr):
         # provide nDtot, D_coord, D_mesh and nbtot
