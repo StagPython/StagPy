@@ -813,7 +813,7 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
             elif shp[-1] == 1:  # XZ
                 fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
                 if header['rcmb'] < 0:
-                    fld = fld[(0, 2, 1), ...]
+                    fld = fld[(1, 2, 0), ...]
             elif header['nts'][1] == 1:  # cart XZ
                 fld = fld.reshape((1, shp[0], 1, shp[1]))
             ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i] *
