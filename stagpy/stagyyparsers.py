@@ -651,7 +651,6 @@ def _read_coord_h5(files, shapes, header, twod):
     if header['rcmb'] == 0:
         header['rcmb'] = -1
     else:
-        # could make the difference between r_coord and z_coord
         header['e3_coord'] = header['e3_coord'] - header['rcmb']
     if twod is None or 'X' in twod:
         header['e1_coord'] = header['e1_coord'][:-1]

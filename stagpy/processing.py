@@ -349,7 +349,7 @@ def stream_function(step):
     psi = np.zeros_like(v_x)
     if step.geom.spherical:  # YZ annulus
         # positions
-        r_nc = step.geom.r_coord + step.geom.rcmb  # numerical centers
+        r_nc = step.geom.r_coord  # numerical centers
         r_pc = step.geom.r_mesh[0, 0, :]  # physical centers
         r_nw = r_edges(step)[0][:2]  # numerical walls of first cell
         # vz at center of bottom cells

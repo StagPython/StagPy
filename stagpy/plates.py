@@ -18,7 +18,7 @@ def detect_plates_vzcheck(step, seuil_memz):
     n_z = step.geom.nztot
     nphi = step.geom.nptot  # -1? should be OK, ghost not included
     rcmb = max(0, step.geom.rcmb)
-    radius = step.geom.r_coord + rcmb
+    radius = step.geom.r_coord
     radiusgrid = step.geom.rgeom[:, 0] + rcmb
     dphi = 1 / nphi
 
@@ -93,7 +93,8 @@ def detect_plates(step, vrms_surface, fids, time):
         dsa = step.sdat.par['boundaries']['air_thickness']
         # we are a bit below the surface; should check if you are in the
         # thermal boundary layer
-        indsurf = np.argmin(abs((1 - dsa) - step.geom.r_coord)) - 4
+        indsurf = np.argmin(
+            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 4
     else:
         indsurf = -1
 
@@ -211,9 +212,11 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         # to be just below
         # the surface (that is considered plane here); should check if you are
         # in the thermal boundary layer
-        indsurf = np.argmin(abs((1 - dsa) - step.geom.r_coord)) - 4
+        indsurf = np.argmin(
+            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 4
         # depth to detect the continents
-        indcont = np.argmin(abs((1 - dsa) - np.array(step.geom.r_coord))) - 10
+        indcont = np.argmin(
+            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 10
     else:
         indsurf = -1
         indcont = -1  # depth to detect continents
@@ -514,7 +517,8 @@ def lithospheric_stress(step, trench, ridge, time):
         # to be just below
         dsa = step.sdat.par['boundaries']['air_thickness']
         # depth to detect the continents
-        indcont = np.argmin(abs((1 - dsa) - step.geom.r_coord)) - 10
+        indcont = np.argmin(
+            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 10
     else:
         # depth to detect continents
         indcont = -1

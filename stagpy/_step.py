@@ -83,12 +83,12 @@ class _Geometry:
                 self._coords[0] = np.array(np.pi / 2)
             elif self.twod_xz:
                 self._coords[1] = np.array(0)
-            r_coord = self.z_coord + self.rcmb
+            self._coords[2] += self.rcmb
             if par['magma_oceans_in']['magma_oceans_mode']:
-                r_coord += header['mo_lambda']
-                r_coord *= header['mo_thick_sol']
+                self._coord[2] += header['mo_lambda']
+                self._coord[2] *= header['mo_thick_sol']
             t_mesh, p_mesh, r_mesh = np.meshgrid(
-                self.x_coord, self.y_coord, r_coord, indexing='ij')
+                self.t_coord, self.p_coord, self.r_coord, indexing='ij')
             # compute cartesian coordinates
             # z along rotation axis at theta=0
             # x at th=90, phi=0
@@ -166,8 +166,10 @@ class _Geometry:
     def at_z(self, zval):
         """Return iz closest to given zval position.
 
-        This is different than radial position in spherical geometry.
+        In spherical geometry, the bottom boundary is considered to be at z=0.
         """
+        if self.curvilinear:
+            zval += self.rcmb
         return np.argmin(np.abs(self.z_coord - zval))
 
     def __getattr__(self, attr):
