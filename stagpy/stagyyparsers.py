@@ -217,7 +217,7 @@ def rprof_h5(rproffile, colnames):
     if not rproffile.is_file():
         return None, None
     isteps = []
-    with h5py.File(rproffile) as h5f:
+    with h5py.File(rproffile, 'r') as h5f:
         dnames = sorted(dname for dname in h5f.keys()
                         if dname.startswith('rprof_'))
         ncols = h5f['names'].shape[0]
