@@ -85,8 +85,8 @@ class _Geometry:
                 self._coords[1] = np.array(0)
             self._coords[2] += self.rcmb
             if par['magma_oceans_in']['magma_oceans_mode']:
-                self._coord[2] += header['mo_lambda']
-                self._coord[2] *= header['mo_thick_sol']
+                self._coords[2] += header['mo_lambda']
+                self._coords[2] *= header['mo_thick_sol']
             t_mesh, p_mesh, r_mesh = np.meshgrid(
                 self.t_coord, self.p_coord, self.r_coord, indexing='ij')
             # compute cartesian coordinates
