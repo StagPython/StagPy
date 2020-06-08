@@ -251,7 +251,7 @@ def _clean_names_refstate(names):
     return [to_clean.get(n, n) for n in names]
 
 
-def refstate(reffile, ncols=7):
+def refstate(reffile, ncols=8):
     """Extract reference state profiles.
 
     Args:
