@@ -48,6 +48,7 @@ Welcome to StagPy's documentation!
    sources/apiref/phyvars
    sources/apiref/plates
    sources/apiref/processing
+   sources/apiref/refstate
    sources/apiref/rprof
    sources/apiref/stagyydata
    sources/apiref/step

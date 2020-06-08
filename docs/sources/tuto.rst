@@ -21,6 +21,7 @@ This means a minimal call to StagPy is as follow::
 ``<subcommand>`` can be one of the following:
 
 * ``field``: plot scalar fields such as temperature or stream function;
+* ``refstate``: plot reference state;
 * ``rprof``: plot radial profiles;
 * ``time``: plot time series;
 * ``plates``: perform plate analysis;
