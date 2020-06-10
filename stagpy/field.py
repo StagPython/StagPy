@@ -216,7 +216,7 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
     return fig, axis, surf, cbar
 
 
-def plot_iso(axis, step, var):
+def plot_iso(axis, step, var, **extra):
     """Plot isocontours of scalar field.
 
     Args:
@@ -226,11 +226,19 @@ def plot_iso(axis, step, var):
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
             instance.
         var (str): the scalar field name.
+        extra (dict): options that will be passed on to
+            :func:`matplotlib.axes.Axes.contour`.
     """
     xmesh, ymesh, fld = get_meshes_fld(step, var)
     if conf.field.shift:
         fld = np.roll(fld, conf.field.shift, axis=0)
-    axis.contour(xmesh, ymesh, fld, linewidths=1)
+    extra_opts = dict(linewidths=1)
+    if 'cmap' not in extra and conf.field.isocolors:
+        extra_opts['colors'] = conf.field.isocolors.split(',')
+    elif 'colors' not in extra:
+        extra_opts['cmap'] = conf.field.cmap.get(var)
+    extra_opts.update(extra)
+    axis.contour(xmesh, ymesh, fld, **extra_opts)
 
 
 def plot_vec(axis, step, var):

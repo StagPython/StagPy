@@ -112,6 +112,8 @@ CONF_DEF['field'] = OrderedDict((
                 False, 'y-index of slice for 3D fields')),
     ('iz', Conf(None, True, None, {'type': int},
                 False, 'z-index of slice for 3D fields')),
+    ('isocolors', Conf('', True, None, {}, True,
+                       'comma-separated list of colors for isolines')),
     ('cmap',
         Conf({'T': 'RdBu_r',
               'eta': 'viridis_r',
