@@ -16,7 +16,7 @@ import pandas as pd
 import h5py
 
 from .error import ParsingError
-from .phyvars import FIELD_FILES_H5
+from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
 
 
 def _tidy_names(names, nnames, extra_names=None):
@@ -744,7 +744,7 @@ def _flds_shape(fieldname, header):
     """Compute shape of flds variable."""
     shp = list(header['nts'])
     shp.append(header['ntb'])
-    if len(FIELD_FILES_H5[fieldname]) == 3:
+    if len(FIELD_FILES_H5.get(fieldname, [])) == 3:
         shp.insert(0, 3)
         # extra points
         header['xp'] = int(header['nts'][0] != 1)
@@ -813,10 +813,15 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                 fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
                 if header['rcmb'] < 0:
                     fld = fld[(1, 2, 0), ...]
+            elif fieldname in SFIELD_FILES_H5:
+                fld = fld.reshape((1, npc[0], npc[1], 1))
             elif header['nts'][1] == 1:  # cart XZ
                 fld = fld.reshape((1, shp[0], 1, shp[1]))
             ifs = [icore // np.prod(header['ncs'][:i]) % header['ncs'][i] *
                    npc[i] for i in range(3)]
+            if fieldname in SFIELD_FILES_H5:
+                ifs[2] = 0
+                npc[2] = 1
             if header['zp']:  # remove top row
                 fld = fld[:, :, :, :-1]
             flds[:,
@@ -828,6 +833,9 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
 
     flds = _post_read_flds(flds, header)
 
+    if fieldname in SFIELD_FILES_H5:
+        # remove z component
+        flds = flds[..., 0, :]
     return (header, flds) if data_found else None
 
 

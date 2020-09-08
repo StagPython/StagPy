@@ -235,10 +235,10 @@ class _Fields(Mapping):
         for fld_name, fld in zip(fld_names, fields):
             if self._header['xyp'] == 0:
                 if not self.geom.twod_yz:
-                    newline = (fld[:1, :, :, :] + fld[-1:, :, :, :]) / 2
+                    newline = (fld[:1, ...] + fld[-1:, ...]) / 2
                     fld = np.concatenate((fld, newline), axis=0)
                 if not self.geom.twod_xz:
-                    newline = (fld[:, :1, :, :] + fld[:, -1:, :, :]) / 2
+                    newline = (fld[:, :1, ...] + fld[:, -1:, ...]) / 2
                     fld = np.concatenate((fld, newline), axis=1)
             self._set(fld_name, fld)
         return self._data[name]
@@ -277,8 +277,16 @@ class _Fields(Mapping):
             for filestem, list_fvar in self._filesh5.items():
                 if name in list_fvar:
                     break
+            if filestem in phyvars.SFIELD_FILES_H5:
+                xmff = 'Data{}.xmf'.format(
+                    'Bottom' if name.endswith('bot') else 'Surface')
+                _ = self.geom
+                header = self._header
+            else:
+                xmff = 'Data.xmf'
+                header = None
             parsed_data = stagyyparsers.read_field_h5(
-                self.step.sdat.hdf5 / 'Data.xmf', filestem, self.step.isnap)
+                self.step.sdat.hdf5 / xmff, filestem, self.step.isnap, header)
         return list_fvar, parsed_data
 
     def _set(self, name, fld):
@@ -406,7 +414,7 @@ class Step:
         self.fields = _Fields(self, phyvars.FIELD, phyvars.FIELD_EXTRA,
                               phyvars.FIELD_FILES, phyvars.FIELD_FILES_H5)
         self.sfields = _Fields(self, phyvars.SFIELD, [],
-                               phyvars.SFIELD_FILES, [])
+                               phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5)
         self.tracers = _Tracers(self)
         self._isnap = UNDETERMINED
 

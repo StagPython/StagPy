@@ -107,6 +107,20 @@ SFIELD_FILES = OrderedDict((
     ('cr', ['crust']),
 ))
 
+SFIELD_FILES_H5 = OrderedDict((
+    ('BottomTopography', ['topo_bot']),
+    ('SurfaceTopography', ['topo_top']),
+    ('BottomGeoid', ['geoid_bot']),
+    ('TopGeoid', ['geoid_top']),
+    ('BottomCSGeoid', ['topo_g_bot']),
+    ('TopCSGeoid', ['topo_g_top']),
+    ('BottomHeatFlux', ['fbot']),
+    ('TopHeatFlux', ['ftop']),
+    ('BottomHFSpectrum', ['fsbot']),
+    ('TopHFSpectrum', ['fstop']),
+    ('CrustThickness', ['crust']),
+))
+
 Varr = namedtuple('Varr', ['description', 'kind', 'dim'])
 RPROF = OrderedDict((
     ('r', Varr('Radial coordinate', 'Radius', 'm')),
