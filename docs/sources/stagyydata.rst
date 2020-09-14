@@ -86,32 +86,15 @@ are given a default value according to the par file ``~/.config/stagpy/par``.
 Radial profiles
 ---------------
 
-Radial profile data are contained in the
-:attr:`~stagpy.stagyydata.StagyyData.rprof` attribute of a
-:class:`~stagpy.stagyydata.StagyyData` instance.  This attribute is a
+Radial profile data are contained in the :attr:`~stagpy._step.Step.rprof`
+attribute of a :class:`~stagpy._step.Step` instance.  This attribute is a
 :class:`pandas.DataFrame`. Its :attr:`columns` are the names of available
-variables (such as e.g. ``'Tmean'`` and ``'ftop'``).  Its :attr:`index` is a 2
-levels multi-index, the first level being the time step number (:attr:`istep`),
-and the second level being the cells number (from ``0`` to ``nz-1``). The list
-of available variables can be obtained by running ``% stagpy var``.
+variables (such as e.g. ``'Tmean'`` and ``'ftop'``).  Its :attr:`index` is the
+cell number (from ``0`` to ``nz-1``). The list of available variables can be
+obtained by running ``% stagpy var``.
 
-The radial profile of a given time step can be accessed from :attr:`_Step.rprof
-<stagpy.stagyydata._Step.rprof>`. For example, ``sdat.steps[1000].rprof`` is
-equivalent to ``sdat.rprof.loc[1000]``. The columns of the obtained dataframe
-are the variable names, and its index is the cells number.
-
-As an example, the following lines are two ways of accessing the horizontal
-average temperature in the bottom cell, at the 1000th timestep::
-
-    # extract rprof data for the 1000th timestep,
-    # and then take the temperature in the bottom cell
-    sdat.rprof.loc[1000].loc[0,'Tmean']
-    # extract the temperature profile for the 1000th timestep,
-    # and then take the bottom cell
-    sdat.rprof.loc[1000,'Tmean'][0]
-
-If the radial profiles of the 1000th timestep are not available, these would
-both result in a ``KeyError``.
+For example, ``sdat.steps[1000].rprof['Tmean']`` is the temperature profile of
+the 1000th timestep.
 
 Time series
 -----------
