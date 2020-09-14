@@ -442,11 +442,11 @@ class Step:
     def rprof(self):
         """Radial profiles data of the time step.
 
-        Set to None if no radial profiles data is available for this time step.
+        This is a :class:`pandas.DataFrame` with iz as index and variable names
+        as columns.  Set to None if no radial profiles data is available for
+        this time step.
         """
-        if self.istep not in self.sdat.rprof.index.levels[0]:
-            return None
-        return self.sdat.rprof.loc[self.istep]
+        return self.sdat._rprof_and_times[0].get(self.istep)
 
     @property
     def isnap(self):

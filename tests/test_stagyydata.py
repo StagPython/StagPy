@@ -38,8 +38,8 @@ def test_sdat_tseries(sdat):
     assert isinstance(sdat.tseries, pandas.DataFrame)
 
 
-def test_sdat_rprof(sdat):
-    assert isinstance(sdat.rprof, pandas.DataFrame)
+def test_sdat_rtimes(sdat):
+    assert isinstance(sdat.rtimes, pandas.DataFrame)
 
 
 def test_sdat_walk_dflt(sdat):

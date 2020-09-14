@@ -205,8 +205,6 @@ def cmd():
         conf.core
     """
     sdat = StagyyData()
-    if sdat.rprof is None:
-        return
 
     if conf.rprof.grid:
         for step in sdat.walk.filter(rprof=True):

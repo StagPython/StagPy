@@ -601,7 +601,7 @@ class StagyyData:
             rproffile = self.filename('rprof.h5')
             self._stagdat['rprof'] = stagyyparsers.rprof_h5(
                 rproffile, list(phyvars.RPROF.keys()))
-            if self._stagdat['rprof'][0] is not None:
+            if self._stagdat['rprof'][1] is not None:
                 return self._stagdat['rprof']
             rproffile = self.filename('rprof.dat')
             if self.hdf5 and not rproffile.is_file():
@@ -610,15 +610,6 @@ class StagyyData:
             self._stagdat['rprof'] = stagyyparsers.rprof(
                 rproffile, list(phyvars.RPROF.keys()))
         return self._stagdat['rprof']
-
-    @property
-    def rprof(self):
-        """Radial profiles data.
-
-        This is a :class:`pandas.DataFrame` with a 2-level index (istep and iz)
-        and variable names as columns.
-        """
-        return self._rprof_and_times[0]
 
     @property
     def rtimes(self):
