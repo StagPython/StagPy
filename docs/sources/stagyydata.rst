@@ -86,14 +86,23 @@ are given a default value according to the par file ``~/.config/stagpy/par``.
 Radial profiles
 ---------------
 
-Radial profile data are contained in the :attr:`~stagpy._step.Step.rprof`
-attribute of a :class:`~stagpy._step.Step` instance.  This attribute is a
-:class:`pandas.DataFrame`. Its :attr:`columns` are the names of available
-variables (such as e.g. ``'Tmean'`` and ``'ftop'``).  Its :attr:`index` is the
-cell number (from ``0`` to ``nz-1``). The list of available variables can be
-obtained by running ``% stagpy var``.
+Radial profile data are accessible trough the :attr:`~stagpy._step.Step.rprofs`
+attribute of a :class:`~stagpy._step.Step` instance.  This attribute implements
+getitem to access radial profiles.  Keys are the names of available
+variables (such as e.g. ``'Tmean'`` and ``'ftop'``).  Items are named tuples
+with three fields:
 
-For example, ``sdat.steps[1000].rprof['Tmean']`` is the temperature profile of
+- :data:`values`: the profile itself;
+- :data:`rad`: the radial position at which the profile is evaluated;
+- :data:`meta`: metadata of the profile, also a named tuple with:
+
+    - :data:`description`: explanation of what the profile is;
+    - :data:`kind`: the category of profile;
+    - :data:`dim`: the dimension of the profile (if applicable) in SI units.
+
+The list of available variables can be obtained by running ``% stagpy var``.
+
+For example, ``sdat.steps[1000].rprofs['Tmean']`` is the temperature profile of
 the 1000th timestep.
 
 Time series

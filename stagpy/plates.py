@@ -593,11 +593,11 @@ def main_plates(sdat):
     """Plot several plates information."""
     # calculating averaged horizontal surface velocity
     # needed for redimensionalisation
-    rlast = sdat.snaps[-1].rprof
+    rlast = sdat.snaps[-1].rprofs
     nprof = 0
-    uprof_averaged = rlast.loc[:, 'vhrms'] * 0
-    for step in sdat.walk.filter(rprof=True):
-        uprof_averaged += step.rprof['vhrms']
+    uprof_averaged = np.zeros_like(rlast['vhrms'].values)
+    for step in sdat.walk.filter(rprofs=True):
+        uprof_averaged += step.rprofs['vhrms'].values
         nprof += 1
     uprof_averaged /= nprof
     radius = rlast['r'].values

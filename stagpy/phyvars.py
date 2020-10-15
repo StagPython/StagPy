@@ -192,7 +192,6 @@ RPROF = OrderedDict((
 ))
 
 RPROF_EXTRA = OrderedDict((
-    ('redges', Varr(processing.r_edges, 'Radius', 'm')),
     ('dr', Varr(processing.delta_r, 'dr', 'm')),
     ('diff', Varr(processing.diff_prof, 'Heat flux', 'W/m2')),
     ('diffs', Varr(processing.diffs_prof, 'Heat flux', 'W/m2')),

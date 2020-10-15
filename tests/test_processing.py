@@ -12,44 +12,42 @@ def test_ebalance(sdat):
 
 
 def test_r_edges(step):
-    edges1, edges2 = processing.r_edges(step)
-    assert edges1 is edges2
-    assert edges1.shape == (step.rprof.shape[0] + 1,)
+    assert step.rprofs.walls.shape == (step.geom.nztot + 1,)
 
 
 def test_delta_r(step):
     thick, _ = processing.delta_r(step)
-    assert thick.shape == (step.rprof.shape[0],)
+    assert thick.shape == (step.geom.nztot,)
 
 
 def test_diff_prof(step):
     diff, rpos = processing.diff_prof(step)
-    assert diff.shape == rpos.shape == (step.rprof.shape[0] + 1,)
+    assert diff.shape == rpos.shape == (step.geom.nztot + 1,)
 
 
 def test_diffs_prof(step):
     diff, rpos = processing.diffs_prof(step)
-    assert diff.shape == rpos.shape == (step.rprof.shape[0] + 1,)
+    assert diff.shape == rpos.shape == (step.geom.nztot + 1,)
 
 
 def test_advts_prof(step):
     adv, _ = processing.advts_prof(step)
-    assert adv.shape == (step.rprof.shape[0],)
+    assert adv.shape == (step.geom.nztot,)
 
 
 def test_advds_prof(step):
     adv, _ = processing.advds_prof(step)
-    assert adv.shape == (step.rprof.shape[0],)
+    assert adv.shape == (step.geom.nztot,)
 
 
 def test_advas_prof(step):
     adv, _ = processing.advas_prof(step)
-    assert adv.shape == (step.rprof.shape[0],)
+    assert adv.shape == (step.geom.nztot,)
 
 
 def test_energy_prof(step):
     eng, rpos = processing.energy_prof(step)
-    assert eng.shape == rpos.shape == (step.rprof.shape[0] + 1,)
+    assert eng.shape == rpos.shape == (step.geom.nztot + 1,)
 
 
 def test_stream_function(step):
