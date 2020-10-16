@@ -121,6 +121,22 @@ def set_of_vars(lovs):
     return set(var for pvars in lovs for svars in pvars for var in svars)
 
 
+def find_in_sorted_arr(value, array, after=False):
+    """Return position of element in a sorted array.
+
+    Returns:
+        int: the maximum position i such as array[i] <= value.  If after is
+            True, it returns the min i such as value <= array[i] (or 0 if such
+            an indices does not exist).
+    """
+    ielt = array.searchsorted(value)
+    if ielt == array.size:
+        ielt -= 1
+    if not after and array[ielt] != value and ielt > 0:
+        ielt -= 1
+    return ielt
+
+
 class InchoateFiles:
     """Context manager handling files whose names are not known yet.
 

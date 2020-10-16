@@ -35,7 +35,7 @@ def test_sdat_par(sdat):
 
 
 def test_sdat_tseries(sdat):
-    assert isinstance(sdat.tseries, pandas.DataFrame)
+    assert sdat.tseries['Tmean'].time is sdat.tseries.time
 
 
 def test_sdat_rtimes(sdat):

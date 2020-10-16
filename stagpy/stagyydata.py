@@ -9,9 +9,10 @@ Note:
 
 import re
 import pathlib
+from collections import namedtuple
 from itertools import zip_longest
 
-from . import conf, error, parfile, phyvars, stagyyparsers, _step
+from . import conf, error, misc, parfile, phyvars, stagyyparsers, _step
 from ._step import UNDETERMINED
 
 
@@ -156,6 +157,105 @@ class _Refstate:
         return self._data[1]
 
 
+Tseries = namedtuple('Tseries', ['values', 'time', 'meta'])
+
+
+class _Tseries:
+    """Time series.
+
+    The :attr:`StagyyData.tseries` attribute is an instance of this class.
+
+    :class:`_Tseries` implements the getitem mechanism.  Keys are series names
+    defined in :data:`stagpy.phyvars.TIME[_EXTRA]`.  An item is a named tuple
+    ('values', 'time', 'meta'), respectively the series itself, the time at
+    which it is evaluated, and meta is a :class:`stagpy.phyvars.Vart` instance
+    with relevant metadata.  Note that series are automatically scaled if
+    conf.scaling.dimensional is True.
+
+    Attributes:
+        sdat (:class:`StagyyData`): the StagyyData instance owning the
+            :class:`_Tseries` instance.
+    """
+
+    def __init__(self, sdat):
+        self.sdat = sdat
+        self._data = UNDETERMINED
+
+    @property
+    def _tseries(self):
+        if self._data is UNDETERMINED:
+            timefile = self.sdat.filename('TimeSeries.h5')
+            self._data = stagyyparsers.time_series_h5(
+                timefile, list(phyvars.TIME.keys()))
+            if self._data is not None:
+                return self._data
+            timefile = self.sdat.filename('time.dat')
+            if self.sdat.hdf5 and not timefile.is_file():
+                # check legacy folder as well
+                timefile = self.sdat.filename('time.dat', force_legacy=True)
+            self._data = stagyyparsers.time_series(timefile,
+                                                   list(phyvars.TIME.keys()))
+            if self._data is None:
+                raise error.MissingDataError('No tseries data in {}'
+                                             .format(self.sdat))
+        return self._data
+
+    def __getitem__(self, name):
+        if name in self._tseries.columns:
+            series = self._tseries[name].values
+            time = self.time
+            if name in phyvars.TIME:
+                meta = phyvars.TIME[name]
+            else:
+                meta = phyvars.Vart(name, None, '1')
+        elif name in phyvars.TIME_EXTRA:
+            meta = phyvars.TIME_EXTRA[name]
+            series, time = meta.description(self.sdat)
+            meta = phyvars.Vart(misc.baredoc(meta.description),
+                                meta.kind, meta.dim)
+        else:
+            raise error.UnknownTimeVarError(name)
+        series, _ = self.sdat.scale(series, meta.dim)
+        time, _ = self.sdat.scale(time, 's')
+        return Tseries(series, time, meta)
+
+    def tslice(self, name, tstart=None, tend=None):
+        """Return a Tseries between specified times.
+
+        Args:
+            name (str): time variable.
+            tstart (float): starting time. Set to None to start at the
+                beginning of available data.
+            tend (float): ending time. Set to None to stop at the end of
+                available data.
+        """
+        data, time, meta = self[name]
+        istart = 0
+        iend = len(time)
+        if tstart is not None:
+            istart = misc.find_in_sorted_arr(tstart, time)
+        if tend is not None:
+            iend = misc.find_in_sorted_arr(tend, time, True) + 1
+        return Tseries(data[istart:iend], time[istart:iend], meta)
+
+    @property
+    def time(self):
+        """Time vector."""
+        return self._tseries['t'].values
+
+    @property
+    def isteps(self):
+        """Step indices.
+
+        This is such that time[istep] is at step isteps[istep].
+        """
+        return self._tseries.index.values
+
+    def at_step(self, istep):
+        """Time series output for a given step."""
+        return self._tseries.loc[istep]
+
+
 class _Steps:
     """Collections of time steps.
 
@@ -226,7 +326,7 @@ class _Steps:
     def __len__(self):
         if self._len is UNDETERMINED:
             # not necessarily the last one...
-            self._len = self.sdat.tseries.index[-1] + 1
+            self._len = self.sdat.tseries.isteps[-1] + 1
         return self._len
 
     def __iter__(self):
@@ -245,20 +345,8 @@ class _Steps:
         Returns:
             :class:`~stagpy._step.Step`: the relevant step.
         """
-        if self.sdat.tseries is None:
-            return None
-
-        igm = 0
-        igp = self.sdat.tseries.shape[0] - 1
-        while igp - igm > 1:
-            istart = igm + (igp - igm) // 2
-            if self.sdat.tseries.iloc[istart]['t'] >= time:
-                igp = istart
-            else:
-                igm = istart
-        if self.sdat.tseries.iloc[igp]['t'] > time and not after and igp > 0:
-            igp -= 1
-        return self[igp]
+        itime = misc.find_in_sorted_arr(time, self.sdat.tseries.time, after)
+        return self[self.sdat.tseries.isteps[itime]]
 
     def filter(self, **filters):
         """Build a _StepsView with requested filters."""
@@ -526,10 +614,10 @@ class StagyyData:
                         'hdf5': UNDETERMINED,
                         'ls': UNDETERMINED}
         self._stagdat = {'par': parfile.readpar(self.parpath, self.path),
-                         'tseries': UNDETERMINED,
                          'rprof': UNDETERMINED}
         self.scales = _Scales(self)
         self.refstate = _Refstate(self)
+        self.tseries = _Tseries(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self._nfields_max = 50
@@ -577,27 +665,6 @@ class StagyyData:
         namelists and the second key the parameter name.
         """
         return self._stagdat['par']
-
-    @property
-    def tseries(self):
-        """Time series data.
-
-        This is a :class:`pandas.DataFrame` with istep as index and variable
-        names as columns.
-        """
-        if self._stagdat['tseries'] is UNDETERMINED:
-            timefile = self.filename('TimeSeries.h5')
-            self._stagdat['tseries'] = stagyyparsers.time_series_h5(
-                timefile, list(phyvars.TIME.keys()))
-            if self._stagdat['tseries'] is not None:
-                return self._stagdat['tseries']
-            timefile = self.filename('time.dat')
-            if self.hdf5 and not timefile.is_file():
-                # check legacy folder as well
-                timefile = self.filename('time.dat', force_legacy=True)
-            self._stagdat['tseries'] = stagyyparsers.time_series(
-                timefile, list(phyvars.TIME.keys()))
-        return self._stagdat['tseries']
 
     @property
     def _rprof_and_times(self):
@@ -695,32 +762,6 @@ class StagyyData:
             scaling *= 10**(-3 * (phyvars.PREFIXES.index(factor) + 1))
             unit = factor + unit
         return data * scaling, unit
-
-    def tseries_between(self, tstart=None, tend=None):
-        """Return time series data between requested times.
-
-        Args:
-            tstart (float): starting time. Set to None to start at the
-                beginning of available data.
-            tend (float): ending time. Set to None to stop at the end of
-                available data.
-        Returns:
-            :class:`pandas.DataFrame`: slice of :attr:`tseries`.
-        """
-        if self.tseries is None:
-            return None
-
-        if tstart is None:
-            istart = 0
-        else:
-            istart = self.steps.at_time(tstart).istep
-
-        if tend is None:
-            iend = None
-        else:
-            iend = self.steps.at_time(tend, after=True).istep + 1
-
-        return self.tseries.iloc[istart:iend]
 
     def filename(self, fname, timestep=None, suffix='', force_legacy=False):
         """Return name of StagYY output file.

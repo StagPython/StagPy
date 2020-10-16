@@ -529,13 +529,8 @@ class Step:
 
     @property
     def timeinfo(self):
-        """Time series data of the time step.
-
-        Set to None if no time series data is available for this time step.
-        """
-        if self.istep not in self.sdat.tseries.index:
-            return None
-        return self.sdat.tseries.loc[self.istep]
+        """Time series data of the time step."""
+        return self.sdat.tseries.at_step(self.istep)
 
     @property
     def isnap(self):

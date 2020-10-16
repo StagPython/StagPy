@@ -3,12 +3,12 @@ from stagpy import processing
 
 def test_dt_dt(sdat):
     dtdt, time = processing.dt_dt(sdat)
-    assert dtdt.shape == time.shape == (sdat.tseries.shape[0] - 1,)
+    assert dtdt.shape == time.shape == (sdat.tseries.time.shape[0] - 1,)
 
 
 def test_ebalance(sdat):
     ebal, time = processing.ebalance(sdat)
-    assert ebal.shape == time.shape == (sdat.tseries.shape[0] - 1,)
+    assert ebal.shape == time.shape == (sdat.tseries.time.shape[0] - 1,)
 
 
 def test_r_edges(step):

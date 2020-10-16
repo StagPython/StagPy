@@ -11,48 +11,37 @@ from scipy import integrate
 from .error import NotAvailableError
 
 
-def dtime(sdat, tstart=None, tend=None):
+def dtime(sdat):
     """Time increment dt.
 
     Compute dt as a function of time.
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        tstart (float): time at which the computation should start. Use the
-            beginning of the time series data if set to None.
-        tend (float): time at which the computation should end. Use the
-            end of the time series data if set to None.
     Returns:
         tuple of :class:`numpy.array`: dt and time arrays.
     """
-    tseries = sdat.tseries_between(tstart, tend)
-    time = tseries['t'].values
+    time = sdat.tseries.time
     return time[1:] - time[:-1], time[:-1]
 
 
-def dt_dt(sdat, tstart=None, tend=None):
+def dt_dt(sdat):
     """Derivative of temperature.
 
     Compute dT/dt as a function of time using an explicit Euler scheme.
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        tstart (float): time at which the computation should start. Use the
-            beginning of the time series data if set to None.
-        tend (float): time at which the computation should end. Use the
-            end of the time series data if set to None.
     Returns:
         tuple of :class:`numpy.array`: derivative of temperature and time
         arrays.
     """
-    tseries = sdat.tseries_between(tstart, tend)
-    time = tseries['t'].values
-    temp = tseries['Tmean'].values
+    temp, time, _ = sdat.tseries['Tmean']
     dtdt = (temp[1:] - temp[:-1]) / (time[1:] - time[:-1])
     return dtdt, time[:-1]
 
 
-def ebalance(sdat, tstart=None, tend=None):
+def ebalance(sdat):
     """Energy balance.
 
     Compute Nu_t - Nu_b + V*dT/dt as a function of time using an explicit
@@ -60,14 +49,9 @@ def ebalance(sdat, tstart=None, tend=None):
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        tstart (float): time at which the computation should start. Use the
-            beginning of the time series data if set to None.
-        tend (float): time at which the computation should end. Use the
-            end of the time series data if set to None.
     Returns:
         tuple of :class:`numpy.array`: energy balance and time arrays.
     """
-    tseries = sdat.tseries_between(tstart, tend)
     rbot, rtop = sdat.steps[-1].rprofs.bounds
     if rbot != 0:  # spherical
         coefsurf = (rtop / rbot)**2
@@ -75,33 +59,27 @@ def ebalance(sdat, tstart=None, tend=None):
     else:
         coefsurf = 1.
         volume = 1.
-    dtdt, time = dt_dt(sdat, tstart, tend)
-    ftop = tseries['ftop'].values * coefsurf
-    fbot = tseries['fbot'].values
-    radio = tseries['H_int'].values
+    dtdt, time = dt_dt(sdat)
+    ftop = sdat.tseries['ftop'].values * coefsurf
+    fbot = sdat.tseries['fbot'].values
+    radio = sdat.tseries['H_int'].values
     ebal = ftop[1:] - fbot[1:] + volume * (dtdt - radio[1:])
     return ebal, time
 
 
-def mobility(sdat, tstart=None, tend=None):
+def mobility(sdat):
     """Plates mobility.
 
     Compute the ratio vsurf / vrms.
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        tstart (float): time at which the computation should start. Use the
-            beginning of the time series data if set to None.
-        tend (float): time at which the computation should end. Use the
-            end of the time series data if set to None.
     Returns:
         tuple of :class:`numpy.array`: mobility and time arrays.
     """
-    tseries = sdat.tseries_between(tstart, tend)
-    steps = sdat.steps[tseries.index[0]:tseries.index[-1]]
     time = []
     mob = []
-    for step in steps.filter(rprofs=True):
+    for step in sdat.steps.filter(rprofs=True):
         time.append(step.timeinfo['t'])
         mob.append(step.rprofs['vrms'].values[-1] / step.timeinfo['vrms'])
     return np.array(mob), np.array(time)
