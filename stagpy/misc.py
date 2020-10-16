@@ -121,26 +121,6 @@ def set_of_vars(lovs):
     return set(var for pvars in lovs for svars in pvars for var in svars)
 
 
-def get_rbounds(step):
-    """Radial or vertical position of boundaries.
-
-    Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
-    Returns:
-        tuple of floats: radial or vertical positions of boundaries of the
-        domain.
-    """
-    if step.geom is not None:
-        rcmb = step.geom.rcmb
-    else:
-        rcmb = step.sdat.par['geometry']['r_cmb']
-        if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
-            rcmb = 0
-    rcmb = max(rcmb, 0)
-    return rcmb, rcmb + 1
-
-
 class InchoateFiles:
     """Context manager handling files whose names are not known yet.
 

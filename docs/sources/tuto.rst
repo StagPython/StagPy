@@ -87,7 +87,7 @@ Instantiating and using this class is rather simple::
     sdat = StagyyData('path/to/run/')
 
     # absolute vertical velocity profile of last snapshot
-    last_v_prof = sdat.snaps[-1].rprof['vzabs']
+    last_v_prof = sdat.snaps[-1].rprof['vzabs'].values
 
     # temperature field of the 10000th time step
     # (will be None if no snapshot is available at this timestep)

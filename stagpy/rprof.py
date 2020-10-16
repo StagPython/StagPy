@@ -1,16 +1,15 @@
 """Plot radial profiles."""
 
 import matplotlib.pyplot as plt
+import numpy as np
 
-from . import conf, misc, phyvars
-from .error import UnknownRprofVarError
+from . import conf, misc
+from ._step import Rprof
 from .stagyydata import StagyyData
 
 
-def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
+def _plot_rprof_list(sdat, lovs, rprofs, stepstr):
     """Plot requested profiles."""
-    if rads is None:
-        rads = {}
     for vfig in lovs:
         fig, axes = plt.subplots(ncols=len(vfig), sharey=True,
                                  figsize=(4 * len(vfig), 6))
@@ -18,24 +17,24 @@ def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
         fname = 'rprof_'
         for iplt, vplt in enumerate(vfig):
             xlabel = None
-            for ivar, rvar in enumerate(vplt):
-                fname += rvar + '_'
-                rad = rads[rvar] if rvar in rads else rprofs['r']
+            profs_on_plt = (rprofs[rvar] for rvar in vplt)
+            fname += '_'.join(vplt) + '_'
+            for ivar, (rprof, rad, meta) in enumerate(profs_on_plt):
                 if conf.rprof.depth:
                     rad = rprofs['bounds'][1] - rad
-                axes[iplt].plot(rprofs[rvar], rad,
+                axes[iplt].plot(rprof, rad,
                                 conf.rprof.style,
-                                label=metas[rvar].description)
+                                label=meta.description)
                 if conf.rprof.depth:
                     axes[iplt].invert_yaxis()
                 if xlabel is None:
-                    xlabel = metas[rvar].kind
-                elif xlabel != metas[rvar].kind:
+                    xlabel = meta.kind
+                elif xlabel != meta.kind:
                     xlabel = ''
             if ivar == 0:
-                xlabel = metas[rvar].description
+                xlabel = meta.description
             if xlabel:
-                _, unit = sdat.scale(1, metas[rvar].dim)
+                _, unit = sdat.scale(1, meta.dim)
                 if unit:
                     xlabel += ' ({})'.format(unit)
                 axes[iplt].set_xlabel(xlabel)
@@ -52,43 +51,6 @@ def _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads=None):
         misc.saveplot(fig, fname + stepstr)
 
 
-def get_rprof(step, var):
-    """Extract or compute and rescale requested radial profile.
-
-    Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
-        var (str): radial profile name, a key of :data:`stagpy.phyvars.RPROF`
-            or :data:`stagpy.phyvars.RPROF_EXTRA`.
-    Returns:
-        tuple of :class:`numpy.array` and :class:`stagpy.phyvars.Varr`:
-        rprof, rad, meta
-            rprof is the requested profile, rad the radial position at which it
-            is evaluated (set to None if it is the position of profiles output
-            by StagYY), and meta is a :class:`stagpy.phyvars.Varr` instance
-            holding metadata of the requested variable.
-    """
-    if var in step.rprof.columns:
-        rprof = step.rprof[var]
-        rad = None
-        if var in phyvars.RPROF:
-            meta = phyvars.RPROF[var]
-        else:
-            meta = phyvars.Varr(var, None, '1')
-    elif var in phyvars.RPROF_EXTRA:
-        meta = phyvars.RPROF_EXTRA[var]
-        rprof, rad = meta.description(step)
-        meta = phyvars.Varr(misc.baredoc(meta.description),
-                            meta.kind, meta.dim)
-    else:
-        raise UnknownRprofVarError(var)
-    rprof, _ = step.sdat.scale(rprof, meta.dim)
-    if rad is not None:
-        rad, _ = step.sdat.scale(rad, 'm')
-
-    return rprof, rad, meta
-
-
 def plot_grid(step):
     """Plot cell position and thickness.
 
@@ -98,8 +60,7 @@ def plot_grid(step):
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
             instance.
     """
-    rad = get_rprof(step, 'r')[0]
-    drad = get_rprof(step, 'dr')[0]
+    drad, rad, _ = step.rprofs['dr']
     _, unit = step.sdat.scale(1, 'm')
     if unit:
         unit = ' ({})'.format(unit)
@@ -125,7 +86,7 @@ def plot_average(sdat, lovs):
         conf.core.snapshots: the slice of snapshots.
         conf.conf.timesteps: the slice of timesteps.
     """
-    steps_iter = iter(sdat.walk.filter(rprof=True))
+    steps_iter = iter(sdat.walk.filter(rprofs=True))
     try:
         step = next(steps_iter)
     except StopIteration:
@@ -141,26 +102,26 @@ def plot_average(sdat, lovs):
 
     # assume constant z spacing for the moment
     for rvar in sovs:
-        rprof_averaged[rvar], rad, metas[rvar] = get_rprof(step, rvar)
-        if rad is not None:
-            rads[rvar] = rad
+        rprof, rads[rvar], metas[rvar] = step.rprofs[rvar]
+        rprof_averaged[rvar] = np.copy(rprof)
 
     for step in steps_iter:
         nprofs += 1
         for rvar in sovs:
-            rprof_averaged[rvar] += get_rprof(step, rvar)[0]
+            rprof_averaged[rvar] += step.rprofs[rvar].values
 
     ilast = step.istep
     for rvar in sovs:
-        rprof_averaged[rvar] /= nprofs
-    rcmb, rsurf = misc.get_rbounds(step)
+        # cast to float so that division happens in place
+        rprof_averaged[rvar] = Rprof(rprof_averaged[rvar] / nprofs,
+                                     rads[rvar], metas[rvar])
+    rcmb, rsurf = step.rprofs.bounds
     rprof_averaged['bounds'] = (step.sdat.scale(rcmb, 'm')[0],
                                 step.sdat.scale(rsurf, 'm')[0])
-    rprof_averaged['r'] = get_rprof(step, 'r')[0] + rprof_averaged['bounds'][0]
 
     stepstr = '{}_{}'.format(istart, ilast)
 
-    _plot_rprof_list(sdat, lovs, rprof_averaged, metas, stepstr, rads)
+    _plot_rprof_list(sdat, lovs, rprof_averaged, stepstr)
 
 
 def plot_every_step(sdat, lovs):
@@ -177,24 +138,14 @@ def plot_every_step(sdat, lovs):
     """
     sovs = misc.set_of_vars(lovs)
 
-    for step in sdat.walk.filter(rprof=True):
-        rprofs = {}
-        rads = {}
-        metas = {}
-        for rvar in sovs:
-            rprof, rad, meta = get_rprof(step, rvar)
-            rprofs[rvar] = rprof
-            metas[rvar] = meta
-            if rad is not None:
-                rads[rvar] = rad
-        rprofs['bounds'] = misc.get_rbounds(step)
-        rcmb, rsurf = misc.get_rbounds(step)
+    for step in sdat.walk.filter(rprofs=True):
+        rprofs = {rvar: step.rprofs[rvar] for rvar in sovs}
+        rcmb, rsurf = step.rprofs.bounds
         rprofs['bounds'] = (step.sdat.scale(rcmb, 'm')[0],
                             step.sdat.scale(rsurf, 'm')[0])
-        rprofs['r'] = get_rprof(step, 'r')[0] + rprofs['bounds'][0]
         stepstr = str(step.istep)
 
-        _plot_rprof_list(sdat, lovs, rprofs, metas, stepstr, rads)
+        _plot_rprof_list(sdat, lovs, rprofs, stepstr)
 
 
 def cmd():
@@ -205,11 +156,9 @@ def cmd():
         conf.core
     """
     sdat = StagyyData()
-    if sdat.rprof is None:
-        return
 
     if conf.rprof.grid:
-        for step in sdat.walk.filter(rprof=True):
+        for step in sdat.walk.filter(rprofs=True):
             plot_grid(step)
 
     lovs = misc.list_of_vars(conf.rprof.plot)

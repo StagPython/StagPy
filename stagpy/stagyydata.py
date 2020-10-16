@@ -406,7 +406,7 @@ class _StepsView:
         self._items = items
         self._flt = {
             'snap': False,
-            'rprof': False,
+            'rprofs': False,
             'fields': [],
             'func': lambda _: True,
         }
@@ -422,7 +422,7 @@ class _StepsView:
                 items.append(repr(item))
         rep += '[{}]'.format(','.join(items))
         flts = []
-        for flt in ('snap', 'rprof', 'fields'):
+        for flt in ('snap', 'rprofs', 'fields'):
             if self._flt[flt]:
                 flts.append('{}={}'.format(flt, repr(self._flt[flt])))
         if self._flt['func'] is not self._dflt_func:
@@ -439,7 +439,11 @@ class _StepsView:
             return False
         okf = True
         okf = okf and (not self._flt['snap'] or step.isnap is not None)
-        okf = okf and (not self._flt['rprof'] or step.rprof is not None)
+        if self._flt['rprofs']:
+            try:
+                _ = step.rprofs.centers
+            except error.MissingDataError:
+                return False
         okf = okf and all(f in step.fields for f in self._flt['fields'])
         okf = okf and bool(self._flt['func'](step))
         return okf
@@ -451,7 +455,7 @@ class _StepsView:
         hence they do not compose. Each call to filter merely updates the
         relevant filters. For example, with this code::
 
-            view = sdat.steps[500:].filter(rprof=True, fields=['T'])
+            view = sdat.steps[500:].filter(rprofs=True, fields=['T'])
             view.filter(fields=[])
 
         the produced ``view``, when iterated, will generate the steps after the
@@ -460,7 +464,7 @@ class _StepsView:
 
         Args:
             snap (bool): the step must be a snapshot to pass.
-            rprof (bool): the step must have rprof data to pass.
+            rprofs (bool): the step must have rprofs data to pass.
             fields (list): list of fields that must be present to pass.
             func (function): arbitrary function taking a
                 :class:`~stagpy._step.Step` as argument and returning a True
@@ -601,7 +605,7 @@ class StagyyData:
             rproffile = self.filename('rprof.h5')
             self._stagdat['rprof'] = stagyyparsers.rprof_h5(
                 rproffile, list(phyvars.RPROF.keys()))
-            if self._stagdat['rprof'][0] is not None:
+            if self._stagdat['rprof'][1] is not None:
                 return self._stagdat['rprof']
             rproffile = self.filename('rprof.dat')
             if self.hdf5 and not rproffile.is_file():
@@ -610,15 +614,6 @@ class StagyyData:
             self._stagdat['rprof'] = stagyyparsers.rprof(
                 rproffile, list(phyvars.RPROF.keys()))
         return self._stagdat['rprof']
-
-    @property
-    def rprof(self):
-        """Radial profiles data.
-
-        This is a :class:`pandas.DataFrame` with a 2-level index (istep and iz)
-        and variable names as columns.
-        """
-        return self._rprof_and_times[0]
 
     @property
     def rtimes(self):

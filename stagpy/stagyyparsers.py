@@ -6,7 +6,7 @@ Note:
     of :class:`~stagpy.stagyydata.StagyyData`.
 """
 from functools import partial
-from itertools import product, repeat
+from itertools import product
 from operator import itemgetter
 from xml.etree import ElementTree as xmlET
 import re
@@ -112,11 +112,10 @@ def time_series_h5(timefile, colnames):
     return pdf.loc[~pdf.index.duplicated(keep='last')]
 
 
-def _extract_rsnap_isteps(rproffile):
-    """Extract istep and compute list of rows to delete."""
+def _extract_rsnap_isteps(rproffile, data):
+    """Extract istep, time and build separate rprof df."""
     step_regex = re.compile(r'^\*+step:\s*(\d+) ; time =\s*(\S+)')
-    isteps = []  # list of (istep, time, nz)
-    rows_to_del = set()
+    isteps = []  # list of (istep, time, df)
     line = ' '
     with rproffile.open() as stream:
         while line[0] != '*':
@@ -128,22 +127,19 @@ def _extract_rsnap_isteps(rproffile):
         iline = 0
         for line in stream:
             if line[0] == '*':
-                isteps.append((istep, time, nlines))
+                isteps.append((istep, time, data.iloc[iline - nlines:iline]))
                 match = step_regex.match(line)
                 istep = int(match.group(1))
                 time = float(match.group(2))
                 nlines = 0
                 # remove useless lines produced when run is restarted
-                nrows_to_del = 0
                 while isteps and istep <= isteps[-1][0]:
-                    nrows_to_del += isteps.pop()[-1]
-                rows_to_del = rows_to_del.union(
-                    range(iline - nrows_to_del, iline))
+                    isteps.pop()
             else:
                 nlines += 1
                 iline += 1
-        isteps.append((istep, time, nlines))
-    return isteps, rows_to_del
+        isteps.append((istep, time, data.iloc[iline - nlines:iline]))
+    return isteps
 
 
 def rprof(rproffile, colnames):
@@ -156,39 +152,32 @@ def rprof(rproffile, colnames):
     Args:
         rproffile (:class:`pathlib.Path`): path of the rprof.dat file.
         colnames (list of names): names of the variables expected in
-            :data:`rproffile` (may be modified).
+            :data:`rproffile`.
 
     Returns:
-        tuple of :class:`pandas.DataFrame`: (profs, times)
-            :data:`profs` are the radial profiles, with the variables in
-            columns and rows double-indexed with the time step and the radial
-            index of numerical cells.
+        tuple: (profs, times)
+            :data:`profs` is a dict mapping istep to radial profiles
+            :class:`pandas.DataFrame`.
 
             :data:`times` is the dimensionless time indexed by time steps.
     """
     if not rproffile.is_file():
-        return None, None
+        return {}, None
     data = pd.read_csv(rproffile, delim_whitespace=True, dtype=str,
                        header=None, comment='*', skiprows=1,
                        engine='c', memory_map=True,
                        error_bad_lines=False, warn_bad_lines=False)
     data = data.apply(pd.to_numeric, raw=True, errors='coerce')
 
-    isteps, rows_to_del = _extract_rsnap_isteps(rproffile)
-    if rows_to_del:
-        rows_to_keep = set(range(len(data))) - rows_to_del
-        data = data.take(list(rows_to_keep))
+    isteps = _extract_rsnap_isteps(rproffile, data)
 
-    id_arr = [[], []]
-    for istep, _, n_z in isteps:
-        id_arr[0].extend(repeat(istep, n_z))
-        id_arr[1].extend(range(n_z))
-
-    data.index = id_arr
-
-    ncols = data.shape[1]
-    _tidy_names(colnames, ncols)
-    data.columns = colnames
+    data = {}
+    for istep, _, step_df in isteps:
+        step_df.index = range(step_df.shape[0])  # check whether necessary
+        step_cols = list(colnames)
+        _tidy_names(step_cols, step_df.shape[1])
+        step_df.columns = step_cols
+        data[istep] = step_df
 
     df_times = pd.DataFrame(list(map(itemgetter(1), isteps)),
                             index=map(itemgetter(0), isteps))
@@ -207,38 +196,32 @@ def rprof_h5(rproffile, colnames):
             :data:`rproffile`.
 
     Returns:
-        tuple of :class:`pandas.DataFrame`: (profs, times)
-            :data:`profs` are the radial profiles, with the variables in
-            columns and rows double-indexed with the time step and the radial
-            index of numerical cells.
+        tuple: (profs, times)
+            :data:`profs` is a dict mapping istep to radial profiles
+            :class:`pandas.DataFrame`.
 
             :data:`times` is the dimensionless time indexed by time steps.
     """
     if not rproffile.is_file():
-        return None, None
+        return {}, None
     isteps = []
+    data = {}
     with h5py.File(rproffile, 'r') as h5f:
         dnames = sorted(dname for dname in h5f.keys()
                         if dname.startswith('rprof_'))
-        ncols = h5f['names'].shape[0]
         h5names = map(bytes.decode, h5f['names'][len(colnames):])
-        _tidy_names(colnames, ncols, h5names)
-        data = np.zeros((0, ncols))
         for dname in dnames:
             dset = h5f[dname]
-            data = np.concatenate((data, dset[()]))
-            isteps.append((dset.attrs['istep'], dset.attrs['time'],
-                           dset.shape[0]))
+            arr = dset[()]
+            istep = dset.attrs['istep']
+            step_cols = list(colnames)
+            _tidy_names(step_cols, arr.shape[1], h5names)  # check shape
+            data[istep] = pd.DataFrame(arr, columns=step_cols)
+            isteps.append((istep, dset.attrs['time']))
 
-    id_arr = [[], []]
-    for istep, _, n_z in isteps:
-        id_arr[0].extend(repeat(istep, n_z))
-        id_arr[1].extend(range(n_z))
-
-    df_data = pd.DataFrame(data, index=id_arr, columns=colnames)
     df_times = pd.DataFrame(list(map(itemgetter(1), isteps)),
                             index=map(itemgetter(0), isteps))
-    return df_data, df_times
+    return data, df_times
 
 
 def _clean_names_refstate(names):

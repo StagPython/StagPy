@@ -7,12 +7,13 @@ Note:
 """
 
 from collections.abc import Mapping
+from collections import namedtuple
 from itertools import chain
 import re
 
 import numpy as np
 
-from . import error, phyvars, stagyyparsers
+from . import error, misc, phyvars, stagyyparsers
 
 
 UNDETERMINED = object()
@@ -370,6 +371,103 @@ class _Tracers:
         raise TypeError('tracers collection is not iterable')
 
 
+Rprof = namedtuple('Rprof', ['values', 'rad', 'meta'])
+
+
+class _Rprofs:
+    """Radial profiles data structure.
+
+    The :attr:`Step.rprofs` attribute is an instance of this class.
+
+    :class:`_Rprofs` implements the getitem mechanism.  Keys are profile names
+    defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  An item is a named tuple
+    ('values', 'rad', 'meta'), respectively the profile itself, the radial
+    position at which it is evaluated, and meta is a
+    :class:`stagpy.phyvars.Varr` instance with relevant metadata.  Note that
+    profiles are automatically scaled if conf.scaling.dimensional is True.
+
+    Attributes:
+        step (:class:`Step`): the step object owning the :class:`_Rprofs`
+            instance
+    """
+
+    def __init__(self, step):
+        self.step = step
+        self._data = UNDETERMINED
+        self._centers = UNDETERMINED
+        self._walls = UNDETERMINED
+        self._bounds = UNDETERMINED
+
+    @property
+    def _rprofs(self):
+        if self._data is UNDETERMINED:
+            step = self.step
+            self._data = step.sdat._rprof_and_times[0].get(step.istep)
+            if self._data is None:
+                raise error.MissingDataError('No rprof data in step {} of {}'
+                                             .format(step.istep, step.sdat))
+        return self._data
+
+    def __getitem__(self, name):
+        step = self.step
+        if name in self._rprofs.columns:
+            rprof = self._rprofs[name].values
+            rad = self.centers
+            if name in phyvars.RPROF:
+                meta = phyvars.RPROF[name]
+            else:
+                meta = phyvars.Varr(name, None, '1')
+        elif name in phyvars.RPROF_EXTRA:
+            meta = phyvars.RPROF_EXTRA[name]
+            rprof, rad = meta.description(step)
+            meta = phyvars.Varr(misc.baredoc(meta.description),
+                                meta.kind, meta.dim)
+        else:
+            raise error.UnknownRprofVarError(name)
+        rprof, _ = step.sdat.scale(rprof, meta.dim)
+        rad, _ = step.sdat.scale(rad, 'm')
+
+        return Rprof(rprof, rad, meta)
+
+    @property
+    def centers(self):
+        """Radial position of cell centers."""
+        if self._centers is UNDETERMINED:
+            self._centers = self._rprofs['r'].values + self.bounds[0]
+        return self._centers
+
+    @property
+    def walls(self):
+        """Radial position of cell walls."""
+        if self._walls is UNDETERMINED:
+            rbot, rtop = self.bounds
+            centers = self.centers
+            # assume walls are mid-way between T-nodes
+            # could be T-nodes at center between walls
+            self._walls = (centers[:-1] + centers[1:]) / 2
+            self._walls = np.insert(self._walls, 0, rbot)
+            self._walls = np.append(self._walls, rtop)
+        return self._walls
+
+    @property
+    def bounds(self):
+        """Radial or vertical position of boundaries.
+
+        Radial/vertical positions of boundaries of the domain.
+        """
+        if self._bounds is UNDETERMINED:
+            step = self.step
+            if step.geom is not None:
+                rcmb = step.geom.rcmb
+            else:
+                rcmb = step.sdat.par['geometry']['r_cmb']
+                if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
+                    rcmb = 0
+            rcmb = max(rcmb, 0)
+            self._bounds = rcmb, rcmb + 1
+        return self._bounds
+
+
 class Step:
     """Time step data structure.
 
@@ -416,6 +514,7 @@ class Step:
         self.sfields = _Fields(self, phyvars.SFIELD, [],
                                phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5)
         self.tracers = _Tracers(self)
+        self.rprofs = _Rprofs(self)
         self._isnap = UNDETERMINED
 
     @property
@@ -437,16 +536,6 @@ class Step:
         if self.istep not in self.sdat.tseries.index:
             return None
         return self.sdat.tseries.loc[self.istep]
-
-    @property
-    def rprof(self):
-        """Radial profiles data of the time step.
-
-        Set to None if no radial profiles data is available for this time step.
-        """
-        if self.istep not in self.sdat.rprof.index.levels[0]:
-            return None
-        return self.sdat.rprof.loc[self.istep]
 
     @property
     def isnap(self):
