@@ -665,14 +665,14 @@ def _get_field(xdmf_file, data_item):
             h5f = xdmf_file.parent / '_'.join(h5file_parts)
             try:
                 fld = _read_group_h5(h5f, group).reshape(shp)
-            except OSError, KeyError:
+            except (OSError, KeyError):
                 pass
         if fld is None:
             h5file_parts[-2] = '{:05d}'.format(fnum + 1)
             h5f = xdmf_file.parent / '_'.join(h5file_parts)
             try:
                 fld = _read_group_h5(h5f, group).reshape(shp)
-            except OSError, KeyError:
+            except (OSError, KeyError):
                 pass
         if fld is None:
             raise
