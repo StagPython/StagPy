@@ -659,7 +659,7 @@ def _get_field(xdmf_file, data_item):
         # test previous/following snapshot files as their numbers can get
         # slightly out of sync between cores
         h5file_parts = h5file.split('_')
-        fnum = h5file_parts[-2]
+        fnum = int(h5file_parts[-2])
         if fnum > 0:
             h5file_parts[-2] = '{:05d}'.format(fnum - 1)
             h5f = xdmf_file.parent / '_'.join(h5file_parts)
