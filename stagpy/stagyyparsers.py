@@ -652,7 +652,30 @@ def _get_field(xdmf_file, data_item):
     shp = _get_dim(data_item)
     h5file, group = data_item.text.strip().split(':/', 1)
     icore = int(group.split('_')[-2]) - 1
-    fld = _read_group_h5(xdmf_file.parent / h5file, group).reshape(shp)
+    fld = None
+    try:
+        fld = _read_group_h5(xdmf_file.parent / h5file, group).reshape(shp)
+    except KeyError:
+        # test previous/following snapshot files as their numbers can get
+        # slightly out of sync between cores
+        h5file_parts = h5file.split('_')
+        fnum = h5file_parts[-2]
+        if fnum > 0:
+            h5file_parts[-2] = '{:05d}'.format(fnum - 1)
+            h5f = xdmf_file.parent / '_'.join(h5file_parts)
+            try:
+                fld = _read_group_h5(h5f, group).reshape(shp)
+            except OSError, KeyError:
+                pass
+        if fld is None:
+            h5file_parts[-2] = '{:05d}'.format(fnum + 1)
+            h5f = xdmf_file.parent / '_'.join(h5file_parts)
+            try:
+                fld = _read_group_h5(h5f, group).reshape(shp)
+            except OSError, KeyError:
+                pass
+        if fld is None:
+            raise
     return icore, fld
 
 
