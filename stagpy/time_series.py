@@ -92,6 +92,9 @@ def compstat(sdat, *names, tstart=None, tend=None):
             available data.
         tend (float): ending time. Set to None to stop at the end of available
             data.
+    Returns:
+        :class:`pandas.DataFrame`: computed statistics with 'mean' and 'rms' as
+            index and variable names as columns.
     """
     stats = pd.DataFrame(columns=names, index=['mean', 'rms'])
     for name in names:
@@ -101,7 +104,7 @@ def compstat(sdat, *names, tstart=None, tend=None):
         stats.loc['mean', name] = mean
         stats.loc['rms', name] = np.sqrt(np.trapz((data - mean)**2, x=time) /
                                          delta_time)
-    stats.to_csv('statistics.dat')
+    return stats
 
 
 def cmd():
@@ -130,4 +133,6 @@ def cmd():
 
     if conf.time.compstat:
         names = conf.time.compstat.replace(',', ' ').split()
-        compstat(sdat, *names, tstart=conf.time.tstart, tend=conf.time.tend)
+        stats = compstat(sdat, *names, tstart=conf.time.tstart,
+                         tend=conf.time.tend)
+        stats.to_csv('statistics.dat')
