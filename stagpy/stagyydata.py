@@ -180,6 +180,7 @@ class _Tseries:
     def __init__(self, sdat):
         self.sdat = sdat
         self._data = UNDETERMINED
+        self._cached_extra = {}
 
     @property
     def _tseries(self):
@@ -208,11 +209,14 @@ class _Tseries:
                 meta = phyvars.TIME[name]
             else:
                 meta = phyvars.Vart(name, None, '1')
+        elif name in self._cached_extra:
+            series, time, meta = self._cached_extra[name]
         elif name in phyvars.TIME_EXTRA:
             meta = phyvars.TIME_EXTRA[name]
             series, time = meta.description(self.sdat)
             meta = phyvars.Vart(misc.baredoc(meta.description),
                                 meta.kind, meta.dim)
+            self._cached_extra[name] = series, time, meta
         else:
             raise error.UnknownTimeVarError(name)
         series, _ = self.sdat.scale(series, meta.dim)

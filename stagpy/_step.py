@@ -394,6 +394,7 @@ class _Rprofs:
     def __init__(self, step):
         self.step = step
         self._data = UNDETERMINED
+        self._cached_extra = {}
         self._centers = UNDETERMINED
         self._walls = UNDETERMINED
         self._bounds = UNDETERMINED
@@ -417,11 +418,14 @@ class _Rprofs:
                 meta = phyvars.RPROF[name]
             else:
                 meta = phyvars.Varr(name, None, '1')
+        elif name in self._cached_extra:
+            rprof, rad, meta = self._cached_extra[name]
         elif name in phyvars.RPROF_EXTRA:
             meta = phyvars.RPROF_EXTRA[name]
             rprof, rad = meta.description(step)
             meta = phyvars.Varr(misc.baredoc(meta.description),
                                 meta.kind, meta.dim)
+            self._cached_extra[name] = rprof, rad, meta
         else:
             raise error.UnknownRprofVarError(name)
         rprof, _ = step.sdat.scale(rprof, meta.dim)

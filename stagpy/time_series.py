@@ -32,9 +32,6 @@ def plot_time_series(sdat, lovs):
         conf.time.tstart: the starting time.
         conf.time.tend: the ending time.
     """
-    sovs = misc.set_of_vars(lovs)
-    tseries = {tvar: sdat.tseries[tvar] for tvar in sovs}
-
     time_marks = _collect_marks(sdat)
     for vfig in lovs:
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
@@ -43,7 +40,7 @@ def plot_time_series(sdat, lovs):
         fname = ['time']
         for iplt, vplt in enumerate(vfig):
             ylabel = None
-            series_on_plt = (tseries[tvar] for tvar in vplt)
+            series_on_plt = (sdat.tseries[tvar] for tvar in vplt)
             fname.extend(vplt)
             for ivar, (series, time, meta) in enumerate(series_on_plt):
                 axes[iplt].plot(time, series, conf.time.style,
