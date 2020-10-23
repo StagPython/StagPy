@@ -1,7 +1,7 @@
 Installation
 ============
 
-You will need Python 3.5 or higher to use StagPy. StagPy is available on
+You will need Python 3.6 or higher to use StagPy. StagPy is available on
 the Python Package Index, via ``pip``.
 
 If Python3 is not installed on your system or you don't have sufficient
@@ -35,7 +35,7 @@ Make sure that the directory where ``pip`` install package entry-points
 (usually ``~/.local/bin``) is in your ``PATH`` environment variable.
 You can run ``python3 -m pip show stagpy`` to obtain some hint about this
 location (this command will show you were the compiled sources are installed,
-e.g. ``~/.local/lib/python3.5/site-packages``, from which you can deduce the
+e.g. ``~/.local/lib/python3.8/site-packages``, from which you can deduce the
 entry-point location, e.g. ``~/.local/bin``).
 
 See the `Some setup`_ subsection to enable autocompletion and create your
