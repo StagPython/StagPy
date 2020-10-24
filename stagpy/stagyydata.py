@@ -544,6 +544,7 @@ class _StepsView:
 
     @property
     def rprofs_averaged(self):
+        """Time-averaged radial profiles."""
         if self._rprofs_averaged is None:
             self._rprofs_averaged = _RprofsAveraged(self)
         return self._rprofs_averaged
