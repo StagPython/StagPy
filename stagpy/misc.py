@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 
 from . import conf
 
-INT_FMT = '{:05d}'
-
 
 def out_name(stem, timestep=None):
     """Return StagPy out file name.
@@ -29,7 +27,7 @@ def out_name(stem, timestep=None):
     if conf.core.shortname:
         return conf.core.outname
     if timestep is not None:
-        stem = (stem + INT_FMT).format(timestep)
+        stem = f'{stem}{timestep:05d}'
     return conf.core.outname + '_' + stem
 
 
@@ -45,8 +43,7 @@ def scilabel(value, precision=2):
     Returns:
         str: the scientific notation the specified value.
     """
-    fmt = f'{{:.{precision}e}}'
-    man, exp = fmt.format(value).split('e')
+    man, exp = f'{value:.{precision}e}'.split('e')
     exp = int(exp)
     return fr'{man}\times 10^{{{exp}}}'
 

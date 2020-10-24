@@ -20,12 +20,11 @@ def main():
     except error.StagpyError as err:
         if DEBUG:
             raise
+        errtype = type(err).__name__
         print('Oops! StagPy encountered the following problem while '
-              'processing your request.',
-              'Please check the path to your simulation and the command line '
-              'arguments.', '',
-              '{}: {}'.format(err.__class__.__name__, err),
-              sep='\n', file=sys.stderr)
+              'processing your request.', 'Please check the path to your '
+              'simulation and the command line arguments.', '',
+              f'{errtype}: {err}', sep='\n', file=sys.stderr)
         sys.exit()
 
 

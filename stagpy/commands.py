@@ -27,15 +27,11 @@ def info_cmd():
     lstep = sdat.steps[-1]
     print(f'StagYY run in {sdat.path}')
     if lsnap.geom.threed:
-        dimension = '{} x {} x {}'.format(lsnap.geom.nxtot,
-                                          lsnap.geom.nytot,
-                                          lsnap.geom.nztot)
+        dimension = '{0.nxtot} x {0.nytot} x {0.nztot}'.format(lsnap.geom)
     elif lsnap.geom.twod_xz:
-        dimension = '{} x {}'.format(lsnap.geom.nxtot,
-                                     lsnap.geom.nztot)
+        dimension = '{0.nxtot} x {0.nztot}'.format(lsnap.geom)
     else:
-        dimension = '{} x {}'.format(lsnap.geom.nytot,
-                                     lsnap.geom.nztot)
+        dimension = '{0.nytot} x {0.nztot}'.format(lsnap.geom)
     if lsnap.geom.cartesian:
         print('Cartesian', dimension)
     elif lsnap.geom.cylindrical:
