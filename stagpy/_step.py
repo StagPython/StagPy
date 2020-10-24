@@ -521,6 +521,12 @@ class Step:
         self.rprofs = _Rprofs(self)
         self._isnap = UNDETERMINED
 
+    def __repr__(self):
+        if self.isnap is not None:
+            return f'{self.sdat!r}.snaps[{self.isnap}]'
+        else:
+            return f'{self.sdat!r}.steps[{self.istep}]'
+
     @property
     def geom(self):
         """Geometry information.
