@@ -1,10 +1,9 @@
 """Plot radial profiles."""
+import re
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from . import conf, misc
-from ._step import Rprof
 from .stagyydata import StagyyData
 
 
@@ -86,40 +85,20 @@ def plot_average(sdat, lovs):
         conf.core.snapshots: the slice of snapshots.
         conf.conf.timesteps: the slice of timesteps.
     """
-    steps_iter = iter(sdat.walk.filter(rprofs=True))
-    try:
-        step = next(steps_iter)
-    except StopIteration:
-        return
+    reg = re.compile(
+        r'^StagyyData\(.*\)\.(steps|snaps)\[(.*)\](?:.filter\(.*\))?$')
+    stepstr = repr(sdat.walk)
+    stepstr = '_'.join(reg.match(stepstr).groups())
+    rprofs = sdat.walk.rprofs_averaged
 
     sovs = misc.set_of_vars(lovs)
 
-    istart = step.istep
-    nprofs = 1
-    rprof_averaged = {}
-    rads = {}
-    metas = {}
+    rprof_averaged = {rvar: rprofs[rvar] for rvar in sovs}
 
-    # assume constant z spacing for the moment
-    for rvar in sovs:
-        rprof, rads[rvar], metas[rvar] = step.rprofs[rvar]
-        rprof_averaged[rvar] = np.copy(rprof)
-
-    for step in steps_iter:
-        nprofs += 1
-        for rvar in sovs:
-            rprof_averaged[rvar] += step.rprofs[rvar].values
-
-    ilast = step.istep
-    for rvar in sovs:
-        # cast to float so that division happens in place
-        rprof_averaged[rvar] = Rprof(rprof_averaged[rvar] / nprofs,
-                                     rads[rvar], metas[rvar])
-    rcmb, rsurf = step.rprofs.bounds
+    rcmb, rsurf = rprofs.bounds
+    step = rprofs.step
     rprof_averaged['bounds'] = (step.sdat.scale(rcmb, 'm')[0],
                                 step.sdat.scale(rsurf, 'm')[0])
-
-    stepstr = f'{istart}_{ilast}'
 
     _plot_rprof_list(sdat, lovs, rprof_averaged, stepstr)
 

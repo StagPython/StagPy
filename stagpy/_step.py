@@ -404,9 +404,10 @@ class _Rprofs:
         if self._data is UNDETERMINED:
             step = self.step
             self._data = step.sdat._rprof_and_times[0].get(step.istep)
-            if self._data is None:
-                raise error.MissingDataError(
-                    f'No rprof data in step {step.istep} of {step.sdat}')
+        if self._data is None:
+            step = self.step
+            raise error.MissingDataError(
+                f'No rprof data in step {step.istep} of {step.sdat}')
         return self._data
 
     def __getitem__(self, name):

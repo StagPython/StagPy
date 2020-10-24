@@ -12,6 +12,8 @@ import pathlib
 from collections import namedtuple
 from itertools import zip_longest
 
+import numpy as np
+
 from . import conf, error, misc, parfile, phyvars, stagyyparsers, _step
 from ._step import UNDETERMINED
 
@@ -259,6 +261,43 @@ class _Tseries:
         return self._tseries.loc[istep]
 
 
+class _RprofsAveraged(_step._Rprofs):
+    """Radial profiles time-averaged over a :class:`_StepsView`.
+
+    The :attr:`_StepsView.rprofs_averaged` attribute is an instance of this
+    class.
+
+    It implements the same interface as :class:`~stagpy._step._Rprofs` but
+    returns time-averaged profiles instead.
+
+    Attributes:
+        steps (:class:`_StepsView`): the object owning the
+            :class:`_RprofsAveraged` instance
+    """
+
+    def __init__(self, steps):
+        self.steps = steps.filter(rprofs=True)
+        self._cached_data = {}
+        super().__init__(next(iter(self.steps)))
+
+    def __getitem__(self, name):
+        # the averaging method has two shortcomings:
+        # - does not take into account time changing geometry;
+        # - does not take into account time changing timestep.
+        if name in self._cached_data:
+            return self._cached_data[name]
+        steps_iter = iter(self.steps)
+        rprof, rad, meta = next(steps_iter).rprofs[name]
+        rprof = np.copy(rprof)
+        nprofs = 1
+        for step in steps_iter:
+            nprofs += 1
+            rprof += step.rprofs[name].values
+        rprof /= nprofs
+        self._cached_data[name] = _step.Rprof(rprof, rad, meta)
+        return self._cached_data[name]
+
+
 class _Steps:
     """Collections of time steps.
 
@@ -494,6 +533,7 @@ class _StepsView:
     def __init__(self, steps_col, items):
         self._col = steps_col
         self._items = items
+        self._rprofs_averaged = None
         self._flt = {
             'snap': False,
             'rprofs': False,
@@ -501,6 +541,12 @@ class _StepsView:
             'func': lambda _: True,
         }
         self._dflt_func = self._flt['func']
+
+    @property
+    def rprofs_averaged(self):
+        if self._rprofs_averaged is None:
+            self._rprofs_averaged = _RprofsAveraged(self)
+        return self._rprofs_averaged
 
     def __repr__(self):
         rep = repr(self._col)
