@@ -40,9 +40,8 @@ def info_cmd():
         print('Spherical', dimension)
     print()
     for step in sdat.walk:
-        is_snap = step.isnap is not None
         print(f'Step {step.istep}/{lstep.istep}', end='')
-        if is_snap:
+        if step.isnap is not None:
             print(f', snapshot {step.isnap}/{lsnap.isnap}')
         else:
             print()
