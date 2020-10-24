@@ -25,7 +25,7 @@ def info_cmd():
     sdat = stagyydata.StagyyData()
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
-    print('StagYY run in {}'.format(sdat.path))
+    print(f'StagYY run in {sdat.path}')
     if lsnap.geom.threed:
         dimension = '{} x {} x {}'.format(lsnap.geom.nxtot,
                                           lsnap.geom.nytot,
@@ -45,9 +45,9 @@ def info_cmd():
     print()
     for step in sdat.walk:
         is_snap = step.isnap is not None
-        print('Step {}/{}'.format(step.istep, lstep.istep), end='')
+        print(f'Step {step.istep}/{lstep.istep}', end='')
         if is_snap:
-            print(', snapshot {}/{}'.format(step.isnap, lsnap.isnap))
+            print(f', snapshot {step.isnap}/{lsnap.isnap}')
         else:
             print()
         series = step.timeinfo.loc[varlist]
@@ -95,7 +95,7 @@ def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
             wrapper.subsequent_indent = ' '
         else:
             wrapper.subsequent_indent = ' ' * (len(key) + len(sep))
-        lines.extend(wrapper.wrap('{}{}{}'.format(key, sep, val)))
+        lines.extend(wrapper.wrap(f'{key}{sep}{val}'))
 
     chunks = []
     for rem_col in range(ncols, 1, -1):
@@ -107,7 +107,7 @@ def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
     chunks.append(lines)
     lines = zip_longest(*chunks, fillvalue='')
 
-    fmt = '|'.join(['{{:{}}}'.format(colw)] * (ncols - 1))
+    fmt = '|'.join([f'{{:{colw}}}'] * (ncols - 1))
     fmt += '|{}' if ncols > 1 else '{}'
     print(*(fmt.format(*line) for line in lines), sep='\n')
 
@@ -157,7 +157,7 @@ def version_cmd():
 
     Use :data:`stagpy.__version__` to obtain the version in a script.
     """
-    print('stagpy version: {}'.format(__version__))
+    print(f'stagpy version: {__version__}')
 
 
 def report_parsing_problems(parsing_out):
@@ -191,7 +191,7 @@ def config_pp(subs):
                 opt += ' (c)' if meta.cmd_arg else ' (f)'
             hlp_lst.append((opt, meta.help))
         if hlp_lst:
-            print('{}:'.format(sub))
+            print(f'{sub}:')
             _pretty_print(hlp_lst, sep=' -- ',
                           text_width=min(get_terminal_size().columns, 100))
             print()

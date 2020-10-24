@@ -16,7 +16,7 @@ def _actual_index(arg):
     if ':' in arg:
         idxs = arg.split(':')
         if len(idxs) > 3:
-            raise ValueError('{} is an invalid slice'.format(arg))
+            raise ValueError(f'{arg} is an invalid slice')
         idxs[0] = int(idxs[0]) if idxs[0] else None
         idxs[1] = int(idxs[1]) if idxs[1] else None
         if len(idxs) == 3:

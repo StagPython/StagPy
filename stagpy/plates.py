@@ -480,7 +480,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
 
 def io_surface(timestep, time, fid, fld):
     """Output surface files."""
-    fid.write("{} {}".format(timestep, time))
+    fid.write(f"{timestep} {time}")
     fid.writelines(["%10.2e" % item for item in fld[:]])
     fid.writelines(["\n"])
 
@@ -839,4 +839,4 @@ def cmd():
             plt.plot(time, nb_plates)
             plt.subplot(122)
             plt.plot(time, ch2o)
-            misc.saveplot(figt, 'plates_{}_{}'.format(istart, iend))
+            misc.saveplot(figt, f'plates_{istart}_{iend}')

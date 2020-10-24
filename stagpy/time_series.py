@@ -55,7 +55,7 @@ def plot_time_series(sdat, lovs):
             if ylabel:
                 _, unit = sdat.scale(1, meta.dim)
                 if unit:
-                    ylabel += ' ({})'.format(unit)
+                    ylabel += f' ({unit})'
                 axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_yscale('log')
@@ -67,7 +67,7 @@ def plot_time_series(sdat, lovs):
                 axes[iplt].axvline(time_mark, color='black', linestyle='--')
         _, unit = sdat.scale(1, 's')
         if unit:
-            unit = ' ({})'.format(unit)
+            unit = f' ({unit})'
         axes[-1].set_xlabel('Time' + unit)
         time = sdat.tseries.tslice(
             't', conf.time.tstart, conf.time.tend).values

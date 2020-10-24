@@ -229,8 +229,8 @@ class _Fields(Mapping):
         else:
             raise error.UnknownFieldVarError(name)
         if parsed_data is None:
-            raise error.MissingDataError('Missing field {} in step {}'
-                                         .format(name, self.step.istep))
+            raise error.MissingDataError(
+                f'Missing field {name} in step {self.step.istep}')
         header, fields = parsed_data
         self._header = header
         for fld_name, fld in zip(fld_names, fields):
@@ -405,8 +405,8 @@ class _Rprofs:
             step = self.step
             self._data = step.sdat._rprof_and_times[0].get(step.istep)
             if self._data is None:
-                raise error.MissingDataError('No rprof data in step {} of {}'
-                                             .format(step.istep, step.sdat))
+                raise error.MissingDataError(
+                    f'No rprof data in step {step.istep} of {step.sdat}')
         return self._data
 
     def __getitem__(self, name):
