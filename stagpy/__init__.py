@@ -86,8 +86,7 @@ def load_mplstyle():
             try:
                 plt.style.use(style)
             except OSError:
-                print('Cannot import style {}.'.format(style),
-                      file=sys.stderr)
+                print(f'Cannot import style {style}.', file=sys.stderr)
                 conf.plot.mplstyle = ''
     if conf.plot.xkcd:
         plt.xkcd()

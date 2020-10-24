@@ -17,10 +17,10 @@ def plot_ref(sdat, var):
     fig, axis = plt.subplots()
     adbts = sdat.refstate.adiabats
     if len(adbts) > 2:
-        for iad, adia in enumerate(adbts[:-1]):
+        for iad, adia in enumerate(adbts[:-1], 1):
             axis.plot(adia[var], adia['z'],
                       conf.refstate.style,
-                      label='System {}'.format(iad + 1))
+                      label=f'System {iad}')
     axis.plot(adbts[-1][var], adbts[-1]['z'],
               conf.refstate.style, color='k',
               label='Combined profile')
@@ -30,7 +30,7 @@ def plot_ref(sdat, var):
     axis.set_ylabel('z Position')
     if len(adbts) > 2:
         axis.legend()
-    misc.saveplot(fig, 'refstate_{}'.format(var))
+    misc.saveplot(fig, f'refstate_{var}')
 
 
 def cmd():

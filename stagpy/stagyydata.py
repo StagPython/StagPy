@@ -197,8 +197,7 @@ class _Tseries:
             self._data = stagyyparsers.time_series(timefile,
                                                    list(phyvars.TIME.keys()))
             if self._data is None:
-                raise error.MissingDataError('No tseries data in {}'
-                                             .format(self.sdat))
+                raise error.MissingDataError(f'No tseries data in {self.sdat}')
         return self._data
 
     def __getitem__(self, name):
@@ -299,7 +298,7 @@ class _Steps:
         self._data = {}
 
     def __repr__(self):
-        return '{}.steps'.format(repr(self.sdat))
+        return f'{self.sdat!r}.steps'
 
     def __getitem__(self, istep):
         keys = _as_view_item(istep)
@@ -316,7 +315,7 @@ class _Steps:
                 istep -= len(self)
                 raise error.InvalidTimestepError(
                     self.sdat, istep,
-                    'Last istep is {}'.format(len(self) - 1))
+                    f'Last istep is {len(self) - 1}')
         if istep not in self._data:
             self._data[istep] = _step.Step(istep, self.sdat)
         return self._data[istep]
@@ -383,7 +382,7 @@ class _Snaps(_Steps):
         super().__init__(sdat)
 
     def __repr__(self):
-        return '{}.snaps'.format(repr(self.sdat))
+        return f'{self.sdat!r}.snaps'
 
     def __getitem__(self, isnap):
         keys = _as_view_item(isnap)
@@ -427,8 +426,7 @@ class _Snaps(_Steps):
             if self._len < 0:
                 out_stem = re.escape(pathlib.Path(
                     self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
-                rgx = re.compile(
-                    '^{}_([a-zA-Z]+)([0-9]{{5}})$'.format(out_stem))
+                rgx = re.compile(f'^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$')
                 fstems = set(fstem for fstem in phyvars.FIELD_FILES)
                 for fname in self.sdat._files:
                     match = rgx.match(fname.name)
@@ -516,9 +514,9 @@ class _StepsView:
         flts = []
         for flt in ('snap', 'rprofs', 'fields'):
             if self._flt[flt]:
-                flts.append('{}={}'.format(flt, repr(self._flt[flt])))
+                flts.append(f'{flt}={self._flt[flt]!r}')
         if self._flt['func'] is not self._dflt_func:
-            flts.append('func={}'.format(repr(self._flt['func'])))
+            flts.append(f"func={self._flt['func']!r}")
         if flts:
             rep += '.filter({})'.format(', '.join(flts))
         return rep
@@ -629,10 +627,10 @@ class StagyyData:
         self._collected_fields = []
 
     def __repr__(self):
-        return 'StagyyData({})'.format(repr(self.path))
+        return f'StagyyData({self.path!r})'
 
     def __str__(self):
-        return 'StagyyData in {}'.format(self.path)
+        return f'StagyyData in {self.path}'
 
     @property
     def path(self):
@@ -781,7 +779,7 @@ class StagyyData:
             with the provided segments.
         """
         if timestep is not None:
-            fname += '{:05d}'.format(timestep)
+            fname += f'{timestep:05d}'
         fname += suffix
         if not force_legacy and self.hdf5:
             fpath = self.hdf5 / fname

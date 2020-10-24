@@ -36,7 +36,7 @@ def _plot_rprof_list(sdat, lovs, rprofs, stepstr):
             if xlabel:
                 _, unit = sdat.scale(1, meta.dim)
                 if unit:
-                    xlabel += ' ({})'.format(unit)
+                    xlabel += f' ({unit})'
                 axes[iplt].set_xlabel(xlabel)
             if vplt[0][:3] == 'eta':  # list of log variables
                 axes[iplt].set_xscale('log')
@@ -46,7 +46,7 @@ def _plot_rprof_list(sdat, lovs, rprofs, stepstr):
         ylabel = 'Depth' if conf.rprof.depth else 'Radius'
         _, unit = sdat.scale(1, 'm')
         if unit:
-            ylabel += ' ({})'.format(unit)
+            ylabel += f' ({unit})'
         axes[0].set_ylabel(ylabel)
         misc.saveplot(fig, fname + stepstr)
 
@@ -63,7 +63,7 @@ def plot_grid(step):
     drad, rad, _ = step.rprofs['dr']
     _, unit = step.sdat.scale(1, 'm')
     if unit:
-        unit = ' ({})'.format(unit)
+        unit = f' ({unit})'
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(rad, '-ko')
     ax1.set_ylabel('$r$' + unit)
@@ -119,7 +119,7 @@ def plot_average(sdat, lovs):
     rprof_averaged['bounds'] = (step.sdat.scale(rcmb, 'm')[0],
                                 step.sdat.scale(rsurf, 'm')[0])
 
-    stepstr = '{}_{}'.format(istart, ilast)
+    stepstr = f'{istart}_{ilast}'
 
     _plot_rprof_list(sdat, lovs, rprof_averaged, stepstr)
 

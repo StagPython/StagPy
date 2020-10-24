@@ -45,10 +45,10 @@ def scilabel(value, precision=2):
     Returns:
         str: the scientific notation the specified value.
     """
-    fmt = '{{:.{}e}}'.format(precision)
+    fmt = f'{{:.{precision}e}}'
     man, exp = fmt.format(value).split('e')
     exp = int(exp)
-    return r'{}\times 10^{{{}}}'.format(man, exp)
+    return fr'{man}\times 10^{{{exp}}}'
 
 
 def saveplot(fig, *name_args, close=True, **name_kwargs):
@@ -64,7 +64,7 @@ def saveplot(fig, *name_args, close=True, **name_kwargs):
         name_kwargs: keyword arguments passed on to :func:`out_name`.
     """
     oname = out_name(*name_args, **name_kwargs)
-    fig.savefig('{}.{}'.format(oname, conf.plot.format),
+    fig.savefig(f'{oname}.{conf.plot.format}',
                 format=conf.plot.format, bbox_inches='tight')
     if close:
         plt.close(fig)
@@ -160,7 +160,7 @@ class InchoateFiles:
     """
 
     def __init__(self, nfiles=1, tmp_prefix=None):
-        self._fnames = ['inchoate{}'.format(i) for i in range(nfiles)]
+        self._fnames = [f'inchoate{i}' for i in range(nfiles)]
         self._tmpprefix = tmp_prefix
         self._fids = []
 

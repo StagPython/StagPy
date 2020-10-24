@@ -7,15 +7,15 @@ with open('README.rst') as rdm:
 
 DEPENDENCIES = [
     'loam>=0.3.1',
-    'f90nml>=1.0.2',
-    'setuptools_scm>=1.15',
+    'f90nml>=1.2',
+    'setuptools_scm>=4.1',
 ]
 HEAVY = [
-    'numpy>=1.12',
-    'scipy>=1.0',
-    'pandas>=0.22',
-    'h5py>=2.7.1',
-    'matplotlib>=3.0',
+    'numpy>=1.19',
+    'scipy>=1.5',
+    'pandas>=1.1',
+    'h5py>=2.10',
+    'matplotlib>=3.3',
 ]
 
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
@@ -41,13 +41,12 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
 
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     packages=['stagpy'],
     entry_points={
         'console_scripts': ['stagpy = stagpy.__main__:main']
