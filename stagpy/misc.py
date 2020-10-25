@@ -105,19 +105,6 @@ def list_of_vars(arg_plot):
     return [lov for lov in lovs if lov]
 
 
-def set_of_vars(lovs):
-    """Build set of variables from list.
-
-    Args:
-        lovs: nested lists of variables such as the one produced by
-            :func:`list_of_vars`.
-    Returns:
-        set of str: flattened set of all the variables present in the
-        nested lists.
-    """
-    return set(var for pvars in lovs for svars in pvars for var in svars)
-
-
 def find_in_sorted_arr(value, array, after=False):
     """Return position of element in a sorted array.
 
