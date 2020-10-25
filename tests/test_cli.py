@@ -1,3 +1,4 @@
+import re
 import pytest
 import subprocess
 
@@ -62,3 +63,9 @@ def test_rprof_cli(all_cmd_rprof, tmpdir):
 
 def test_time_cli(all_cmd_time, tmpdir):
     helper_test_cli(all_cmd_time, tmpdir)
+
+
+def test_err_cli():
+    subp = subprocess.run('stagpy field', shell=True, capture_output=True)
+    reg = re.compile(br'^Oops!.*\nPlease.*\n\nNoParFileError.*$')
+    assert reg.match(subp.stderr)

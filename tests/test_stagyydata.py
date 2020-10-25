@@ -93,5 +93,8 @@ def test_geom_refs(step):
     assert step.geom is step.fields.geom
 
 
-def test_geom_twod(step):
+def test_geom(step):
     assert step.geom.twod
+    assert not step.geom.threed
+    assert not step.geom.yinyang
+    assert step.geom.cartesian is not step.geom.spherical

@@ -1,5 +1,19 @@
+import pytest
+import stagpy.error
 import stagpy.field
 import stagpy.phyvars
+
+
+def test_field_unknow(step):
+    with pytest.raises(stagpy.error.UnknownFieldVarError):
+        step.fields['InvalidField']
+    assert 'InvalidField' not in step.fields
+
+
+def test_field_missing(step):
+    with pytest.raises(stagpy.error.MissingDataError):
+        step.fields['rsc']
+    assert 'rsc' not in step.fields
 
 
 def test_valid_field_var():
