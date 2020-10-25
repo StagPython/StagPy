@@ -66,6 +66,6 @@ def test_time_cli(all_cmd_time, tmpdir):
 
 
 def test_err_cli():
-    subp = subprocess.run('stagpy field', shell=True, capture_output=True)
+    subp = subprocess.run('stagpy field', shell=True, stderr=subprocess.PIPE)
     reg = re.compile(br'^Oops!.*\nPlease.*\n\nNoParFileError.*$')
     assert reg.match(subp.stderr)
