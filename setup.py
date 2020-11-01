@@ -14,7 +14,7 @@ HEAVY = [
     'numpy>=1.19',
     'scipy>=1.5',
     'pandas>=1.1',
-    'h5py>=2.10',
+    'h5py>=3.0',
     'matplotlib>=3.3',
 ]
 

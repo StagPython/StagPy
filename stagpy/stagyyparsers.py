@@ -103,7 +103,7 @@ def time_series_h5(timefile, colnames):
         dset = h5f['tseries']
         _, ncols = dset.shape
         ncols -= 1  # first is istep
-        h5names = map(bytes.decode, h5f['names'][len(colnames) + 1:])
+        h5names = h5f['names'].asstr()[len(colnames) + 1:]
         _tidy_names(colnames, ncols, h5names)
         data = dset[()]
     pdf = pd.DataFrame(data[:, 1:],
@@ -209,7 +209,7 @@ def rprof_h5(rproffile, colnames):
     with h5py.File(rproffile, 'r') as h5f:
         dnames = sorted(dname for dname in h5f.keys()
                         if dname.startswith('rprof_'))
-        h5names = map(bytes.decode, h5f['names'][len(colnames):])
+        h5names = h5f['names'].asstr()[len(colnames):]
         for dname in dnames:
             dset = h5f[dname]
             arr = dset[()]
