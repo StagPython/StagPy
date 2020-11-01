@@ -1,9 +1,6 @@
 """Miscellaneous definitions."""
 
 from inspect import getdoc
-import pathlib
-import shutil
-import tempfile
 
 import matplotlib.pyplot as plt
 
@@ -152,82 +149,3 @@ class CachedReadOnlyProperty:
     def __set__(self, instance, _):
         raise AttributeError(
             f'Cannot set {self._name} property of {instance!r}')
-
-
-class InchoateFiles:
-    """Context manager handling files whose names are not known yet.
-
-    Example:
-        InchoateFiles is used here to manage three files::
-
-            with InchoateFiles(3) as incho:
-                # for convenience, incho[x] is the same as incho.fids[x]
-                incho[0].write('First file')
-                incho[1].write('Second file')
-                incho[2].write('Third file')
-
-                # the three files will be named 'tata', 'titi' and 'toto'
-                incho.fnames = ['tata', 'titi', 'toto']
-
-    Args:
-        nfiles (int): number of files. Defaults to 1.
-        tmp_prefix (str): prefix name of temporary files. Use this
-            parameter if you want to easily track down the temporary files
-            created by the manager.
-    """
-
-    def __init__(self, nfiles=1, tmp_prefix=None):
-        self._fnames = [f'inchoate{i}' for i in range(nfiles)]
-        self._tmpprefix = tmp_prefix
-        self._fids = []
-
-    @property
-    def fids(self):
-        """List of files id.
-
-        Use this to perform operations on files when the context manager is
-        used. :meth:`InchoateFiles.__getitem__` is implemented in order to
-        provide direct access to this property content (``self[x]`` is the
-        same as ``self.fids[x]``).
-        """
-        return self._fids
-
-    @property
-    def fnames(self):
-        """List of filenames.
-
-        Set this to the list of final filenames before exiting the context
-        manager. If this list is not set by the user, the produced files will
-        be named ``'inchoateN'`` with ``N`` the index of the file. If the list
-        of names you set is too long, it will be truncated. If it is too short,
-        extra files will be named ``'inchoateN'``.
-        """
-        return self._fnames
-
-    @fnames.setter
-    def fnames(self, names):
-        """Ensure constant size of fnames."""
-        names = list(names[:len(self._fnames)])
-        self._fnames = names + self._fnames[len(names):]
-
-    def __getitem__(self, idx):
-        return self._fids[idx]
-
-    def __enter__(self):
-        """Create temporary files."""
-        for fname in self.fnames:
-            pfx = fname if self._tmpprefix is None else self._tmpprefix
-            self._fids.append(
-                tempfile.NamedTemporaryFile(
-                    mode='w', prefix=pfx, delete=False))
-        return self
-
-    def __exit__(self, *exc_info):
-        """Give temporary files their final names."""
-        for tmp in self._fids:
-            tmp.close()
-        if exc_info[0] is None:
-            for fname, tmp in zip(self.fnames, self._fids):
-                shutil.copyfile(tmp.name, fname)
-        for tmp in self._fids:
-            pathlib.Path(tmp.name).unlink()

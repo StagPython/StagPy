@@ -1,6 +1,6 @@
 """Plate analysis."""
 
-import pathlib
+from contextlib import ExitStack
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -611,19 +611,19 @@ def main_plates(sdat):
         isurf = -1
         vrms_surface = uprof_averaged.iloc[isurf]
 
-    with misc.InchoateFiles(8, 'plates') as fids:
-        fids.fnames = ['plate_velocity', 'distance_subd', 'continents',
-                       'flux', 'topography', 'age', 'velderiv', 'velocity']
+    # determine names of files
+    fnames = ['plate_velocity', 'distance_subd', 'continents',
+              'flux', 'topography', 'age', 'velderiv', 'velocity']
+    fnames = [f'plates_{stem}_{sdat.walk.stepstr}' for stem in fnames]
+    with ExitStack() as stack:
+        fids = [stack.enter_context(open(fname)) for fname in fnames]
         fids[0].write('#  it  time  ph_trench vel_trench age_trench\n')
         fids[1].write('#  it      time   time [My]   distance     '
                       'ph_trench     ph_cont  age_trench [My]\n')
 
-        istart, iend = None, None
         for step in sdat.walk.filter(fields=['T']):
             # could check other fields too
             timestep = step.isnap
-            istart = timestep if istart is None else istart
-            iend = timestep
             print('Treating snapshot', timestep)
 
             rcmb = step.geom.rcmb
@@ -759,17 +759,6 @@ def main_plates(sdat):
                 plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
                 misc.saveplot(fig, 'sx', timestep)
-
-        # determine names of files
-        ptn = misc.out_name('{}_{}_{}')
-        stem = ptn.format(fids.fnames[0], istart, iend)
-        idx = 0
-        fmt = '{}.dat'
-        while pathlib.Path(fmt.format(stem, idx)).is_file():
-            fmt = '{}_{}.dat'
-            idx += 1
-        fids.fnames = [fmt.format(ptn.format(fname, istart, iend), idx)
-                       for fname in fids.fnames]
 
 
 def cmd():
