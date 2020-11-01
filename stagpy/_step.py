@@ -14,13 +14,7 @@ import re
 import numpy as np
 
 from . import error, misc, phyvars, stagyyparsers
-
-
-UNDETERMINED = object()
-# dummy object with a unique identifier,
-# useful to mark stuff as yet undetermined,
-# as opposed to either some value or None if
-# non existent
+from .misc import CachedReadOnlyProperty as crop
 
 
 class _Geometry:
@@ -209,8 +203,6 @@ class _Fields(Mapping):
 
     def __init__(self, step, variables, extravars, files, filesh5):
         self.step = step
-        self._header = UNDETERMINED
-        self._geom = UNDETERMINED
         self._vars = variables
         self._extra = extravars
         self._files = files
@@ -232,7 +224,7 @@ class _Fields(Mapping):
             raise error.MissingDataError(
                 f'Missing field {name} in step {self.step.istep}')
         header, fields = parsed_data
-        self._header = header
+        self._cropped__header = header
         for fld_name, fld in zip(fld_names, fields):
             if self._header['xyp'] == 0:
                 if not self.geom.twod_yz:
@@ -281,7 +273,6 @@ class _Fields(Mapping):
             if filestem in phyvars.SFIELD_FILES_H5:
                 xmff = 'Data{}.xmf'.format(
                     'Bottom' if name.endswith('bot') else 'Surface')
-                _ = self.geom
                 header = self._header
             else:
                 xmff = 'Data.xmf'
@@ -304,7 +295,16 @@ class _Fields(Mapping):
         if name in self._data:
             del self._data[name]
 
-    @property
+    @crop
+    def _header(self):
+        binfiles = self.step.sdat._binfiles_set(self.step.isnap)
+        if binfiles:
+            return stagyyparsers.fields(binfiles.pop(), only_header=True)
+        elif self.step.sdat.hdf5:
+            xmf = self.step.sdat.hdf5 / 'Data.xmf'
+            return stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]
+
+    @crop
     def geom(self):
         """Geometry information.
 
@@ -312,23 +312,8 @@ class _Fields(Mapping):
         issued from binary files holding field information. It is set to
         None if not available for this time step.
         """
-        if self._header is UNDETERMINED:
-            binfiles = self.step.sdat._binfiles_set(self.step.isnap)
-            if binfiles:
-                self._header = stagyyparsers.fields(binfiles.pop(),
-                                                    only_header=True)
-            elif self.step.sdat.hdf5:
-                xmf = self.step.sdat.hdf5 / 'Data.xmf'
-                self._header, _ = stagyyparsers.read_geom_h5(xmf,
-                                                             self.step.isnap)
-            else:
-                self._header = None
-        if self._geom is UNDETERMINED:
-            if self._header is None:
-                self._geom = None
-            else:
-                self._geom = _Geometry(self._header, self.step.sdat.par)
-        return self._geom
+        if self._header is not None:
+            return _Geometry(self._header, self.step.sdat.par)
 
 
 class _Tracers:
@@ -393,17 +378,15 @@ class _Rprofs:
 
     def __init__(self, step):
         self.step = step
-        self._data = UNDETERMINED
         self._cached_extra = {}
-        self._centers = UNDETERMINED
-        self._walls = UNDETERMINED
-        self._bounds = UNDETERMINED
+
+    @crop
+    def _data(self):
+        step = self.step
+        return step.sdat._rprof_and_times[0].get(step.istep)
 
     @property
     def _rprofs(self):
-        if self._data is UNDETERMINED:
-            step = self.step
-            self._data = step.sdat._rprof_and_times[0].get(step.istep)
         if self._data is None:
             step = self.step
             raise error.MissingDataError(
@@ -434,43 +417,38 @@ class _Rprofs:
 
         return Rprof(rprof, rad, meta)
 
-    @property
+    @crop
     def centers(self):
         """Radial position of cell centers."""
-        if self._centers is UNDETERMINED:
-            self._centers = self._rprofs['r'].values + self.bounds[0]
-        return self._centers
+        return self._rprofs['r'].values + self.bounds[0]
 
-    @property
+    @crop
     def walls(self):
         """Radial position of cell walls."""
-        if self._walls is UNDETERMINED:
-            rbot, rtop = self.bounds
-            centers = self.centers
-            # assume walls are mid-way between T-nodes
-            # could be T-nodes at center between walls
-            self._walls = (centers[:-1] + centers[1:]) / 2
-            self._walls = np.insert(self._walls, 0, rbot)
-            self._walls = np.append(self._walls, rtop)
-        return self._walls
+        rbot, rtop = self.bounds
+        centers = self.centers
+        # assume walls are mid-way between T-nodes
+        # could be T-nodes at center between walls
+        walls = (centers[:-1] + centers[1:]) / 2
+        walls = np.insert(walls, 0, rbot)
+        walls = np.append(walls, rtop)
+        return walls
 
-    @property
+    @crop
     def bounds(self):
         """Radial or vertical position of boundaries.
 
         Radial/vertical positions of boundaries of the domain.
         """
-        if self._bounds is UNDETERMINED:
-            step = self.step
-            if step.geom is not None:
-                rcmb = step.geom.rcmb
-            else:
-                rcmb = step.sdat.par['geometry']['r_cmb']
-                if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
-                    rcmb = 0
-            rcmb = max(rcmb, 0)
-            self._bounds = rcmb, rcmb + 1
-        return self._bounds
+        step = self.step
+        if step.geom is not None:
+            rcmb = step.geom.rcmb
+        else:
+            rcmb = step.sdat.par['geometry']['r_cmb']
+            if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
+                rcmb = 0
+        rcmb = max(rcmb, 0)
+        return rcmb, rcmb + 1
 
 
 class Step:
@@ -520,7 +498,7 @@ class Step:
                                phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5)
         self.tracers = _Tracers(self)
         self.rprofs = _Rprofs(self)
-        self._isnap = UNDETERMINED
+        self._isnap = -1
 
     def __repr__(self):
         if self.isnap is not None:
@@ -549,7 +527,7 @@ class Step:
 
         It is set to None if no snapshot exists for the time step.
         """
-        if self._isnap is UNDETERMINED:
+        if self._isnap == -1:
             istep = None
             isnap = -1
             # could be more efficient if do 0 and -1 then bisection

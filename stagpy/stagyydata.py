@@ -15,7 +15,7 @@ from itertools import zip_longest
 import numpy as np
 
 from . import conf, error, misc, parfile, phyvars, stagyyparsers, _step
-from ._step import UNDETERMINED
+from .misc import CachedReadOnlyProperty as crop
 
 
 def _as_view_item(obj):
@@ -110,15 +110,15 @@ class _Refstate:
 
     def __init__(self, sdat):
         self._sdat = sdat
-        self._data = UNDETERMINED
 
-    def _read_refstate(self):
+    @crop
+    def _data(self):
         """Read reference state profile."""
         reffile = self._sdat.filename('refstat.dat')
         if self._sdat.hdf5 and not reffile.is_file():
             # check legacy folder as well
             reffile = self._sdat.filename('refstat.dat', force_legacy=True)
-        self._data = stagyyparsers.refstate(reffile)
+        return stagyyparsers.refstate(reffile)
 
     @property
     def systems(self):
@@ -133,8 +133,6 @@ class _Refstate:
 
             >>> sdat.refstate.systems[0][2]['T']
         """
-        if self._data is UNDETERMINED:
-            self._read_refstate()
         return self._data[0]
 
     @property
@@ -154,8 +152,6 @@ class _Refstate:
 
             >>> sdat.refstate.adiabats[-1]['rho']
         """
-        if self._data is UNDETERMINED:
-            self._read_refstate()
         return self._data[1]
 
 
@@ -181,25 +177,26 @@ class _Tseries:
 
     def __init__(self, sdat):
         self.sdat = sdat
-        self._data = UNDETERMINED
         self._cached_extra = {}
+
+    @crop
+    def _data(self):
+        timefile = self.sdat.filename('TimeSeries.h5')
+        data = stagyyparsers.time_series_h5(
+            timefile, list(phyvars.TIME.keys()))
+        if data is not None:
+            return data
+        timefile = self.sdat.filename('time.dat')
+        if self.sdat.hdf5 and not timefile.is_file():
+            # check legacy folder as well
+            timefile = self.sdat.filename('time.dat', force_legacy=True)
+        data = stagyyparsers.time_series(timefile, list(phyvars.TIME.keys()))
+        return data
 
     @property
     def _tseries(self):
-        if self._data is UNDETERMINED:
-            timefile = self.sdat.filename('TimeSeries.h5')
-            self._data = stagyyparsers.time_series_h5(
-                timefile, list(phyvars.TIME.keys()))
-            if self._data is not None:
-                return self._data
-            timefile = self.sdat.filename('time.dat')
-            if self.sdat.hdf5 and not timefile.is_file():
-                # check legacy folder as well
-                timefile = self.sdat.filename('time.dat', force_legacy=True)
-            self._data = stagyyparsers.time_series(timefile,
-                                                   list(phyvars.TIME.keys()))
-            if self._data is None:
-                raise error.MissingDataError(f'No tseries data in {self.sdat}')
+        if self._data is None:
+            raise error.MissingDataError(f'No tseries data in {self.sdat}')
         return self._data
 
     def __getitem__(self, name):
@@ -333,7 +330,6 @@ class _Steps:
 
     def __init__(self, sdat):
         self.sdat = sdat
-        self._len = UNDETERMINED
         self._data = {}
 
     def __repr__(self):
@@ -365,10 +361,12 @@ class _Steps:
                 (i, f) for i, f in self.sdat._collected_fields if i != istep]
             del self._data[istep]
 
+    @crop
+    def _len(self):
+        # not necessarily the last one...
+        return self.sdat.tseries.isteps[-1] + 1
+
     def __len__(self):
-        if self._len is UNDETERMINED:
-            # not necessarily the last one...
-            self._len = self.sdat.tseries.isteps[-1] + 1
         return self._len
 
     def __iter__(self):
@@ -433,8 +431,9 @@ class _Snaps(_Steps):
             istep = None
         else:
             istep = self._isteps.get(
-                isnap, None if self._all_isteps_known else UNDETERMINED)
-        if istep is UNDETERMINED:
+                isnap, None if self._all_isteps_known else -1)
+        if istep == -1:
+            # isnap not in _isteps but not all isteps known, keep looking
             binfiles = self.sdat._binfiles_set(isnap)
             if binfiles:
                 istep = stagyyparsers.fields(binfiles.pop(), only_istep=True)
@@ -453,28 +452,27 @@ class _Snaps(_Steps):
         istep = self._isteps.get(isnap)
         del self.sdat.steps[istep]
 
-    def __len__(self):
-        if self._len is UNDETERMINED:
-            self._len = -1
-            if self.sdat.hdf5:
-                isnap = -1
-                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self._bind(isnap, istep)
-                self._len = isnap
-                self._all_isteps_known = True
-            if self._len < 0:
-                out_stem = re.escape(pathlib.Path(
-                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
-                rgx = re.compile(f'^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$')
-                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-                for fname in self.sdat._files:
-                    match = rgx.match(fname.name)
-                    if match is not None and match.group(1) in fstems:
-                        self._len = max(int(match.group(2)), self._len)
-            if self._len < 0:
-                raise error.NoSnapshotError(self.sdat)
-            self._len += 1
-        return self._len
+    @crop
+    def _len(self):
+        length = -1
+        if self.sdat.hdf5:
+            isnap = -1
+            for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                self._bind(isnap, istep)
+            length = isnap
+            self._all_isteps_known = True
+        if length < 0:
+            out_stem = re.escape(pathlib.Path(
+                self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
+            rgx = re.compile(f'^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$')
+            fstems = set(fstem for fstem in phyvars.FIELD_FILES)
+            for fname in self.sdat._files:
+                match = rgx.match(fname.name)
+                if match is not None and match.group(1) in fstems:
+                    length = max(int(match.group(2)), length)
+        if length < 0:
+            raise error.NoSnapshotError(self.sdat)
+        return length + 1
 
     def at_time(self, time, after=False):
         """Return snap corresponding to a given physical time.
@@ -659,11 +657,8 @@ class StagyyData:
         else:
             parname = 'par'
         self._rundir = {'path': runpath,
-                        'par': parname,
-                        'hdf5': UNDETERMINED,
-                        'ls': UNDETERMINED}
-        self._stagdat = {'par': parfile.readpar(self.parpath, self.path),
-                         'rprof': UNDETERMINED}
+                        'par': parname}
+        self._par = parfile.readpar(self.parpath, self.path)
         self.scales = _Scales(self)
         self.refstate = _Refstate(self)
         self.tseries = _Tseries(self)
@@ -695,16 +690,12 @@ class StagyyData:
         """
         return self.path / self._rundir['par']
 
-    @property
+    @crop
     def hdf5(self):
         """Path of output hdf5 folder if relevant, None otherwise."""
-        if self._rundir['hdf5'] is UNDETERMINED:
-            h5_folder = self.path / self.par['ioin']['hdf5_output_folder']
-            if (h5_folder / 'Data.xmf').is_file():
-                self._rundir['hdf5'] = h5_folder
-            else:
-                self._rundir['hdf5'] = None
-        return self._rundir['hdf5']
+        h5_folder = self.path / self.par['ioin']['hdf5_output_folder']
+        if (h5_folder / 'Data.xmf').is_file():
+            return h5_folder
 
     @property
     def par(self):
@@ -713,23 +704,19 @@ class StagyyData:
         This is a :class:`f90nml.namelist.Namelist`, the first key being
         namelists and the second key the parameter name.
         """
-        return self._stagdat['par']
+        return self._par
 
-    @property
+    @crop
     def _rprof_and_times(self):
-        if self._stagdat['rprof'] is UNDETERMINED:
-            rproffile = self.filename('rprof.h5')
-            self._stagdat['rprof'] = stagyyparsers.rprof_h5(
-                rproffile, list(phyvars.RPROF.keys()))
-            if self._stagdat['rprof'][1] is not None:
-                return self._stagdat['rprof']
-            rproffile = self.filename('rprof.dat')
-            if self.hdf5 and not rproffile.is_file():
-                # check legacy folder as well
-                rproffile = self.filename('rprof.dat', force_legacy=True)
-            self._stagdat['rprof'] = stagyyparsers.rprof(
-                rproffile, list(phyvars.RPROF.keys()))
-        return self._stagdat['rprof']
+        rproffile = self.filename('rprof.h5')
+        data = stagyyparsers.rprof_h5(rproffile, list(phyvars.RPROF.keys()))
+        if data[1] is not None:
+            return data
+        rproffile = self.filename('rprof.dat')
+        if self.hdf5 and not rproffile.is_file():
+            # check legacy folder as well
+            rproffile = self.filename('rprof.dat', force_legacy=True)
+        return stagyyparsers.rprof(rproffile, list(phyvars.RPROF.keys()))
 
     @property
     def rtimes(self):
@@ -739,17 +726,14 @@ class StagyyData:
         """
         return self._rprof_and_times[1]
 
-    @property
+    @crop
     def _files(self):
         """Set of found binary files output by StagYY."""
-        if self._rundir['ls'] is UNDETERMINED:
-            out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
-            out_dir = self.path / out_stem.parent
-            if out_dir.is_dir():
-                self._rundir['ls'] = set(out_dir.iterdir())
-            else:
-                self._rundir['ls'] = set()
-        return self._rundir['ls']
+        out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
+        out_dir = self.path / out_stem.parent
+        if out_dir.is_dir():
+            return set(out_dir.iterdir())
+        return set()
 
     @property
     def walk(self):

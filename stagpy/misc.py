@@ -121,6 +121,39 @@ def find_in_sorted_arr(value, array, after=False):
     return ielt
 
 
+class CachedReadOnlyProperty:
+    """Descriptor implementation of read-only cached properties.
+
+    Properties are cached as _cropped_{name} instance attribute.
+
+    This is preferable to using a combination of property and
+    functools.lru_cache since the cache is bound to instances and therefore get
+    GCd with the instance when the latter is no longer in use instead of
+    staying in the cache which would use the instance itself as its key.
+
+    This also has an advantage over @cached_property (Python>3.8): the property
+    is read-only instead of being writeable.
+    """
+
+    def __init__(self, thunk):
+        self._thunk = thunk
+        self._name = thunk.__name__
+        self._cache_name = f'_cropped_{self._name}'
+
+    def __get__(self, instance, _):
+        try:
+            return getattr(instance, self._cache_name)
+        except AttributeError:
+            pass
+        cached_value = self._thunk(instance)
+        setattr(instance, self._cache_name, cached_value)
+        return cached_value
+
+    def __set__(self, instance, _):
+        raise AttributeError(
+            f'Cannot set {self._name} property of {instance!r}')
+
+
 class InchoateFiles:
     """Context manager handling files whose names are not known yet.
 
