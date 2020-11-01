@@ -1,6 +1,4 @@
 """Plot radial profiles."""
-import re
-
 import matplotlib.pyplot as plt
 
 from . import conf, misc
@@ -17,10 +15,7 @@ def plot_rprofs(rprofs, lovs):
             produced by :func:`stagpy.misc.list_of_vars`.
     """
     try:
-        stepstr = repr(rprofs.steps)
-        reg = re.compile(
-            r'^StagyyData\(.*\)\.(steps|snaps)\[(.*)\](?:.filter\(.*\))?$')
-        stepstr = '_'.join(reg.match(stepstr).groups())
+        stepstr = rprofs.steps.stepstr
     except AttributeError:
         stepstr = str(rprofs.step.istep)
     sdat = rprofs.step.sdat

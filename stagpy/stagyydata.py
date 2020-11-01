@@ -547,15 +547,25 @@ class _StepsView:
             self._rprofs_averaged = _RprofsAveraged(self)
         return self._rprofs_averaged
 
-    def __repr__(self):
-        rep = repr(self._col)
+    @crop
+    def stepstr(self):
+        """String representation of the requested set of steps."""
         items = []
+        no_slice = True
         for item in self._items:
             if isinstance(item, slice):
                 items.append('{}:{}:{}'.format(*item.indices(len(self._col))))
+                no_slice = False
             else:
                 items.append(repr(item))
-        rep += '[{}]'.format(','.join(items))
+        item_str = ','.join(items)
+        if no_slice and len(items) == 1:
+            item_str += ','
+        colstr = repr(self._col).rsplit('.', maxsplit=1)[-1]
+        return f'{colstr}[{item_str}]'
+
+    def __repr__(self):
+        rep = f'{self._col.sdat!r}.{self.stepstr}'
         flts = []
         for flt in ('snap', 'rprofs', 'fields'):
             if self._flt[flt]:
