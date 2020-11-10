@@ -519,7 +519,22 @@ class Step:
     @property
     def timeinfo(self):
         """Time series data of the time step."""
-        return self.sdat.tseries.at_step(self.istep)
+        try:
+            info = self.sdat.tseries.at_step(self.istep)
+        except KeyError:
+            raise error.MissingDataError(f'No time series for {self!r}')
+        return info
+
+    @property
+    def time(self):
+        """Time of this time step."""
+        steptime = None
+        try:
+            steptime = self.timeinfo['t']
+        except error.MissingDataError:
+            if self.isnap is not None:
+                steptime = self.geom.ti_ad
+        return steptime
 
     @property
     def isnap(self):

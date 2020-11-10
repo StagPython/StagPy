@@ -487,20 +487,17 @@ class _Snaps(_Steps):
         Returns:
             :class:`~stagpy._step.Step`: the relevant snap.
         """
-        if self.sdat.tseries is None:
-            return None
-
         # in theory, this could be a valid implementation of _Steps.at_time
         # but this isn't safe against missing data...
         igm = 0
         igp = len(self) - 1
         while igp - igm > 1:
             istart = igm + (igp - igm) // 2
-            if self[istart].timeinfo['t'] >= time:
+            if self[istart].time >= time:
                 igp = istart
             else:
                 igm = istart
-        if self[igp].timeinfo['t'] > time and not after and igp > 0:
+        if self[igp].time > time and not after and igp > 0:
             igp -= 1
         return self[igp]
 
