@@ -85,6 +85,8 @@ FIELD_FILES_H5 = OrderedDict((
     ('Stress', ['sII']),
     ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3']),
     ('StrainRate', ['edot']),
+    ('Basalt', ['bs']),       #AG
+    ('Primordial', ['prim']), #AG
 ))
 
 SFIELD = OrderedDict((
