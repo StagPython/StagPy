@@ -40,6 +40,9 @@ FIELD = OrderedDict((
     ('rs2', Varf('y Momentum residue', '1')),
     ('rs3', Varf('z Momentum residue', '1')),
     ('rsc', Varf('Continuity residue', '1')),
+    ('bs', Varf('Basalt fraction', '1')),       #AG
+    ('prim', Varf('Primordial fraction', '1')), #AG
+    
 ))
 
 FIELD_EXTRA = OrderedDict((
