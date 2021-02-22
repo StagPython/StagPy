@@ -153,7 +153,7 @@ are the total number of points in the various spatial directions. Note that
 ``nztot`` regardless of whether the geometry is cartesian or curvilinear.
 
 ``x_coord``, ``y_coord`` and ``z_coord`` as well as ``t_coord``, ``p_coord``
-and ``r_coord`` are the coordinates of cell centers in the threee directions.
+and ``r_coord`` are the coordinates of cell centers in the three directions.
 As for the total number of points, they are the same regardless of the actual
 geometry.
 
