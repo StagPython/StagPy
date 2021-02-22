@@ -79,9 +79,6 @@ def plot_time_series(sdat, lovs):
 def compstat(sdat, *names, tstart=None, tend=None):
     """Compute statistics from series output by StagYY.
 
-    Create a file 'statistics.dat' containing the mean and standard deviation
-    of each series on the requested time span.
-
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
         names (str): variables whose statistics should be computed.
