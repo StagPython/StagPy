@@ -40,7 +40,7 @@ FIELD = OrderedDict((
     ('rs2', Varf('y Momentum residue', '1')),
     ('rs3', Varf('z Momentum residue', '1')),
     ('rsc', Varf('Continuity residue', '1')),
-    ('prm', Varf('Primordial layer', '1')),
+    ('prim', Varf('Primordial layer', '1')),
 ))
 
 FIELD_EXTRA = OrderedDict((
@@ -62,7 +62,7 @@ FIELD_FILES = OrderedDict((
     ('sx', ['sx1', 'sx2', 'sx3', 's1val']),
     ('ed', ['edot']),
     ('tcond', ['Tcond1', 'Tcond2', 'Tcond3']),
-    ('prm', ['prm']),
+    ('prm', ['prim']),
 ))
 
 FIELD_FILES_H5 = OrderedDict((
@@ -84,6 +84,7 @@ FIELD_FILES_H5 = OrderedDict((
     ('Stress', ['sII']),
     ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3']),
     ('StrainRate', ['edot']),
+    ('Primordial', ['prim']),
 ))
 
 SFIELD = OrderedDict((
