@@ -588,6 +588,39 @@ def set_of_vars(arg_plot):
     """
     return set(var for var in arg_plot.split(',') if var in phyvars.PLATES)
 
+def plateness(sdatpath, fc=0.6):                              # MD says hi
+    """Reads time, plateness from provided sdatpath
+       (on the condition that plates_analyse 
+        in namelist 'switches' was set to true)
+        This function reads the fraction f80 (as output by
+        Stagyy) that accomodates 80% of deformation.
+	The definition of plateness p=1-f80/fc is used. fc=0.6
+        is f80 for an internally heated model with Ra=1e6 (Tackley 2000)
+    Args:
+        sdatpath (PosixPath or str): path of stagyydata	
+        f_c (float): reference value used for computing p 
+                     Default value is 0.6  
+    Returns:
+        time (numpy.ndarray): array of floats containing time steps
+        mobility (numpy.ndarray): array of floats containing 
+                                  mobility at each time step
+        plateness (numpy.ndarray): array of floats containing 
+                                   plateness at each time step
+  
+    Raises OSError if the directory is not found
+
+    This could be moved to time 'stuff' ?
+
+    """
+    sdatpath = str(sdatpath)
+    path = sdatpath+'/+op/earthDIM_plates_analyse.dat'
+    #par = sdat.par
+    #if par['switches']['plates_analyse'] == '.true.':
+    _,t,_,_,mob,f80 = np.loadtxt(path, unpack = True)
+    return t, mob, 1-f80/fc
+    # else:
+    # Raise some Error (maybe an Error is implemented for when
+    # you are looking 4 some data that your stagyy run did not write)
 
 def main_plates(sdat):
     """Plot several plates information."""
