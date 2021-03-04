@@ -267,18 +267,22 @@ class _Fields(Mapping):
         if fieldfile.is_file():
             parsed_data = stagyyparsers.fields(fieldfile)
         elif self.step.sdat.hdf5 and self._filesh5:
-            for filestem, list_fvar in self._filesh5.items():
-                if name in list_fvar:
+            # files in which the requested data can be found
+            files = [(stem, fvars) for stem, fvars in self._filesh5.items()
+                     if name in fvars]
+            for filestem, list_fvar in files:
+                if filestem in phyvars.SFIELD_FILES_H5:
+                    xmff = 'Data{}.xmf'.format(
+                        'Bottom' if name.endswith('bot') else 'Surface')
+                    header = self._header
+                else:
+                    xmff = 'Data.xmf'
+                    header = None
+                parsed_data = stagyyparsers.read_field_h5(
+                    self.step.sdat.hdf5 / xmff, filestem,
+                    self.step.isnap, header)
+                if parsed_data is not None:
                     break
-            if filestem in phyvars.SFIELD_FILES_H5:
-                xmff = 'Data{}.xmf'.format(
-                    'Bottom' if name.endswith('bot') else 'Surface')
-                header = self._header
-            else:
-                xmff = 'Data.xmf'
-                header = None
-            parsed_data = stagyyparsers.read_field_h5(
-                self.step.sdat.hdf5 / xmff, filestem, self.step.isnap, header)
         return list_fvar, parsed_data
 
     def _set(self, name, fld):
