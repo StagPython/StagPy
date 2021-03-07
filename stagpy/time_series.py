@@ -34,13 +34,21 @@ def plot_time_series(sdat, lovs):
     """
     time_marks = _collect_marks(sdat)
     for vfig in lovs:
+        tstart = conf.time.tstart
+        tend = conf.time.tend
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
                                  figsize=(12, 2 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
         fname = ['time']
         for iplt, vplt in enumerate(vfig):
             ylabel = None
-            series_on_plt = (sdat.tseries[tvar] for tvar in vplt)
+            series_on_plt = [
+                sdat.tseries.tslice(tvar, conf.time.tstart, conf.time.tend)
+                for tvar in vplt]
+            ptstart = min(time[0] for _, time, _ in series_on_plt)
+            ptend = max(time[-1] for _, time, _ in series_on_plt)
+            tstart = ptstart if tstart is None else min(ptstart, tstart)
+            tend = ptend if tend is None else max(ptend, tend)
             fname.extend(vplt)
             for ivar, (series, time, meta) in enumerate(series_on_plt):
                 axes[iplt].plot(time, series, conf.time.style,
@@ -69,9 +77,7 @@ def plot_time_series(sdat, lovs):
         if unit:
             unit = f' ({unit})'
         axes[-1].set_xlabel('Time' + unit)
-        time = sdat.tseries.tslice(
-            't', conf.time.tstart, conf.time.tend).values
-        axes[-1].set_xlim(time[[0, -1]])
+        axes[-1].set_xlim(tstart, tend)
         axes[-1].tick_params()
         misc.saveplot(fig, '_'.join(fname))
 
