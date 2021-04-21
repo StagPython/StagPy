@@ -306,7 +306,7 @@ def cmd():
     for step in sdat.walk.filter(snap=True):
         for vfig in lovs:
             fig, axes = plt.subplots(ncols=len(vfig), squeeze=False,
-                                     figsize=(9 * len(vfig), 6))
+                                     figsize=(6 * len(vfig), 6))
             for axis, var in zip(axes[0], vfig):
                 if var[0] not in step.fields:
                     print(f"{var[0]!r} field on snap {step.isnap} not found")
