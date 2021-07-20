@@ -178,9 +178,6 @@ RPROF = OrderedDict((
     ('primmean', Varr('Primordial', 'Concentration', '1')),
     ('primmin', Varr('Min primordial', 'Concentration', '1')),
     ('primmax', Varr('Max primordial', 'Concentration', '1')),
-    ('hzmean', Varr('Harzburgite', 'Concentration', '1')),    # MD
-    ('hzmin', Varr('Min harzburgite', 'Concentration', '1')), # MD
-    ('hzmax', Varr('Max harzburgite', 'Concentration', '1')), # MD
     ('ccmean', Varr('Continental crust', 'Crust', '1')),
     ('ccmin', Varr('Min continental crust', 'Crust', '1')),
     ('ccmax', Varr('Max continental crust', 'Crust', '1')),
@@ -202,19 +199,22 @@ RPROF = OrderedDict((
 ))
 
 RPROF_EXTRA = OrderedDict((
-    ('dr', Varr(processing.delta_r, 'dr', 'm')),
-    ('diff', Varr(processing.diff_prof, 'Heat flux', 'W/m2')),
-    ('diffs', Varr(processing.diffs_prof, 'Heat flux', 'W/m2')),
-    ('advts', Varr(processing.advts_prof, 'Heat flux', 'W/m2')),
-    ('advds', Varr(processing.advds_prof, 'Heat flux', 'W/m2')),
-    ('advas', Varr(processing.advas_prof, 'Heat flux', 'W/m2')),
+    ('dr',     Varr(processing.delta_r, 'dr', 'm')),
+    ('diff',   Varr(processing.diff_prof, 'Heat flux', 'W/m2')),
+    ('diffs',  Varr(processing.diffs_prof, 'Heat flux', 'W/m2')),
+    ('advts',  Varr(processing.advts_prof, 'Heat flux', 'W/m2')),
+    ('advds',  Varr(processing.advds_prof, 'Heat flux', 'W/m2')),
+    ('advas',  Varr(processing.advas_prof, 'Heat flux', 'W/m2')),
     ('advdcs', Varr(processing.advds_com_prof, 'Heat flux', 'W/m2')),
     ('advacs', Varr(processing.advas_com_prof, 'Heat flux', 'W/m2')),
     ('advtcs', Varr(processing.advts_com_prof, 'Heat flux', 'W/m2')),
     ('energy', Varr(processing.energy_prof, 'Heat flux', 'W/m2')),
     ('ciover', Varr(processing.init_c_overturn, 'Concentration', '1')),
     ('cfover', Varr(processing.c_overturned, 'Concentration', '1')),
-    ('advth', Varr(processing.advth, 'Heat Flux', 'W/m2')),
+    ('advth',  Varr(processing.advth, 'Heat Flux', 'W/m2')),
+    ('hzmean', Varr(processing.hzmean_rprof, 'Concentration', '1')),    # MD
+    ('hzmax',  Varr(processing.hzmax_rprof, 'Concentration', '1')),     # MD
+    ('hzmin',  Varr(processing.hzmin_rprof, 'Concentration', '1')),     # MD
 ))
 
 Vart = namedtuple('Vart', ['description', 'kind', 'dim'])

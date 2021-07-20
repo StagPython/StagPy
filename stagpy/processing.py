@@ -383,24 +383,21 @@ def stream_function(step):
 def hzmean_rprof(step): # MD
     """Compute mean hz radial profile
     """
-    hz = step.fields['hz'].squeeze()
 
     return (np.mean(step.fields['hz'].squeeze(), axis=0),
-            step.rprofs.center)
+            step.rprofs.centers)
 
 def hzmin_rprof(step): # MD
     """Compute min hz radial profile
     """
-    hz = step.fields['hz'].squeeze()
 
     return (np.min(step.fields['hz'].squeeze(), axis=0),
-            step.rprofs.center)
+            step.rprofs.centers)
 
 def hzmax_rprof(step): # MD
     """Compute max hz radial profile
     """
-    hz = step.fields['hz'].squeeze()
 
     return (np.max(step.fields['hz'].squeeze(), axis=0),
-            step.rprofs.center)
+            step.rprofs.centers)
 

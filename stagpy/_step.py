@@ -394,7 +394,7 @@ class _Rprofs:
         return self._data
 
     def __str__(self):
-        """ MD: String Representation of rprof object.
+        """ MD: String Representation of rprof object.     # MD
             Would be great to have this for all classes 
         """
         return ' | '.join(self._rprofs.columns.to_list())
