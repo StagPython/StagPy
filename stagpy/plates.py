@@ -18,8 +18,13 @@ def detect_plates_vzcheck(step, seuil_memz):
     n_z = step.geom.nztot
     nphi = step.geom.nptot  # -1? should be OK, ghost not included
     rcmb = max(0, step.geom.rcmb)
+    rearth = step.sdat.par['geometry']['d_dimensional'] + rcmb # thickness+rcmb # MD
     radius = step.geom.r_coord
-    radiusgrid = step.geom.rgeom[:, 0] + rcmb
+    try:                                                                        # MD
+        radiusgrid = step.geom.rgeom[:, 0] + rcmb                               #
+    except KeyError:                                                            #
+        # get the best next thing if that fails                                 #
+        radiusgrid = np.r_[step.rprofs.walls[:-1], rearth]                      #
     dphi = 1 / nphi
 
     # calculing temperature on the grid and vz_mean
@@ -42,6 +47,7 @@ def detect_plates_vzcheck(step, seuil_memz):
                 v_z[phi, i_z] * radiusgrid[i_z] * dphi
 
     # checking stagnant lid
+    vz_thres = 0
     if all(abs(flux_c[i_z]) <= np.max(flux_c) / 50
            for i_z in range(n_z - n_z // 20, n_z)):
         raise error.StagnantLidError(step.sdat)
@@ -642,7 +648,10 @@ def main_plates(sdat):
         isurf -= 4  # why different isurf for the rest?
     else:
         isurf = -1
-        vrms_surface = uprof_averaged.iloc[isurf]
+        try:                                            # MD
+            vrms_surface = uprof_averaged.iloc[isurf]   
+        except AttributeError:                                #
+            vrms_surface = uprof_averaged[isurf]        #
 
     # determine names of files
     fnames = ['plate_velocity', 'distance_subd', 'continents',

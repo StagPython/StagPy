@@ -393,6 +393,12 @@ class _Rprofs:
                 f'No rprof data in step {step.istep} of {step.sdat}')
         return self._data
 
+    def __str__(self):
+        """ MD: String Representation of rprof object.
+            Would be great to have this for all classes 
+        """
+        return ' | '.join(self._rprofs.columns.to_list())
+
     def __getitem__(self, name):
         step = self.step
         if name in self._rprofs.columns:

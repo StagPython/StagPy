@@ -180,6 +180,63 @@ def advas_prof(step):
     """
     return _scale_prof(step, step.rprofs['advasc'].values), step.rprofs.centers
 
+def adv_com_field(step, direc='tot'): # MD
+    """Computed advection field
+    """
+    if direc == 'ascending':
+        vz = np.clip(step.fields['v3'].squeeze(), 0, None)
+    elif direc == 'descending':
+        vz = np.clip(step.fields['v3'].squeeze(), None, 0)
+    else:
+        vz = step.fields['v3'].squeeze()
+
+    rho = step.fields['rho'].squeeze()
+    dT = step.fields['T'].squeeze() - step.rprofs['Tmean'].values
+
+    adiabs = step.sdat.refstate.adiabats
+    c = adiabs[0]['Cp'][0]
+    for adiab in adiabs:
+        if not np.all(adiab['Cp'] == c ):
+            raise NotImplementedError('Depth-dependent Cp not implemented')
+
+    return rho*c*dT*vz   
+
+def advasc_com_field(step):
+    """Computed upward advection field
+    """
+    return adv_com_field(step, 'ascending') # MD
+
+def advdesc_com_field(step):
+    return adv_com_field(step, 'descending') # MD
+
+def advtot_com_field(step): 
+    return adv_com_field(step, 'tot') # MD
+
+def advds_com_prof(step):            # MD
+    """Scaled downward advection profile computed from density, velocity and 
+       temperature fields and heat capacity.
+
+    This computation takes sphericity into account if necessary.
+
+    Args:
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
+    Returns:
+        tuple of :class:`numpy.array`: the scaled downward advection and
+            radius.
+    """
+    _values = np.mean(advdesc_com_field(step), axis=0)
+    return (_scale_prof(step, _values),
+            step.rprofs.centers)
+
+def advas_com_prof(step):            # MD
+    _values = np.mean(advdesc_com_field(step), axis=0)
+    return (_scale_prof(step, _values),
+            step.rprofs.centers)
+
+def advts_com_prof(step):            # MD
+    _values = np.sum(advtot_com_field(step), axis=0)
+    return (_scale_prof(step, _values),
+            step.rprofs.centers)
 
 def energy_prof(step):
     """Energy flux.
@@ -322,3 +379,28 @@ def stream_function(step):
         psi = - psi
     psi = np.reshape(psi, shape)
     return psi
+
+def hzmean_rprof(step): # MD
+    """Compute mean hz radial profile
+    """
+    hz = step.fields['hz'].squeeze()
+
+    return (np.mean(step.fields['hz'].squeeze(), axis=0),
+            step.rprofs.center)
+
+def hzmin_rprof(step): # MD
+    """Compute min hz radial profile
+    """
+    hz = step.fields['hz'].squeeze()
+
+    return (np.min(step.fields['hz'].squeeze(), axis=0),
+            step.rprofs.center)
+
+def hzmax_rprof(step): # MD
+    """Compute max hz radial profile
+    """
+    hz = step.fields['hz'].squeeze()
+
+    return (np.max(step.fields['hz'].squeeze(), axis=0),
+            step.rprofs.center)
+

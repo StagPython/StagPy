@@ -41,6 +41,7 @@ FIELD = OrderedDict((
     ('rs3', Varf('z Momentum residue', '1')),
     ('rsc', Varf('Continuity residue', '1')),
     ('bs', Varf('Basalt fraction', '1')),       #AG
+    ('hz', Varf('Harzburgite fraction', '1')),  #AG
     ('prim', Varf('Primordial fraction', '1')), #AG
     
 ))
@@ -86,6 +87,7 @@ FIELD_FILES_H5 = OrderedDict((
     ('PrincipalStressAxis', ['sx1', 'sx2', 'sx3']),
     ('StrainRate', ['edot']),
     ('Basalt', ['bs']),       #AG
+    ('Harzburgite', ['hz']),  #AG
     ('Primordial', ['prim']), #AG
 ))
 
@@ -176,6 +178,9 @@ RPROF = OrderedDict((
     ('primmean', Varr('Primordial', 'Concentration', '1')),
     ('primmin', Varr('Min primordial', 'Concentration', '1')),
     ('primmax', Varr('Max primordial', 'Concentration', '1')),
+    ('hzmean', Varr('Harzburgite', 'Concentration', '1')),    # MD
+    ('hzmin', Varr('Min harzburgite', 'Concentration', '1')), # MD
+    ('hzmax', Varr('Max harzburgite', 'Concentration', '1')), # MD
     ('ccmean', Varr('Continental crust', 'Crust', '1')),
     ('ccmin', Varr('Min continental crust', 'Crust', '1')),
     ('ccmax', Varr('Max continental crust', 'Crust', '1')),
@@ -203,6 +208,9 @@ RPROF_EXTRA = OrderedDict((
     ('advts', Varr(processing.advts_prof, 'Heat flux', 'W/m2')),
     ('advds', Varr(processing.advds_prof, 'Heat flux', 'W/m2')),
     ('advas', Varr(processing.advas_prof, 'Heat flux', 'W/m2')),
+    ('advdcs', Varr(processing.advds_com_prof, 'Heat flux', 'W/m2')),
+    ('advacs', Varr(processing.advas_com_prof, 'Heat flux', 'W/m2')),
+    ('advtcs', Varr(processing.advts_com_prof, 'Heat flux', 'W/m2')),
     ('energy', Varr(processing.energy_prof, 'Heat flux', 'W/m2')),
     ('ciover', Varr(processing.init_c_overturn, 'Concentration', '1')),
     ('cfover', Varr(processing.c_overturned, 'Concentration', '1')),
