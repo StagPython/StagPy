@@ -322,7 +322,10 @@ def cmd():
                         plot_vec(axis, step, var[1])
             if conf.field.timelabel:
                 time, unit = sdat.scale(step.timeinfo['t'], 's')
-                time = misc.scilabel(time)
+                fac = 1.0                
+                if conf.scaling.time_in_y:
+                    fac = conf.scaling.yearins
+                time = misc.scilabel(time/fac)
                 axes[0, 0].text(0.02, 1.02, f'$t={time}$ {unit}',
                                 transform=axes[0, 0].transAxes)
             oname = '_'.join(chain.from_iterable(vfig))
