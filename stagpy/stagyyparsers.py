@@ -406,6 +406,7 @@ def fields(fieldfile, only_header=False, only_istep=False):
         header['ti_ad'] = readbin('f') if magic >= 3 else 0
         header['erupta_total'] = readbin('f') if magic >= 5 else 0
         header['bot_temp'] = readbin('f') if magic >= 6 else 1
+        header['core_temp'] = readbin('f') if magic >= 10 else 1
 
         if magic >= 4:
             header['e1_coord'] = readbin('f', header['nts'][0])
@@ -894,4 +895,9 @@ def read_time_h5(h5folder):
     """
     with h5py.File(h5folder / 'time_botT.h5', 'r') as h5f:
         for name, dset in h5f.items():
-            yield int(name[-5:]), int(dset[2])
+            isnap = int(name[-5:])
+            if len(dset) == 3:
+                istep = int(dset[2])
+            else:
+                istep = int(dset[0])
+            yield isnap, istep
