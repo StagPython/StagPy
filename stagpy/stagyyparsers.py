@@ -369,6 +369,10 @@ def fields(fieldfile, only_header=False, only_istep=False):
             sfield = True
 
         magic %= 100
+        if magic < 9:
+            # the rest of the parser still check lower values in case this
+            # constraint is alleviated
+            raise ParsingError(fieldfile, 'magic < 9 not supported')
 
         # extra ghost point in horizontal direction
         header['xyp'] = int(magic >= 9 and nval == 4)
@@ -412,10 +416,6 @@ def fields(fieldfile, only_header=False, only_istep=False):
             header['e1_coord'] = readbin('f', header['nts'][0])
             header['e2_coord'] = readbin('f', header['nts'][1])
             header['e3_coord'] = readbin('f', header['nts'][2])
-        else:
-            # could construct them from other info
-            raise ParsingError(fieldfile,
-                               'magic >= 4 expected to get grid geometry')
 
         if only_header:
             return header
@@ -609,8 +609,6 @@ def _read_coord_h5(files, shapes, header, twod):
     header['nts'] = list((meshes[0]['X'].shape[i] - 1) * header['ncs'][i]
                          for i in range(3))
     header['nts'] = np.array([max(1, val) for val in header['nts']])
-    # meshes could also be defined in legacy parser, so that these can be used
-    # in geometry setup
     meshes = _conglomerate_meshes(meshes, header)
     if np.any(meshes['Z'][:, :, 0] != 0):
         # spherical

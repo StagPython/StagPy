@@ -9,7 +9,6 @@ Note:
 from collections.abc import Mapping
 from collections import namedtuple
 from itertools import chain
-import re
 
 import numpy as np
 
@@ -22,96 +21,145 @@ class _Geometry:
 
     It is deduced from the information in the header of binary field files
     output by StagYY.
-
-    Attributes:
-        nxtot, nytot, nztot, nttot, nptot, nrtot, nbtot (int): number of grid
-            point in the various directions. Note that nxtot==nttot,
-            nytot==nptot, nztot==nrtot.
-        x_coord, y_coord, z_coord, t_coord, p_coord, r_coord (numpy.array):
-            positions of cell centers in the various directions. Note that
-            x_coord==t_coord, y_coord==p_coord, z_coord==r_coord.
-        x_mesh, y_mesh, z_mesh, t_mesh, p_mesh, r_mesh (numpy.array):
-            mesh in cartesian and curvilinear frames. The last three are
-            not defined if the geometry is cartesian.
     """
 
-    _regexes = (re.compile(r'^n([xyztprb])tot$'),  # ntot
-                re.compile(r'^([xyztpr])_coord$'),  # coord
-                re.compile(r'^([xyz])_mesh$'),  # cartesian mesh
-                re.compile(r'^([tpr])_mesh$'))  # curvilinear mesh
-
-    def __init__(self, header, par):
+    def __init__(self, header, step):
         self._header = header
-        self._par = par
-        self._coords = None
-        self._cart_meshes = None
-        self._curv_meshes = None
+        self._step = step
         self._shape = {'sph': False, 'cyl': False, 'axi': False,
                        'ntot': list(header['nts']) + [header['ntb']]}
         self._init_shape()
 
-        self._coords = [header['e1_coord'],
-                        header['e2_coord'],
-                        header['e3_coord']]
+    def _scale_radius_mo(self, radius):
+        """Rescale radius for MO runs."""
+        if self._step.sdat.par['magma_oceans_in']['magma_oceans_mode']:
+            return self._header['mo_thick_sol'] * (
+                radius + self._header['mo_lambda'])
+        return radius
 
-        # instead of adding horizontal rows, should construct two grids:
-        # - center of cells coordinates (the current one);
-        # - vertices coordinates on which vector fields are determined,
-        #   which geometrically contains one more row.
+    @crop
+    def nttot(self):
+        """Number of grid point along the x/theta direction."""
+        return self._shape['ntot'][0]
 
-        # add theta, phi / x, y row to have a continuous field
-        if not self.twod_yz:
-            self._coords[0] = np.append(
-                self.t_coord,
-                self.t_coord[-1] + self.t_coord[1] - self.t_coord[0])
-        if not self.twod_xz:
-            self._coords[1] = np.append(
-                self.p_coord,
-                self.p_coord[-1] + self.p_coord[1] - self.p_coord[0])
+    @crop
+    def nptot(self):
+        """Number of grid point along the y/phi direction."""
+        return self._shape['ntot'][1]
 
-        if self.cartesian:
-            self._cart_meshes = np.meshgrid(self.x_coord, self.y_coord,
-                                            self.z_coord, indexing='ij')
-            self._curv_meshes = (None, None, None)
+    @crop
+    def nrtot(self):
+        """Number of grid point along the z/r direction."""
+        return self._shape['ntot'][2]
+
+    @crop
+    def nbtot(self):
+        """Number of blocks."""
+        return self._shape['ntot'][3]
+
+    nxtot = nttot
+    nytot = nptot
+    nztot = nrtot
+
+    @crop
+    def r_walls(self):
+        """Position of FV walls along the z/r direction."""
+        rgeom = self._header.get("rgeom")
+        if rgeom is not None:
+            walls = rgeom[:, 0] + self.rcmb
         else:
-            if self.twod_yz:
-                self._coords[0] = np.array(np.pi / 2)
-            elif self.twod_xz:
-                self._coords[1] = np.array(0)
-            self._coords[2] += self.rcmb
-            if par['magma_oceans_in']['magma_oceans_mode']:
-                self._coords[2] += header['mo_lambda']
-                self._coords[2] *= header['mo_thick_sol']
-            t_mesh, p_mesh, r_mesh = np.meshgrid(
-                self.t_coord, self.p_coord, self.r_coord, indexing='ij')
-            # compute cartesian coordinates
-            # z along rotation axis at theta=0
-            # x at th=90, phi=0
-            # y at th=90, phi=90
-            x_mesh = r_mesh * np.cos(p_mesh) * np.sin(t_mesh)
-            y_mesh = r_mesh * np.sin(p_mesh) * np.sin(t_mesh)
-            z_mesh = r_mesh * np.cos(t_mesh)
-            self._cart_meshes = (x_mesh, y_mesh, z_mesh)
-            self._curv_meshes = (t_mesh, p_mesh, r_mesh)
+            walls = self._header["e3_coord"] + self.rcmb
+            walls.append(self._step.rprofs.bounds[1])
+        return self._scale_radius_mo(walls)
+
+    @crop
+    def r_centers(self):
+        """Position of FV centers along the z/r direction."""
+        rgeom = self._header.get("rgeom")
+        if rgeom is not None:
+            walls = rgeom[:-1, 1] + self.rcmb
+        else:
+            walls = self._step.rprofs.centers
+        return self._scale_radius_mo(walls)
+
+    @crop
+    def t_walls(self):
+        """Position of FV walls along x/theta."""
+        if self.threed or self.twod_xz:
+            if self.yinyang:
+                tmin, tmax = -np.pi / 4, np.pi / 4
+            elif self.curvilinear:
+                # should take theta_position/theta_center into account
+                tmin = 0
+                tmax = min(np.pi,
+                           self._step.sdat.par['geometry']['aspect_ratio'][0])
+            else:
+                tmin = 0
+                tmax = self._step.sdat.par['geometry']['aspect_ratio'][0]
+            return np.linspace(tmin, tmax, self.nttot + 1)
+        # twoD YZ
+        center = np.pi / 2 if self.curvilinear else 0
+        d_t = (self.p_walls[1] - self.p_walls[0]) / 2
+        return np.array([center - d_t, center + d_t])
+
+    @crop
+    def t_centers(self):
+        """Position of FV centers along x/theta."""
+        return (self.t_walls[:-1] + self.t_walls[1:]) / 2
+
+    @crop
+    def p_walls(self):
+        """Position of FV walls along y/phi."""
+        if self.threed or self.twod_yz:
+            if self.yinyang:
+                pmin, pmax = -3 * np.pi / 4, 3 * np.pi / 4
+            elif self.curvilinear:
+                pmin = 0
+                pmax = min(2 * np.pi,
+                           self._step.sdat.par['geometry']['aspect_ratio'][1])
+            else:
+                pmin = 0
+                pmax = self._step.sdat.par['geometry']['aspect_ratio'][1]
+            return np.linspace(pmin, pmax, self.nptot + 1)
+        # twoD YZ
+        d_p = (self.t_walls[1] - self.t_walls[0]) / 2
+        return np.array([-d_p, d_p])
+
+    @crop
+    def p_centers(self):
+        """Position of FV centers along y/phi."""
+        return (self.p_walls[:-1] + self.p_walls[1:]) / 2
+
+    z_walls = r_walls
+    z_centers = r_centers
+    x_walls = t_walls
+    x_centers = t_centers
+    y_walls = p_walls
+    y_centers = p_centers
 
     def _init_shape(self):
         """Determine shape of geometry."""
-        shape = self._par['geometry']['shape'].lower()
+        shape = self._step.sdat.par['geometry']['shape'].lower()
         aspect = self._header['aspect']
-        if self.rcmb is not None and self.rcmb >= 0:
+        if self._header['rcmb'] is not None and self._header['rcmb'] >= 0:
             # curvilinear
             self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
                                                    aspect[0] >= np.pi)
             self._shape['sph'] = not self._shape['cyl']
-        elif self.rcmb is None:
-            self._header['rcmb'] = self._par['geometry']['r_cmb']
-            if self.rcmb >= 0:
+        elif self._header['rcmb'] is None:
+            self._header['rcmb'] = self._step.sdat.par['geometry']['r_cmb']
+            if self._header['rcmb'] >= 0:
                 if self.twod_xz and shape == 'cylindrical':
                     self._shape['cyl'] = True
                 elif shape == 'spherical':
                     self._shape['sph'] = True
         self._shape['axi'] = self.cartesian and self.twod_xz and \
             shape == 'axisymmetric'
+
+    @crop
+    def rcmb(self):
+        """Radius of CMB, 0 in cartesian geometry."""
+        return max(self._header["rcmb"], 0)
 
     @property
     def cartesian(self):
@@ -166,26 +214,14 @@ class _Geometry:
         """
         if self.curvilinear:
             zval += self.rcmb
-        return np.argmin(np.abs(self.z_coord - zval))
+        return np.argmin(np.abs(self.z_centers - zval))
 
     def at_r(self, rval):
         """Return ir closest to given rval position.
 
         If called in cartesian geometry, this is equivalent to :meth:`at_z`.
         """
-        return np.argmin(np.abs(self.r_coord - rval))
-
-    def __getattr__(self, attr):
-        # provide nDtot, D_coord, D_mesh and nbtot
-        # with D = x, y, z or t, p, r
-        for reg, dat in zip(self._regexes, (self._shape['ntot'],
-                                            self._coords,
-                                            self._cart_meshes,
-                                            self._curv_meshes)):
-            match = reg.match(attr)
-            if match is not None:
-                return dat['xtypzrb'.index(match.group(1)) // 2]
-        return self._header[attr]
+        return np.argmin(np.abs(self.r_centers - rval))
 
 
 class _Fields(Mapping):
@@ -226,13 +262,6 @@ class _Fields(Mapping):
         header, fields = parsed_data
         self._cropped__header = header
         for fld_name, fld in zip(fld_names, fields):
-            if self._header['xyp'] == 0:
-                if not self.geom.twod_yz:
-                    newline = (fld[:1, ...] + fld[-1:, ...]) / 2
-                    fld = np.concatenate((fld, newline), axis=0)
-                if not self.geom.twod_xz:
-                    newline = (fld[:, :1, ...] + fld[:, -1:, ...]) / 2
-                    fld = np.concatenate((fld, newline), axis=1)
             self._set(fld_name, fld)
         return self._data[name]
 
@@ -317,7 +346,7 @@ class _Fields(Mapping):
         None if not available for this time step.
         """
         if self._header is not None:
-            return _Geometry(self._header, self.step.sdat.par)
+            return _Geometry(self._header, self.step)
 
 
 class _Tracers:
@@ -430,12 +459,15 @@ class _Rprofs:
     def walls(self):
         """Radial position of cell walls."""
         rbot, rtop = self.bounds
-        centers = self.centers
-        # assume walls are mid-way between T-nodes
-        # could be T-nodes at center between walls
-        walls = (centers[:-1] + centers[1:]) / 2
-        walls = np.insert(walls, 0, rbot)
-        walls = np.append(walls, rtop)
+        try:
+            walls = self.step.fields.geom.r_walls
+        except error.StagpyError:
+            # assume walls are mid-way between T-nodes
+            # could be T-nodes at center between walls
+            centers = self.centers
+            walls = (centers[:-1] + centers[1:]) / 2
+            walls = np.insert(walls, 0, rbot)
+            walls = np.append(walls, rtop)
         return walls
 
     @crop
@@ -451,8 +483,10 @@ class _Rprofs:
             rcmb = step.sdat.par['geometry']['r_cmb']
             if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
                 rcmb = 0
-        rcmb = max(rcmb, 0)
-        return rcmb, rcmb + 1
+        rbot = max(rcmb, 0)
+        thickness = (step.sdat.scales.length
+                     if step.sdat.par['switches']['dimensional_units'] else 1)
+        return rbot, rbot + thickness
 
 
 class Step:
