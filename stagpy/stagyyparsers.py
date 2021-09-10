@@ -614,9 +614,14 @@ def _read_coord_h5(files, shapes, header, twod):
     meshes = _conglomerate_meshes(meshes, header)
     if np.any(meshes['Z'][:, :, 0] != 0):
         # spherical
-        header['x_mesh'] = np.copy(meshes['Y'])  # annulus geometry...
-        header['y_mesh'] = np.copy(meshes['Z'])
-        header['z_mesh'] = np.copy(meshes['X'])
+        if twod is not None:  # annulus geometry...
+            header['x_mesh'] = np.copy(meshes['Y'])
+            header['y_mesh'] = np.copy(meshes['Z'])
+            header['z_mesh'] = np.copy(meshes['X'])
+        else:  # YinYang, here only yin
+            header['x_mesh'] = np.copy(meshes['X'])
+            header['y_mesh'] = np.copy(meshes['Y'])
+            header['z_mesh'] = np.copy(meshes['Z'])
         header['r_mesh'] = np.sqrt(header['x_mesh']**2 + header['y_mesh']**2 +
                                    header['z_mesh']**2)
         header['t_mesh'] = np.arccos(header['z_mesh'] / header['r_mesh'])
@@ -842,6 +847,12 @@ def read_field_h5(xdmf_file, fieldname, snapshot, header=None):
                  ibk] = fld
             data_found = True
 
+    if flds.shape[0] == 3 and flds.shape[-1] == 2:  # YinYang vector
+        # Yang grid is rotated compared to Yin grid
+        flds[0, ..., 1] = -flds[0, ..., 1]
+        vt = flds[1, ..., 1].copy()
+        flds[1, ..., 1] = flds[2, ..., 1]
+        flds[2, ..., 1] = vt
     flds = _post_read_flds(flds, header)
 
     if fieldname in SFIELD_FILES_H5:
