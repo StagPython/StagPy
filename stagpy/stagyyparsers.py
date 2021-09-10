@@ -652,7 +652,11 @@ def _get_field(xdmf_file, data_item):
     """Extract field from data item."""
     shp = _get_dim(data_item)
     h5file, group = data_item.text.strip().split(':/', 1)
-    icore = int(group.split('_')[-2]) - 1
+    # Field on yin is named <var>_XXXXX_YYYYY, on yang is <var>2XXXXX_YYYYY.
+    # This splitting is done to protect against that and <var> possibly
+    # containing a 2.
+    numeral_part = group.split('2')[-1]
+    icore = int(numeral_part.split('_')[-2]) - 1
     fld = None
     try:
         fld = _read_group_h5(xdmf_file.parent / h5file, group).reshape(shp)
