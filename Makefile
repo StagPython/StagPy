@@ -66,6 +66,6 @@ else
 	$(PY) -m pip install -U --user pip build setuptools twine wheel
 	$(PY) -m build
 	$(PY) -m twine upload dist/*
-	-rm -rf build/ dist/
+	-rm -rf dist/
 endif
 endif

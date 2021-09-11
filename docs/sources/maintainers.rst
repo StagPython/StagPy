@@ -30,7 +30,7 @@ Releasing on PyPI is a two steps process:
 
 ::
 
-    % python3 setup.py sdist bdist_wheel
+    % python3 -m build
     % python3 -m twine upload dist/*
-    % rm -rf build/ dist/
+    % rm -rf dist/
 
