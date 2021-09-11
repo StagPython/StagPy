@@ -7,14 +7,14 @@ with open('README.rst') as rdm:
 
 DEPENDENCIES = [
     'loam>=0.3.1',
-    'f90nml>=1.2',
-    'setuptools_scm>=4.1',
+    'f90nml>=1.3.1',
+    'setuptools_scm>=6.2',
 ]
 HEAVY = [
     'numpy>=1.19',
     'scipy>=1.5',
     'pandas>=1.1',
-    'h5py>=3.0',
+    'h5py>=3.1',
     'matplotlib>=3.3',
 ]
 
@@ -25,7 +25,6 @@ if not ON_RTD:
 
 setup(
     name='stagpy',
-    use_scm_version=True,
 
     description='Tool for StagYY output files processing',
     long_description=README,

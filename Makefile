@@ -77,8 +77,8 @@ ifeq ($(VERSION),)
 else
 	@echo 'Release $(VERSION)'
 	git push --follow-tags
-	$(PY) -m pip install -U --user pip setuptools twine wheel
-	$(PY) setup.py sdist bdist_wheel
+	$(PY) -m pip install -U --user pip build setuptools twine wheel
+	$(PY) -m build
 	$(PY) -m twine upload dist/*
 	-rm -rf build/ dist/
 endif
