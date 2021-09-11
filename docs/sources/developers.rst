@@ -65,27 +65,19 @@ changes to the source files to be taken into account.
 
 To activate the virtual environment, source the relevant script::
 
-    % source .venv_dev/bin/activate
+    % source stagpy_git/bin/activate
 
 Once this is done, launching the ``stagpy`` command and importing StagPy in a
 Python script (``import stagpy``) will use the development version of StagPy.
-Launch the ``deactivate`` command to get out of the virtual environment.
-
-As a convenience, a soft link named ``stagpy-git`` is created in your ``~/bin``
-directory, allowing you to launch the development version CLI tool without
-activating the virtual environment by running ``stagpy-git`` in a terminal
-(provided that ``~/bin`` is in your ``PATH`` environment variable).
-
-See :ref:`somesetup` to enable command line completion (replacing the ``stagpy``
-command with ``stagpy-git``).
-
 To check that everything works fine, go to any subdirectory of the ``Examples``
 directory of the repository and run::
 
-    % stagpy-git field
+    % stagpy field
 
 This should create a PDF file showing a plot of the temperature field with
 streamlines.
+
+Launch the ``deactivate`` command to get out of the virtual environment.
 
 Use as a Jupyter notebook kernel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
