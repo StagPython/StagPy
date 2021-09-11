@@ -1,10 +1,10 @@
 *.pdf
 *.swp
-*/__pycache__/
+__pycache__/
 .coverage
 .tox
 stagpy.egg-info/
-.venv_dev/
+/stagpy_git/
 docs/_build/
 docs/_static/
 docs/_templates/

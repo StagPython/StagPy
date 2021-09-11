@@ -53,8 +53,7 @@ def parse_args(arglist=None):
     """
     climan = CLIManager(conf, **SUB_CMDS)
 
-    create_complete_files(climan, CONFIG_DIR, 'stagpy', 'stagpy-git',
-                          zsh_sourceable=True)
+    create_complete_files(climan, CONFIG_DIR, 'stagpy', zsh_sourceable=True)
 
     cmd_args, all_subs = climan.parse_args(arglist)
     sub_cmd = cmd_args.loam_sub_name

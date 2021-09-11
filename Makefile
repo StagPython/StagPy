@@ -1,10 +1,6 @@
-LINK_DIR=~/bin
-LINK_NAME=stagpy-git
-LINK=$(LINK_DIR)/$(LINK_NAME)
-
 PY=python3
 
-VENV_DIR=.venv_dev
+VENV_DIR=stagpy_git
 STAGPY=$(VENV_DIR)/bin/stagpy
 VPY=$(VENV_DIR)/bin/python
 VPIP=$(VPY) -m pip
@@ -16,17 +12,9 @@ VERSION=$(shell git describe --exact-match HEAD 2>/dev/null)
 .PHONY: info infopath infozsh infobash
 .PHONY: notebook-kernel
 
-all: install
+all: $(STAGPY) info
 
-install: $(LINK) info
-	@echo
-	@echo 'Installation completed!'
-
-$(LINK): $(STAGPY)
-	@mkdir -p $(LINK_DIR)
-	ln -sf $(PWD)/$(STAGPY) $(LINK)
-
-$(STAGPY): setup.py
+$(STAGPY): setup.py pyproject.toml
 	$(PY) -m venv $(VENV_DIR)
 	$(VPIP) install -U pip
 	$(VPIP) install -e .
@@ -36,11 +24,13 @@ notebook-kernel: $(STAGPY)
 	$(VPIP) install -U ipykernel
 	$(VPY) -m ipykernel install --user --name=stagpy-git
 
-info: infopath infozsh infobash
+info: infozsh infobash infoenv
 
-infopath:
+infoenv:
 	@echo
-	@echo 'Add $(LINK_DIR) to your path to be able to call StagPy from anywhere'
+	@echo 'Run'
+	@echo '  source $(VENV_DIR)/bin/activate'
+	@echo 'to use the development version of StagPy'
 
 infozsh:
 	@echo
@@ -54,13 +44,9 @@ infobash:
 	@echo ' source ~/.config/stagpy/bash/stagpy.sh'
 	@echo 'to your ~/.bashrc to enjoy command line completion with bash!'
 
-clean: uninstall
+clean:
 	-rm -rf $(VENV_DIR)
 	-rm -rf stagpy.egg-info
-
-uninstall:
-	-rm -rf ~/.config/stagpy/
-	-rm -f $(LINK)
 
 again: clean all
 
