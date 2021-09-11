@@ -13,13 +13,14 @@ from .error import NotAvailableError
 from .stagyydata import StagyyData
 
 
-# The location is off for vertical velocities they have an extra
+# The location is off for vertical velocities: they have an extra
 # point in (x,y) instead of z in the output
 
 
-def _threed_extract(step, var):
+def _threed_extract(step, var, walls=False):
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
+    hwalls = is_vector or walls
     i_x = conf.field.ix
     i_y = conf.field.iy
     i_z = conf.field.iz
@@ -30,18 +31,18 @@ def _threed_extract(step, var):
     if i_x is None and i_y is None and i_z is None:
         i_x = 0
     if i_x is not None:
-        xcoord = step.geom.y_walls if is_vector else step.geom.y_centers
-        ycoord = step.geom.z_centers
+        xcoord = step.geom.y_walls if hwalls else step.geom.y_centers
+        ycoord = step.geom.z_walls if walls else step.geom.z_centers
         i_y = i_z = slice(None)
         varx, vary = var + '2', var + '3'
     elif i_y is not None:
-        xcoord = step.geom.x_walls if is_vector else step.geom.x_centers
-        ycoord = step.geom.z_centers
+        xcoord = step.geom.x_walls if hwalls else step.geom.x_centers
+        ycoord = step.geom.z_walls if walls else step.geom.z_centers
         i_x = i_z = slice(None)
         varx, vary = var + '1', var + '3'
     else:
-        xcoord = step.geom.x_walls if is_vector else step.geom.x_centers
-        ycoord = step.geom.y_walls if is_vector else step.geom.y_centers
+        xcoord = step.geom.x_walls if hwalls else step.geom.x_centers
+        ycoord = step.geom.y_walls if hwalls else step.geom.y_centers
         i_x = i_y = slice(None)
         varx, vary = var + '1', var + '2'
     if is_vector:
@@ -66,7 +67,7 @@ def valid_field_var(var):
     return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
 
-def get_meshes_fld(step, var):
+def get_meshes_fld(step, var, walls=False):
     """Return scalar field along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
@@ -75,23 +76,24 @@ def get_meshes_fld(step, var):
         step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
             instance.
         var (str): scalar field name.
+        walls (bool): consider the walls as the relevant mesh.
     Returns:
         tuple of :class:`numpy.array`: xmesh, ymesh, fld
             2D arrays containing respectively the x position, y position, and
             the value of the requested field.
     """
     fld = step.fields[var]
-    is_vector = (fld.shape[0] != step.geom.nxtot or
-                 fld.shape[1] != step.geom.nytot)
+    hwalls = (walls or fld.shape[0] != step.geom.nxtot or
+              fld.shape[1] != step.geom.nytot)
     if step.geom.threed and step.geom.cartesian:
-        (xcoord, ycoord), fld = _threed_extract(step, var)
+        (xcoord, ycoord), fld = _threed_extract(step, var, walls)
     elif step.geom.twod_xz:
-        xcoord = step.geom.x_walls if is_vector else step.geom.x_centers
-        ycoord = step.geom.z_centers
+        xcoord = step.geom.x_walls if hwalls else step.geom.x_centers
+        ycoord = step.geom.z_walls if walls else step.geom.z_centers
         fld = fld[:, 0, :, 0]
     else:  # twod_yz
-        xcoord = step.geom.y_walls if is_vector else step.geom.y_centers
-        ycoord = step.geom.z_centers
+        xcoord = step.geom.y_walls if hwalls else step.geom.y_centers
+        ycoord = step.geom.z_walls if walls else step.geom.z_centers
         if step.geom.curvilinear:
             pmesh, rmesh = np.meshgrid(xcoord, ycoord, indexing='ij')
             xmesh, ymesh = rmesh * np.cos(pmesh), rmesh * np.sin(pmesh)
@@ -172,7 +174,16 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
         raise NotAvailableError(
             'plot_scalar not implemented for 3D spherical geometry')
 
-    xmesh, ymesh, fld = get_meshes_fld(step, var)
+    xmesh, ymesh, fld = get_meshes_fld(step, var,
+                                       walls=not conf.field.interpolate)
+    if conf.field.interpolate and \
+       step.geom.spherical and step.geom.twod_yz and \
+       fld.shape[0] == step.geom.nytot:
+        # add one point to close spherical annulus
+        xmesh = np.concatenate((xmesh, xmesh[:1]), axis=0)
+        ymesh = np.concatenate((ymesh, ymesh[:1]), axis=0)
+        newline = (fld[:1] + fld[-1:]) / 2
+        fld = np.concatenate((fld, newline), axis=0)
     xmin, xmax = xmesh.min(), xmesh.max()
     ymin, ymax = ymesh.min(), ymesh.max()
 

@@ -104,7 +104,7 @@ CONF_DEF['field'] = OrderedDict((
     ('shift', Conf(None, True, None, {'type': int},
                    False, 'shift plot horizontally')),
     ('timelabel', switch_opt(False, None, 'add label with time')),
-    ('interpolate', switch_opt(True, None, 'apply Gouraud shading')),
+    ('interpolate', switch_opt(False, None, 'apply Gouraud shading')),
     ('colorbar', switch_opt(True, None, 'add color bar to plot')),
     ('ix', Conf(None, True, None, {'type': int},
                 False, 'x-index of slice for 3D fields')),
