@@ -15,11 +15,11 @@ def detect_plates_vzcheck(step, seuil_memz):
     v_z = step.fields['v3'][0, :, :, 0]
     v_x = step.fields['v2'][0, :, :, 0]
     tcell = step.fields['T'][0, :, :, 0]
-    n_z = step.geom.nztot
-    nphi = step.geom.nptot  # -1? should be OK, ghost not included
-    rcmb = max(0, step.geom.rcmb)
-    radius = step.geom.r_coord
-    radiusgrid = step.geom.rgeom[:, 0] + rcmb
+    n_z = step.nztot
+    nphi = step.nptot  # -1? should be OK, ghost not included
+    rcmb = step.geom.rcmb
+    radius = step.geom.r_centers
+    radiusgrid = step.geom.r_walls
     dphi = 1 / nphi
 
     # calculing temperature on the grid and vz_mean
@@ -87,14 +87,14 @@ def detect_plates_vzcheck(step, seuil_memz):
 def detect_plates(step, vrms_surface, fids, time):
     """Detect plates using derivative of horizontal velocity."""
     vphi = step.fields['v2'][0, :, :, 0]
-    ph_coord = step.geom.p_coord
+    ph_coord = step.geom.p_centers
 
     if step.sdat.par['boundaries']['air_layer']:
         dsa = step.sdat.par['boundaries']['air_thickness']
         # we are a bit below the surface; should check if you are in the
         # thermal boundary layer
         indsurf = np.argmin(
-            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 4
+            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 4
     else:
         indsurf = -1
 
@@ -213,10 +213,10 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         # the surface (that is considered plane here); should check if you are
         # in the thermal boundary layer
         indsurf = np.argmin(
-            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 4
+            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 4
         # depth to detect the continents
         indcont = np.argmin(
-            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 10
+            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 10
     else:
         indsurf = -1
         indcont = -1  # depth to detect continents
@@ -243,7 +243,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     # masked array, only continents are true
     continentsall = continents / continents
 
-    ph_coord = step.geom.p_coord
+    ph_coord = step.geom.p_centers
 
     # velocity
     vph2 = 0.5 * (vphi + np.roll(vphi, 1, 0))  # interpolate to the same phi
@@ -491,12 +491,13 @@ def lithospheric_stress(step, trench, ridge, time):
     base_lith = step.geom.rcmb + 1 - 0.105
 
     stressfld = step.fields['sII'][0, :, :, 0]
-    stressfld = np.ma.masked_where(step.geom.r_mesh[0] < base_lith, stressfld)
+    r_centers = np.outer(np.ones(stressfld.shape[0]), step.geom.r_centers)
+    stressfld = np.ma.masked_where(r_centers < base_lith, stressfld)
 
     # stress integration in the lithosphere
-    dzm = (step.geom.r_coord[1:] - step.geom.r_coord[:-1])
+    dzm = (step.geom.r_centers[1:] - step.geom.r_centers[:-1])
     stress_lith = np.sum((stressfld[:, 1:] * dzm.T), axis=1)
-    ph_coord = step.geom.p_coord  # probably doesn't need alias
+    ph_coord = step.geom.p_centers  # probably doesn't need alias
 
     # plot stress in the lithosphere
     fig, axis, _, _ = field.plot_scalar(step, 'sII', stressfld,
@@ -518,7 +519,7 @@ def lithospheric_stress(step, trench, ridge, time):
         dsa = step.sdat.par['boundaries']['air_thickness']
         # depth to detect the continents
         indcont = np.argmin(
-            np.abs(1 - dsa - step.geom.r_coord + step.geom.rcmb)) - 10
+            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 10
     else:
         # depth to detect continents
         indcont = -1
@@ -649,7 +650,7 @@ def main_plates(sdat):
 
             temp = step.fields['T'][0, :, :, 0]
             tgrad = (temp[:, isurf - 1] - temp[:, isurf]) /\
-                (step.geom.r_coord[isurf] - step.geom.r_coord[isurf - 1])
+                (step.geom.r_centers[isurf] - step.geom.r_centers[isurf - 1])
 
             io_surface(timestep, time, fids[2], concfld[:-1, isurf])
             io_surface(timestep, time, fids[3], tgrad)

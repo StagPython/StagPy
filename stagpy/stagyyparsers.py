@@ -369,9 +369,11 @@ def fields(fieldfile, only_header=False, only_istep=False):
             sfield = True
 
         magic %= 100
+        if magic < 9:
+            raise ParsingError(fieldfile, 'magic < 9 not supported')
 
         # extra ghost point in horizontal direction
-        header['xyp'] = int(magic >= 9 and nval == 4)
+        header['xyp'] = int(nval == 4)  # magic >= 9
 
         # total number of values in relevant space basis
         # (e1, e2, e3) = (theta, phi, radius) in spherical geometry
@@ -379,43 +381,35 @@ def fields(fieldfile, only_header=False, only_istep=False):
         header['nts'] = readbin(nwords=3)
 
         # number of blocks, 2 for yinyang or cubed sphere
-        header['ntb'] = readbin() if magic >= 7 else 1
+        header['ntb'] = readbin()  # magic >= 7
 
         # aspect ratio
         header['aspect'] = readbin('f', 2)
 
         # number of parallel subdomains
         header['ncs'] = readbin(nwords=3)  # (e1, e2, e3) space
-        header['ncb'] = readbin() if magic >= 8 else 1  # blocks
+        header['ncb'] = readbin()  # magic >= 8, blocks
 
         # r - coordinates
         # rgeom[0:self.nrtot+1, 0] are edge radial position
         # rgeom[0:self.nrtot, 1] are cell-center radial position
-        if magic >= 2:
-            header['rgeom'] = readbin('f', header['nts'][2] * 2 + 1)
-        else:
-            header['rgeom'] = np.array(range(0, header['nts'][2] * 2 + 1))\
-                * 0.5 / header['nts'][2]
+        header['rgeom'] = readbin('f', header['nts'][2] * 2 + 1)  # magic >= 2
         header['rgeom'] = np.resize(header['rgeom'], (header['nts'][2] + 1, 2))
 
-        header['rcmb'] = readbin('f') if magic >= 7 else None
+        header['rcmb'] = readbin('f')  # magic >= 7
 
-        header['ti_step'] = readbin() if magic >= 3 else 0
+        header['ti_step'] = readbin()  # magic >= 3
         if only_istep:
             return header['ti_step']
-        header['ti_ad'] = readbin('f') if magic >= 3 else 0
-        header['erupta_total'] = readbin('f') if magic >= 5 else 0
-        header['bot_temp'] = readbin('f') if magic >= 6 else 1
+        header['ti_ad'] = readbin('f')  # magic >= 3
+        header['erupta_total'] = readbin('f')  # magic >= 5
+        header['bot_temp'] = readbin('f')  # magic >= 6
         header['core_temp'] = readbin('f') if magic >= 10 else 1
 
-        if magic >= 4:
-            header['e1_coord'] = readbin('f', header['nts'][0])
-            header['e2_coord'] = readbin('f', header['nts'][1])
-            header['e3_coord'] = readbin('f', header['nts'][2])
-        else:
-            # could construct them from other info
-            raise ParsingError(fieldfile,
-                               'magic >= 4 expected to get grid geometry')
+        # magic >= 4
+        header['e1_coord'] = readbin('f', header['nts'][0])
+        header['e2_coord'] = readbin('f', header['nts'][1])
+        header['e3_coord'] = readbin('f', header['nts'][2])
 
         if only_header:
             return header
@@ -609,8 +603,6 @@ def _read_coord_h5(files, shapes, header, twod):
     header['nts'] = list((meshes[0]['X'].shape[i] - 1) * header['ncs'][i]
                          for i in range(3))
     header['nts'] = np.array([max(1, val) for val in header['nts']])
-    # meshes could also be defined in legacy parser, so that these can be used
-    # in geometry setup
     meshes = _conglomerate_meshes(meshes, header)
     if np.any(meshes['Z'][:, :, 0] != 0):
         # spherical
@@ -658,9 +650,7 @@ def _get_field(xdmf_file, data_item):
     shp = _get_dim(data_item)
     h5file, group = data_item.text.strip().split(':/', 1)
     # Field on yin is named <var>_XXXXX_YYYYY, on yang is <var>2XXXXX_YYYYY.
-    # This splitting is done to protect against that and <var> possibly
-    # containing a 2.
-    numeral_part = group.split('2')[-1]
+    numeral_part = group[-11:]
     icore = int(numeral_part.split('_')[-2]) - 1
     fld = None
     try:

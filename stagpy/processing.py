@@ -280,12 +280,12 @@ def stream_function(step):
         x-direction, y-direction, z-direction and block.
     """
     if step.geom.twod_yz:
-        x_coord = step.geom.y_coord
+        x_coord = step.geom.y_walls
         v_x = step.fields['v2'][0, :, :, 0]
         v_z = step.fields['v3'][0, :, :, 0]
         shape = (1, v_x.shape[0], v_x.shape[1], 1)
     elif step.geom.twod_xz and step.geom.cartesian:
-        x_coord = step.geom.x_coord
+        x_coord = step.geom.x_walls
         v_x = step.fields['v1'][:, 0, :, 0]
         v_z = step.fields['v3'][:, 0, :, 0]
         shape = (v_x.shape[0], 1, v_x.shape[1], 1)
@@ -295,8 +295,8 @@ def stream_function(step):
     psi = np.zeros_like(v_x)
     if step.geom.spherical:  # YZ annulus
         # positions
-        r_nc = step.geom.r_coord  # numerical centers
-        r_pc = step.geom.r_mesh[0, 0, :]  # physical centers
+        r_nc = step.rprofs.centers  # numerical centers
+        r_pc = step.geom.r_centers  # physical centers
         r_nw = step.rprofs.walls[:2]  # numerical walls of first cell
         # vz at center of bottom cells
         vz0 = ((r_nw[1] - r_nc[0]) * v_z[:, 0] +
@@ -308,7 +308,7 @@ def stream_function(step):
             psi[i_x, 1:] = psi[i_x, 0] + \
                 integrate.cumtrapz(r_pc * vxc[i_x], x=r_nc)
     else:  # assume cartesian geometry
-        z_nc = step.geom.z_coord
+        z_nc = step.geom.r_centers
         z_nw = step.rprofs.walls[:2]
         vz0 = ((z_nw[1] - z_nc[0]) * v_z[:, 0] +
                (z_nc[0] - z_nw[0]) * v_z[:, 1]) / (z_nw[1] - z_nw[0])
