@@ -7,31 +7,26 @@ parameters. Suppose again that several directories named ra-* are present in
 your working directory. The following script will plot the RMS velocity as
 function of time for all these directories::
 
-  #!/usr/bin/env python3
-  """Nu=f(Ra) from a set of stagyy results in different directories"""
+    #!/usr/bin/env python3
+    """vrms(t) from a set of StagYY runs."""
 
-  import matplotlib.pyplot as plt
-  from stagpy import stagyydata
-  from pathlib import Path
-  from numpy import log10
+    from pathlib import Path
+    from stagpy.stagyydata import StagyyData
+    import matplotlib.pyplot as plt
+    import numpy as np
 
-  fig = plt.figure()
+    pwd = Path('Examples/')
+    for folder in pwd.glob('ra-*'):
+        print('In directory', folder)
+        sdat = StagyyData(folder)
+        # Reference Rayleigh number as a power of ten
+        ra0_log10 = int(np.log10(sdat.par['refstate']['ra0']))
+        # vrms time series object
+        vrms = sdat.tseries['vrms']
+        # plot time vs vrms values
+        plt.plot(vrms.time, vrms.values, label=f'$Ra=10^{{{ra0_log10}}}$')
 
-  pwd = Path('Examples/')
-  for rep in pwd.glob('ra-*'):
-      print('In directory ', rep)
-      sdat = stagyydata.StagyyData(rep)
-      # get the value of the Rayleigh number
-      ra0 = sdat.par['refstate']['ra0']
-      # get the time vector
-      time = sdat.tseries['t']
-      # get the vrms vector
-      vrms = sdat.tseries['vrms']
-      # plot
-      plt.plot(time, vrms, label=r'$Ra=10^{%1d}$' % log10(ra0))
-
-  plt.legend()
-  plt.xlabel(r'Time')
-  plt.ylabel(r'RMS velocity')
-  plt.savefig('time-vrms.pdf')
-  plt.close(fig)
+    plt.legend()
+    plt.xlabel('Time')
+    plt.ylabel('RMS velocity')
+    plt.savefig('time-vrms.pdf')
