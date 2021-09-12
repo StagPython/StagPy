@@ -136,6 +136,7 @@ class CachedReadOnlyProperty:
         self._thunk = thunk
         self._name = thunk.__name__
         self._cache_name = f'_cropped_{self._name}'
+        self.__doc__ = thunk.__doc__
 
     def __get__(self, instance, _):
         try:
