@@ -10,10 +10,8 @@ phyvars
 
       - **description** (*str* or *func*): short description of the variable if
         it is output by StagYY, function to compute it otherwise.
-      - **shortname** (*str*): used to label axis on plot.
-      - **popts** (*dict*): keyword arguments fed to
-        :meth:`matplotlib.axes.Axes.pcolormesh` in
-        :func:`stagpy.field.plot_scalar`.
+      - **dim** (*str*): dimension used to
+        :func:`~stagpy.stagyydata.StagyyData.scale` to dimensional values.
 
    .. data:: FIELD
       :annotation: = {fieldvar: Varf()}
@@ -27,6 +25,12 @@ phyvars
       Dictionary of scalar fields that StagPy can compute. Keys are the
       variable names, values are :class:`Varf` instances.
 
+   .. data:: SFIELD
+      :annotation: = {fieldvar: Varf()}
+
+      Dictionary of surface scalar fields output by StagYY. Keys are the
+      variable names, values are :class:`Varf` instances.
+
    .. class:: Varr
 
       :class:`collections.namedtuple` whose instances hold metadata of
@@ -34,7 +38,10 @@ phyvars
 
       - **description** (*str* or *func*): short description of the variable if
         it is output by StagYY, function to compute it otherwise.
-      - **shortname** (*str*): used to label axis on plot.
+      - **kind** (*str*): shorter description to group similar variables under
+        the same label.
+      - **dim** (*str*): dimension used to
+        :func:`~stagpy.stagyydata.StagyyData.scale` to dimensional values.
 
    .. data:: RPROF
       :annotation: = {rprofvar: Varr()}
@@ -48,6 +55,12 @@ phyvars
       Dictionary of radial profiles that StagPy can compute. Keys are the
       variable names, values are :class:`Vart` instances.
 
+   .. data:: REFSTATE
+      :annotation: = {refstatevar: Varr()}
+
+      Dictionary of radial profiles of the reference state. Keys are the
+      variable names, values are :class:`Varr` instances.
+
    .. class:: Vart
 
       :class:`collections.namedtuple` whose instances hold metadata of
@@ -55,7 +68,10 @@ phyvars
 
       - **description** (*str* or *func*): short description of the variable if
         it is output by StagYY, function to compute it otherwise.
-      - **shortname** (*str*): used to label axis on plot.
+      - **kind** (*str*): shorter description to group similar variables under
+        the same label.
+      - **dim** (*str*): dimension used to
+        :func:`~stagpy.stagyydata.StagyyData.scale` to dimensional values.
 
    .. data:: TIME
       :annotation: = {timevar: Vart()}
@@ -81,3 +97,10 @@ phyvars
 
       Dictionary of plate variables output by StagYY. Keys are the variable
       names, values are :class:`Varp` instances.
+
+   .. data:: SCALES
+      :annotation: = {dimstr: func}
+
+      Dictionary mapping dimension strings (**dim** fields in ``Var*``) to
+      functions which are themselves mapping from
+      :class:`~stagpy.stagyydata.StagyyData` to the scale for that dimension.
