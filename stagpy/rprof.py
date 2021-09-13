@@ -65,7 +65,7 @@ def plot_grid(step):
     The figure is call grid_N.pdf where N is replace by the step index.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData
             instance.
     """
     drad, rad, _ = step.rprofs['dr']

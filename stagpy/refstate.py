@@ -12,7 +12,8 @@ def plot_ref(sdat, var):
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        var (str): refstate variable, a key of :data:`stagpy.phyvars.REFSTATE`.
+        var (str): refstate variable, a key of
+            :data:`~stagpy.phyvars.REFSTATE`.
     """
     fig, axis = plt.subplots()
     adbts = sdat.refstate.adiabats

@@ -492,9 +492,9 @@ class _Rprofs:
 class Step:
     """Time step data structure.
 
-    Elements of :class:`_Steps` and :class:`_Snaps` instances are all
-    :class:`Step` instances. Note that :class:`Step` objects are not
-    duplicated.
+    Elements of :class:`~stagpy.stagyydata._Steps` and
+    :class:`~stagpy.stagyydata._Snaps` instances are all :class:`Step`
+    instances. Note that :class:`Step` objects are not duplicated.
 
     Examples:
         Here are a few examples illustrating some properties of :class:`Step`

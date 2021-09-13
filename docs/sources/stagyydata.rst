@@ -138,28 +138,49 @@ Geometry information are read from binary files.  :attr:`Step.geom
 <stagpy._step.Step.geom>` has various attributes defining the geometry of
 the problem.
 
-``cartesian``, ``curvilinear``, ``cylindrical``, ``spherical`` and ``yinyang``
-booleans define the shape of the domain (``curvilinear`` being the opposite of
-``cartesian``, ``True`` if ``cylindrical`` or ``spherical`` is ``True``).
+:attr:`~stagpy._step._Geometry.cartesian`,
+:attr:`~stagpy._step._Geometry.curvilinear`,
+:attr:`~stagpy._step._Geometry.cylindrical`,
+:attr:`~stagpy._step._Geometry.spherical` and
+:attr:`~stagpy._step._Geometry.yinyang` booleans define the shape of the domain
+(:attr:`~stagpy._step._Geometry.curvilinear` being the opposite of
+:attr:`~stagpy._step._Geometry.cartesian`, ``True`` if
+:attr:`~stagpy._step._Geometry.cylindrical` or
+:attr:`~stagpy._step._Geometry.spherical` is ``True``).
 
-``twod_xz``, ``twod_yz``, ``twod`` and ``threed`` booleans indicate the number
-of spatial dimensions in the simulation. Note that fields are always four
+:attr:`~stagpy._step._Geometry.twod_xz`,
+:attr:`~stagpy._step._Geometry.twod_yz`, :attr:`~stagpy._step._Geometry.twod`
+and :attr:`~stagpy._step._Geometry.threed` booleans indicate the number of
+spatial dimensions in the simulation. Note that fields are always four
 dimensional arrays (spatial + blocks) regardless of the actual dimension of the
 domain.
 
-``nxtot``, ``nytot``, ``nztot``, ``nbtot``, ``nttot``, ``nptot`` and ``nrtot``
-are the total number of points in the various spatial directions. Note that
-``nttot``, ``nptot`` and ``nrtot`` are the same as ``nxtot``, ``nytot`` and
-``nztot`` regardless of whether the geometry is cartesian or curvilinear.
+:attr:`~stagpy._step._Geometry.nxtot`, :attr:`~stagpy._step._Geometry.nytot`,
+:attr:`~stagpy._step._Geometry.nztot`, :attr:`~stagpy._step._Geometry.nbtot`,
+:attr:`~stagpy._step._Geometry.nttot`, :attr:`~stagpy._step._Geometry.nptot`
+and :attr:`~stagpy._step._Geometry.nrtot` are the total number of points in the
+various spatial directions. Note that :attr:`~stagpy._step._Geometry.nttot`,
+:attr:`~stagpy._step._Geometry.nptot` and :attr:`~stagpy._step._Geometry.nrtot`
+are the same as :attr:`~stagpy._step._Geometry.nxtot`,
+:attr:`~stagpy._step._Geometry.nytot` and :attr:`~stagpy._step._Geometry.nztot`
+regardless of whether the geometry is cartesian or curvilinear.
 
-``x_centers``, ``y_centers``, and ``z_centers`` as well as ``t_centers``,
-``p_centers``, and ``r_centers`` are the coordinates of cell centers in the
-three directions.  As for the total number of points, they are the same
+:attr:`~stagpy._step._Geometry.x_centers`,
+:attr:`~stagpy._step._Geometry.y_centers`, and
+:attr:`~stagpy._step._Geometry.z_centers` as well as
+:attr:`~stagpy._step._Geometry.t_centers`,
+:attr:`~stagpy._step._Geometry.p_centers`, and
+:attr:`~stagpy._step._Geometry.r_centers` are the coordinates of cell centers
+in the three directions.  As for the total number of points, they are the same
 regardless of the actual geometry.
 
-Similarly to ``*_centers`` attributes, ``x_walls``, ``y_walls``, and
-``z_walls`` as well as ``t_walls``, ``p_walls``, and ``r_walls`` are the
-coordinates of cell walls in the three directions.
+Similarly to ``*_centers`` attributes, :attr:`~stagpy._step._Geometry.x_walls`,
+:attr:`~stagpy._step._Geometry.y_walls`, and
+:attr:`~stagpy._step._Geometry.z_walls` as well as
+:attr:`~stagpy._step._Geometry.t_walls`,
+:attr:`~stagpy._step._Geometry.p_walls`, and
+:attr:`~stagpy._step._Geometry.r_walls` are the coordinates of cell walls in
+the three directions.
 
 Scalar and vector fields
 ------------------------

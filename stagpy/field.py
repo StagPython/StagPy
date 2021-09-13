@@ -57,7 +57,7 @@ def valid_field_var(var):
     """Whether a field variable is defined.
 
     This function checks if a definition of the variable exists in
-    :data:`phyvars.FIELD` or :data:`phyvars.FIELD_EXTRA`.
+    :data:`~stagpy.phyvars.FIELD` or :data:`~stagpy.phyvars.FIELD_EXTRA`.
 
     Args:
         var (str): the variable name to be checked.
@@ -73,8 +73,7 @@ def get_meshes_fld(step, var, walls=False):
     Only works properly in 2D geometry and 3D cartesian.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
         var (str): scalar field name.
         walls (bool): consider the walls as the relevant mesh.
     Returns:
@@ -109,8 +108,7 @@ def get_meshes_vec(step, var):
     Only works properly in 2D geometry and 3D cartesian.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
         var (str): vector field name.
     Returns:
         tuple of :class:`numpy.array`: xmesh, ymesh, fldx, fldy
@@ -146,8 +144,7 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
     """Plot scalar field.
 
     Args:
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
         var (str): the scalar field name.
         field (:class:`numpy.array`): if not None, it is plotted instead of
             step.fields[var].  This is useful to plot a masked or rescaled
@@ -252,8 +249,7 @@ def plot_iso(axis, step, var, **extra):
         axis (:class:`matplotlib.axes.Axes`): the axis handler of an
             existing matplotlib figure where the isocontours should
             be plotted.
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
         var (str): the scalar field name.
         extra (dict): options that will be passed on to
             :func:`matplotlib.axes.Axes.contour`.
@@ -277,8 +273,7 @@ def plot_vec(axis, step, var):
         axis (:class:`matplotlib.axes.Axes`): the axis handler of an
             existing matplotlib figure where the vector field should
             be plotted.
-        step (:class:`~stagpy.stagyydata._Step`): a step of a StagyyData
-            instance.
+        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
         var (str): the vector field name.
     """
     xmesh, ymesh, vec1, vec2 = get_meshes_vec(step, var)

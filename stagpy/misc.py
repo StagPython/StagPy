@@ -121,15 +121,16 @@ def find_in_sorted_arr(value, array, after=False):
 class CachedReadOnlyProperty:
     """Descriptor implementation of read-only cached properties.
 
-    Properties are cached as _cropped_{name} instance attribute.
+    Properties are cached as ``_cropped_{name}`` instance attribute.
 
-    This is preferable to using a combination of property and
-    functools.lru_cache since the cache is bound to instances and therefore get
-    GCd with the instance when the latter is no longer in use instead of
-    staying in the cache which would use the instance itself as its key.
+    This is preferable to using a combination of ``@property`` and
+    ``@functools.lru_cache`` since the cache is bound to instances and
+    therefore get GCd with the instance when the latter is no longer in use
+    instead of staying in the cache which would use the instance itself as its
+    key.
 
-    This also has an advantage over @cached_property (Python>3.8): the property
-    is read-only instead of being writeable.
+    This also has an advantage over ``@cached_property`` (Python>3.8): the
+    property is read-only instead of being writeable.
     """
 
     def __init__(self, thunk):
