@@ -14,6 +14,9 @@
    :target: https://badge.fury.io/py/stagpy
    :alt: PyPI Version
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.5512348.svg
+   :target: https://doi.org/10.5281/zenodo.5512348
+   :alt: DIO on zenodo
 
 StagPy
 ======
@@ -25,6 +28,9 @@ This command line tool is built around a generic interface that allows you to
 access StagYY output data directly in a Python script.
 
 You can install StagPy with ``pip`` from the `Python Package Index`__.
+
+This project is registered under https://doi.org/10.5281/zenodo.5512348.
+Individual DOI are also available to cite a specific version.
 
 See `the complete documentation`__ for more information on the installation and
 explanations on how to use StagPy.
