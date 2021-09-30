@@ -234,7 +234,7 @@ def advas_com_prof(step):            # MD
             step.rprofs.centers)
 
 def advts_com_prof(step):            # MD
-    _values = np.sum(advtot_com_field(step), axis=0)
+    _values = np.mean(advtot_com_field(step), axis=0)
     return (_scale_prof(step, _values),
             step.rprofs.centers)
 
