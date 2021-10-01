@@ -1,3 +1,4 @@
+
 """Define high level structure StagyyData and helper classes.
 
 Note:
@@ -14,6 +15,7 @@ from itertools import zip_longest
 
 import numpy as np
 
+from scipy.integrate import trapz
 from . import conf, error, misc, parfile, phyvars, stagyyparsers, _step
 from .misc import CachedReadOnlyProperty as crop
 
@@ -295,6 +297,67 @@ class _RprofsAveraged(_step._Rprofs):
         return self._cached_data[name]
 
 
+class _RprofsAveragedIrr(_step._Rprofs):
+    """Radial profiles time-averaged over a :class:`_StepsView`
+       Taking irregular time sampling into account.
+
+    The :attr:`_StepsView.rprofs_averaged` attribute is an instance of this
+    class.
+
+    It implements the same interface as :class:`~stagpy._step._Rprofs` but
+    returns time-averaged profiles instead.
+
+    Attributes:
+        steps (:class:`_StepsView`): the object owning the
+            :class:`_RprofsAveraged` instance
+    """
+
+    def __init__(self, steps):
+        self.steps = steps.filter(rprofs=True)
+        self._cached_data = {}
+        super().__init__(next(iter(self.steps)))
+
+    def __getitem__(self, name):
+        # the averaging method has one shortcoming:
+        # - does not take into account time changing geometry;
+        # - does take into account time changing timestep,
+        #   using the trapezoid rule for averaging.
+        if name in self._cached_data:
+            return self._cached_data[name]
+        steps_iter = iter(self.steps)
+        rprof, rad, meta = next(steps_iter).rprofs[name]
+        rprof = np.zeros(rprof.shape)
+        # reset the counter now
+        steps_iter = iter(self.steps)
+
+        i = 0
+        for step in steps_iter:
+
+            if i == 0:
+                prev_prof = step.rprofs[name].values
+                t_prev = step.time
+                t_first = step.time
+            else:
+                t = step.time
+                h = np.abs(t - t_prev)
+                prof = step.rprofs[name].values
+                integr = (prof + prev_prof) * h / 2
+
+                prev_prof = prof
+                t_prev = t
+                rprof += integr
+
+            i += 1
+
+        if t_prev != t_first:
+            rprof /= (t_prev - t_first)
+        else:
+            rprof = prev_prof
+
+        self._cached_data[name] = _step.Rprof(rprof, rad, meta)
+        return self._cached_data[name]
+
+
 class _Steps:
     """Collections of time steps.
 
@@ -529,6 +592,7 @@ class _StepsView:
         self._col = steps_col
         self._items = items
         self._rprofs_averaged = None
+        self._rprofs_averaged_irr = None
         self._flt = {
             'snap': False,
             'rprofs': False,
@@ -543,6 +607,13 @@ class _StepsView:
         if self._rprofs_averaged is None:
             self._rprofs_averaged = _RprofsAveraged(self)
         return self._rprofs_averaged
+
+    @property
+    def rprofs_averaged_irr(self):
+        """Time-averaged radial profiles."""
+        if self._rprofs_averaged_irr is None:
+            self._rprofs_averaged_irr = _RprofsAveragedIrr(self)
+        return self._rprofs_averaged_irr
 
     @crop
     def stepstr(self):
