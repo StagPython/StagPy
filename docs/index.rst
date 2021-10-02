@@ -43,7 +43,6 @@ Welcome to StagPy's documentation!
    sources/apiref/config
    sources/apiref/error
    sources/apiref/field
-   sources/apiref/misc
    sources/apiref/parfile
    sources/apiref/phyvars
    sources/apiref/plates

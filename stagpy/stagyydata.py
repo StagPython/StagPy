@@ -14,8 +14,8 @@ from itertools import zip_longest
 
 import numpy as np
 
-from . import conf, error, misc, parfile, phyvars, stagyyparsers, _step
-from .misc import CachedReadOnlyProperty as crop
+from . import conf, error, parfile, phyvars, stagyyparsers, _helpers, _step
+from ._helpers import CachedReadOnlyProperty as crop
 
 
 def _as_view_item(obj):
@@ -212,7 +212,7 @@ class _Tseries:
         elif name in phyvars.TIME_EXTRA:
             meta = phyvars.TIME_EXTRA[name]
             series, time = meta.description(self.sdat)
-            meta = phyvars.Vart(misc.baredoc(meta.description),
+            meta = phyvars.Vart(_helpers.baredoc(meta.description),
                                 meta.kind, meta.dim)
             self._cached_extra[name] = series, time, meta
         else:
@@ -235,9 +235,9 @@ class _Tseries:
         istart = 0
         iend = len(time)
         if tstart is not None:
-            istart = misc.find_in_sorted_arr(tstart, time)
+            istart = _helpers.find_in_sorted_arr(tstart, time)
         if tend is not None:
-            iend = misc.find_in_sorted_arr(tend, time, True) + 1
+            iend = _helpers.find_in_sorted_arr(tend, time, True) + 1
         return Tseries(data[istart:iend], time[istart:iend], meta)
 
     @property
@@ -385,7 +385,8 @@ class _Steps:
         Returns:
             :class:`~stagpy._step.Step`: the relevant step.
         """
-        itime = misc.find_in_sorted_arr(time, self.sdat.tseries.time, after)
+        itime = _helpers.find_in_sorted_arr(time, self.sdat.tseries.time,
+                                            after)
         return self[self.sdat.tseries.isteps[itime]]
 
     def filter(self, **filters):

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpat
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from . import conf, misc, phyvars
+from . import conf, phyvars, _helpers
 from .error import NotAvailableError
 from .stagyydata import StagyyData
 
@@ -166,7 +166,7 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
         meta = phyvars.FIELD[var]
     else:
         meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(misc.baredoc(meta.description), meta.dim)
+        meta = phyvars.Varf(_helpers.baredoc(meta.description), meta.dim)
     if step.geom.threed and step.geom.spherical:
         raise NotAvailableError(
             'plot_scalar not implemented for 3D spherical geometry')
@@ -318,7 +318,7 @@ def cmd():
         conf.core
     """
     sdat = StagyyData()
-    lovs = misc.list_of_vars(conf.field.plot)
+    lovs = _helpers.list_of_vars(conf.field.plot)
     # no more than two fields in a subplot
     lovs = [[slov[:2] for slov in plov] for plov in lovs]
     minmax = {}
@@ -346,9 +346,9 @@ def cmd():
                         plot_vec(axis, step, var[1])
             if conf.field.timelabel:
                 time, unit = sdat.scale(step.timeinfo['t'], 's')
-                time = misc.scilabel(time)
+                time = _helpers.scilabel(time)
                 axes[0, 0].text(0.02, 1.02, f'$t={time}$ {unit}',
                                 transform=axes[0, 0].transAxes)
             oname = '_'.join(chain.from_iterable(vfig))
             plt.tight_layout(w_pad=3)
-            misc.saveplot(fig, oname, step.isnap)
+            _helpers.saveplot(fig, oname, step.isnap)

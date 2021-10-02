@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
 
-from . import conf, error, field, misc, phyvars
+from . import conf, error, field, phyvars
+from ._helpers import saveplot
 from .stagyydata import StagyyData
 
 
@@ -283,7 +284,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     plot_plate_limits(ax3, ridge, trench, conf.plates.vmin,
                       conf.plates.vmax)
 
-    misc.saveplot(fig0, 'sveltempconc', timestep)
+    saveplot(fig0, 'sveltempconc', timestep)
 
     # plotting velocity and velocity derivative
     fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
@@ -314,7 +315,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         conf.plates.dvmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.dvmin, conf.plates.dvmax)
 
-    misc.saveplot(fig0, 'sveldvel', timestep)
+    saveplot(fig0, 'sveldvel', timestep)
 
     # plotting velocity and second invariant of stress
     if 'str' in conf.plates.plot:
@@ -350,7 +351,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
             conf.plates.dvmax,
             facecolor='#8B6914', alpha=0.2)
 
-        misc.saveplot(fig0, 'svelstress', timestep)
+        saveplot(fig0, 'svelstress', timestep)
 
     # plotting velocity
     fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
@@ -449,7 +450,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     plot_plate_limits(ax2, ridge, trench, conf.plates.topomin,
                       conf.plates.topomax)
     ax1.set_title(timestep)
-    misc.saveplot(fig1, 'sveltopo', timestep)
+    saveplot(fig1, 'sveltopo', timestep)
 
     if 'age' in conf.plates.plot:
         ax4.set_ylabel("Seafloor age [My]")
@@ -463,7 +464,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         plot_plate_limits(ax4, ridge, trench, conf.plates.agemin,
                           conf.plates.agemax)
         ax3.set_title(timestep)
-        misc.saveplot(fig2, 'svelage', timestep)
+        saveplot(fig2, 'svelage', timestep)
 
     # writing the output into a file, all time steps are in one file
     for isubd in np.arange(len(distance_subd)):
@@ -505,7 +506,7 @@ def lithospheric_stress(step, trench, ridge, time):
     # Annotation with time and step
     axis.text(1., 0.9, str(round(time, 0)) + ' My', transform=axis.transAxes)
     axis.text(1., 0.1, str(timestep), transform=axis.transAxes)
-    misc.saveplot(fig, 'lith', timestep)
+    saveplot(fig, 'lith', timestep)
 
     # velocity
     vphi = step.fields['v2'][0, :, :, 0]
@@ -576,7 +577,7 @@ def lithospheric_stress(step, trench, ridge, time):
         conf.plates.lstressmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.stressmin, conf.plates.lstressmax)
 
-    misc.saveplot(fig0, 'svelslith', timestep)
+    saveplot(fig0, 'svelslith', timestep)
 
 
 def set_of_vars(arg_plot):
@@ -686,7 +687,7 @@ def main_plates(sdat):
             # Put arrow where ridges and trenches are
             plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-            misc.saveplot(fig, 'eta', timestep, close=False)
+            saveplot(fig, 'eta', timestep, close=conf.plates.zoom is None)
 
             # Zoom
             if conf.plates.zoom is not None:
@@ -704,8 +705,7 @@ def main_plates(sdat):
                 yzoom = (rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
                 axis.set_xlim(xzoom - ladd, xzoom + radd)
                 axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                misc.saveplot(fig, 'etazoom', timestep, close=False)
-            plt.close(fig)
+                saveplot(fig, 'etazoom', timestep)
 
             # plot stress field with position of trenches and ridges
             if 'str' in conf.plates.plot:
@@ -721,14 +721,13 @@ def main_plates(sdat):
                 # Put arrow where ridges and trenches are
                 plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-                misc.saveplot(fig, 's', timestep, close=False)
+                saveplot(fig, 's', timestep, close=conf.plates.zoom is None)
 
                 # Zoom
                 if conf.plates.zoom is not None:
                     axis.set_xlim(xzoom - ladd, xzoom + radd)
                     axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                    misc.saveplot(fig, 'szoom', timestep, close=False)
-                plt.close(fig)
+                    saveplot(fig, 'szoom', timestep)
 
                 # calculate stresses in the lithosphere
                 lithospheric_stress(step, trenches, ridges, time)
@@ -759,7 +758,7 @@ def main_plates(sdat):
                 # Put arrow where ridges and trenches are
                 plot_plate_limits_field(axis, rcmb, ridges, trenches)
 
-                misc.saveplot(fig, 'sx', timestep)
+                saveplot(fig, 'sx', timestep)
 
 
 def cmd():
@@ -814,7 +813,7 @@ def cmd():
             plt.hist(sizeplates, 10, (0, nphi / 2))
             plt.subplot(224)
             plt.plot(water_profile)
-            misc.saveplot(fig, 'plates', step.isnap)
+            saveplot(fig, 'plates', step.isnap)
 
             nb_plates.append(len(limits))
 
@@ -829,4 +828,4 @@ def cmd():
             plt.plot(time, nb_plates)
             plt.subplot(122)
             plt.plot(time, ch2o)
-            misc.saveplot(figt, f'plates_{istart}_{iend}')
+            saveplot(figt, f'plates_{istart}_{iend}')

@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from . import conf, misc
+from . import conf, _helpers
 from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData
 
@@ -20,20 +20,20 @@ def _collect_marks(sdat):
     return times
 
 
-def plot_time_series(sdat, lovs):
+def plot_time_series(sdat, names):
     """Plot requested time series.
 
     Args:
         sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        lovs (nested list of str): nested list of series names such as
-            the one produced by :func:`stagpy.misc.list_of_vars`.
+        names (str): time series names separated by ``-`` (figures), ``.``
+            (subplots) and ``,`` (same subplot).
 
     Other Parameters:
         conf.time.tstart: the starting time.
         conf.time.tend: the ending time.
     """
     time_marks = _collect_marks(sdat)
-    for vfig in lovs:
+    for vfig in _helpers.list_of_vars(names):
         tstart = conf.time.tstart
         tend = conf.time.tend
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
@@ -79,7 +79,7 @@ def plot_time_series(sdat, lovs):
         axes[-1].set_xlabel('Time' + unit)
         axes[-1].set_xlim(tstart, tend)
         axes[-1].tick_params()
-        misc.saveplot(fig, '_'.join(fname))
+        _helpers.saveplot(fig, '_'.join(fname))
 
 
 def compstat(sdat, *names, tstart=None, tend=None):
@@ -127,9 +127,7 @@ def cmd():
         conf.time.tstart = (t_0 * conf.time.fraction +
                             t_f * (1 - conf.time.fraction))
 
-    lovs = misc.list_of_vars(conf.time.plot)
-    if lovs:
-        plot_time_series(sdat, lovs)
+    plot_time_series(sdat, conf.time.plot)
 
     if conf.time.compstat:
         names = conf.time.compstat.replace(',', ' ').split()

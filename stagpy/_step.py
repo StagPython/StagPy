@@ -12,8 +12,8 @@ from itertools import chain
 
 import numpy as np
 
-from . import error, misc, phyvars, stagyyparsers
-from .misc import CachedReadOnlyProperty as crop
+from . import error, phyvars, stagyyparsers, _helpers
+from ._helpers import CachedReadOnlyProperty as crop
 
 
 class _Geometry:
@@ -440,7 +440,7 @@ class _Rprofs:
         elif name in phyvars.RPROF_EXTRA:
             meta = phyvars.RPROF_EXTRA[name]
             rprof, rad = meta.description(step)
-            meta = phyvars.Varr(misc.baredoc(meta.description),
+            meta = phyvars.Varr(_helpers.baredoc(meta.description),
                                 meta.kind, meta.dim)
             self._cached_extra[name] = rprof, rad, meta
         else:

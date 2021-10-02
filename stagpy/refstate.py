@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 
-from . import conf, misc
+from . import conf, _helpers
 from .phyvars import REFSTATE
 from .stagyydata import StagyyData
 
@@ -31,7 +31,7 @@ def plot_ref(sdat, var):
     axis.set_ylabel('z Position')
     if len(adbts) > 2:
         axis.legend()
-    misc.saveplot(fig, f'refstate_{var}')
+    _helpers.saveplot(fig, f'refstate_{var}')
 
 
 def cmd():

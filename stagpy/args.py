@@ -9,7 +9,7 @@ from loam.cli import Subcmd, CLIManager
 from . import __doc__ as doc_module
 from . import conf, PARSING_OUT, load_mplstyle
 from . import commands, field, rprof, time_series, refstate, plates
-from .misc import baredoc
+from ._helpers import baredoc
 from .config import CONFIG_DIR
 
 

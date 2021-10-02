@@ -1,18 +1,18 @@
 """Plot radial profiles."""
 import matplotlib.pyplot as plt
 
-from . import conf, misc
+from . import conf, _helpers
 from .stagyydata import StagyyData
 
 
-def plot_rprofs(rprofs, lovs):
+def plot_rprofs(rprofs, names):
     """Plot requested radial profiles.
 
     Args:
         rprofs (:class:`~stagpy._step._Rprofs`): a radial profile viewer
             such as :attr:`Step.rprofs` and :attr:`_StepsView.rprofs_averaged`.
-        lovs (nested list of str): nested list of profile names such as the one
-            produced by :func:`stagpy.misc.list_of_vars`.
+        names (str): profile names separated by ``-`` (figures), ``.``
+            (subplots) and ``,`` (same subplot).
     """
     try:
         stepstr = rprofs.steps.stepstr
@@ -20,7 +20,7 @@ def plot_rprofs(rprofs, lovs):
         stepstr = str(rprofs.step.istep)
     sdat = rprofs.step.sdat
 
-    for vfig in lovs:
+    for vfig in _helpers.list_of_vars(names):
         fig, axes = plt.subplots(ncols=len(vfig), sharey=True,
                                  figsize=(4 * len(vfig), 6))
         axes = [axes] if len(vfig) == 1 else axes
@@ -56,7 +56,7 @@ def plot_rprofs(rprofs, lovs):
         _, unit = sdat.scale(1, 'm')
         ylabel += f' ({unit})' if unit else ''
         axes[0].set_ylabel(ylabel)
-        misc.saveplot(fig, fname + stepstr)
+        _helpers.saveplot(fig, fname + stepstr)
 
 
 def plot_grid(step):
@@ -79,7 +79,7 @@ def plot_grid(step):
     ax2.set_ylabel('$dr$' + unit)
     ax2.set_xlim([-0.5, len(rad) - 0.5])
     ax2.set_xlabel('Cell number')
-    misc.saveplot(fig, 'grid', step.istep)
+    _helpers.saveplot(fig, 'grid', step.istep)
 
 
 def cmd():
@@ -95,12 +95,8 @@ def cmd():
         for step in sdat.walk.filter(rprofs=True):
             plot_grid(step)
 
-    lovs = misc.list_of_vars(conf.rprof.plot)
-    if not lovs:
-        return
-
     if conf.rprof.average:
-        plot_rprofs(sdat.walk.rprofs_averaged, lovs)
+        plot_rprofs(sdat.walk.rprofs_averaged, conf.rprof.plot)
     else:
         for step in sdat.walk.filter(rprofs=True):
-            plot_rprofs(step.rprofs, lovs)
+            plot_rprofs(step.rprofs, conf.rprof.plot)

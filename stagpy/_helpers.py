@@ -1,4 +1,4 @@
-"""Miscellaneous definitions."""
+"""Various helper functions and classes."""
 
 from inspect import getdoc
 

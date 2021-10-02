@@ -12,7 +12,7 @@ import pandas
 from . import conf, phyvars, __version__
 from . import stagyydata
 from .config import CONFIG_FILE, CONFIG_LOCAL
-from .misc import baredoc
+from ._helpers import baredoc
 
 
 def info_cmd():
