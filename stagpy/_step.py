@@ -69,7 +69,7 @@ class _Geometry:
             walls = rgeom[:, 0] + self.rcmb
         else:
             walls = self._header["e3_coord"] + self.rcmb
-            walls.append(self._step.rprofs.bounds[1])
+            walls = np.append(walls, self._step.rprofs.bounds[1])
         return self._scale_radius_mo(walls)
 
     @crop
