@@ -206,7 +206,7 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
                        (' pert.' if conf.field.perturbation else '') +
                        (f' ({unit})' if unit else ''))
         # MD temporary fix to keep all the elements in the fig the same size
-        cbar.ax.yaxis.set_major_formatter(tick.FormatStrFormatter('%.2f'))
+        cbar.ax.yaxis.set_major_formatter(tick.FormatStrFormatter('%.2e'))
     if step.geom.spherical or conf.plot.ratio is None:
         axis.set_aspect('equal')
         axis.set_axis_off()
