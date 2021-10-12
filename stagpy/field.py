@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpat
+import matplotlib.ticker as tick
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from . import conf, misc, phyvars
@@ -204,6 +205,8 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
         cbar.set_label(meta.description +
                        (' pert.' if conf.field.perturbation else '') +
                        (f' ({unit})' if unit else ''))
+        # MD temporary fix to keep all the elements in the fig the same size
+        cbar.ax.yaxis.set_major_formatter(tick.FormatStrFormatter('%.2f'))
     if step.geom.spherical or conf.plot.ratio is None:
         axis.set_aspect('equal')
         axis.set_axis_off()
@@ -239,7 +242,7 @@ def plot_iso(axis, step, var, **extra):
         extra_opts['cmap'] = conf.field.cmap.get(var)
     if 'levels' not in extra and conf.field.levels:           # MD
         extra_opts['levels'] = [float(e) for e in             # |
-                                conf.field.levels.split(',')] # MD    
+                                conf.field.levels.split(',')]  # MD
     extra_opts.update(extra)
     axis.contour(xmesh, ymesh, fld, **extra_opts)
 
@@ -325,10 +328,10 @@ def cmd():
                         plot_vec(axis, step, var[1])
             if conf.field.timelabel:
                 time, unit = sdat.scale(step.timeinfo['t'], 's')
-                fac = 1.0                
+                fac = 1.0
                 if conf.scaling.time_in_y:
                     fac = conf.scaling.yearins
-                time = misc.scilabel(time/fac)
+                time = misc.scilabel(time / fac)
                 axes[0, 0].text(0.02, 1.02, f'$t={time}$ {unit}',
                                 transform=axes[0, 0].transAxes)
             oname = '_'.join(chain.from_iterable(vfig))
