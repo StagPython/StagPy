@@ -139,7 +139,7 @@ def detect_plates(step, vrms_surface, fids, time):
     for itrench in np.arange(len(trench)):
         fids[0].write("%7.0f %11.7f %10.6f %9.2f %9.2f \n" % (
             step.isnap,
-            step.geom.ti_ad,
+            step.time,
             trench[itrench],
             velocity_trench[itrench],
             agetrench[itrench]
@@ -259,7 +259,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax1.set_title(timestep)
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes)
-    ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
+    ax1.text(0.01, 1.07, str(round(step.time, 8)),
              transform=ax1.transAxes)
 
     plot_plate_limits(ax3, ridge, trench, conf.plates.vmin,
@@ -275,7 +275,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax1.set_ylabel("Velocity")
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes)
-    ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
+    ax1.text(0.01, 1.07, str(round(step.time, 8)),
              transform=ax1.transAxes)
     ax2.plot(ph_coord[:-1] + ph_coord[0], dvph2, color='k', label='dv')
     ax2.set_ylabel("dv")
@@ -308,7 +308,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         ax1.set_ylabel("Velocity")
         ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
                  transform=ax1.transAxes)
-        ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
+        ax1.text(0.01, 1.07, str(round(step.time, 8)),
                  transform=ax1.transAxes)
         ax2.plot(ph_coord[:-1],
                  stressfld[:-1, indsurf] * step.sdat.scales.stress / 1.e6,
@@ -389,7 +389,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
             age_subd.append(agetrench[i])
             ph_cont_subd.append(continentpos)
             distance_subd.append(distancecont)
-            times_subd.append(step.geom.ti_ad)
+            times_subd.append(step.time)
 
             if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
                 if continentpos - trench_i < 0:  # continent is on the left
@@ -535,7 +535,7 @@ def lithospheric_stress(step, trench, ridge, time):
     ax1.set_ylabel("Velocity")
     ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
              transform=ax1.transAxes)
-    ax1.text(0.01, 1.07, str(round(step.geom.ti_ad, 8)),
+    ax1.text(0.01, 1.07, str(round(step.time, 8)),
              transform=ax1.transAxes)
 
     intstr_scale = step.sdat.scales.stress * step.sdat.scales.length / 1.e12
@@ -610,7 +610,7 @@ def main_plates(sdat):
             if sdat.par['boundaries']['air_layer']:
                 topo[:, 1] = topo[:, 1] / (1. - dsa)
 
-            time = step.geom.ti_ad * vrms_surface *\
+            time = step.time * vrms_surface *\
                 conf.scaling.ttransit / conf.scaling.yearins / 1.e6
             trenches, ridges, agetrenches, _, _ =\
                 detect_plates(step, vrms_surface, fids, time)
