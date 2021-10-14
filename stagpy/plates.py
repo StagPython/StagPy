@@ -11,78 +11,61 @@ from ._helpers import saveplot
 from .stagyydata import StagyyData
 
 
-def detect_plates_vzcheck(step, seuil_memz):
+def detect_plates_vzcheck(step, vz_thres_ratio=0):
     """Detect plates and check with vz and plate size."""
-    v_z = step.fields['v3'][0, :, :, 0]
+    v_z = step.fields['v3'][0, :-1, :, 0]
     v_x = step.fields['v2'][0, :, :, 0]
     tcell = step.fields['T'][0, :, :, 0]
     n_z = step.geom.nztot
     nphi = step.geom.nptot
-    rcmb = step.geom.rcmb
-    radius = step.geom.r_centers
-    radiusgrid = step.geom.r_walls
+    r_c = step.geom.r_centers
+    r_w = step.geom.r_walls
     dphi = 1 / nphi
 
-    # calculing temperature on the grid and vz_mean
-    vz_mean = 0
-    tgrid = np.zeros((nphi, n_z + 1))
-    tgrid[:, 0] = 1
-    for i_z in range(1, n_z):
-        for phi in range(nphi):
-            tgrid[phi, i_z] = (
-                tcell[phi, i_z - 1] *
-                (radiusgrid[i_z] - radius[i_z - 1]) + tcell[phi, i_z] *
-                (-radiusgrid[i_z] + radius[i_z])) / (radius[i_z] -
-                                                     radius[i_z - 1])
-            vz_mean += abs(v_z[phi, i_z]) / (nphi * n_z)
-
     flux_c = n_z * [0]
-    for i_z in range(1, n_z - 1):
-        for phi in range(nphi):
-            flux_c[i_z] += (tgrid[phi, i_z] - step.timeinfo.loc['Tmean']) * \
-                v_z[phi, i_z] * radiusgrid[i_z] * dphi
+    for i_z in range(0, n_z):
+        flux_c[i_z] = np.sum((tcell[:, i_z] - step.timeinfo.loc['Tmean']) *
+                             v_z[:, i_z]) * r_w[i_z] * dphi
 
-    # checking stagnant lid
+    # checking stagnant lid, criterion seems weird!
     if all(abs(flux_c[i_z]) <= np.max(flux_c) / 50
            for i_z in range(n_z - n_z // 20, n_z)):
         raise error.StagnantLidError(step.sdat)
-    else:
-        # verifying horizontal plate speed and closeness of plates
-        dvphi = nphi * [0]
-        dvx_thres = 16 * step.timeinfo.loc['vrms']
 
-        for phi in range(0, nphi):
-            dvphi[phi] = (v_x[phi, n_z - 1] -
-                          v_x[phi - 1, n_z - 1]) / ((1 + rcmb) * dphi)
-        limits = []
-        for phi in range(0, nphi - nphi // 33):
-            mark = all(abs(dvphi[i]) <= abs(dvphi[phi])
-                       for i in range(phi - nphi // 33, phi + nphi // 33))
-            if mark and abs(dvphi[phi]) >= dvx_thres:
-                limits.append(phi)
-        for phi in range(nphi - nphi // 33 + 1, nphi):
-            mark = all(abs(dvphi[i]) <= abs(dvphi[phi])
-                       for i in range(phi - nphi // 33 - nphi,
-                                      phi + nphi // 33 - nphi))
-            if mark and abs(dvphi[phi]) >= dvx_thres:
-                limits.append(phi)
+    # verifying horizontal plate speed and closeness of plates
+    vphi_surf = v_x[:, -1]
+    dvphi = np.diff(vphi_surf)
+    dvphi = np.append(dvphi, vphi_surf[0] - vphi_surf[-1])
+    dvphi /= (r_c[-1] * dphi)
+    dvx_thres = 16 * step.timeinfo.loc['vrms']
 
-        # verifying vertical speed
-        k = 0
-        for i in range(len(limits)):
-            vzm = 0
-            phi = limits[i - k]
-            for i_z in range(1 if phi == nphi - 1 else 0, n_z):
-                vzm += (abs(v_z[phi, i_z]) +
-                        abs(v_z[phi - 1, i_z]) +
-                        abs(v_z[(phi + 1) % nphi, i_z])) / (n_z * 3)
+    limits = []
+    for phi in range(0, nphi):
+        mark = all(abs(dvphi[i % nphi]) <= abs(dvphi[phi])
+                   for i in range(phi - nphi // 33, phi + nphi // 33))
+        if mark and abs(dvphi[phi]) >= dvx_thres:
+            limits.append(phi)
 
-            vz_thres = vz_mean * 0.1 + seuil_memz / 2 if seuil_memz else 0
-            if vzm < vz_thres:
-                limits.remove(phi)
-                k += 1
+    # verifying vertical velocity
+    vz_thres = 0
+    if vz_thres_ratio > 0:
+        vz_mean = (np.sum(step.rprofs['vzabs'].values * np.diff(r_w))
+                   / (r_w[-1] - r_w[0]))
+        vz_thres = vz_mean * vz_thres_ratio
+    k = 0
+    for i in range(len(limits)):
+        vzm = 0
+        phi = limits[i - k]
+        for i_z in range(1 if phi == nphi - 1 else 0, n_z):
+            vzm += (abs(v_z[phi, i_z]) +
+                    abs(v_z[phi - 1, i_z]) +
+                    abs(v_z[(phi + 1) % nphi, i_z])) / (n_z * 3)
 
-    return limits, nphi, dvphi, vz_thres, v_x[:, n_z - 1]
+        if vzm < vz_thres:
+            limits.remove(phi)
+            k += 1
+
+    return limits, nphi, dvphi, vphi_surf
 
 
 def detect_plates(step, vrms_surface, fids, time):
@@ -777,7 +760,6 @@ def cmd():
         conf.scaling.factors['Pa'] = 'M'
         main_plates(sdat)
     else:
-        seuil_memz = 0
         nb_plates = []
         time = []
         ch2o = []
@@ -790,8 +772,7 @@ def cmd():
                 ch2o.append(step.timeinfo.loc[0])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
-            limits, nphi, dvphi, seuil_memz, vphi_surf =\
-                detect_plates_vzcheck(step, seuil_memz)
+            limits, nphi, dvphi, vphi_surf = detect_plates_vzcheck(step)
             water_profile = np.mean(step.fields['wtr'][0, :, :, 0], axis=0)
             limits.sort()
             sizeplates = [limits[0] + nphi - limits[-1]]
