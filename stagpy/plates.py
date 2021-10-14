@@ -796,7 +796,8 @@ def cmd():
                 nb_plates[i] = (nb_plates[i - 2] + nb_plates[i - 1] +
                                 nb_plates[i] + nb_plates[i + 1] +
                                 nb_plates[i + 2]) / 5
-            figt = plt.figure()
-            plt.axis([time[0], time[-1], 0, np.max(nb_plates)])
-            plt.plot(time, nb_plates)
+            figt, axis = plt.subplots()
+            axis.plot(time, nb_plates)
+            axis.set_xlabel("Time")
+            axis.set_ylabel("Number of plates")
             saveplot(figt, f'plates_{istart}_{iend}')
