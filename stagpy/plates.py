@@ -762,38 +762,33 @@ def cmd():
     else:
         nb_plates = []
         time = []
-        ch2o = []
         istart, iend = None, None
 
         for step in sdat.walk.filter(fields=['T']):
             # could check other fields too
             if conf.plates.timeprofile:
                 time.append(step.timeinfo.loc['t'])
-                ch2o.append(step.timeinfo.loc[0])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
             limits, nphi, dvphi, vphi_surf = detect_plates_vzcheck(step)
-            water_profile = np.mean(step.fields['wtr'][0, :, :, 0], axis=0)
             limits.sort()
             sizeplates = [limits[0] + nphi - limits[-1]]
             for lim in range(1, len(limits)):
                 sizeplates.append(limits[lim] - limits[lim - 1])
             lim = len(limits) * [max(dvphi)]
             fig = plt.figure()
-            plt.subplot(221)
+            plt.subplot(311)
             plt.axis([0, nphi,
                       np.min(vphi_surf) * 1.2, np.max(vphi_surf) * 1.2])
             plt.plot(vphi_surf)
-            plt.subplot(223)
+            plt.subplot(312)
             plt.axis(
                 [0, nphi,
                  np.min(dvphi) * 1.2, np.max(dvphi) * 1.2])
             plt.plot(dvphi)
             plt.scatter(limits, lim, color='red')
-            plt.subplot(222)
+            plt.subplot(313)
             plt.hist(sizeplates, 10, (0, nphi / 2))
-            plt.subplot(224)
-            plt.plot(water_profile)
             saveplot(fig, 'plates', step.isnap)
 
             nb_plates.append(len(limits))
@@ -804,9 +799,6 @@ def cmd():
                                 nb_plates[i] + nb_plates[i + 1] +
                                 nb_plates[i + 2]) / 5
             figt = plt.figure()
-            plt.subplot(121)
             plt.axis([time[0], time[-1], 0, np.max(nb_plates)])
             plt.plot(time, nb_plates)
-            plt.subplot(122)
-            plt.plot(time, ch2o)
             saveplot(figt, f'plates_{istart}_{iend}')
