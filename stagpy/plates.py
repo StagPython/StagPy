@@ -47,8 +47,8 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
     # verifying vertical velocity
     vz_thres = 0
     if vz_thres_ratio > 0:
-        vz_mean = (np.sum(step.rprofs['vzabs'].values * np.diff(r_w))
-                   / (r_w[-1] - r_w[0]))
+        vz_mean = (np.sum(step.rprofs['vzabs'].values * np.diff(r_w)) /
+                   (r_w[-1] - r_w[0]))
         vz_thres = vz_mean * vz_thres_ratio
     k = 0
     for i in range(len(limits)):
@@ -80,26 +80,22 @@ def detect_plates(step, vrms_surface, fids, time):
     else:
         indsurf = -1
 
-    vph2 = 0.5 * (vphi + np.roll(vphi, 1, 0))  # interpolate to the same phi
-    # velocity derivation
-    dvph2 = (np.diff(vph2[:, indsurf]) / (ph_coord[0] * 2.))
+    # vphi at cell-center
+    vph2 = 0.5 * (vphi[1:] + vphi[:-1])
+    # dvphi/dphi at cell-center
+    dvph2 = np.diff(vphi[:, indsurf]) / (ph_coord[1] - ph_coord[0])
 
     io_surface(step.isnap, time, fids[6], dvph2)
-    io_surface(step.isnap, time, fids[7], vph2[:-1, indsurf])
-
-    # prepare stuff to find trenches and ridges
-    myorder_trench = 15 if step.sdat.par['boundaries']['air_layer'] else 10
-    myorder_ridge = 20  # threshold
+    io_surface(step.isnap, time, fids[7], vph2[:, indsurf])
 
     # finding trenches
     pom2 = np.copy(dvph2)
-    if step.sdat.par['boundaries']['air_layer']:
-        maskbigdvel = -30 * vrms_surface
-    else:
-        maskbigdvel = -10 * vrms_surface
+    maskbigdvel = -vrms_surface * (
+        30 if step.sdat.par['boundaries']['air_layer'] else 10)
     pom2[pom2 > maskbigdvel] = maskbigdvel
+    trench_span = 15 if step.sdat.par['boundaries']['air_layer'] else 10
     argless_dv = argrelextrema(
-        pom2, np.less, order=myorder_trench, mode='wrap')[0]
+        pom2, np.less, order=trench_span, mode='wrap')[0]
     trench = ph_coord[argless_dv]
     velocity_trench = vph2[argless_dv, indsurf]
     dv_trench = dvph2[argless_dv]
@@ -108,8 +104,9 @@ def detect_plates(step, vrms_surface, fids, time):
     pom2 = np.copy(dvph2)
     masksmalldvel = np.amax(dvph2) * 0.2
     pom2[pom2 < masksmalldvel] = masksmalldvel
+    ridge_span = 20
     arggreat_dv = argrelextrema(
-        pom2, np.greater, order=myorder_ridge, mode='wrap')[0]
+        pom2, np.greater, order=ridge_span, mode='wrap')[0]
     ridge = ph_coord[arggreat_dv]
 
     # elimination of ridges that are too close to trench
@@ -125,7 +122,7 @@ def detect_plates(step, vrms_surface, fids, time):
             arggreat_dv = np.delete(arggreat_dv, np.array(argdel))
 
     dv_ridge = dvph2[arggreat_dv]
-    if 'age' in conf.plates:
+    if 'age' in conf.plates.plot:
         agefld = step.fields['age'][0, :, :, 0]
         age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
                                          agefld[:, indsurf])
@@ -206,41 +203,40 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     if step.sdat.par['boundaries']['air_layer'] and\
        not step.sdat.par['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
-            np.logical_or(concfld[:-1, indcont] < 3,
-                          concfld[:-1, indcont] > 4),
-            concfld[:-1, indcont])
+            np.logical_or(concfld[:, indcont] < 3,
+                          concfld[:, indcont] > 4),
+            concfld[:, indcont])
     elif (step.sdat.par['boundaries']['air_layer'] and
           step.sdat.par['continents']['proterozoic_belts']):
         continents = np.ma.masked_where(
-            np.logical_or(concfld[:-1, indcont] < 3,
-                          concfld[:-1, indcont] > 5),
-            concfld[:-1, indcont])
+            np.logical_or(concfld[:, indcont] < 3,
+                          concfld[:, indcont] > 5),
+            concfld[:, indcont])
     elif step.sdat.par['tracersin']['tracers_weakcrust']:
         continents = np.ma.masked_where(
-            concfld[:-1, indcont] < 3, concfld[:-1, indcont])
+            concfld[:, indcont] < 3, concfld[:, indcont])
     else:
         continents = np.ma.masked_where(
-            concfld[:-1, indcont] < 2, concfld[:-1, indcont])
+            concfld[:, indcont] < 2, concfld[:, indcont])
 
     # masked array, only continents are true
     continentsall = continents / continents
 
     ph_coord = step.geom.p_centers
 
-    # velocity
-    vph2 = 0.5 * (vphi + np.roll(vphi, 1, 0))  # interpolate to the same phi
-    dvph2 = (np.diff(vph2[:, indsurf]) / (ph_coord[0] * 2.))
+    # velocity derivative at cell-center
+    dvph2 = np.diff(vphi[:, indsurf]) / (ph_coord[1] - ph_coord[0])
 
     # plotting
     fig0, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(ph_coord[:-1], concfld[:-1, indsurf], color='g', label='Conc')
-    ax2.plot(ph_coord[:-1], tempfld[:-1, indsurf], color='k', label='Temp')
-    ax3.plot(ph_coord[:-1], vph2[:-1, indsurf], label='Vel')
+    ax1.plot(ph_coord, concfld[:, indsurf], color='g', label='Conc')
+    ax2.plot(ph_coord, tempfld[:, indsurf], color='k', label='Temp')
+    ax3.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
 
     ax1.fill_between(
-        ph_coord[:-1], continents, 1., facecolor='#8B6914', alpha=0.2)
+        ph_coord, continents, 1., facecolor='#8B6914', alpha=0.2)
     ax2.fill_between(
-        ph_coord[:-1], continentsall, 0., facecolor='#8B6914', alpha=0.2)
+        ph_coord, continentsall, 0., facecolor='#8B6914', alpha=0.2)
 
     tempmin = step.sdat.par['boundaries']['topT_val'] * 0.9\
         if step.sdat.par['boundaries']['topT_mode'] == 'iso' else 0.0
@@ -249,7 +245,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
 
     ax2.set_ylim(tempmin, tempmax)
     ax3.fill_between(
-        ph_coord[:-1], continentsall * round(1.5 * np.amax(dvph2), 1),
+        ph_coord, continentsall * round(1.5 * np.amax(dvph2), 1),
         round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
     ax3.set_ylim(conf.plates.vmin, conf.plates.vmax)
 
@@ -269,7 +265,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
 
     # plotting velocity and velocity derivative
     fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], label='Vel')
+    ax1.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax1.set_ylabel("Velocity")
@@ -277,7 +273,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
              transform=ax1.transAxes)
     ax1.text(0.01, 1.07, str(round(step.time, 8)),
              transform=ax1.transAxes)
-    ax2.plot(ph_coord[:-1] + ph_coord[0], dvph2, color='k', label='dv')
+    ax2.plot(ph_coord, dvph2, color='k', label='dv')
     ax2.set_ylabel("dv")
 
     plot_plate_limits(ax1, ridge, trench, conf.plates.vmin,
@@ -288,11 +284,11 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax1.set_title(timestep)
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * conf.plates.vmin, conf.plates.vmax,
+        ph_coord, continentsall * conf.plates.vmin, conf.plates.vmax,
         facecolor='#8b6914', alpha=0.2)
     ax1.set_ylim(conf.plates.vmin, conf.plates.vmax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * conf.plates.dvmin,
+        ph_coord, continentsall * conf.plates.dvmin,
         conf.plates.dvmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.dvmin, conf.plates.dvmax)
 
@@ -302,7 +298,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     if 'str' in conf.plates.plot:
         stressfld = step.fields['sII'][0, :, :, 0]
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-        ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], label='Vel')
+        ax1.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                     color='black', ls='solid', alpha=0.2)
         ax1.set_ylabel("Velocity")
@@ -310,8 +306,8 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                  transform=ax1.transAxes)
         ax1.text(0.01, 1.07, str(round(step.time, 8)),
                  transform=ax1.transAxes)
-        ax2.plot(ph_coord[:-1],
-                 stressfld[:-1, indsurf] * step.sdat.scales.stress / 1.e6,
+        ax2.plot(ph_coord,
+                 stressfld[:, indsurf] * step.sdat.scales.stress / 1.e6,
                  color='k', label='Stress')
         ax2.set_ylim(conf.plates.stressmin, conf.plates.stressmax)
         ax2.set_ylabel("Stress [MPa]")
@@ -324,11 +320,11 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         ax1.set_title(timestep)
 
         ax1.fill_between(
-            ph_coord[:-1], continentsall * conf.plates.vmin,
+            ph_coord, continentsall * conf.plates.vmin,
             conf.plates.vmax, facecolor='#8B6914', alpha=0.2)
         ax1.set_ylim(conf.plates.vmin, conf.plates.vmax)
         ax2.fill_between(
-            ph_coord[:-1], continentsall * conf.plates.dvmin,
+            ph_coord, continentsall * conf.plates.dvmin,
             conf.plates.dvmax,
             facecolor='#8B6914', alpha=0.2)
 
@@ -336,7 +332,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
 
     # plotting velocity
     fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(ph_coord[:-1], vph2[:-1, indsurf], label='Vel')
+    ax1.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax1.set_ylim(conf.plates.vmin, conf.plates.vmax)
@@ -355,7 +351,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                            conf.scaling.yearins / 1.e6)
 
         fig2, (ax3, ax4) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-        ax3.plot(ph_coord[:-1], vph2[:-1, indsurf], label='Vel')
+        ax3.plot(ph_coord, vphi[:, indsurf], label='Vel')
         ax3.axhline(
             y=0, xmin=0, xmax=2 * np.pi,
             color='black', ls='solid', alpha=0.2)
@@ -364,7 +360,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         ax3.text(0.95, 1.07, str(round(time, 0)) + ' My',
                  transform=ax3.transAxes)
         ax3.fill_between(
-            ph_coord[:-1], continentsall * conf.plates.vmax,
+            ph_coord, continentsall * conf.plates.vmax,
             conf.plates.vmin, facecolor='#8B6914', alpha=0.2)
         plot_plate_limits(ax3, ridge, trench,
                           conf.plates.vmin, conf.plates.vmax)
@@ -377,13 +373,12 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     if step.sdat.par['switches']['cont_tracers']:
         for i, trench_i in enumerate(trench):
             # detection of the distance in between subduction and continent
-            ph_coord_noend = ph_coord[:-1]
-            angdistance1 = abs(ph_coord_noend[continentsall == 1] - trench_i)
+            angdistance1 = abs(ph_coord[continentsall == 1] - trench_i)
             angdistance2 = 2. * np.pi - angdistance1
             angdistance = np.minimum(angdistance1, angdistance2)
             distancecont = min(angdistance)
             argdistancecont = np.argmin(angdistance)
-            continentpos = ph_coord_noend[continentsall == 1][argdistancecont]
+            continentpos = ph_coord[continentsall == 1][argdistancecont]
 
             ph_trench_subd.append(trench_i)
             age_subd.append(agetrench[i])
@@ -415,7 +410,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                                              shrinkA=0, shrinkB=0))
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * conf.plates.vmin,
+        ph_coord, continentsall * conf.plates.vmin,
         conf.plates.vmax, facecolor='#8B6914', alpha=0.2)
     ax2.set_ylabel("Topography [km]")
     ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -426,7 +421,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     ax2.set_xlim(0, 2 * np.pi)
     ax2.set_ylim(conf.plates.topomin, conf.plates.topomax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * conf.plates.topomax,
+        ph_coord, continentsall * conf.plates.topomax,
         conf.plates.topomin, facecolor='#8B6914', alpha=0.2)
     plot_plate_limits(ax2, ridge, trench, conf.plates.topomin,
                       conf.plates.topomax)
@@ -436,10 +431,10 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     if 'age' in conf.plates.plot:
         ax4.set_ylabel("Seafloor age [My]")
         # in dimensions
-        ax4.plot(ph_coord[:-1], age_surface_dim[:-1], color='black')
+        ax4.plot(ph_coord, age_surface_dim, color='black')
         ax4.set_xlim(0, 2 * np.pi)
         ax4.fill_between(
-            ph_coord[:-1], continentsall * conf.plates.agemax,
+            ph_coord, continentsall * conf.plates.agemax,
             conf.plates.agemin, facecolor='#8B6914', alpha=0.2)
         ax4.set_ylim(conf.plates.agemin, conf.plates.agemax)
         plot_plate_limits(ax4, ridge, trench, conf.plates.agemin,
@@ -491,7 +486,6 @@ def lithospheric_stress(step, trench, ridge, time):
 
     # velocity
     vphi = step.fields['v2'][0, :, :, 0]
-    vph2 = 0.5 * (vphi + np.roll(vphi, 1, 0))  # interpolate to the same phi
 
     # position of continents
     concfld = step.fields['c'][0, :, :, 0]
@@ -529,7 +523,7 @@ def lithospheric_stress(step, trench, ridge, time):
 
     # plot integrated stress in the lithosphere
     fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(ph_coord[:-1], vph2[:-1, -1], label='Vel')
+    ax1.plot(step.geom.p_walls, vphi[:, -1], label='Vel')
     ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
                 color='black', ls='solid', alpha=0.2)
     ax1.set_ylabel("Velocity")
@@ -550,11 +544,11 @@ def lithospheric_stress(step, trench, ridge, time):
     ax1.set_title(timestep)
 
     ax1.fill_between(
-        ph_coord[:-1], continentsall * conf.plates.vmin,
+        ph_coord, continentsall * conf.plates.vmin,
         conf.plates.vmax, facecolor='#8b6914', alpha=0.2)
     ax1.set_ylim(conf.plates.vmin, conf.plates.vmax)
     ax2.fill_between(
-        ph_coord[:-1], continentsall * conf.plates.stressmin,
+        ph_coord, continentsall * conf.plates.stressmin,
         conf.plates.lstressmax, facecolor='#8b6914', alpha=0.2)
     ax2.set_ylim(conf.plates.stressmin, conf.plates.lstressmax)
 
