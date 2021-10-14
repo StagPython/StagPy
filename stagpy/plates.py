@@ -770,25 +770,23 @@ def cmd():
                 time.append(step.timeinfo.loc['t'])
             istart = step.isnap if istart is None else istart
             iend = step.isnap
+            phi = step.geom.p_centers
             limits, nphi, dvphi, vphi_surf = detect_plates_vzcheck(step)
             limits.sort()
-            sizeplates = [limits[0] + nphi - limits[-1]]
+            sizeplates = [phi[limits[0]] + 2 * np.pi - phi[limits[-1]]]
             for lim in range(1, len(limits)):
-                sizeplates.append(limits[lim] - limits[lim - 1])
-            lim = len(limits) * [max(dvphi)]
-            fig = plt.figure()
-            plt.subplot(311)
-            plt.axis([0, nphi,
-                      np.min(vphi_surf) * 1.2, np.max(vphi_surf) * 1.2])
-            plt.plot(vphi_surf)
-            plt.subplot(312)
-            plt.axis(
-                [0, nphi,
-                 np.min(dvphi) * 1.2, np.max(dvphi) * 1.2])
-            plt.plot(dvphi)
-            plt.scatter(limits, lim, color='red')
-            plt.subplot(313)
-            plt.hist(sizeplates, 10, (0, nphi / 2))
+                sizeplates.append(phi[limits[lim]] - phi[limits[lim - 1]])
+            phi_lim = [phi[i] for i in limits]
+            dvp_lim = [dvphi[i] for i in limits]
+            fig, axes = plt.subplots(nrows=3, sharex=True, figsize=(6.4, 9.6))
+            axes[0].plot(step.geom.p_walls, vphi_surf)
+            axes[0].set_ylabel(r"Horizontal velocity $v_\phi$")
+            axes[1].plot(step.geom.p_walls, dvphi)
+            axes[1].set_ylabel(r"$dv_\phi/d\phi$")
+            axes[1].scatter(phi_lim, dvp_lim, color='red')
+            axes[2].hist(sizeplates, 10, (0, np.pi))
+            axes[2].set_ylabel("Number of plates (size)")
+            axes[2].set_xlabel(r"$\phi$")
             saveplot(fig, 'plates', step.isnap)
 
             nb_plates.append(len(limits))
