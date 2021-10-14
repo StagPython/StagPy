@@ -16,8 +16,8 @@ def detect_plates_vzcheck(step, seuil_memz):
     v_z = step.fields['v3'][0, :, :, 0]
     v_x = step.fields['v2'][0, :, :, 0]
     tcell = step.fields['T'][0, :, :, 0]
-    n_z = step.nztot
-    nphi = step.nptot  # -1? should be OK, ghost not included
+    n_z = step.geom.nztot
+    nphi = step.geom.nptot
     rcmb = step.geom.rcmb
     radius = step.geom.r_centers
     radiusgrid = step.geom.r_walls
@@ -611,14 +611,14 @@ def main_plates(sdat):
         isurf -= 4  # why different isurf for the rest?
     else:
         isurf = -1
-        vrms_surface = uprof_averaged.iloc[isurf]
+        vrms_surface = uprof_averaged[isurf]
 
     # determine names of files
     fnames = ['plate_velocity', 'distance_subd', 'continents',
               'flux', 'topography', 'age', 'velderiv', 'velocity']
     fnames = [f'plates_{stem}_{sdat.walk.stepstr}' for stem in fnames]
     with ExitStack() as stack:
-        fids = [stack.enter_context(open(fname)) for fname in fnames]
+        fids = [stack.enter_context(open(fname, 'w')) for fname in fnames]
         fids[0].write('#  it  time  ph_trench vel_trench age_trench\n')
         fids[1].write('#  it      time   time [My]   distance     '
                       'ph_trench     ph_cont  age_trench [My]\n')
