@@ -34,9 +34,7 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
 
     # verifying horizontal plate speed and closeness of plates
     vphi_surf = v_x[:, -1]
-    dvphi = np.diff(vphi_surf)
-    dvphi = np.append(dvphi, vphi_surf[0] - vphi_surf[-1])
-    dvphi /= (r_c[-1] * dphi)
+    dvphi = np.diff(vphi_surf) / (r_c[-1] * dphi)
     dvx_thres = 16 * step.timeinfo.loc['vrms']
 
     limits = []
@@ -781,7 +779,7 @@ def cmd():
             fig, axes = plt.subplots(nrows=3, sharex=True, figsize=(6.4, 9.6))
             axes[0].plot(step.geom.p_walls, vphi_surf)
             axes[0].set_ylabel(r"Horizontal velocity $v_\phi$")
-            axes[1].plot(step.geom.p_walls, dvphi)
+            axes[1].plot(phi, dvphi)
             axes[1].set_ylabel(r"$dv_\phi/d\phi$")
             axes[1].scatter(phi_lim, dvp_lim, color='red')
             axes[2].hist(sizeplates, 10, (0, np.pi))
