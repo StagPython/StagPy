@@ -37,12 +37,12 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
     dvphi = np.diff(vphi_surf) / (r_c[-1] * dphi)
     dvx_thres = 16 * step.timeinfo.loc['vrms']
 
-    limits = []
-    for phi in range(0, nphi):
-        mark = all(abs(dvphi[i % nphi]) <= abs(dvphi[phi])
-                   for i in range(phi - nphi // 33, phi + nphi // 33))
-        if mark and abs(dvphi[phi]) >= dvx_thres:
-            limits.append(phi)
+    limits = [
+        phi for phi in range(nphi)
+        if (abs(dvphi[phi]) >= dvx_thres and
+            all(abs(dvphi[i % nphi]) <= abs(dvphi[phi])
+                for i in range(phi - nphi // 33, phi + nphi // 33)))
+    ]
 
     # verifying vertical velocity
     vz_thres = 0
