@@ -776,16 +776,19 @@ def cmd():
                 sizeplates.append(phi[limits[lim]] - phi[limits[lim - 1]])
             phi_lim = [phi[i] for i in limits]
             dvp_lim = [dvphi[i] for i in limits]
-            fig, axes = plt.subplots(nrows=3, sharex=True, figsize=(6.4, 9.6))
+            fig, axes = plt.subplots(nrows=2, sharex=True, figsize=(6.4, 6.4))
             axes[0].plot(step.geom.p_walls, vphi_surf)
             axes[0].set_ylabel(r"Horizontal velocity $v_\phi$")
             axes[1].plot(phi, dvphi)
-            axes[1].set_ylabel(r"$dv_\phi/d\phi$")
             axes[1].scatter(phi_lim, dvp_lim, color='red')
-            axes[2].hist(sizeplates, 10, (0, np.pi))
-            axes[2].set_ylabel("Number of plates (size)")
-            axes[2].set_xlabel(r"$\phi$")
-            saveplot(fig, 'plates', step.isnap)
+            axes[1].set_ylabel(r"$dv_\phi/d\phi$")
+            axes[1].set_xlabel(r"$\phi$")
+            saveplot(fig, 'plate_limits', step.isnap)
+            fig, axis = plt.subplots()
+            axis.hist(sizeplates, 10, (0, np.pi))
+            axis.set_ylabel("Number of plates")
+            axis.set_xlabel(r"$\phi$-span")
+            saveplot(fig, 'plate_size_distribution', step.isnap)
 
             nb_plates.append(len(limits))
 
