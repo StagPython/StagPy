@@ -65,7 +65,7 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
             limits.remove(phi)
             k += 1
 
-    return limits, nphi, dvphi, vphi_surf
+    return limits, dvphi, vphi_surf
 
 
 def detect_plates(step, vrms_surface, fids, time):
@@ -771,7 +771,7 @@ def cmd():
             istart = step.isnap if istart is None else istart
             iend = step.isnap
             phi = step.geom.p_centers
-            limits, nphi, dvphi, vphi_surf = detect_plates_vzcheck(step)
+            limits, dvphi, vphi_surf = detect_plates_vzcheck(step)
             limits.sort()
             sizeplates = [phi[limits[0]] + 2 * np.pi - phi[limits[-1]]]
             for lim in range(1, len(limits)):
