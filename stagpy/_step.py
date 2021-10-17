@@ -571,7 +571,7 @@ class Step:
             steptime = self.timeinfo['t']
         except error.MissingDataError:
             if self.isnap is not None:
-                steptime = self.geom.ti_ad
+                steptime = self.geom._header.get('ti_ad')
         return steptime
 
     @property
