@@ -217,8 +217,6 @@ CONF_DEF['plates'] = OrderedDict((
                        True, 'min stress in plots')),
     ('stressmax', Conf(800, False, None, {},
                        True, 'max stress in plots')),
-    ('lstressmax', Conf(50, False, None, {},
-                        True, 'max lithospheric stress in plots')),
 ))
 
 CONF_DEF['info'] = OrderedDict((
