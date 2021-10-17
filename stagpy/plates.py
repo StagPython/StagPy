@@ -556,6 +556,51 @@ def set_of_vars(arg_plot):
     return set(var for var in arg_plot.split(',') if var in phyvars.PLATES)
 
 
+def plot_scalar_field(step, fieldname, ridges, trenches):
+    """Plot scalar field with plate information."""
+    fig, axis, _, _ = field.plot_scalar(step, fieldname)
+
+    # plotting continents
+    concfld = step.fields['c'].values[0, :, :, 0]
+    continentsfld = np.ma.masked_where(
+        concfld < 3, concfld)  # plotting continents, to-do
+    continentsfld = continentsfld / continentsfld
+    cbar = conf.field.colorbar
+    conf.field.colorbar = False
+    field.plot_scalar(step, 'c', continentsfld, axis,
+                      cmap='cool_r', vmin=0, vmax=0)
+    cmap2 = plt.cm.ocean
+    cmap2.set_over('m')
+    conf.field.colorbar = cbar
+
+    # plotting velocity vectors
+    field.plot_vec(axis, step, 'v')
+
+    # Put arrow where ridges and trenches are
+    plot_plate_limits_field(axis, step.geom.rcmb, ridges, trenches)
+
+    saveplot(fig, f'plates_{fieldname}', step.isnap,
+             close=conf.plates.zoom is None)
+
+    # Zoom
+    if conf.plates.zoom is not None:
+        if not 0 <= conf.plates.zoom <= 360:
+            raise error.InvalidZoomError(conf.plates.zoom)
+        if 45 < conf.plates.zoom <= 135:
+            ladd, radd, uadd, dadd = 0.8, 0.8, 0.05, 0.1
+        elif 135 < conf.plates.zoom <= 225:
+            ladd, radd, uadd, dadd = 0.05, 0.1, 0.8, 0.8
+        elif 225 < conf.plates.zoom <= 315:
+            ladd, radd, uadd, dadd = 0.8, 0.8, 0.1, 0.05
+        else:  # >315 or <=45
+            ladd, radd, uadd, dadd = 0.1, 0.05, 0.8, 0.8
+        xzoom = (step.geom.rcmb + 1) * np.cos(np.radians(conf.plates.zoom))
+        yzoom = (step.geom.rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
+        axis.set_xlim(xzoom - ladd, xzoom + radd)
+        axis.set_ylim(yzoom - dadd, yzoom + uadd)
+        saveplot(fig, f'plates_zoom_{fieldname}', step.isnap)
+
+
 def main_plates(sdat):
     """Plot several plates information."""
     # averaged horizontal surface velocity needed for redimensionalisation
@@ -600,58 +645,8 @@ def main_plates(sdat):
             plot_plates(step, time, vrms_surface, trenches, ridges,
                         agetrenches, topo, fids)
 
-            # prepare for continent plotting
-            concfld = step.fields['c'].values[0, :, :, 0]
-            continentsfld = np.ma.masked_where(
-                concfld < 3, concfld)  # plotting continents, to-do
-            continentsfld = continentsfld / continentsfld
-
-            # plot viscosity field with position of trenches and ridges
-            etamin, _ = sdat.scale(1e-2, 'Pa')
-            etamax, _ = sdat.scale(sdat.par['viscosity']['eta_max'], 'Pa')
-            fig, axis, _, _ = field.plot_scalar(step, 'eta',
-                                                vmin=etamin, vmax=etamax)
-
-            # plotting continents
-            cbar = conf.field.colorbar
-            conf.field.colorbar = False
-            field.plot_scalar(step, 'c', continentsfld, axis,
-                              cmap='cool_r', vmin=0, vmax=0)
-            cmap2 = plt.cm.ocean
-            cmap2.set_over('m')
-            conf.field.colorbar = cbar
-
-            # plotting velocity vectors
-            field.plot_vec(axis, step, 'v')
-
-            # Annotation with time and step
-            axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                      transform=axis.transAxes)
-            axis.text(1., 0.1, str(timestep),
-                      transform=axis.transAxes)
-
-            # Put arrow where ridges and trenches are
-            plot_plate_limits_field(axis, rcmb, ridges, trenches)
-
-            saveplot(fig, 'eta', timestep, close=conf.plates.zoom is None)
-
-            # Zoom
-            if conf.plates.zoom is not None:
-                if not 0 <= conf.plates.zoom <= 360:
-                    raise error.InvalidZoomError(conf.plates.zoom)
-                if 45 < conf.plates.zoom <= 135:
-                    ladd, radd, uadd, dadd = 0.8, 0.8, 0.05, 0.1
-                elif 135 < conf.plates.zoom <= 225:
-                    ladd, radd, uadd, dadd = 0.05, 0.1, 0.8, 0.8
-                elif 225 < conf.plates.zoom <= 315:
-                    ladd, radd, uadd, dadd = 0.8, 0.8, 0.1, 0.05
-                else:  # >315 or <=45
-                    ladd, radd, uadd, dadd = 0.1, 0.05, 0.8, 0.8
-                xzoom = (rcmb + 1) * np.cos(np.radians(conf.plates.zoom))
-                yzoom = (rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
-                axis.set_xlim(xzoom - ladd, xzoom + radd)
-                axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                saveplot(fig, 'etazoom', timestep)
+            # plot scalar field with position of trenches and ridges
+            plot_scalar_field(step, conf.plates.field, ridges, trenches)
 
             # plot stress field with position of trenches and ridges
             if 'str' in conf.plates.plot:
