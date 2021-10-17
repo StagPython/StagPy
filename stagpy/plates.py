@@ -609,7 +609,7 @@ def main_plates(sdat):
     if sdat.par['boundaries']['air_layer']:
         dsa = sdat.par['boundaries']['air_thickness']
         isurf = np.argmin(abs(radius - radius[-1] + dsa))
-        vrms_surface = uprof_averaged.iloc[isurf]
+        vrms_surface = uprof_averaged[isurf]
         isurf = np.argmin(abs((1 - dsa) - radius))
         isurf -= 4  # why different isurf for the rest?
     else:
