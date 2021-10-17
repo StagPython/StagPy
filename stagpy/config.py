@@ -185,6 +185,9 @@ CONF_DEF['plates'] = OrderedDict((
     ('field',
         Conf('eta', True, None, {},
              True, 'field variable to plot with plates info')),
+    ('stress', switch_opt(
+        False, None,
+        'Plot deviatoric stress instead of velocity on field plots')),
     ('vzcheck', switch_opt(False, None,
                            'activate Colin\'s version with vz checking')),
     ('timeprofile', switch_opt(False, None,

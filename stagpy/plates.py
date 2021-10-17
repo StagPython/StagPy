@@ -574,7 +574,7 @@ def plot_scalar_field(step, fieldname, ridges, trenches):
     conf.field.colorbar = cbar
 
     # plotting velocity vectors
-    field.plot_vec(axis, step, 'v')
+    field.plot_vec(axis, step, 'sx' if conf.plates.stress else 'v')
 
     # Put arrow where ridges and trenches are
     plot_plate_limits_field(axis, step.geom.rcmb, ridges, trenches)
@@ -672,34 +672,6 @@ def main_plates(sdat):
 
                 # calculate stresses in the lithosphere
                 lithospheric_stress(step, trenches, ridges, time)
-
-            # plotting the principal deviatoric stress field
-            if 'sx' in conf.plates.plot:
-                fig, axis, _, _ = field.plot_scalar(step, 'sII',
-                                                    alpha=0.1)
-
-                # plotting continents
-                cbar = conf.field.colorbar
-                conf.field.colorbar = False
-                field.plot_scalar(step, 'c', continentsfld, axis,
-                                  cmap='cool_r', vmin=0, vmax=0)
-                cmap2 = plt.cm.ocean
-                cmap2.set_over('m')
-                conf.field.colorbar = cbar
-
-                # plotting principal deviatoric stress
-                field.plot_vec(axis, step, 'sx')
-
-                # Annotation with time and step
-                axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                          transform=axis.transAxes)
-                axis.text(1., 0.1, str(timestep),
-                          transform=axis.transAxes)
-
-                # Put arrow where ridges and trenches are
-                plot_plate_limits_field(axis, rcmb, ridges, trenches)
-
-                saveplot(fig, 'sx', timestep)
 
 
 def cmd():

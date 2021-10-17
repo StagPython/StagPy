@@ -269,7 +269,6 @@ PLATES = OrderedDict((
     ('sc', Varp('Topography')),
     ('age', Varp('Age')),
     ('str', Varp('Stress')),
-    ('sx', Varp('Principal deviatoric stress')),
     ('ed', Varp('Strain rate')),
 ))
 
