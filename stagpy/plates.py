@@ -85,9 +85,6 @@ def detect_plates(step, vrms_surface, fids, time):
     # dvphi/dphi at cell-center
     dvph2 = np.diff(vphi[:, indsurf]) / (ph_coord[1] - ph_coord[0])
 
-    io_surface(step.isnap, time, fids[6], dvph2)
-    io_surface(step.isnap, time, fids[7], vph2[:, indsurf])
-
     # finding trenches
     pom2 = np.copy(dvph2)
     maskbigdvel = -vrms_surface * (
@@ -455,13 +452,6 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
         ))
 
 
-def io_surface(timestep, time, fid, fld):
-    """Output surface files."""
-    fid.write(f"{timestep} {time}")
-    fid.writelines(["%10.2e" % item for item in fld[:]])
-    fid.writelines(["\n"])
-
-
 def lithospheric_stress(step, trench, ridge, time):
     """Calculate stress in the lithosphere."""
     timestep = step.isnap
@@ -582,8 +572,7 @@ def main_plates(sdat):
         vrms_surface = uprof_averaged[isurf]
 
     # determine names of files
-    fnames = ['plate_velocity', 'distance_subd', 'continents',
-              'flux', 'topography', 'age', 'velderiv', 'velocity']
+    fnames = ['plate_velocity', 'distance_subd']
     fnames = [f'plates_{stem}_{sdat.walk.stepstr}' for stem in fnames]
     with ExitStack() as stack:
         fids = [stack.enter_context(open(fname, 'w')) for fname in fnames]
@@ -616,17 +605,6 @@ def main_plates(sdat):
             continentsfld = np.ma.masked_where(
                 concfld < 3, concfld)  # plotting continents, to-do
             continentsfld = continentsfld / continentsfld
-
-            temp = step.fields['T'].values[0, :, :, 0]
-            tgrad = (temp[:, isurf - 1] - temp[:, isurf]) /\
-                (step.geom.r_centers[isurf] - step.geom.r_centers[isurf - 1])
-
-            io_surface(timestep, time, fids[2], concfld[:-1, isurf])
-            io_surface(timestep, time, fids[3], tgrad)
-            io_surface(timestep, time, fids[4], topo[:, 1])
-            if 'age' in conf.plates.plot:
-                io_surface(timestep, time, fids[5],
-                           step.fields['age'].values[0, :, isurf, 0])
 
             # plot viscosity field with position of trenches and ridges
             etamin, _ = sdat.scale(1e-2, 'Pa')
