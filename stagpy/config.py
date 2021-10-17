@@ -188,6 +188,8 @@ CONF_DEF['plates'] = OrderedDict((
     ('stress', switch_opt(
         False, None,
         'Plot deviatoric stress instead of velocity on field plots')),
+    ('continents', switch_opt(True, None,
+                              'Whether to shade continents on plots')),
     ('vzcheck', switch_opt(False, None,
                            'activate Colin\'s version with vz checking')),
     ('timeprofile', switch_opt(False, None,

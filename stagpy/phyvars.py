@@ -265,11 +265,8 @@ REFSTATE = OrderedDict((
 Varp = namedtuple('Varp', ['description'])
 PLATES = OrderedDict((
     ('c', Varp('Composition')),
-    ('eta', Varp('Viscosity')),
     ('sc', Varp('Topography')),
     ('age', Varp('Age')),
-    ('str', Varp('Stress')),
-    ('ed', Varp('Strain rate')),
 ))
 
 SCALES = {

@@ -560,18 +560,18 @@ def plot_scalar_field(step, fieldname, ridges, trenches):
     """Plot scalar field with plate information."""
     fig, axis, _, _ = field.plot_scalar(step, fieldname)
 
-    # plotting continents
-    concfld = step.fields['c'].values[0, :, :, 0]
-    continentsfld = np.ma.masked_where(
-        concfld < 3, concfld)  # plotting continents, to-do
-    continentsfld = continentsfld / continentsfld
-    cbar = conf.field.colorbar
-    conf.field.colorbar = False
-    field.plot_scalar(step, 'c', continentsfld, axis,
-                      cmap='cool_r', vmin=0, vmax=0)
-    cmap2 = plt.cm.ocean
-    cmap2.set_over('m')
-    conf.field.colorbar = cbar
+    if conf.plates.continents:
+        concfld = step.fields['c'].values[0, :, :, 0]
+        continentsfld = np.ma.masked_where(
+            concfld < 3, concfld)  # plotting continents, to-do
+        continentsfld = continentsfld / continentsfld
+        cbar = conf.field.colorbar
+        conf.field.colorbar = False
+        field.plot_scalar(step, 'c', continentsfld, axis,
+                          cmap='cool_r', vmin=0, vmax=0)
+        cmap2 = plt.cm.ocean
+        cmap2.set_over('m')
+        conf.field.colorbar = cbar
 
     # plotting velocity vectors
     field.plot_vec(axis, step, 'sx' if conf.plates.stress else 'v')
@@ -630,7 +630,6 @@ def main_plates(sdat):
             timestep = step.isnap
             print('Treating snapshot', timestep)
 
-            rcmb = step.geom.rcmb
             # topography
             fname = sdat.filename('sc', timestep=timestep, suffix='.dat')
             topo = np.genfromtxt(str(fname))
@@ -647,31 +646,6 @@ def main_plates(sdat):
 
             # plot scalar field with position of trenches and ridges
             plot_scalar_field(step, conf.plates.field, ridges, trenches)
-
-            # plot stress field with position of trenches and ridges
-            if 'str' in conf.plates.plot:
-                fig, axis, _, _ = field.plot_scalar(step, 'sII',
-                                                    vmin=0, vmax=300)
-
-                # Annotation with time and step
-                axis.text(1., 0.9, str(round(time, 0)) + ' My',
-                          transform=axis.transAxes)
-                axis.text(1., 0.1, str(timestep),
-                          transform=axis.transAxes)
-
-                # Put arrow where ridges and trenches are
-                plot_plate_limits_field(axis, rcmb, ridges, trenches)
-
-                saveplot(fig, 's', timestep, close=conf.plates.zoom is None)
-
-                # Zoom
-                if conf.plates.zoom is not None:
-                    axis.set_xlim(xzoom - ladd, xzoom + radd)
-                    axis.set_ylim(yzoom - dadd, yzoom + uadd)
-                    saveplot(fig, 'szoom', timestep)
-
-                # calculate stresses in the lithosphere
-                lithospheric_stress(step, trenches, ridges, time)
 
 
 def cmd():
