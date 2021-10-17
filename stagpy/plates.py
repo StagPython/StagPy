@@ -71,14 +71,7 @@ def detect_plates(step, vrms_surface, fids, time):
     vphi = step.fields['v2'].values[0, :, :, 0]
     ph_coord = step.geom.p_centers
 
-    if step.sdat.par['boundaries']['air_layer']:
-        dsa = step.sdat.par['boundaries']['air_thickness']
-        # we are a bit below the surface; should check if you are in the
-        # thermal boundary layer
-        indsurf = np.argmin(
-            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 4
-    else:
-        indsurf = -1
+    indsurf, _ = _isurf_icont(step)
 
     # vphi at cell-center
     vph2 = 0.5 * (vphi[1:] + vphi[:-1])
@@ -174,6 +167,23 @@ def plot_plate_limits_field(axis, rcmb, ridges, trenches):
                       arrowprops=dict(facecolor='green', shrink=0.05))
 
 
+def _isurf_icont(snap):
+    """Return index of surface and of continent detection."""
+    if snap.sdat.par['boundaries']['air_layer']:
+        dsa = snap.sdat.par['boundaries']['air_thickness']
+        # we are a bit below the surface; delete "-some number" to be just
+        # below the surface (that is considered plane here); should check if
+        # in the thermal boundary layer
+        isurf = np.argmin(
+            np.abs(1 - dsa - snap.geom.r_centers + snap.geom.rcmb)) - 4
+        # depth to detect the continents
+        icont = isurf - 6
+    else:
+        isurf = -1
+        icont = -1
+    return isurf, icont
+
+
 def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                 topo, fids):
     """Handle plotting stuff."""
@@ -182,21 +192,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     concfld = step.fields['c'].values[0, :, :, 0]
     timestep = step.isnap
 
-    if step.sdat.par['boundaries']['air_layer']:
-        dsa = step.sdat.par['boundaries']['air_thickness']
-        # we are a bit below the surface; delete "-some number"
-        # to be just below
-        # the surface (that is considered plane here); should check if you are
-        # in the thermal boundary layer
-        indsurf = np.argmin(
-            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 4
-        # depth to detect the continents
-        indcont = np.argmin(
-            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 10
-    else:
-        indsurf = -1
-        indcont = -1  # depth to detect continents
-
+    indsurf, indcont = _isurf_icont(step)
     if step.sdat.par['boundaries']['air_layer'] and\
        not step.sdat.par['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
@@ -479,16 +475,7 @@ def lithospheric_stress(step, trench, ridge, time):
 
     # position of continents
     concfld = step.fields['c'].values[0, :, :, 0]
-    if step.sdat.par['boundaries']['air_layer']:
-        # we are a bit below the surface; delete "-some number"
-        # to be just below
-        dsa = step.sdat.par['boundaries']['air_thickness']
-        # depth to detect the continents
-        indcont = np.argmin(
-            np.abs(1 - dsa - step.geom.r_centers + step.geom.rcmb)) - 10
-    else:
-        # depth to detect continents
-        indcont = -1
+    _, indcont = _isurf_icont(step)
     if step.sdat.par['boundaries']['air_layer'] and\
             not step.sdat.par['continents']['proterozoic_belts']:
         continents = np.ma.masked_where(
@@ -606,15 +593,8 @@ def main_plates(sdat):
     # averaged horizontal surface velocity needed for redimensionalisation
     uprof_averaged, radius, _ = sdat.walk.filter(rprofs=True)\
         .rprofs_averaged['vhrms']
-    if sdat.par['boundaries']['air_layer']:
-        dsa = sdat.par['boundaries']['air_thickness']
-        isurf = np.argmin(abs(radius - radius[-1] + dsa))
-        vrms_surface = uprof_averaged[isurf]
-        isurf = np.argmin(abs((1 - dsa) - radius))
-        isurf -= 4  # why different isurf for the rest?
-    else:
-        isurf = -1
-        vrms_surface = uprof_averaged[isurf]
+    isurf, _ = _isurf_icont(next(iter(sdat.walk)))
+    vrms_surface = uprof_averaged[isurf]
 
     # determine names of files
     fnames = ['plate_velocity', 'distance_subd']
@@ -633,9 +613,6 @@ def main_plates(sdat):
             # topography
             fname = sdat.filename('sc', timestep=timestep, suffix='.dat')
             topo = np.genfromtxt(str(fname))
-            # rescaling topography!
-            if sdat.par['boundaries']['air_layer']:
-                topo[:, 1] = topo[:, 1] / (1. - dsa)
 
             time = step.time * vrms_surface *\
                 conf.scaling.ttransit / conf.scaling.yearins / 1.e6
