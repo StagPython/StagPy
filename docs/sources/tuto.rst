@@ -91,7 +91,7 @@ Instantiating and using this class is rather simple::
 
     # temperature field of the 10000th time step
     # (will be None if no snapshot is available at this timestep)
-    temp_field = sdat.steps[10000].fields['T']
+    temp_field = sdat.steps[10000].fields['T'].values
 
     # iterate through snaps 100, 105, 110... up to the last one
     for snap in sdat.snaps[100::5]:

@@ -13,9 +13,9 @@ from .stagyydata import StagyyData
 
 def detect_plates_vzcheck(step, vz_thres_ratio=0):
     """Detect plates and check with vz and plate size."""
-    v_z = step.fields['v3'][0, :-1, :, 0]
-    v_x = step.fields['v2'][0, :, :, 0]
-    tcell = step.fields['T'][0, :, :, 0]
+    v_z = step.fields['v3'].values[0, :-1, :, 0]
+    v_x = step.fields['v2'].values[0, :, :, 0]
+    tcell = step.fields['T'].values[0, :, :, 0]
     n_z = step.geom.nztot
     nphi = step.geom.nptot
     r_c = step.geom.r_centers
@@ -68,7 +68,7 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
 
 def detect_plates(step, vrms_surface, fids, time):
     """Detect plates using derivative of horizontal velocity."""
-    vphi = step.fields['v2'][0, :, :, 0]
+    vphi = step.fields['v2'].values[0, :, :, 0]
     ph_coord = step.geom.p_centers
 
     if step.sdat.par['boundaries']['air_layer']:
@@ -123,7 +123,7 @@ def detect_plates(step, vrms_surface, fids, time):
 
     dv_ridge = dvph2[arggreat_dv]
     if 'age' in conf.plates.plot:
-        agefld = step.fields['age'][0, :, :, 0]
+        agefld = step.fields['age'].values[0, :, :, 0]
         age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
                                          agefld[:, indsurf])
         age_surface_dim = age_surface * vrms_surface *\
@@ -180,9 +180,9 @@ def plot_plate_limits_field(axis, rcmb, ridges, trenches):
 def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
                 topo, fids):
     """Handle plotting stuff."""
-    vphi = step.fields['v2'][0, :, :, 0]
-    tempfld = step.fields['T'][0, :, :, 0]
-    concfld = step.fields['c'][0, :, :, 0]
+    vphi = step.fields['v2'].values[0, :, :, 0]
+    tempfld = step.fields['T'].values[0, :, :, 0]
+    concfld = step.fields['c'].values[0, :, :, 0]
     timestep = step.isnap
 
     if step.sdat.par['boundaries']['air_layer']:
@@ -296,7 +296,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
 
     # plotting velocity and second invariant of stress
     if 'str' in conf.plates.plot:
-        stressfld = step.fields['sII'][0, :, :, 0]
+        stressfld = step.fields['sII'].values[0, :, :, 0]
         fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
         ax1.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
         ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
@@ -344,7 +344,7 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
 
     # plotting velocity and age at surface
     if 'age' in conf.plates.plot:
-        agefld = step.fields['age'][0, :, :, 0]
+        agefld = step.fields['age'].values[0, :, :, 0]
         age_surface = np.ma.masked_where(
             agefld[:, indsurf] < 0.00001, agefld[:, indsurf])
         age_surface_dim = (age_surface * vrms_surface * conf.scaling.ttransit /
@@ -467,7 +467,7 @@ def lithospheric_stress(step, trench, ridge, time):
     timestep = step.isnap
     base_lith = step.geom.rcmb + 1 - 0.105
 
-    stressfld = step.fields['sII'][0, :, :, 0]
+    stressfld = step.fields['sII'].values[0, :, :, 0]
     r_centers = np.outer(np.ones(stressfld.shape[0]), step.geom.r_centers)
     stressfld = np.ma.masked_where(r_centers < base_lith, stressfld)
 
@@ -485,10 +485,10 @@ def lithospheric_stress(step, trench, ridge, time):
     saveplot(fig, 'lith', timestep)
 
     # velocity
-    vphi = step.fields['v2'][0, :, :, 0]
+    vphi = step.fields['v2'].values[0, :, :, 0]
 
     # position of continents
-    concfld = step.fields['c'][0, :, :, 0]
+    concfld = step.fields['c'].values[0, :, :, 0]
     if step.sdat.par['boundaries']['air_layer']:
         # we are a bit below the surface; delete "-some number"
         # to be just below
@@ -612,12 +612,12 @@ def main_plates(sdat):
                         agetrenches, topo, fids)
 
             # prepare for continent plotting
-            concfld = step.fields['c'][0, :, :, 0]
+            concfld = step.fields['c'].values[0, :, :, 0]
             continentsfld = np.ma.masked_where(
                 concfld < 3, concfld)  # plotting continents, to-do
             continentsfld = continentsfld / continentsfld
 
-            temp = step.fields['T'][0, :, :, 0]
+            temp = step.fields['T'].values[0, :, :, 0]
             tgrad = (temp[:, isurf - 1] - temp[:, isurf]) /\
                 (step.geom.r_centers[isurf] - step.geom.r_centers[isurf - 1])
 
@@ -626,7 +626,7 @@ def main_plates(sdat):
             io_surface(timestep, time, fids[4], topo[:, 1])
             if 'age' in conf.plates.plot:
                 io_surface(timestep, time, fids[5],
-                           step.fields['age'][0, :, isurf, 0])
+                           step.fields['age'].values[0, :, isurf, 0])
 
             # plot viscosity field with position of trenches and ridges
             etamin, _ = sdat.scale(1e-2, 'Pa')

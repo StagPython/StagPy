@@ -46,10 +46,10 @@ def _threed_extract(step, var, walls=False):
         i_x = i_y = slice(None)
         varx, vary = var + '1', var + '2'
     if is_vector:
-        data = (step.fields[varx][i_x, i_y, i_z, 0],
-                step.fields[vary][i_x, i_y, i_z, 0])
+        data = (step.fields[varx].values[i_x, i_y, i_z, 0],
+                step.fields[vary].values[i_x, i_y, i_z, 0])
     else:
-        data = step.fields[var][i_x, i_y, i_z, 0]
+        data = step.fields[var].values[i_x, i_y, i_z, 0]
     return (xcoord, ycoord), data
 
 
@@ -77,11 +77,11 @@ def get_meshes_fld(step, var, walls=False):
         var (str): scalar field name.
         walls (bool): consider the walls as the relevant mesh.
     Returns:
-        tuple of :class:`numpy.array`: xmesh, ymesh, fld
-            2D arrays containing respectively the x position, y position, and
-            the value of the requested field.
+        tuple of :class:`numpy.array`: xmesh, ymesh, fld, meta
+            2D arrays containing respectively the x position, y position, the
+            values and the metadata of the requested field.
     """
-    fld = step.fields[var]
+    fld, meta = step.fields[var]
     hwalls = (walls or fld.shape[0] != step.geom.nxtot or
               fld.shape[1] != step.geom.nytot)
     if step.geom.threed and step.geom.cartesian:
@@ -99,7 +99,7 @@ def get_meshes_fld(step, var, walls=False):
         fld = fld[0, :, :, 0]
     if step.geom.cartesian:
         xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing='ij')
-    return xmesh, ymesh, fld
+    return xmesh, ymesh, fld, meta
 
 
 def get_meshes_vec(step, var):
@@ -119,17 +119,17 @@ def get_meshes_vec(step, var):
         (xcoord, ycoord), (vec1, vec2) = _threed_extract(step, var)
     elif step.geom.twod_xz:
         xcoord, ycoord = step.geom.x_walls, step.geom.z_centers
-        vec1 = step.fields[var + '1'][:, 0, :, 0]
-        vec2 = step.fields[var + '3'][:, 0, :, 0]
+        vec1 = step.fields[var + '1'].values[:, 0, :, 0]
+        vec2 = step.fields[var + '3'].values[:, 0, :, 0]
     elif step.geom.cartesian and step.geom.twod_yz:
         xcoord, ycoord = step.geom.y_walls, step.geom.z_centers
-        vec1 = step.fields[var + '2'][0, :, :, 0]
-        vec2 = step.fields[var + '3'][0, :, :, 0]
+        vec1 = step.fields[var + '2'].values[0, :, :, 0]
+        vec2 = step.fields[var + '3'].values[0, :, :, 0]
     else:  # spherical yz
         pcoord = step.geom.p_walls
         pmesh = np.outer(pcoord, np.ones(step.geom.nrtot))
-        vec_phi = step.fields[var + '2'][0, :, :, 0]
-        vec_r = step.fields[var + '3'][0, :, :, 0]
+        vec_phi = step.fields[var + '2'].values[0, :, :, 0]
+        vec_r = step.fields[var + '3'].values[0, :, :, 0]
         vec1 = vec_r * np.cos(pmesh) - vec_phi * np.sin(pmesh)
         vec2 = vec_phi * np.cos(pmesh) + vec_r * np.sin(pmesh)
         pcoord, rcoord = step.geom.p_walls, step.geom.r_centers
@@ -162,17 +162,12 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
             :func:`~matplotlib.axes.Axes.pcolormesh`, and the colorbar returned
             by :func:`matplotlib.pyplot.colorbar`.
     """
-    if var in phyvars.FIELD:
-        meta = phyvars.FIELD[var]
-    else:
-        meta = phyvars.FIELD_EXTRA[var]
-        meta = phyvars.Varf(_helpers.baredoc(meta.description), meta.dim)
     if step.geom.threed and step.geom.spherical:
         raise NotAvailableError(
             'plot_scalar not implemented for 3D spherical geometry')
 
-    xmesh, ymesh, fld = get_meshes_fld(step, var,
-                                       walls=not conf.field.interpolate)
+    xmesh, ymesh, fld, meta = get_meshes_fld(step, var,
+                                             walls=not conf.field.interpolate)
     if conf.field.interpolate and \
        step.geom.spherical and step.geom.twod_yz and \
        fld.shape[0] == step.geom.nytot:
@@ -254,7 +249,7 @@ def plot_iso(axis, step, var, **extra):
         extra (dict): options that will be passed on to
             :func:`matplotlib.axes.Axes.contour`.
     """
-    xmesh, ymesh, fld = get_meshes_fld(step, var)
+    xmesh, ymesh, fld, _ = get_meshes_fld(step, var)
     if conf.field.shift:
         fld = np.roll(fld, conf.field.shift, axis=0)
     extra_opts = dict(linewidths=1)
@@ -297,11 +292,8 @@ def _findminmax(sdat, sovs):
     for step in sdat.walk.filter(snap=True):
         for var in sovs:
             if var in step.fields:
-                if var in phyvars.FIELD:
-                    dim = phyvars.FIELD[var].dim
-                else:
-                    dim = phyvars.FIELD_EXTRA[var].dim
-                field, _ = sdat.scale(step.fields[var], dim)
+                field, meta = step.fields[var]
+                field, _ = sdat.scale(field, meta.dim)
                 if var in minmax:
                     minmax[var] = (min(minmax[var][0], np.nanmin(field)),
                                    max(minmax[var][1], np.nanmax(field)))
