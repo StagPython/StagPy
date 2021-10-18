@@ -1,13 +1,14 @@
 """Plate analysis."""
 
-from contextlib import ExitStack
+from contextlib import ExitStack, suppress
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
 
 from . import conf, error, field, phyvars
-from ._helpers import saveplot
+from ._helpers import saveplot, list_of_vars
+from ._step import Field
 from .stagyydata import StagyyData
 
 
@@ -135,18 +136,12 @@ def detect_plates(step, vrms_surface, fids, time):
     return trench, ridge, agetrench, dv_trench, dv_ridge
 
 
-def plot_plate_limits(axis, ridges, trenches, ymin, ymax):
+def plot_plate_limits(axis, ridges, trenches):
     """Plot lines designating ridges and trenches."""
     for trench in trenches:
-        axis.axvline(
-            x=trench, ymin=ymin, ymax=ymax,
-            color='red', ls='dashed', alpha=0.4)
+        axis.axvline(x=trench, color='red', ls='dashed', alpha=0.4)
     for ridge in ridges:
-        axis.axvline(
-            x=ridge, ymin=ymin, ymax=ymax,
-            color='green', ls='dashed', alpha=0.4)
-    axis.set_xlim(0, 2 * np.pi)
-    axis.set_ylim(ymin, ymax)
+        axis.axvline(x=ridge, color='green', ls='dashed', alpha=0.4)
 
 
 def plot_plate_limits_field(axis, rcmb, ridges, trenches):
@@ -184,179 +179,82 @@ def _isurf_icont(snap):
     return isurf, icont
 
 
-def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
-                topo, fids):
+def _surf_diag(snap, name):
+    """Get a surface field.
+
+    Can be a sfield, a regular scalar field evaluated at the surface,
+    or dv2 (which is dvphi/dphi).
+    """
+    isurf, _ = _isurf_icont(snap)
+    with suppress(error.UnknownVarError):
+        return snap.sfields[name]
+    with suppress(error.UnknownVarError):
+        field, meta = snap.fields[name]
+        return Field(field[0, :, isurf, 0], meta)
+    if name == 'dv2':
+        vphi = snap.fields['v2'].values[0, :, isurf, 0]
+        dvphi = np.diff(vphi) / (snap.geom.r_centers[isurf] *
+                                 np.diff(snap.geom.p_walls))
+        return Field(dvphi, phyvars.Varf(r"$dv_\phi/d\phi$", '1/s'))
+    raise error.UnknownVarError(name)
+
+
+def _continents_location(snap):
+    """Location of continents in phi direction."""
+    isurf, icont = _isurf_icont(snap)
+    csurf = snap.fields['c'].values[0, :, icont, 0]
+    if snap.sdat.par['boundaries']['air_layer'] and\
+       not snap.sdat.par['continents']['proterozoic_belts']:
+        return (csurf >= 3) & (csurf < 4)
+    elif (snap.sdat.par['boundaries']['air_layer'] and
+          snap.sdat.par['continents']['proterozoic_belts']):
+        return (csurf >= 3) & (csurf < 5)
+    elif snap.sdat.par['tracersin']['tracers_weakcrust']:
+        return csurf >= 3
+    return csurf >= 2
+
+
+def plot_at_surface(snap, names, trenches, ridges):
+    """Plot surface diagnostics."""
+    for vfig in list_of_vars(names):
+        fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
+                                 figsize=(12, 2 * len(vfig)))
+        axes = [axes] if len(vfig) == 1 else axes
+        fname = 'plates_surf_'
+        for axis, vplt in zip(axes, vfig):
+            fname += '_'.join(vplt) + '_'
+            label = ''
+            for name in vplt:
+                data, meta = _surf_diag(snap, name)
+                label = meta.description
+                phi = (snap.geom.p_centers if data.size == snap.geom.nptot
+                       else snap.geom.p_walls)
+                axis.plot(phi, data, label=label)
+                axis.set_ylim([conf.plot.vmin, conf.plot.vmax])
+            if conf.plates.continents:
+                continents = _continents_location(snap)
+                ymin, ymax = axis.get_ylim()
+                axis.fill_between(snap.geom.p_centers, ymin, ymax,
+                                  where=continents, alpha=0.2,
+                                  facecolor='#8B6914')
+                axis.set_ylim([ymin, ymax])
+            # need to have trenches and ridges detection without side-
+            # effects, call it here. Memoized.
+            plot_plate_limits(axis, ridges, trenches)
+            if len(vplt) == 1:
+                axis.set_ylabel(label)
+            else:
+                axis.legend()
+        axes[-1].set_xlabel(r"$\phi$")
+        axes[-1].set_xlim(snap.geom.p_walls[[0, -1]])
+        saveplot(fig, fname, snap.isnap)
+
+
+def _write_trench_diagnostics(step, time, trench, agetrench, fids):
     """Handle plotting stuff."""
-    vphi = step.fields['v2'].values[0, :, :, 0]
-    tempfld = step.fields['T'].values[0, :, :, 0]
-    concfld = step.fields['c'].values[0, :, :, 0]
     timestep = step.isnap
-
-    indsurf, indcont = _isurf_icont(step)
-    if step.sdat.par['boundaries']['air_layer'] and\
-       not step.sdat.par['continents']['proterozoic_belts']:
-        continents = np.ma.masked_where(
-            np.logical_or(concfld[:, indcont] < 3,
-                          concfld[:, indcont] > 4),
-            concfld[:, indcont])
-    elif (step.sdat.par['boundaries']['air_layer'] and
-          step.sdat.par['continents']['proterozoic_belts']):
-        continents = np.ma.masked_where(
-            np.logical_or(concfld[:, indcont] < 3,
-                          concfld[:, indcont] > 5),
-            concfld[:, indcont])
-    elif step.sdat.par['tracersin']['tracers_weakcrust']:
-        continents = np.ma.masked_where(
-            concfld[:, indcont] < 3, concfld[:, indcont])
-    else:
-        continents = np.ma.masked_where(
-            concfld[:, indcont] < 2, concfld[:, indcont])
-
-    # masked array, only continents are true
-    continentsall = continents / continents
-
     ph_coord = step.geom.p_centers
-
-    # velocity derivative at cell-center
-    dvph2 = np.diff(vphi[:, indsurf]) / (ph_coord[1] - ph_coord[0])
-
-    # plotting
-    fig0, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(ph_coord, concfld[:, indsurf], color='g', label='Conc')
-    ax2.plot(ph_coord, tempfld[:, indsurf], color='k', label='Temp')
-    ax3.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
-
-    ax1.fill_between(
-        ph_coord, continents, 1., facecolor='#8B6914', alpha=0.2)
-    ax2.fill_between(
-        ph_coord, continentsall, 0., facecolor='#8B6914', alpha=0.2)
-
-    tempmin = step.sdat.par['boundaries']['topT_val'] * 0.9\
-        if step.sdat.par['boundaries']['topT_mode'] == 'iso' else 0.0
-    tempmax = step.sdat.par['boundaries']['botT_val'] * 0.35\
-        if step.sdat.par['boundaries']['botT_mode'] == 'iso' else 0.8
-
-    ax2.set_ylim(tempmin, tempmax)
-    ax3.fill_between(
-        ph_coord, continentsall * round(1.5 * np.amax(dvph2), 1),
-        round(np.amin(dvph2) * 1.1, 1), facecolor='#8B6914', alpha=0.2)
-    ax3.set_ylim(conf.plates.vmin, conf.plates.vmax)
-
-    ax1.set_ylabel("Concentration")
-    ax2.set_ylabel("Temperature")
-    ax3.set_ylabel("Velocity")
-    ax1.set_title(timestep)
-    ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes)
-    ax1.text(0.01, 1.07, str(round(step.time, 8)),
-             transform=ax1.transAxes)
-
-    plot_plate_limits(ax3, ridge, trench, conf.plates.vmin,
-                      conf.plates.vmax)
-
-    saveplot(fig0, 'sveltempconc', timestep)
-
-    # plotting velocity and velocity derivative
-    fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
-    ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
-                color='black', ls='solid', alpha=0.2)
-    ax1.set_ylabel("Velocity")
-    ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes)
-    ax1.text(0.01, 1.07, str(round(step.time, 8)),
-             transform=ax1.transAxes)
-    ax2.plot(ph_coord, dvph2, color='k', label='dv')
-    ax2.set_ylabel("dv")
-
-    plot_plate_limits(ax1, ridge, trench, conf.plates.vmin,
-                      conf.plates.vmax)
-    plot_plate_limits(ax2, ridge, trench, conf.plates.dvmin,
-                      conf.plates.dvmax)
-    ax1.set_xlim(0, 2 * np.pi)
-    ax1.set_title(timestep)
-
-    ax1.fill_between(
-        ph_coord, continentsall * conf.plates.vmin, conf.plates.vmax,
-        facecolor='#8b6914', alpha=0.2)
-    ax1.set_ylim(conf.plates.vmin, conf.plates.vmax)
-    ax2.fill_between(
-        ph_coord, continentsall * conf.plates.dvmin,
-        conf.plates.dvmax, facecolor='#8b6914', alpha=0.2)
-    ax2.set_ylim(conf.plates.dvmin, conf.plates.dvmax)
-
-    saveplot(fig0, 'sveldvel', timestep)
-
-    # plotting velocity and second invariant of stress
-    if 'str' in conf.plates.plot:
-        stressfld = step.fields['sII'].values[0, :, :, 0]
-        fig0, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-        ax1.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
-        ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
-                    color='black', ls='solid', alpha=0.2)
-        ax1.set_ylabel("Velocity")
-        ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                 transform=ax1.transAxes)
-        ax1.text(0.01, 1.07, str(round(step.time, 8)),
-                 transform=ax1.transAxes)
-        ax2.plot(ph_coord,
-                 stressfld[:, indsurf] * step.sdat.scales.stress / 1.e6,
-                 color='k', label='Stress')
-        ax2.set_ylim(conf.plates.stressmin, conf.plates.stressmax)
-        ax2.set_ylabel("Stress [MPa]")
-
-        plot_plate_limits(ax1, ridge, trench,
-                          conf.plates.vmin, conf.plates.vmax)
-        plot_plate_limits(ax2, ridge, trench,
-                          conf.plates.stressmin, conf.plates.stressmax)
-        ax1.set_xlim(0, 2 * np.pi)
-        ax1.set_title(timestep)
-
-        ax1.fill_between(
-            ph_coord, continentsall * conf.plates.vmin,
-            conf.plates.vmax, facecolor='#8B6914', alpha=0.2)
-        ax1.set_ylim(conf.plates.vmin, conf.plates.vmax)
-        ax2.fill_between(
-            ph_coord, continentsall * conf.plates.dvmin,
-            conf.plates.dvmax,
-            facecolor='#8B6914', alpha=0.2)
-
-        saveplot(fig0, 'svelstress', timestep)
-
-    # plotting velocity
-    fig1, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-    ax1.plot(step.geom.p_walls, vphi[:, indsurf], label='Vel')
-    ax1.axhline(y=0, xmin=0, xmax=2 * np.pi,
-                color='black', ls='solid', alpha=0.2)
-    ax1.set_ylim(conf.plates.vmin, conf.plates.vmax)
-    ax1.set_ylabel("Velocity")
-    ax1.text(0.95, 1.07, str(round(time, 0)) + ' My',
-             transform=ax1.transAxes)
-    plot_plate_limits(ax1, ridge, trench, conf.plates.vmin,
-                      conf.plates.vmax)
-
-    # plotting velocity and age at surface
-    if 'age' in conf.plates.plot:
-        agefld = step.fields['age'].values[0, :, :, 0]
-        age_surface = np.ma.masked_where(
-            agefld[:, indsurf] < 0.00001, agefld[:, indsurf])
-        age_surface_dim = (age_surface * vrms_surface * conf.scaling.ttransit /
-                           conf.scaling.yearins / 1.e6)
-
-        fig2, (ax3, ax4) = plt.subplots(2, 1, sharex=True, figsize=(12, 8))
-        ax3.plot(ph_coord, vphi[:, indsurf], label='Vel')
-        ax3.axhline(
-            y=0, xmin=0, xmax=2 * np.pi,
-            color='black', ls='solid', alpha=0.2)
-        ax3.set_ylim(conf.plates.vmin, conf.plates.vmax)
-        ax3.set_ylabel("Velocity")
-        ax3.text(0.95, 1.07, str(round(time, 0)) + ' My',
-                 transform=ax3.transAxes)
-        ax3.fill_between(
-            ph_coord, continentsall * conf.plates.vmax,
-            conf.plates.vmin, facecolor='#8B6914', alpha=0.2)
-        plot_plate_limits(ax3, ridge, trench,
-                          conf.plates.vmin, conf.plates.vmax)
+    continents = _continents_location(step)
 
     times_subd = []
     age_subd = []
@@ -366,74 +264,18 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
     if step.sdat.par['switches']['cont_tracers']:
         for i, trench_i in enumerate(trench):
             # detection of the distance in between subduction and continent
-            angdistance1 = abs(ph_coord[continentsall == 1] - trench_i)
+            angdistance1 = abs(ph_coord[continents] - trench_i)
             angdistance2 = 2. * np.pi - angdistance1
             angdistance = np.minimum(angdistance1, angdistance2)
             distancecont = min(angdistance)
             argdistancecont = np.argmin(angdistance)
-            continentpos = ph_coord[continentsall == 1][argdistancecont]
+            continentpos = ph_coord[continents][argdistancecont]
 
             ph_trench_subd.append(trench_i)
             age_subd.append(agetrench[i])
             ph_cont_subd.append(continentpos)
             distance_subd.append(distancecont)
             times_subd.append(step.time)
-
-            if angdistance1[argdistancecont] < angdistance2[argdistancecont]:
-                if continentpos - trench_i < 0:  # continent is on the left
-                    distancecont = - distancecont
-                ax1.annotate('', xy=(trench_i + distancecont, 2000),
-                             xycoords='data', xytext=(trench_i, 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
-            else:  # distance over boundary
-                xy_anot, xy_text = 0, 2 * np.pi
-                if continentpos - trench_i < 0:
-                    xy_anot, xy_text = xy_text, xy_anot
-                ax1.annotate('', xy=(xy_anot, 2000),
-                             xycoords='data', xytext=(trench_i, 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="-", lw="2",
-                                             shrinkA=0, shrinkB=0))
-                ax1.annotate('', xy=(continentpos, 2000),
-                             xycoords='data', xytext=(xy_text, 2000),
-                             textcoords='data',
-                             arrowprops=dict(arrowstyle="->", lw="2",
-                                             shrinkA=0, shrinkB=0))
-
-    ax1.fill_between(
-        ph_coord, continentsall * conf.plates.vmin,
-        conf.plates.vmax, facecolor='#8B6914', alpha=0.2)
-    ax2.set_ylabel("Topography [km]")
-    ax2.axhline(y=0, xmin=0, xmax=2 * np.pi,
-                color='black', ls='solid', alpha=0.2)
-    ax2.plot(topo[:, 0],
-             topo[:, 1] * step.sdat.scales.length / 1.e3,
-             color='black')
-    ax2.set_xlim(0, 2 * np.pi)
-    ax2.set_ylim(conf.plates.topomin, conf.plates.topomax)
-    ax2.fill_between(
-        ph_coord, continentsall * conf.plates.topomax,
-        conf.plates.topomin, facecolor='#8B6914', alpha=0.2)
-    plot_plate_limits(ax2, ridge, trench, conf.plates.topomin,
-                      conf.plates.topomax)
-    ax1.set_title(timestep)
-    saveplot(fig1, 'sveltopo', timestep)
-
-    if 'age' in conf.plates.plot:
-        ax4.set_ylabel("Seafloor age [My]")
-        # in dimensions
-        ax4.plot(ph_coord, age_surface_dim, color='black')
-        ax4.set_xlim(0, 2 * np.pi)
-        ax4.fill_between(
-            ph_coord, continentsall * conf.plates.agemax,
-            conf.plates.agemin, facecolor='#8B6914', alpha=0.2)
-        ax4.set_ylim(conf.plates.agemin, conf.plates.agemax)
-        plot_plate_limits(ax4, ridge, trench, conf.plates.agemin,
-                          conf.plates.agemax)
-        ax3.set_title(timestep)
-        saveplot(fig2, 'svelage', timestep)
 
     # writing the output into a file, all time steps are in one file
     for isubd in np.arange(len(distance_subd)):
@@ -446,17 +288,6 @@ def plot_plates(step, time, vrms_surface, trench, ridge, agetrench,
             ph_cont_subd[isubd],
             age_subd[isubd],
         ))
-
-
-def set_of_vars(arg_plot):
-    """Build set of needed variables.
-
-    Args:
-        arg_plot (str): string with variable names separated with ``,``.
-    Returns:
-        set of str: set of variables.
-    """
-    return set(var for var in arg_plot.split(',') if var in phyvars.PLATES)
 
 
 def plot_scalar_field(step, fieldname, ridges, trenches):
@@ -526,18 +357,13 @@ def main_plates(sdat):
             timestep = step.isnap
             print('Treating snapshot', timestep)
 
-            # topography
-            fname = sdat.filename('sc', timestep=timestep, suffix='.dat')
-            topo = np.genfromtxt(str(fname))
-
             time = step.time * vrms_surface *\
                 conf.scaling.ttransit / conf.scaling.yearins / 1.e6
             trenches, ridges, agetrenches, _, _ =\
                 detect_plates(step, vrms_surface, fids, time)
-            plot_plates(step, time, vrms_surface, trenches, ridges,
-                        agetrenches, topo, fids)
+            _write_trench_diagnostics(step, time, trenches, agetrenches, fids)
 
-            # plot scalar field with position of trenches and ridges
+            plot_at_surface(step, conf.plates.plot, trenches, ridges)
             plot_scalar_field(step, conf.plates.field, ridges, trenches)
 
 
@@ -551,10 +377,7 @@ def cmd():
         conf.core
     """
     sdat = StagyyData()
-    conf.plates.plot = set_of_vars(conf.plates.plot)
     if not conf.plates.vzcheck:
-        conf.scaling.dimensional = True
-        conf.scaling.factors['Pa'] = 'M'
         main_plates(sdat)
     else:
         nb_plates = []

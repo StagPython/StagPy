@@ -179,7 +179,7 @@ CONF_DEF['refstate'] = OrderedDict((
 
 CONF_DEF['plates'] = OrderedDict((
     ('plot',
-        Conf('c,eta,sc', True, 'o',
+        Conf('c.T.v2-v2.dv2-v2.topo_top', True, 'o',
              {'nargs': '?', 'const': '', 'type': str},
              True, 'variables to plot (see stagpy var)')),
     ('field',
@@ -197,26 +197,6 @@ CONF_DEF['plates'] = OrderedDict((
     ('zoom',
         Conf(None, True, None, {'type': float},
              False, 'zoom around surface')),
-    ('topomin', Conf(-40, False, None, {},
-                     True, 'min topography in plots')),
-    ('topomax', Conf(100, False, None, {},
-                     True, 'max topography in plots')),
-    ('agemin', Conf(-50, False, None, {},
-                    True, 'min age in plots')),
-    ('agemax', Conf(500, False, None, {},
-                    True, 'max age in plots')),
-    ('vmin', Conf(-5000, False, None, {},
-                  True, 'min velocity in plots')),
-    ('vmax', Conf(5000, False, None, {},
-                  True, 'max velocity in plots')),
-    ('dvmin', Conf(-250000, False, None, {},
-                   True, 'min velocity derivative in plots')),
-    ('dvmax', Conf(150000, False, None, {},
-                   True, 'max velocity derivative in plots')),
-    ('stressmin', Conf(0, False, None, {},
-                       True, 'min stress in plots')),
-    ('stressmax', Conf(800, False, None, {},
-                       True, 'max stress in plots')),
 ))
 
 CONF_DEF['info'] = OrderedDict((
