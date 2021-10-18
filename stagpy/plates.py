@@ -72,7 +72,7 @@ def detect_plates(step, vrms_surface, fids, time):
     vphi = step.fields['v2'].values[0, :, :, 0]
     ph_coord = step.geom.p_centers
 
-    indsurf, _ = _isurf_icont(step)
+    indsurf = _isurf(step)
 
     # vphi at cell-center
     vph2 = 0.5 * (vphi[1:] + vphi[:-1])
@@ -162,8 +162,8 @@ def plot_plate_limits_field(axis, rcmb, ridges, trenches):
                       arrowprops=dict(facecolor='green', shrink=0.05))
 
 
-def _isurf_icont(snap):
-    """Return index of surface and of continent detection."""
+def _isurf(snap):
+    """Return index of surface accounting for air layer."""
     if snap.sdat.par['boundaries']['air_layer']:
         dsa = snap.sdat.par['boundaries']['air_thickness']
         # we are a bit below the surface; delete "-some number" to be just
@@ -171,12 +171,9 @@ def _isurf_icont(snap):
         # in the thermal boundary layer
         isurf = np.argmin(
             np.abs(1 - dsa - snap.geom.r_centers + snap.geom.rcmb)) - 4
-        # depth to detect the continents
-        icont = isurf - 6
     else:
         isurf = -1
-        icont = -1
-    return isurf, icont
+    return isurf
 
 
 def _surf_diag(snap, name):
@@ -185,7 +182,7 @@ def _surf_diag(snap, name):
     Can be a sfield, a regular scalar field evaluated at the surface,
     or dv2 (which is dvphi/dphi).
     """
-    isurf, _ = _isurf_icont(snap)
+    isurf = _isurf(snap)
     with suppress(error.UnknownVarError):
         return snap.sfields[name]
     with suppress(error.UnknownVarError):
@@ -201,7 +198,10 @@ def _surf_diag(snap, name):
 
 def _continents_location(snap):
     """Location of continents in phi direction."""
-    isurf, icont = _isurf_icont(snap)
+    if snap.sdat.par['boundaries']['air_layer']:
+        icont = _isurf(snap) - 6
+    else:
+        icont = -1
     csurf = snap.fields['c'].values[0, :, icont, 0]
     if snap.sdat.par['boundaries']['air_layer'] and\
        not snap.sdat.par['continents']['proterozoic_belts']:
@@ -340,7 +340,7 @@ def main_plates(sdat):
     # averaged horizontal surface velocity needed for redimensionalisation
     uprof_averaged, radius, _ = sdat.walk.filter(rprofs=True)\
         .rprofs_averaged['vhrms']
-    isurf, _ = _isurf_icont(next(iter(sdat.walk)))
+    isurf = _isurf(next(iter(sdat.walk)))
     vrms_surface = uprof_averaged[isurf]
 
     # determine names of files
