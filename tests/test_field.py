@@ -27,13 +27,26 @@ def test_valid_field_var_invalid():
     assert not stagpy.field.valid_field_var('dummyfieldvar')
 
 
-def test_get_meshes_fld(step):
-    xmesh, ymesh, fld = stagpy.field.get_meshes_fld(step, 'T')
+def test_get_meshes_fld_no_walls(step):
+    xmesh, ymesh, fld, meta = stagpy.field.get_meshes_fld(step, 'T',
+                                                          walls=False)
     assert len(fld.shape) == 2
-    assert xmesh.shape == ymesh.shape == fld.shape
+    assert xmesh.shape[0] == ymesh.shape[0] == fld.shape[0]
+    assert xmesh.shape[1] == ymesh.shape[1] == fld.shape[1]
+    assert meta.description == 'Temperature'
+
+
+def test_get_meshes_fld_walls(step):
+    xmesh, ymesh, fld, meta = stagpy.field.get_meshes_fld(step, 'T',
+                                                          walls=True)
+    assert len(fld.shape) == 2
+    assert xmesh.shape[0] == ymesh.shape[0] == fld.shape[0] + 1
+    assert xmesh.shape[1] == ymesh.shape[1] == fld.shape[1] + 1
+    assert meta.description == 'Temperature'
 
 
 def test_get_meshes_vec(step):
     xmesh, ymesh, vec1, vec2 = stagpy.field.get_meshes_vec(step, 'v')
     assert len(vec1.shape) == 2
-    assert xmesh.shape == ymesh.shape == vec1.shape == vec2.shape
+    assert xmesh.shape[0] == ymesh.shape[0] == vec1.shape[0] == vec2.shape[0]
+    assert xmesh.shape[1] == ymesh.shape[1] == vec1.shape[1] == vec2.shape[1]

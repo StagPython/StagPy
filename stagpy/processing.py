@@ -281,13 +281,13 @@ def stream_function(step):
     """
     if step.geom.twod_yz:
         x_coord = step.geom.y_walls
-        v_x = step.fields['v2'][0, :, :, 0]
-        v_z = step.fields['v3'][0, :, :, 0]
+        v_x = step.fields['v2'].values[0, :, :, 0]
+        v_z = step.fields['v3'].values[0, :, :, 0]
         shape = (1, v_x.shape[0], v_x.shape[1], 1)
     elif step.geom.twod_xz and step.geom.cartesian:
         x_coord = step.geom.x_walls
-        v_x = step.fields['v1'][:, 0, :, 0]
-        v_z = step.fields['v3'][:, 0, :, 0]
+        v_x = step.fields['v1'].values[:, 0, :, 0]
+        v_z = step.fields['v3'].values[:, 0, :, 0]
         shape = (v_x.shape[0], 1, v_x.shape[1], 1)
     else:
         raise NotAvailableError('Stream function only implemented in '

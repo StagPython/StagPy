@@ -52,4 +52,4 @@ def test_energy_prof(step):
 
 def test_stream_function(step):
     psi = processing.stream_function(step)
-    assert psi.shape[1:3] == step.fields['v3'].shape[1:3]
+    assert psi.shape[1:3] == step.fields['v3'].values.shape[1:3]

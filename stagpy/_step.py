@@ -224,13 +224,18 @@ class _Geometry:
         return np.argmin(np.abs(self.r_centers - rval))
 
 
+Field = namedtuple('Field', ['values', 'meta'])
+
+
 class _Fields(Mapping):
     """Fields data structure.
 
     The :attr:`Step.fields` attribute is an instance of this class.
 
     :class:`_Fields` inherits from :class:`collections.abc.Mapping`. Keys are
-    fields names defined in :data:`stagpy.phyvars.[S]FIELD[_EXTRA]`.
+    fields names defined in :data:`stagpy.phyvars.[S]FIELD[_EXTRA]`.  Each item
+    is a name tuple ('values', 'meta'), respectively the field itself, and a
+    :class:`stagpy.phyvars.Varf` instance with relevant metadata.
 
     Attributes:
         step (:class:`Step`): the step object owning the :class:`_Fields`
@@ -252,7 +257,10 @@ class _Fields(Mapping):
         if name in self._vars:
             fld_names, parsed_data = self._get_raw_data(name)
         elif name in self._extra:
-            self._data[name] = self._extra[name].description(self.step)
+            meta = self._extra[name]
+            field = meta.description(self.step)
+            meta = phyvars.Varf(_helpers.baredoc(meta.description), meta.dim)
+            self._data[name] = Field(field, meta)
             return self._data[name]
         else:
             raise error.UnknownFieldVarError(name)
@@ -322,7 +330,7 @@ class _Fields(Mapping):
             while len(col_fld) > sdat.nfields_max:
                 istep, fld_name = col_fld.pop(0)
                 del sdat.steps[istep].fields[fld_name]
-        self._data[name] = fld
+        self._data[name] = Field(fld, self._vars[name])
 
     def __delitem__(self, name):
         if name in self._data:

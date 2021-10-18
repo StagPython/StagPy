@@ -189,8 +189,14 @@ Vector and scalar fields are accessible through :attr:`Step.fields
 <stagpy._step.Step.fields>` using their name as key. For example, the
 temperature field of the 100th snapshot is obtained with
 ``sdat.snaps[100].fields['T']``.  Valid names of fields can be obtained by
-running ``% stagpy var``. Fields are four dimensional arrays, with indices in
-the order x, y, z and block.
+running ``% stagpy var``. Items are named tuples with two elements:
+
+- :data:`values`: the field itself, a four dimensional array with indices in
+  the order x, y, z and block;
+- :data:`meta`: metadata of the field, also a named tuple with:
+
+    - :data:`description`: explanation of what the field is;
+    - :data:`dim`: the dimension of the field (if applicable) in SI units.
 
 Tracers data
 ------------
