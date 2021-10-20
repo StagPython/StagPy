@@ -303,8 +303,6 @@ def plot_scalar_field(step, fieldname, ridges, trenches):
         conf.field.colorbar = False
         field.plot_scalar(step, 'c', continentsfld, axis,
                           cmap='cool_r', vmin=0, vmax=0)
-        cmap2 = plt.cm.ocean
-        cmap2.set_over('m')
         conf.field.colorbar = cbar
 
     # plotting velocity vectors
