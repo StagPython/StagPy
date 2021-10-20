@@ -90,7 +90,6 @@ def detect_plates(step, vrms_surface, fids, time):
         pom2, np.less, order=trench_span, mode='wrap')[0]
     trench = ph_coord[argless_dv]
     velocity_trench = vph2[argless_dv, indsurf]
-    dv_trench = dvph2[argless_dv]
 
     # finding ridges
     pom2 = np.copy(dvph2)
@@ -111,9 +110,7 @@ def detect_plates(step, vrms_surface, fids, time):
         if argdel:
             print('deleting from ridge', trench, ridge[argdel])
             ridge = np.delete(ridge, np.array(argdel))
-            arggreat_dv = np.delete(arggreat_dv, np.array(argdel))
 
-    dv_ridge = dvph2[arggreat_dv]
     if 'age' in conf.plates.plot:
         agefld = step.fields['age'].values[0, :, :, 0]
         age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
@@ -134,7 +131,7 @@ def detect_plates(step, vrms_surface, fids, time):
             agetrench[itrench]
         ))
 
-    return trench, ridge, agetrench, dv_trench, dv_ridge
+    return trench, ridge, agetrench
 
 
 def plot_plate_limits(axis, ridges, trenches):
@@ -364,7 +361,7 @@ def main_plates(sdat):
 
             time = step.time * vrms_surface *\
                 conf.scaling.ttransit / conf.scaling.yearins / 1.e6
-            trenches, ridges, agetrenches, _, _ =\
+            trenches, ridges, agetrenches =\
                 detect_plates(step, vrms_surface, fids, time)
             _write_trench_diagnostics(step, time, trenches, agetrenches, fids)
 
