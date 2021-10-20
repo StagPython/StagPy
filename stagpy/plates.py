@@ -3,6 +3,7 @@
 from contextlib import ExitStack, suppress
 
 import matplotlib.pyplot as plt
+from matplotlib import colors
 import numpy as np
 from scipy.signal import argrelextrema
 
@@ -196,19 +197,26 @@ def _surf_diag(snap, name):
     raise error.UnknownVarError(name)
 
 
-def _continents_location(snap):
-    """Location of continents in phi direction."""
-    if snap.sdat.par['boundaries']['air_layer']:
-        icont = _isurf(snap) - 6
+def _continents_location(snap, at_surface=True):
+    """Location of continents as a boolean array.
+
+    If at_surface is True, it is evaluated only at the surface, otherwise it is
+    evaluated in the entire domain.
+    """
+    if at_surface:
+        if snap.sdat.par['boundaries']['air_layer']:
+            icont = _isurf(snap) - 6
+        else:
+            icont = -1
     else:
-        icont = -1
+        icont = slice(None)
     csurf = snap.fields['c'].values[0, :, icont, 0]
     if snap.sdat.par['boundaries']['air_layer'] and\
        not snap.sdat.par['continents']['proterozoic_belts']:
-        return (csurf >= 3) & (csurf < 4)
+        return (csurf >= 3) & (csurf <= 4)
     elif (snap.sdat.par['boundaries']['air_layer'] and
           snap.sdat.par['continents']['proterozoic_belts']):
-        return (csurf >= 3) & (csurf < 5)
+        return (csurf >= 3) & (csurf <= 5)
     elif snap.sdat.par['tracersin']['tracers_weakcrust']:
         return csurf >= 3
     return csurf >= 2
@@ -295,14 +303,14 @@ def plot_scalar_field(step, fieldname, ridges, trenches):
     fig, axis, _, _ = field.plot_scalar(step, fieldname)
 
     if conf.plates.continents:
-        concfld = step.fields['c'].values[0, :, :, 0]
-        continentsfld = np.ma.masked_where(
-            concfld < 3, concfld)  # plotting continents, to-do
-        continentsfld = continentsfld / continentsfld
+        c_field = np.ma.masked_where(
+            ~_continents_location(step, at_surface=False),
+            step.fields['c'].values[0, :, :, 0])
         cbar = conf.field.colorbar
         conf.field.colorbar = False
-        field.plot_scalar(step, 'c', continentsfld, axis,
-                          cmap='cool_r', vmin=0, vmax=0)
+        cmap = colors.ListedColormap(["k", "g", "m"])
+        field.plot_scalar(step, 'c', c_field, axis, cmap=cmap,
+                          norm=colors.BoundaryNorm([2, 3, 4, 5], cmap.N))
         conf.field.colorbar = cbar
 
     # plotting velocity vectors
