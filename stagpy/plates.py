@@ -128,14 +128,16 @@ def plot_plate_limits_field(axis, rcmb, ridges, trenches):
         xxt = (rcmb + 1.35) * np.cos(trench)  # arrow end
         yyt = (rcmb + 1.35) * np.sin(trench)  # arrow end
         axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                      arrowprops=dict(facecolor='red', shrink=0.05))
+                      arrowprops=dict(facecolor='red', shrink=0.05),
+                      annotation_clip=False)
     for ridge in ridges:
         xxd = (rcmb + 1.02) * np.cos(ridge)
         yyd = (rcmb + 1.02) * np.sin(ridge)
         xxt = (rcmb + 1.35) * np.cos(ridge)
         yyt = (rcmb + 1.35) * np.sin(ridge)
         axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
-                      arrowprops=dict(facecolor='green', shrink=0.05))
+                      arrowprops=dict(facecolor='green', shrink=0.05),
+                      annotation_clip=False)
 
 
 def _isurf(snap):
