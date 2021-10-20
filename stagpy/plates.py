@@ -68,7 +68,7 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
     return limits, dvphi, vphi_surf
 
 
-def detect_plates(step, vrms_surface):
+def detect_plates(step):
     """Detect plates using derivative of horizontal velocity."""
     vphi = step.fields['v2'].values[0, :, :, 0]
     ph_coord = step.geom.p_centers
@@ -82,8 +82,7 @@ def detect_plates(step, vrms_surface):
 
     # finding trenches
     pom2 = np.copy(dvph2)
-    maskbigdvel = -vrms_surface * (
-        30 if step.sdat.par['boundaries']['air_layer'] else 10)
+    maskbigdvel = np.amin(dvph2) * 0.2
     pom2[pom2 > maskbigdvel] = maskbigdvel
     trench_span = 15 if step.sdat.par['boundaries']['air_layer'] else 10
     argless_dv = argrelextrema(
@@ -340,8 +339,7 @@ def main_plates(sdat):
 
             time = step.time * vrms_surface *\
                 conf.scaling.ttransit / conf.scaling.yearins / 1.e6
-            trenches, ridges, itrenches, v_trenches =\
-                detect_plates(step, vrms_surface)
+            trenches, ridges, itrenches, v_trenches = detect_plates(step)
 
             if 'age' in step.fields:
                 agefld = step.fields['age'].values[0, :, :, 0]
