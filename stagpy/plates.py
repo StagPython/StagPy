@@ -1,6 +1,6 @@
 """Plate analysis."""
 
-from contextlib import ExitStack, suppress
+from contextlib import suppress
 
 import matplotlib.pyplot as plt
 from matplotlib import colors
@@ -232,7 +232,7 @@ def plot_at_surface(snap, names, trenches, ridges):
         saveplot(fig, fname, snap.isnap)
 
 
-def _write_trench_diagnostics(step, vrms_surf, itrenches, fids):
+def _write_trench_diagnostics(step, vrms_surf, itrenches, fid):
     """Print out some trench diagnostics."""
     time = step.time * vrms_surf *\
         conf.scaling.ttransit / conf.scaling.yearins / 1.e6
@@ -253,21 +253,10 @@ def _write_trench_diagnostics(step, vrms_surf, itrenches, fids):
     else:
         agetrenches = np.zeros(len(itrenches))
 
-    # writing the output into a file, all time steps are in one file
-    for itrench in range(len(trenches)):
-        fids[0].write("%7.0f %11.7f %10.6f %9.2f %9.2f \n" % (
-            step.isnap,
-            step.time,
-            trenches[itrench],
-            v_trenches[itrench],
-            agetrenches[itrench]
-        ))
-
     phi_cont = step.geom.p_centers[_continents_location(step)]
 
     distance_subd = []
     ph_cont_subd = []
-
     for trench_i in trenches:
         # compute distance between subduction and continent
         angdistance1 = np.abs(phi_cont - trench_i)
@@ -279,16 +268,17 @@ def _write_trench_diagnostics(step, vrms_surf, itrenches, fids):
         distance_subd.append(angdistance[i_closest])
 
     # writing the output into a file, all time steps are in one file
-    for isubd in range(len(distance_subd)):
-        fids[1].write("%6.0f %11.7f %11.3f %10.6f %10.6f %10.6f %11.3f\n" % (
-            step.isnap,
-            step.time,
-            time,
-            distance_subd[isubd],
-            trenches[isubd],
-            ph_cont_subd[isubd],
-            agetrenches[isubd],
-        ))
+    for isubd in range(len(trenches)):
+        fid.write(
+            "%6.0f %11.7f %11.3f %10.6f %10.6f %10.6f %10.6f %11.3f\n" % (
+                step.isnap,
+                step.time,
+                time,
+                trenches[isubd],
+                v_trenches[isubd],
+                distance_subd[isubd],
+                ph_cont_subd[isubd],
+                agetrenches[isubd]))
 
 
 def plot_scalar_field(step, fieldname, ridges, trenches):
@@ -341,20 +331,15 @@ def main_plates(sdat):
     vrms_surf = sdat.walk.filter(rprofs=True)\
         .rprofs_averaged['vhrms'].values[isurf]
 
-    # determine names of files
-    fnames = ['plate_velocity', 'distance_subd']
-    fnames = [f'plates_{stem}_{sdat.walk.stepstr}' for stem in fnames]
-    with ExitStack() as stack:
-        fids = [stack.enter_context(open(fname, 'w')) for fname in fnames]
-        fids[0].write('#  it  time  ph_trench vel_trench age_trench\n')
-        fids[1].write('#  it      time   time [My]   distance     '
-                      'ph_trench     ph_cont  age_trench [My]\n')
+    with open(f'plates_trenches_{sdat.walk.stepstr}.dat', 'w') as fid:
+        fid.write('#  istep     time   time_My   phi_trench  vel_trench  '
+                  'distance     phi_cont  age_trench_My\n')
 
         for step in sdat.walk.filter(fields=['T']):
             # could check other fields too
             trenches, ridges, itrenches = detect_plates(step)
 
-            _write_trench_diagnostics(step, vrms_surf, itrenches, fids)
+            _write_trench_diagnostics(step, vrms_surf, itrenches, fid)
             plot_at_surface(step, conf.plates.plot, trenches, ridges)
             plot_scalar_field(step, conf.plates.field, ridges, trenches)
 
