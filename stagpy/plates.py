@@ -237,41 +237,31 @@ def plot_at_surface(snap, names, trenches, ridges):
 
 def _write_trench_diagnostics(step, time, trench, agetrench, fids):
     """Handle plotting stuff."""
-    timestep = step.isnap
-    ph_coord = step.geom.p_centers
-    continents = _continents_location(step)
+    phi_cont = step.geom.p_centers[_continents_location(step)]
 
-    times_subd = []
-    age_subd = []
     distance_subd = []
-    ph_trench_subd = []
     ph_cont_subd = []
-    if step.sdat.par['switches']['cont_tracers']:
-        for i, trench_i in enumerate(trench):
-            # detection of the distance in between subduction and continent
-            angdistance1 = abs(ph_coord[continents] - trench_i)
-            angdistance2 = 2. * np.pi - angdistance1
-            angdistance = np.minimum(angdistance1, angdistance2)
-            distancecont = min(angdistance)
-            argdistancecont = np.argmin(angdistance)
-            continentpos = ph_coord[continents][argdistancecont]
 
-            ph_trench_subd.append(trench_i)
-            age_subd.append(agetrench[i])
-            ph_cont_subd.append(continentpos)
-            distance_subd.append(distancecont)
-            times_subd.append(step.time)
+    for trench_i in trench:
+        # compute distance between subduction and continent
+        angdistance1 = np.abs(phi_cont - trench_i)
+        angdistance2 = 2 * np.pi - angdistance1
+        angdistance = np.minimum(angdistance1, angdistance2)
+        i_closest = np.argmin(angdistance)
+
+        ph_cont_subd.append(phi_cont[i_closest])
+        distance_subd.append(angdistance[i_closest])
 
     # writing the output into a file, all time steps are in one file
-    for isubd in np.arange(len(distance_subd)):
+    for isubd in range(len(distance_subd)):
         fids[1].write("%6.0f %11.7f %11.3f %10.6f %10.6f %10.6f %11.3f\n" % (
-            timestep,
-            times_subd[isubd],
+            step.isnap,
+            step.time,
             time,
             distance_subd[isubd],
-            ph_trench_subd[isubd],
+            trench[isubd],
             ph_cont_subd[isubd],
-            age_subd[isubd],
+            agetrench[isubd],
         ))
 
 
