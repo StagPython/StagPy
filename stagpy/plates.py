@@ -68,7 +68,7 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
     return limits, dvphi, vphi_surf
 
 
-def detect_plates(step, vrms_surface, fids, time):
+def detect_plates(step, vrms_surface):
     """Detect plates using derivative of horizontal velocity."""
     vphi = step.fields['v2'].values[0, :, :, 0]
     ph_coord = step.geom.p_centers
@@ -89,7 +89,7 @@ def detect_plates(step, vrms_surface, fids, time):
     argless_dv = argrelextrema(
         pom2, np.less, order=trench_span, mode='wrap')[0]
     trench = ph_coord[argless_dv]
-    velocity_trench = vph2[argless_dv, indsurf]
+    v_trenches = vph2[argless_dv, indsurf]
 
     # finding ridges
     pom2 = np.copy(dvph2)
@@ -108,30 +108,9 @@ def detect_plates(step, vrms_surface, fids, time):
             if mdistance < 0.016:
                 argdel.append(i)
         if argdel:
-            print('deleting from ridge', trench, ridge[argdel])
             ridge = np.delete(ridge, np.array(argdel))
 
-    if 'age' in step.fields:
-        agefld = step.fields['age'].values[0, :, :, 0]
-        age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
-                                         agefld[:, indsurf])
-        age_surface_dim = age_surface * vrms_surface *\
-            conf.scaling.ttransit / conf.scaling.yearins / 1.e6
-        agetrench = age_surface_dim[argless_dv]  # age at the trench
-    else:
-        agetrench = np.zeros(len(argless_dv))
-
-    # writing the output into a file, all time steps are in one file
-    for itrench in np.arange(len(trench)):
-        fids[0].write("%7.0f %11.7f %10.6f %9.2f %9.2f \n" % (
-            step.isnap,
-            step.time,
-            trench[itrench],
-            velocity_trench[itrench],
-            agetrench[itrench]
-        ))
-
-    return trench, ridge, agetrench
+    return trench, ridge, argless_dv, v_trenches
 
 
 def plot_plate_limits(axis, ridges, trenches):
@@ -361,8 +340,29 @@ def main_plates(sdat):
 
             time = step.time * vrms_surface *\
                 conf.scaling.ttransit / conf.scaling.yearins / 1.e6
-            trenches, ridges, agetrenches =\
-                detect_plates(step, vrms_surface, fids, time)
+            trenches, ridges, itrenches, v_trenches =\
+                detect_plates(step, vrms_surface)
+
+            if 'age' in step.fields:
+                agefld = step.fields['age'].values[0, :, :, 0]
+                age_surface = np.ma.masked_where(agefld[:, isurf] < 1.e-5,
+                                                 agefld[:, isurf])
+                age_surface_dim = age_surface * vrms_surface *\
+                    conf.scaling.ttransit / conf.scaling.yearins / 1.e6
+                agetrenches = age_surface_dim[itrenches]  # age at the trench
+            else:
+                agetrenches = np.zeros(len(itrenches))
+
+            # writing the output into a file, all time steps are in one file
+            for itrench in range(len(trenches)):
+                fids[0].write("%7.0f %11.7f %10.6f %9.2f %9.2f \n" % (
+                    step.isnap,
+                    step.time,
+                    trenches[itrench],
+                    v_trenches[itrench],
+                    agetrenches[itrench]
+                ))
+
             _write_trench_diagnostics(step, time, trenches, agetrenches, fids)
 
             plot_at_surface(step, conf.plates.plot, trenches, ridges)
