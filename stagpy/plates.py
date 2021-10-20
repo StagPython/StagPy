@@ -111,7 +111,7 @@ def detect_plates(step, vrms_surface, fids, time):
             print('deleting from ridge', trench, ridge[argdel])
             ridge = np.delete(ridge, np.array(argdel))
 
-    if 'age' in conf.plates.plot:
+    if 'age' in step.fields:
         agefld = step.fields['age'].values[0, :, :, 0]
         age_surface = np.ma.masked_where(agefld[:, indsurf] < 0.00001,
                                          agefld[:, indsurf])
