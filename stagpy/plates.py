@@ -344,10 +344,9 @@ def plot_scalar_field(step, fieldname, ridges, trenches):
 def main_plates(sdat):
     """Plot several plates information."""
     # averaged horizontal surface velocity needed for redimensionalisation
-    uprof_averaged, radius, _ = sdat.walk.filter(rprofs=True)\
-        .rprofs_averaged['vhrms']
     isurf = _isurf(next(iter(sdat.walk)))
-    vrms_surface = uprof_averaged[isurf]
+    vrms_surface = sdat.walk.filter(rprofs=True)\
+        .rprofs_averaged['vhrms'].values[isurf]
 
     # determine names of files
     fnames = ['plate_velocity', 'distance_subd']
