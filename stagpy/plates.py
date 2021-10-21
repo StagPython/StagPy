@@ -253,7 +253,10 @@ def _write_trench_diagnostics(step, vrms_surf, itrenches, fid):
     else:
         agetrenches = np.zeros(len(itrenches))
 
-    phi_cont = step.geom.p_centers[_continents_location(step)]
+    if conf.plates.continents:
+        phi_cont = step.geom.p_centers[_continents_location(step)]
+    else:
+        phi_cont = np.array([np.nan])
 
     distance_subd = []
     ph_cont_subd = []
