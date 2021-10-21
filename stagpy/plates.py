@@ -318,7 +318,7 @@ def cmd():
             _write_trench_diagnostics(step, vrms_surf, fid)
             plot_at_surface(step, conf.plates.plot)
             plot_scalar_field(step, conf.plates.field)
-            if conf.plates.timeprofile:
+            if conf.plates.nbplates:
                 time.append(step.timeinfo.loc['t'])
                 itr, ird = detect_plates(step, conf.plates.vzratio)
                 nb_plates.append(itr.size + ird.size)
@@ -338,7 +338,7 @@ def cmd():
                 axis.set_xlabel(r"$\phi$-span")
                 saveplot(fig, 'plates_size_distribution', step.isnap)
 
-        if conf.plates.timeprofile:
+        if conf.plates.nbplates:
             figt, axis = plt.subplots()
             axis.plot(time, nb_plates)
             axis.set_xlabel("Time")
