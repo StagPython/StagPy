@@ -15,7 +15,7 @@ from .stagyydata import StagyyData
 
 
 def _vzcheck(iphis, snap, vz_thres):
-    """Detect plates and check with vz and plate size."""
+    """Remove positions where vz is below threshold."""
     # verifying vertical velocity
     vzabs = np.abs(snap.fields['v3'].values[0, ..., 0])
     argdel = []
@@ -28,7 +28,20 @@ def _vzcheck(iphis, snap, vz_thres):
 
 @lru_cache()
 def detect_plates(snap, vz_thres_ratio=0):
-    """Detect plates using derivative of horizontal velocity."""
+    """Detect plate limits using derivative of horizontal velocity.
+
+    This function is cached for convenience.
+
+    Args:
+        snap (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
+        vz_thres_ratio (float): if above zero, an addition check based on the
+            vertical velocities is performed.  Limits detected above a region
+            where the vertical velocity is below vz_thres_ratio * mean(vzabs)
+            are ignored.
+    Returns:
+        tuple of :class:`numpy.array`: itrenches, iridges
+            1D arrays containing phi-index of detected trenches and ridges.
+    """
     dvphi = _surf_diag(snap, 'dv2').values
 
     # finding trenches
@@ -157,7 +170,15 @@ def _continents_location(snap, at_surface=True):
 
 
 def plot_at_surface(snap, names):
-    """Plot surface diagnostics."""
+    """Plot surface diagnostics.
+
+    Args:
+        snap (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
+        names (str): names of requested surface diagnotics. They are separated
+            by ``-`` (figures), ``.`` (subplots) and ``,`` (same subplot).
+            Surface diagnotics can be valid surface field names, field names,
+            or `"dv2"` which is d(vphi)/dphi.
+    """
     for vfig in list_of_vars(names):
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
                                  figsize=(12, 2 * len(vfig)))
@@ -246,7 +267,13 @@ def _write_trench_diagnostics(step, vrms_surf, fid):
 
 
 def plot_scalar_field(snap, fieldname):
-    """Plot scalar field with plate information."""
+    """Plot scalar field with plate information.
+
+    Args:
+        snap (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
+        fieldname (str): name of the field that should be decorated with plate
+            informations.
+    """
     fig, axis, _, _ = field.plot_scalar(snap, fieldname)
 
     if conf.plates.continents:

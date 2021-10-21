@@ -180,8 +180,8 @@ CONF_DEF['refstate'] = OrderedDict((
 CONF_DEF['plates'] = OrderedDict((
     ('plot',
         Conf('c.T.v2-v2.dv2-v2.topo_top', True, 'o',
-             {'nargs': '?', 'const': '', 'type': str},
-             True, 'variables to plot (see stagpy var)')),
+             {'nargs': '?', 'const': '', 'type': str}, True,
+             'variables to plot, can be a surface field, field, or dv2')),
     ('field',
         Conf('eta', True, None, {},
              True, 'field variable to plot with plates info')),
