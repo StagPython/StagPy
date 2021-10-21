@@ -32,6 +32,11 @@ def _index_collection(arg):
     return [_actual_index(item) for item in arg.split(',') if item]
 
 
+def _float_list(arg):
+    """Build a tuple of floats from a command line input."""
+    return tuple(float(val) for val in arg.split(',') if val)
+
+
 HOME_DIR = pathlib.Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 CONFIG_FILE = CONFIG_DIR / 'config.toml'
@@ -72,6 +77,8 @@ CONF_DEF['plot'] = OrderedDict((
     ('vmax', Conf(None, True, None, {'type': float},
                   False, 'maximal value on plot')),
     ('cminmax', switch_opt(False, 'C', 'constant min max across plots')),
+    ('isolines', Conf(None, True, None, {'type': _float_list},
+                      False, 'arbitrary isoline value, comma separated')),
     ('mplstyle', Conf('stagpy-paper', True, None,
                       {'nargs': '?', 'const': '', 'type': str},
                       True, 'matplotlib style')),

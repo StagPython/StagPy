@@ -257,6 +257,8 @@ def plot_iso(axis, step, var, **extra):
         extra_opts['colors'] = conf.field.isocolors.split(',')
     elif 'colors' not in extra:
         extra_opts['cmap'] = conf.field.cmap.get(var)
+    if conf.plot.isolines:
+        extra_opts['levels'] = sorted(conf.plot.isolines)
     extra_opts.update(extra)
     axis.contour(xmesh, ymesh, fld, **extra_opts)
 
