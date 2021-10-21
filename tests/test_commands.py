@@ -17,7 +17,7 @@ def test_var_cmd(capsys):
     stagpy.commands.var_cmd()
     output = capsys.readouterr()
     expected = re.compile(
-        r'field:\n.*\nrprof:\n.*\ntime:\n.*\nplates:\n.*$',
+        r'field:\n.*\nrprof:\n.*\ntime:\n.*\n.*$',
         flags=re.DOTALL)
     assert expected.fullmatch(output.out)
 

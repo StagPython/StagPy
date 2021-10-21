@@ -215,8 +215,6 @@ CONF_DEF['var'] = OrderedDict((
                   False, 'print time variables')),
     ('refstate', Conf(None, True, None, {'action': 'store_true'},
                       False, 'print refstate variables')),
-    ('plates', Conf(None, True, None, {'action': 'store_true'},
-                    False, 'print plates variables')),
 ))
 
 CONF_DEF['config'] = config_conf_section()
