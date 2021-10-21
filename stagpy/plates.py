@@ -324,26 +324,6 @@ def plot_scalar_field(step, fieldname, ridges, trenches):
         saveplot(fig, f'plates_zoom_{fieldname}', step.isnap)
 
 
-def main_plates(sdat):
-    """Plot several plates information."""
-    # averaged horizontal surface velocity needed for redimensionalisation
-    isurf = _isurf(next(iter(sdat.walk)))
-    vrms_surf = sdat.walk.filter(rprofs=True)\
-        .rprofs_averaged['vhrms'].values[isurf]
-
-    with open(f'plates_trenches_{sdat.walk.stepstr}.dat', 'w') as fid:
-        fid.write('#  istep     time   time_My   phi_trench  vel_trench  '
-                  'distance     phi_cont  age_trench_My\n')
-
-        for step in sdat.walk.filter(fields=['T']):
-            # could check other fields too
-            trenches, ridges, itrenches = detect_plates(step)
-
-            _write_trench_diagnostics(step, vrms_surf, itrenches, fid)
-            plot_at_surface(step, conf.plates.plot, trenches, ridges)
-            plot_scalar_field(step, conf.plates.field, ridges, trenches)
-
-
 def cmd():
     """Implementation of plates subcommand.
 
@@ -355,7 +335,21 @@ def cmd():
     """
     sdat = StagyyData()
     if not conf.plates.vzcheck:
-        main_plates(sdat)
+        isurf = _isurf(next(iter(sdat.walk)))
+        vrms_surf = sdat.walk.filter(rprofs=True)\
+            .rprofs_averaged['vhrms'].values[isurf]
+
+        with open(f'plates_trenches_{sdat.walk.stepstr}.dat', 'w') as fid:
+            fid.write('#  istep     time   time_My   phi_trench  vel_trench  '
+                      'distance     phi_cont  age_trench_My\n')
+
+            for step in sdat.walk.filter(fields=['T']):
+                # could check other fields too
+                trenches, ridges, itrenches = detect_plates(step)
+
+                _write_trench_diagnostics(step, vrms_surf, itrenches, fid)
+                plot_at_surface(step, conf.plates.plot, trenches, ridges)
+                plot_scalar_field(step, conf.plates.field, ridges, trenches)
     else:
         nb_plates = []
         time = []
