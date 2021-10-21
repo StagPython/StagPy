@@ -85,19 +85,6 @@ phyvars
       Dictionary of time series that StagPy can compute. Keys are the variable
       names, values are :class:`Vart` instances.
 
-   .. class:: Varp
-
-      :class:`collections.namedtuple` whose instances hold metadata of
-      plate variables. It defines the following fields:
-
-      - **description** (*str*): short description of the variable.
-
-   .. data:: PLATES
-      :annotation: = {platevar: Varp()}
-
-      Dictionary of plate variables output by StagYY. Keys are the variable
-      names, values are :class:`Varp` instances.
-
    .. data:: SCALES
       :annotation: = {dimstr: func}
 

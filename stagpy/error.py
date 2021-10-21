@@ -163,23 +163,6 @@ class InvalidZoomError(StagpyError):
         super().__init__(f'Zoom angle should be in [0,360] (received {zoom})')
 
 
-class StagnantLidError(StagpyError):
-    """Raised when unexpected stagnant lid regime is found.
-
-    Args:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
-            instance for which a stagnant lid regime was found.
-
-    Attributes:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
-            instance for which a stagnant lid regime was found.
-    """
-
-    def __init__(self, sdat):
-        self.sdat = sdat
-        super().__init__(f'Stagnant lid regime for {sdat}')
-
-
 class MissingDataError(StagpyError, KeyError):
     """Raised when requested data is not present in output."""
 

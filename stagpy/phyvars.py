@@ -262,17 +262,6 @@ REFSTATE = OrderedDict((
     ('grav', Varr('Gravity', 'Gravity', 'm/s2')),
 ))
 
-Varp = namedtuple('Varp', ['description'])
-PLATES = OrderedDict((
-    ('c', Varp('Composition')),
-    ('eta', Varp('Viscosity')),
-    ('sc', Varp('Topography')),
-    ('age', Varp('Age')),
-    ('str', Varp('Stress')),
-    ('sx', Varp('Principal deviatoric stress')),
-    ('ed', Varp('Strain rate')),
-))
-
 SCALES = {
     'm': attrgetter('length'),
     'kg/m3': attrgetter('density'),
