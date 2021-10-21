@@ -1,11 +1,12 @@
 """Plate analysis."""
 
 from contextlib import suppress
+from functools import lru_cache
 
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import numpy as np
-from scipy.signal import argrelextrema
+from scipy.signal import argrelmin, argrelmax
 
 from . import conf, error, field, phyvars
 from ._helpers import saveplot, list_of_vars
@@ -68,48 +69,41 @@ def detect_plates_vzcheck(step, vz_thres_ratio=0):
     return limits, dvphi, vphi_surf
 
 
-def detect_plates(step):
+@lru_cache()
+def detect_plates(snap):
     """Detect plates using derivative of horizontal velocity."""
-    vphi = step.fields['v2'].values[0, :, :, 0]
-    ph_coord = step.geom.p_centers
-
-    indsurf = _isurf(step)
-
-    # dvphi/dphi at cell-center
-    dvph2 = np.diff(vphi[:, indsurf]) / (ph_coord[1] - ph_coord[0])
+    dvphi = _surf_diag(snap, 'dv2').values
 
     # finding trenches
-    pom2 = np.copy(dvph2)
-    maskbigdvel = np.amin(dvph2) * 0.2
-    pom2[pom2 > maskbigdvel] = maskbigdvel
-    trench_span = 15 if step.sdat.par['boundaries']['air_layer'] else 10
-    argless_dv = argrelextrema(
-        pom2, np.less, order=trench_span, mode='wrap')[0]
-    trench = ph_coord[argless_dv]
+    dvphi_saturated = np.copy(dvphi)
+    max_dvphi = np.amin(dvphi) * 0.2
+    dvphi_saturated[dvphi > max_dvphi] = max_dvphi
+    trench_span = 15 if snap.sdat.par['boundaries']['air_layer'] else 10
+    itrenches = argrelmin(dvphi_saturated, order=trench_span, mode='wrap')[0]
 
     # finding ridges
-    pom2 = np.copy(dvph2)
-    masksmalldvel = np.amax(dvph2) * 0.2
-    pom2[pom2 < masksmalldvel] = masksmalldvel
+    dvphi_saturated = np.copy(dvphi)
+    min_dvphi = np.amax(dvphi) * 0.2
+    dvphi_saturated[dvphi < min_dvphi] = min_dvphi
     ridge_span = 20
-    arggreat_dv = argrelextrema(
-        pom2, np.greater, order=ridge_span, mode='wrap')[0]
-    ridge = ph_coord[arggreat_dv]
+    iridges = argrelmax(dvphi_saturated, order=ridge_span, mode='wrap')[0]
 
-    # elimination of ridges that are too close to trench
+    # elimination of ridges that are too close to a trench
+    phi = snap.geom.p_centers
+    phi_trenches = phi[itrenches]
     argdel = []
-    if trench.any() and ridge.any():
-        for i, ridge_i in enumerate(ridge):
-            mdistance = np.amin(abs(trench - ridge_i))
+    if itrenches.size and iridges.size:
+        for i, iridge in enumerate(iridges):
+            mdistance = np.amin(np.abs(phi_trenches - phi[iridge]))
             if mdistance < 0.016:
                 argdel.append(i)
         if argdel:
-            ridge = np.delete(ridge, np.array(argdel))
+            iridges = np.delete(iridges, argdel)
 
-    return trench, ridge, argless_dv
+    return itrenches, iridges
 
 
-def plot_plate_limits(axis, ridges, trenches):
+def _plot_plate_limits(axis, trenches, ridges):
     """Plot lines designating ridges and trenches."""
     for trench in trenches:
         axis.axvline(x=trench, color='red', ls='dashed', alpha=0.4)
@@ -117,7 +111,7 @@ def plot_plate_limits(axis, ridges, trenches):
         axis.axvline(x=ridge, color='green', ls='dashed', alpha=0.4)
 
 
-def plot_plate_limits_field(axis, rcmb, ridges, trenches):
+def _plot_plate_limits_field(axis, rcmb, trenches, ridges):
     """Plot arrows designating ridges and trenches in 2D field plots."""
     for trench in trenches:
         xxd = (rcmb + 1.02) * np.cos(trench)  # arrow begin
@@ -196,7 +190,7 @@ def _continents_location(snap, at_surface=True):
     return csurf >= 2
 
 
-def plot_at_surface(snap, names, trenches, ridges):
+def plot_at_surface(snap, names):
     """Plot surface diagnostics."""
     for vfig in list_of_vars(names):
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
@@ -220,9 +214,9 @@ def plot_at_surface(snap, names, trenches, ridges):
                                   where=continents, alpha=0.2,
                                   facecolor='#8B6914')
                 axis.set_ylim([ymin, ymax])
-            # need to have trenches and ridges detection without side-
-            # effects, call it here. Memoized.
-            plot_plate_limits(axis, ridges, trenches)
+            phi = snap.geom.p_centers
+            itrenches, iridges = detect_plates(snap)
+            _plot_plate_limits(axis, phi[itrenches], phi[iridges])
             if len(vplt) == 1:
                 axis.set_ylabel(label)
             else:
@@ -232,8 +226,9 @@ def plot_at_surface(snap, names, trenches, ridges):
         saveplot(fig, fname, snap.isnap)
 
 
-def _write_trench_diagnostics(step, vrms_surf, itrenches, fid):
+def _write_trench_diagnostics(step, vrms_surf, fid):
     """Print out some trench diagnostics."""
+    itrenches, _ = detect_plates(step)
     time = step.time * vrms_surf *\
         conf.scaling.ttransit / conf.scaling.yearins / 1.e6
     isurf = _isurf(step)
@@ -284,28 +279,31 @@ def _write_trench_diagnostics(step, vrms_surf, itrenches, fid):
                 agetrenches[isubd]))
 
 
-def plot_scalar_field(step, fieldname, ridges, trenches):
+def plot_scalar_field(snap, fieldname):
     """Plot scalar field with plate information."""
-    fig, axis, _, _ = field.plot_scalar(step, fieldname)
+    fig, axis, _, _ = field.plot_scalar(snap, fieldname)
 
     if conf.plates.continents:
         c_field = np.ma.masked_where(
-            ~_continents_location(step, at_surface=False),
-            step.fields['c'].values[0, :, :, 0])
+            ~_continents_location(snap, at_surface=False),
+            snap.fields['c'].values[0, :, :, 0])
         cbar = conf.field.colorbar
         conf.field.colorbar = False
         cmap = colors.ListedColormap(["k", "g", "m"])
-        field.plot_scalar(step, 'c', c_field, axis, cmap=cmap,
+        field.plot_scalar(snap, 'c', c_field, axis, cmap=cmap,
                           norm=colors.BoundaryNorm([2, 3, 4, 5], cmap.N))
         conf.field.colorbar = cbar
 
     # plotting velocity vectors
-    field.plot_vec(axis, step, 'sx' if conf.plates.stress else 'v')
+    field.plot_vec(axis, snap, 'sx' if conf.plates.stress else 'v')
 
     # Put arrow where ridges and trenches are
-    plot_plate_limits_field(axis, step.geom.rcmb, ridges, trenches)
+    phi = snap.geom.p_centers
+    itrenches, iridges = detect_plates(snap)
+    _plot_plate_limits_field(axis, snap.geom.rcmb,
+                             phi[itrenches], phi[iridges])
 
-    saveplot(fig, f'plates_{fieldname}', step.isnap,
+    saveplot(fig, f'plates_{fieldname}', snap.isnap,
              close=conf.plates.zoom is None)
 
     # Zoom
@@ -320,11 +318,11 @@ def plot_scalar_field(step, fieldname, ridges, trenches):
             ladd, radd, uadd, dadd = 0.8, 0.8, 0.1, 0.05
         else:  # >315 or <=45
             ladd, radd, uadd, dadd = 0.1, 0.05, 0.8, 0.8
-        xzoom = (step.geom.rcmb + 1) * np.cos(np.radians(conf.plates.zoom))
-        yzoom = (step.geom.rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
+        xzoom = (snap.geom.rcmb + 1) * np.cos(np.radians(conf.plates.zoom))
+        yzoom = (snap.geom.rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
         axis.set_xlim(xzoom - ladd, xzoom + radd)
         axis.set_ylim(yzoom - dadd, yzoom + uadd)
-        saveplot(fig, f'plates_zoom_{fieldname}', step.isnap)
+        saveplot(fig, f'plates_zoom_{fieldname}', snap.isnap)
 
 
 def cmd():
@@ -348,11 +346,9 @@ def cmd():
 
             for step in sdat.walk.filter(fields=['T']):
                 # could check other fields too
-                trenches, ridges, itrenches = detect_plates(step)
-
-                _write_trench_diagnostics(step, vrms_surf, itrenches, fid)
-                plot_at_surface(step, conf.plates.plot, trenches, ridges)
-                plot_scalar_field(step, conf.plates.field, ridges, trenches)
+                _write_trench_diagnostics(step, vrms_surf, fid)
+                plot_at_surface(step, conf.plates.plot)
+                plot_scalar_field(step, conf.plates.field)
     else:
         nb_plates = []
         time = []
