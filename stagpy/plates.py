@@ -14,63 +14,20 @@ from ._step import Field
 from .stagyydata import StagyyData
 
 
-def detect_plates_vzcheck(step, vz_thres_ratio=0):
+def _vzcheck(iphis, snap, vz_thres):
     """Detect plates and check with vz and plate size."""
-    v_z = step.fields['v3'].values[0, :-1, :, 0]
-    v_x = step.fields['v2'].values[0, :, :, 0]
-    tcell = step.fields['T'].values[0, :, :, 0]
-    n_z = step.geom.nztot
-    nphi = step.geom.nptot
-    r_c = step.geom.r_centers
-    r_w = step.geom.r_walls
-    dphi = 1 / nphi
-
-    flux_c = n_z * [0]
-    for i_z in range(0, n_z):
-        flux_c[i_z] = np.sum((tcell[:, i_z] - step.timeinfo.loc['Tmean']) *
-                             v_z[:, i_z]) * r_w[i_z] * dphi
-
-    # checking stagnant lid, criterion seems weird!
-    if all(abs(flux_c[i_z]) <= np.max(flux_c) / 50
-           for i_z in range(n_z - n_z // 20, n_z)):
-        raise error.StagnantLidError(step.sdat)
-
-    # verifying horizontal plate speed and closeness of plates
-    vphi_surf = v_x[:, -1]
-    dvphi = np.diff(vphi_surf) / (r_c[-1] * dphi)
-    dvx_thres = 16 * step.timeinfo.loc['vrms']
-
-    limits = [
-        phi for phi in range(nphi)
-        if (abs(dvphi[phi]) >= dvx_thres and
-            all(abs(dvphi[i % nphi]) <= abs(dvphi[phi])
-                for i in range(phi - nphi // 33, phi + nphi // 33)))
-    ]
-
     # verifying vertical velocity
-    vz_thres = 0
-    if vz_thres_ratio > 0:
-        vz_mean = (np.sum(step.rprofs['vzabs'].values * np.diff(r_w)) /
-                   (r_w[-1] - r_w[0]))
-        vz_thres = vz_mean * vz_thres_ratio
-    k = 0
-    for i in range(len(limits)):
-        vzm = 0
-        phi = limits[i - k]
-        for i_z in range(1 if phi == nphi - 1 else 0, n_z):
-            vzm += (abs(v_z[phi, i_z]) +
-                    abs(v_z[phi - 1, i_z]) +
-                    abs(v_z[(phi + 1) % nphi, i_z])) / (n_z * 3)
-
+    vzabs = np.abs(snap.fields['v3'].values[0, ..., 0])
+    argdel = []
+    for i, iphi in enumerate(iphis):
+        vzm = np.mean(vzabs[[iphi - 1, iphi, iphi + 1], :])
         if vzm < vz_thres:
-            limits.remove(phi)
-            k += 1
-
-    return limits, dvphi, vphi_surf
+            argdel.append(i)
+    return np.delete(iphis, argdel)
 
 
 @lru_cache()
-def detect_plates(snap):
+def detect_plates(snap, vz_thres_ratio=0):
     """Detect plates using derivative of horizontal velocity."""
     dvphi = _surf_diag(snap, 'dv2').values
 
@@ -99,6 +56,15 @@ def detect_plates(snap):
                 argdel.append(i)
         if argdel:
             iridges = np.delete(iridges, argdel)
+
+    # additional check on vz
+    if vz_thres_ratio > 0:
+        r_w = snap.geom.r_walls
+        vz_mean = (np.sum(snap.rprofs['vzabs'].values * np.diff(r_w)) /
+                   (r_w[-1] - r_w[0]))
+        vz_thres = vz_mean * vz_thres_ratio
+        itrenches = _vzcheck(itrenches, snap, vz_thres)
+        iridges = _vzcheck(iridges, snap, vz_thres)
 
     return itrenches, iridges
 
@@ -215,7 +181,7 @@ def plot_at_surface(snap, names):
                                   facecolor='#8B6914')
                 axis.set_ylim([ymin, ymax])
             phi = snap.geom.p_centers
-            itrenches, iridges = detect_plates(snap)
+            itrenches, iridges = detect_plates(snap, conf.plates.vzratio)
             _plot_plate_limits(axis, phi[itrenches], phi[iridges])
             if len(vplt) == 1:
                 axis.set_ylabel(label)
@@ -228,7 +194,7 @@ def plot_at_surface(snap, names):
 
 def _write_trench_diagnostics(step, vrms_surf, fid):
     """Print out some trench diagnostics."""
-    itrenches, _ = detect_plates(step)
+    itrenches, _ = detect_plates(step, conf.plates.vzratio)
     time = step.time * vrms_surf *\
         conf.scaling.ttransit / conf.scaling.yearins / 1.e6
     isurf = _isurf(step)
@@ -299,7 +265,7 @@ def plot_scalar_field(snap, fieldname):
 
     # Put arrow where ridges and trenches are
     phi = snap.geom.p_centers
-    itrenches, iridges = detect_plates(snap)
+    itrenches, iridges = detect_plates(snap, conf.plates.vzratio)
     _plot_plate_limits_field(axis, snap.geom.rcmb,
                              phi[itrenches], phi[iridges])
 
@@ -335,60 +301,44 @@ def cmd():
         conf.core
     """
     sdat = StagyyData()
-    if not conf.plates.vzcheck:
-        isurf = _isurf(next(iter(sdat.walk)))
-        vrms_surf = sdat.walk.filter(rprofs=True)\
-            .rprofs_averaged['vhrms'].values[isurf]
 
-        with open(f'plates_trenches_{sdat.walk.stepstr}.dat', 'w') as fid:
-            fid.write('#  istep     time   time_My   phi_trench  vel_trench  '
-                      'distance     phi_cont  age_trench_My\n')
+    isurf = _isurf(next(iter(sdat.walk)))
+    vrms_surf = sdat.walk.filter(rprofs=True)\
+        .rprofs_averaged['vhrms'].values[isurf]
+    nb_plates = []
+    time = []
+    istart, iend = None, None
 
-            for step in sdat.walk.filter(fields=['T']):
-                # could check other fields too
-                _write_trench_diagnostics(step, vrms_surf, fid)
-                plot_at_surface(step, conf.plates.plot)
-                plot_scalar_field(step, conf.plates.field)
-    else:
-        nb_plates = []
-        time = []
-        istart, iend = None, None
+    with open(f'plates_trenches_{sdat.walk.stepstr}.dat', 'w') as fid:
+        fid.write('#  istep     time   time_My   phi_trench  vel_trench  '
+                  'distance     phi_cont  age_trench_My\n')
 
         for step in sdat.walk.filter(fields=['T']):
             # could check other fields too
+            _write_trench_diagnostics(step, vrms_surf, fid)
+            plot_at_surface(step, conf.plates.plot)
+            plot_scalar_field(step, conf.plates.field)
             if conf.plates.timeprofile:
                 time.append(step.timeinfo.loc['t'])
-            istart = step.isnap if istart is None else istart
-            iend = step.isnap
-            phi = step.geom.p_centers
-            limits, dvphi, vphi_surf = detect_plates_vzcheck(step)
-            limits.sort()
-            sizeplates = [phi[limits[0]] + 2 * np.pi - phi[limits[-1]]]
-            for lim in range(1, len(limits)):
-                sizeplates.append(phi[limits[lim]] - phi[limits[lim - 1]])
-            phi_lim = [phi[i] for i in limits]
-            dvp_lim = [dvphi[i] for i in limits]
-            fig, axes = plt.subplots(nrows=2, sharex=True, figsize=(6.4, 6.4))
-            axes[0].plot(step.geom.p_walls, vphi_surf)
-            axes[0].set_ylabel(r"Horizontal velocity $v_\phi$")
-            axes[1].plot(phi, dvphi)
-            axes[1].scatter(phi_lim, dvp_lim, color='red')
-            axes[1].set_ylabel(r"$dv_\phi/d\phi$")
-            axes[1].set_xlabel(r"$\phi$")
-            saveplot(fig, 'plate_limits', step.isnap)
-            fig, axis = plt.subplots()
-            axis.hist(sizeplates, 10, (0, np.pi))
-            axis.set_ylabel("Number of plates")
-            axis.set_xlabel(r"$\phi$-span")
-            saveplot(fig, 'plate_size_distribution', step.isnap)
-
-            nb_plates.append(len(limits))
+                itr, ird = detect_plates(step, conf.plates.vzratio)
+                nb_plates.append(itr.size + ird.size)
+                istart = step.isnap if istart is None else istart
+                iend = step.isnap
+            if conf.plates.distribution:
+                phi = step.geom.p_centers
+                itr, ird = detect_plates(step, conf.plates.vzratio)
+                limits = np.concatenate((itr, ird))
+                limits.sort()
+                sizeplates = [phi[limits[0]] + 2 * np.pi - phi[limits[-1]]]
+                for lim in range(1, len(limits)):
+                    sizeplates.append(phi[limits[lim]] - phi[limits[lim - 1]])
+                fig, axis = plt.subplots()
+                axis.hist(sizeplates, 10, (0, np.pi))
+                axis.set_ylabel("Number of plates")
+                axis.set_xlabel(r"$\phi$-span")
+                saveplot(fig, 'plates_size_distribution', step.isnap)
 
         if conf.plates.timeprofile:
-            for i in range(2, len(nb_plates) - 3):
-                nb_plates[i] = (nb_plates[i - 2] + nb_plates[i - 1] +
-                                nb_plates[i] + nb_plates[i + 1] +
-                                nb_plates[i + 2]) / 5
             figt, axis = plt.subplots()
             axis.plot(time, nb_plates)
             axis.set_xlabel("Time")
