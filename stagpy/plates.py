@@ -130,9 +130,9 @@ def _surf_diag(snap, name):
     Can be a sfield, a regular scalar field evaluated at the surface,
     or dv2 (which is dvphi/dphi).
     """
-    isurf = _isurf(snap)
     with suppress(error.UnknownVarError):
         return snap.sfields[name]
+    isurf = _isurf(snap)
     with suppress(error.UnknownVarError):
         field, meta = snap.fields[name]
         return Field(field[0, :, isurf, 0], meta)
