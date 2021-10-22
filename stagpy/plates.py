@@ -34,7 +34,7 @@ def detect_plates(snap, vz_thres_ratio=0):
 
     Args:
         snap (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        vz_thres_ratio (float): if above zero, an addition check based on the
+        vz_thres_ratio (float): if above zero, an additional check based on the
             vertical velocities is performed.  Limits detected above a region
             where the vertical velocity is below vz_thres_ratio * mean(vzabs)
             are ignored.
