@@ -354,13 +354,11 @@ def cmd():
             if conf.plates.distribution:
                 phi = step.geom.p_centers
                 itr, ird = detect_plates(step, conf.plates.vzratio)
-                limits = np.concatenate((itr, ird))
+                limits = np.concatenate((phi[itr], phi[ird]))
                 limits.sort()
-                sizeplates = [phi[limits[0]] + 2 * np.pi - phi[limits[-1]]]
-                for lim in range(1, len(limits)):
-                    sizeplates.append(phi[limits[lim]] - phi[limits[lim - 1]])
+                plate_sizes = np.diff(limits, append=2 * np.pi + limits[0])
                 fig, axis = plt.subplots()
-                axis.hist(sizeplates, 10, (0, np.pi))
+                axis.hist(plate_sizes, 10, (0, np.pi))
                 axis.set_ylabel("Number of plates")
                 axis.set_xlabel(r"$\phi$-span")
                 saveplot(fig, 'plates_size_distribution', step.isnap)
