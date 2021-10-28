@@ -8,8 +8,8 @@ VPIP=$(VPY) -m pip
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 VERSION=$(shell git describe --exact-match HEAD 2>/dev/null)
 
-.PHONY: all install clean uninstall again release
-.PHONY: info infopath infozsh infobash
+.PHONY: all clean again release
+.PHONY: info infoenv infozsh infobash
 .PHONY: notebook-kernel
 
 all: $(STAGPY) info
