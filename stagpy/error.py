@@ -72,6 +72,10 @@ class ParsingError(StagpyError):
         super().__init__(faulty_file, msg)
 
 
+class PossiblyCorruptedFileError(ParsingError):
+    """Raised when file has non-sensical content."""
+
+
 class InvalidTimestepError(StagpyError, KeyError):
     """Raised when invalid time step is requested.
 

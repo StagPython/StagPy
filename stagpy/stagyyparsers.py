@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import h5py
 
-from .error import ParsingError
+from .error import ParsingError, PossiblyCorruptedFileError
 from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
 
 
@@ -514,7 +514,15 @@ def _read_group_h5(filename, groupname):
         :class:`numpy.array`: content of group.
     """
     with h5py.File(filename, 'r') as h5f:
-        data = h5f[groupname][()]
+        try:
+            data = h5f[groupname][()]
+        except OSError:
+            # Errors given by h5py are not very granular, and their type is not
+            # guaranteed.  This is an attempt to let the end-user access the
+            # faulty filename and group when h5py fails to read a group while
+            # it exists and the file is readable.
+            raise PossiblyCorruptedFileError(
+                filename, f"Failed to read {filename}:/{groupname}")
     return data  # need to be reshaped
 
 
