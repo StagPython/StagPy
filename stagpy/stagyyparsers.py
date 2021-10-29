@@ -10,6 +10,7 @@ from itertools import product
 from operator import itemgetter
 from xml.etree import ElementTree as xmlET
 import re
+import sys
 
 import numpy as np
 import pandas as pd
@@ -513,8 +514,12 @@ def _read_group_h5(filename, groupname):
     Returns:
         :class:`numpy.array`: content of group.
     """
-    with h5py.File(filename, 'r') as h5f:
-        data = h5f[groupname][()]
+    try: 
+        with h5py.File(filename, 'r') as h5f:
+            data = h5f[groupname][()]
+    except:
+            print('Problem reading ', groupname,' in file ',filename)
+            sys.exit()
     return data  # need to be reshaped
 
 
