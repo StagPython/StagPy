@@ -280,7 +280,7 @@ class _Fields(Mapping):
     def __contains__(self, item):
         try:
             return self[item] is not None
-        except error.StagpyError:
+        except error.MissingDataError:
             return False
 
     def __len__(self):

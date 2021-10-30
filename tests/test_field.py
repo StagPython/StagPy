@@ -4,10 +4,10 @@ import stagpy.field
 import stagpy.phyvars
 
 
-def test_field_unknow(step):
+def test_field_unknown(step):
     with pytest.raises(stagpy.error.UnknownFieldVarError):
         step.fields['InvalidField']
-    assert 'InvalidField' not in step.fields
+        assert 'InvalidField' in step.fields
 
 
 def test_field_missing(step):
