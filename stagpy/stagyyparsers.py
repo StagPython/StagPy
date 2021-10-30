@@ -513,8 +513,13 @@ def _read_group_h5(filename, groupname):
     Returns:
         :class:`numpy.array`: content of group.
     """
-    with h5py.File(filename, 'r') as h5f:
-        data = h5f[groupname][()]
+    try:
+        with h5py.File(filename, 'r') as h5f:
+            data = h5f[groupname][()]
+    except OSError as err:
+        # h5py doesn't always include the filename in its error messages
+        err.args += (filename,)
+        raise
     return data  # need to be reshaped
 
 
