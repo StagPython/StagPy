@@ -2,10 +2,6 @@
    :target: https://lgtm.com/projects/g/StagPython/StagPy
    :alt: Language grade: Python
 
-.. image:: https://travis-ci.org/StagPython/StagPy.svg?branch=master
-   :target: https://travis-ci.org/StagPython/StagPy
-   :alt: Travis CI
-
 .. image:: https://readthedocs.org/projects/stagpy/badge/?version=latest
    :target: https://stagpy.readthedocs.org/en/latest/?badge=latest
    :alt: Documentation Status
