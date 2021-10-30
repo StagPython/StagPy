@@ -80,7 +80,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'StagPy'
-copyright = '2015 - 2020, Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
+copyright = '2015 - 2021, Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
 author = 'Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
 
 # The version info for the project you're documenting, acts as replacement for
