@@ -4,14 +4,8 @@ Installation
 You will need Python 3.6 or higher to use StagPy. StagPy is available on
 the Python Package Index, via ``pip``.
 
-If Python3 is not installed on your system or you don't have sufficient
-permissions to update it, the simplest way to get it is to install Miniconda_
-or Anaconda_ (Anaconda being Miniconda with a lot of extra modules that can be
-installed in Miniconda later, this choice doesn't matter; pick Miniconda if you
-want a faster and lighter installation). Then, use ``conda`` to install the
-following dependencies::
-
-    % conda install numpy scipy pandas h5py matplotlib setuptools_scm
+If you don't have sufficient permissions to install or update Python, you might
+be interested in Miniconda_ or Anaconda_.
 
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _Anaconda: https://www.anaconda.com/distribution/#download-section
