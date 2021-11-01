@@ -27,7 +27,7 @@ Testing
 StagPy uses tox_ for code testing.  Make sure it is installed and up to date on
 your system::
 
-    % python3 -m pip install -U --user tox
+    % python3 -m pip install -U tox
 
 .. _tox: https://tox.readthedocs.io
 
@@ -41,7 +41,7 @@ Documentation
 The StagPy documentation is built with Sphinx_. To build it locally, install
 and update the needed packages::
 
-    % python3 -m pip install -U --user sphinx sphinx-rtd-theme
+    % python3 -m pip install -U sphinx sphinx-rtd-theme
 
 .. _Sphinx: https://www.sphinx-doc.org
 

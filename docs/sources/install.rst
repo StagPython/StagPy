@@ -21,9 +21,13 @@ module to install it (it is bootstrapped within the Python interpreter)::
 In case this doesn't work, download the official script
 <https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
 
+Then, update ``pip`` to the latest version::
+
+    % python3 -m pip install -U --user pip
+
 You can then install and/or update StagPy with the following command::
 
-    % python3 -m pip install -U --user stagpy
+    % python3 -m pip install -U stagpy
 
 Make sure that the directory where ``pip`` install package entry-points
 (usually ``~/.local/bin``) is in your ``PATH`` environment variable.
