@@ -8,7 +8,7 @@ If you don't have sufficient permissions to install or update Python, you might
 be interested in Miniconda_ or Anaconda_.
 
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
-.. _Anaconda: https://www.anaconda.com/distribution/#download-section
+.. _Anaconda: https://www.anaconda.com/products/individual
 
 Installation using ``pip``
 --------------------------
@@ -55,11 +55,3 @@ Or this to your ``~/.zshrc`` file::
     source ~/.config/stagpy/zsh/_stagpy.sh
 
 Enjoy!
-
-Troubleshooting
----------------
-
-If you get a matplotlib related error stating that Python is not installed as
-a framework, see `this answer on StackOverflow`__.
-
-.. __: https://stackoverflow.com/a/21789908
