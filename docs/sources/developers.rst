@@ -39,9 +39,9 @@ Documentation
 -------------
 
 The StagPy documentation is built with Sphinx_. To build it locally, install
-and update the needed packages::
+the needed packages::
 
-    % python3 -m pip install -U sphinx sphinx-rtd-theme
+    % python3 -m pip install -r docs/requirements.txt
 
 .. _Sphinx: https://www.sphinx-doc.org
 
