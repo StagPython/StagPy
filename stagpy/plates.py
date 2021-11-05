@@ -65,7 +65,8 @@ def detect_plates(snap, vz_thres_ratio=0):
     if itrenches.size and iridges.size:
         for i, iridge in enumerate(iridges):
             mdistance = np.amin(np.abs(phi_trenches - phi[iridge]))
-            if mdistance < 0.016:
+            phi_span = snap.geom.p_walls[-1] - snap.geom.p_walls[0]
+            if mdistance < 2.5e-3 * phi_span:
                 argdel.append(i)
         if argdel:
             iridges = np.delete(iridges, argdel)
@@ -90,22 +91,32 @@ def _plot_plate_limits(axis, trenches, ridges):
         axis.axvline(x=ridge, color='green', ls='dashed', alpha=0.4)
 
 
-def _plot_plate_limits_field(axis, rcmb, trenches, ridges):
+def _annot_pos(geom, iphi):
+    """Position of arrows to mark limit positions."""
+    phi = geom.p_centers[iphi]
+    rtot = geom.r_walls[-1]
+    thick = rtot - geom.rcmb
+    r_beg = rtot + 0.02 * thick
+    r_end = rtot + 0.35 * thick
+    if geom.cartesian:
+        return (phi, r_beg), (phi, r_end)
+    # spherical to cartesian
+    p_beg = r_beg * np.cos(phi), r_beg * np.sin(phi)
+    p_end = r_end * np.cos(phi), r_end * np.sin(phi)
+    return p_beg, p_end
+
+
+def _plot_plate_limits_field(axis, snap):
     """Plot arrows designating ridges and trenches in 2D field plots."""
-    for trench in trenches:
-        xxd = (rcmb + 1.02) * np.cos(trench)  # arrow begin
-        yyd = (rcmb + 1.02) * np.sin(trench)  # arrow begin
-        xxt = (rcmb + 1.35) * np.cos(trench)  # arrow end
-        yyt = (rcmb + 1.35) * np.sin(trench)  # arrow end
-        axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
+    itrenches, iridges = detect_plates(snap, conf.plates.vzratio)
+    for itrench in itrenches:
+        p_beg, p_end = _annot_pos(snap.geom, itrench)
+        axis.annotate('', xy=p_beg, xytext=p_end,
                       arrowprops=dict(facecolor='red', shrink=0.05),
                       annotation_clip=False)
-    for ridge in ridges:
-        xxd = (rcmb + 1.02) * np.cos(ridge)
-        yyd = (rcmb + 1.02) * np.sin(ridge)
-        xxt = (rcmb + 1.35) * np.cos(ridge)
-        yyt = (rcmb + 1.35) * np.sin(ridge)
-        axis.annotate('', xy=(xxd, yyd), xytext=(xxt, yyt),
+    for iridge in iridges:
+        p_beg, p_end = _annot_pos(snap.geom, iridge)
+        axis.annotate('', xy=p_beg, xytext=p_end,
                       arrowprops=dict(facecolor='green', shrink=0.05),
                       annotation_clip=False)
 
@@ -114,11 +125,10 @@ def _isurf(snap):
     """Return index of surface accounting for air layer."""
     if snap.sdat.par['boundaries']['air_layer']:
         dsa = snap.sdat.par['boundaries']['air_thickness']
-        # we are a bit below the surface; delete "-some number" to be just
-        # below the surface (that is considered plane here); should check if
-        # in the thermal boundary layer
-        isurf = np.argmin(
-            np.abs(1 - dsa - snap.geom.r_centers + snap.geom.rcmb)) - 4
+        # Remove arbitrary margin to be below the surface.
+        # Should check if in the thermal boundary layer.
+        rtot = snap.geom.r_walls[-1]
+        isurf = snap.geom.at_r(rtot - dsa) - 4
     else:
         isurf = -1
     return isurf
@@ -138,9 +148,12 @@ def _surf_diag(snap, name):
         return Field(field[0, :, isurf, 0], meta)
     if name == 'dv2':
         vphi = snap.fields['v2'].values[0, :, isurf, 0]
-        dvphi = np.diff(vphi) / (snap.geom.r_centers[isurf] *
-                                 np.diff(snap.geom.p_walls))
-        return Field(dvphi, phyvars.Varf(r"$dv_\phi/d\phi$", '1/s'))
+        if snap.geom.cartesian:
+            dvphi = np.diff(vphi) / np.diff(snap.geom.p_walls)
+        else:
+            dvphi = np.diff(vphi) / (snap.geom.r_centers[isurf] *
+                                     np.diff(snap.geom.p_walls))
+        return Field(dvphi, phyvars.Varf(r"$dv_\phi/rd\phi$", '1/s'))
     raise error.UnknownVarError(name)
 
 
@@ -291,10 +304,7 @@ def plot_scalar_field(snap, fieldname):
     field.plot_vec(axis, snap, 'sx' if conf.plates.stress else 'v')
 
     # Put arrow where ridges and trenches are
-    phi = snap.geom.p_centers
-    itrenches, iridges = detect_plates(snap, conf.plates.vzratio)
-    _plot_plate_limits_field(axis, snap.geom.rcmb,
-                             phi[itrenches], phi[iridges])
+    _plot_plate_limits_field(axis, snap)
 
     saveplot(fig, f'plates_{fieldname}', snap.isnap,
              close=conf.plates.zoom is None)
