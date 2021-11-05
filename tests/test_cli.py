@@ -46,10 +46,26 @@ def all_cmd_time(request, dir_isnap):
     return cmd, request.param[1]
 
 
+@pytest.fixture(params=[
+    ('stagpy plates -o v2.dv2 -continents --field T',
+     ['stagpy_plates_surf_v2_dv2_{:05d}.pdf',
+      'stagpy_plates_T{:05d}.pdf',
+      'stagpy_plates_trenches_snaps[-1,].dat',
+      ]),
+])
+def all_cmd_plates(request, dir_isnap):
+    cmd = request.param[0]
+    cmd += ' -p={}'.format(dir_isnap[0])
+    expected_files = []
+    for expfile in request.param[1]:
+        expected_files.append(expfile.format(dir_isnap[1]))
+    return cmd, expected_files
+
+
 def helper_test_cli(all_cmd, tmp):
     subprocess.run(all_cmd[0] + ' -n={}/stagpy'.format(tmp), shell=True)
     produced_files = tmp.listdir(sort=True)
-    expected_files = [tmp / expfile for expfile in all_cmd[1]]
+    expected_files = [tmp / expfile for expfile in sorted(all_cmd[1])]
     assert produced_files == expected_files
 
 
@@ -63,6 +79,10 @@ def test_rprof_cli(all_cmd_rprof, tmpdir):
 
 def test_time_cli(all_cmd_time, tmpdir):
     helper_test_cli(all_cmd_time, tmpdir)
+
+
+def test_plates_cli(all_cmd_plates, tmpdir):
+    helper_test_cli(all_cmd_plates, tmpdir)
 
 
 def test_err_cli():
