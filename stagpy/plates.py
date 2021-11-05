@@ -8,8 +8,8 @@ from matplotlib import colors
 import numpy as np
 from scipy.signal import argrelmin, argrelmax
 
-from . import conf, error, field, phyvars
-from ._helpers import saveplot, list_of_vars
+from . import conf, error, field, phyvars, _helpers
+from ._helpers import saveplot
 from ._step import Field
 from .stagyydata import StagyyData
 
@@ -192,7 +192,7 @@ def plot_at_surface(snap, names):
             Surface diagnotics can be valid surface field names, field names,
             or `"dv2"` which is d(vphi)/dphi.
     """
-    for vfig in list_of_vars(names):
+    for vfig in _helpers.list_of_vars(names):
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
                                  figsize=(12, 2 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes
@@ -346,7 +346,8 @@ def cmd():
     time = []
     istart, iend = None, None
 
-    with open(f'plates_trenches_{sdat.walk.stepstr}.dat', 'w') as fid:
+    oname = _helpers.out_name(f'plates_trenches_{sdat.walk.stepstr}')
+    with open(f'{oname}.dat', 'w') as fid:
         fid.write('#  istep     time   time_My   phi_trench  vel_trench  '
                   'distance     phi_cont  age_trench_My\n')
 
