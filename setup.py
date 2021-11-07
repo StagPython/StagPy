@@ -1,24 +1,12 @@
+from pathlib import Path
 from setuptools import setup
 
-with open('README.rst') as rdm:
-    README = rdm.read()
-
-DEPENDENCIES = [
-    'loam>=0.3.1',
-    'f90nml>=1.3.1',
-    'setuptools_scm>=6.2',
-    'numpy>=1.19',
-    'scipy>=1.5',
-    'pandas>=1.1',
-    'h5py>=3.1',
-    'matplotlib>=3.3',
-]
 
 setup(
     name='stagpy',
 
     description='Tool for StagYY output files processing',
-    long_description=README,
+    long_description=Path("README.rst").read_text(),
 
     url='https://github.com/StagPython/StagPy',
 
@@ -43,5 +31,14 @@ setup(
         'console_scripts': ['stagpy = stagpy.__main__:main']
     },
     include_package_data=True,
-    install_requires=DEPENDENCIES,
+    install_requires=[
+        'loam>=0.3.1',
+        'f90nml>=1.3.1',
+        'setuptools_scm>=6.2',
+        'numpy>=1.19',
+        'scipy>=1.5',
+        'pandas>=1.1',
+        'h5py>=3.1',
+        'matplotlib>=3.3',
+    ],
 )
