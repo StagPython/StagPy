@@ -22,13 +22,7 @@ os.environ['STAGPY_ISOLATED'] = 'True'
 
 import stagpy
 
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    html_style = '/default.css'
-else:
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = 'sphinx_rtd_theme'
 
 # -- General configuration ------------------------------------------------
 
