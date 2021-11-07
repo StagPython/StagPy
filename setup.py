@@ -1,5 +1,3 @@
-import os
-
 from setuptools import setup
 
 with open('README.rst') as rdm:
@@ -9,19 +7,12 @@ DEPENDENCIES = [
     'loam>=0.3.1',
     'f90nml>=1.3.1',
     'setuptools_scm>=6.2',
-]
-HEAVY = [
     'numpy>=1.19',
     'scipy>=1.5',
     'pandas>=1.1',
     'h5py>=3.1',
     'matplotlib>=3.3',
 ]
-
-ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
-# heavy dependencies are mocked out on Read the Docs
-if not ON_RTD:
-    DEPENDENCIES.extend(HEAVY)
 
 setup(
     name='stagpy',
