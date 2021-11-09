@@ -11,8 +11,7 @@ from .stagyydata import StagyyData
 
 def _collect_marks(sdat):
     """Concatenate mark* config variable."""
-    times = set(conf.time.marktimes.replace(',', ' ').split())
-    times = list(map(float, times))
+    times = list(conf.time.marktimes)
     times.extend(step.timeinfo['t']
                  for step in sdat.snaps[conf.time.marksnaps])
     times.extend(step.timeinfo['t']

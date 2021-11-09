@@ -11,8 +11,8 @@ from loam.manager import ConfOpt as Conf
 from loam.tools import switch_opt, config_conf_section, set_conf_opt
 
 
-def _actual_index(arg):
-    """Turn a string in a integer or slice."""
+def _slice_or_int(arg):
+    """Parse a string into an integer or slice."""
     if ':' in arg:
         idxs = arg.split(':')
         if len(idxs) > 3:
@@ -27,15 +27,15 @@ def _actual_index(arg):
     return int(arg)
 
 
-def _index_collection(arg):
-    """Build an index collection from a command line input."""
-    return [_actual_index(item) for item in arg.split(',') if item]
+def _list_of(from_str):
+    """Return fn parsing a str as a comma-separated list of given type."""
+    def parser(arg):
+        return tuple(from_str(v) for v in map(str.strip, arg.split(',')) if v)
+    return parser
 
 
-def _float_list(arg):
-    """Build a tuple of floats from a command line input."""
-    return tuple(float(val) for val in arg.split(',') if val)
-
+_index_collection = _list_of(_slice_or_int)
+_float_list = _list_of(float)
 
 HOME_DIR = pathlib.Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
@@ -164,7 +164,7 @@ CONF_DEF['time'] = OrderedDict((
         Conf(None, True, None, {'type': float},
              False, 'ending fraction of series to process')),
     ('marktimes',
-        Conf('', True, 'M', {},
+        Conf('', True, 'M', {'type': _float_list},
              False, 'list of times where to put a mark')),
     ('marksteps',
         Conf('', True, 'T', {'type': _index_collection},
@@ -187,7 +187,7 @@ CONF_DEF['refstate'] = OrderedDict((
 CONF_DEF['plates'] = OrderedDict((
     ('plot',
         Conf('c.T.v2-v2.dv2-v2.topo_top', True, 'o',
-             {'nargs': '?', 'const': '', 'type': str}, True,
+             {'nargs': '?', 'const': ''}, True,
              'variables to plot, can be a surface field, field, or dv2')),
     ('field',
         Conf('eta', True, None, {},
