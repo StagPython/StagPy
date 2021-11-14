@@ -14,6 +14,7 @@ import sys
 import os
 from pathlib import Path
 from textwrap import dedent
+from pkg_resources import get_distribution
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -52,7 +53,7 @@ copyright = '2015 - 2021, Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
 author = 'Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
 
 # The full version, including alpha/beta/rc tags.
-release = stagpy.__version__
+release = get_distribution("stagpy").version
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
