@@ -8,7 +8,8 @@ from collections import OrderedDict
 import pathlib
 
 from loam.manager import ConfOpt as Conf
-from loam.tools import switch_opt, config_conf_section, set_conf_opt
+from loam import tools
+from loam.tools import switch_opt, command_flag
 
 
 def _slice_or_int(arg):
@@ -45,9 +46,8 @@ CONFIG_LOCAL = pathlib.Path('.stagpy.toml')
 CONF_DEF = OrderedDict()
 
 CONF_DEF['common'] = OrderedDict((
-    ('config', Conf(None, True, None, {'action': 'store_true'},
-                    False, 'print config options')),
-    ('set', set_conf_opt()),
+    ('config', command_flag(None, 'print config options')),
+    ('set', tools.set_conf_opt()),
 ))
 
 CONF_DEF['core'] = OrderedDict((
@@ -215,16 +215,11 @@ CONF_DEF['info'] = OrderedDict((
 ))
 
 CONF_DEF['var'] = OrderedDict((
-    ('field', Conf(None, True, None, {'action': 'store_true'},
-                   False, 'print field variables')),
-    ('sfield', Conf(None, True, None, {'action': 'store_true'},
-                    False, 'print surface field variables')),
-    ('rprof', Conf(None, True, None, {'action': 'store_true'},
-                   False, 'print rprof variables')),
-    ('time', Conf(None, True, None, {'action': 'store_true'},
-                  False, 'print time variables')),
-    ('refstate', Conf(None, True, None, {'action': 'store_true'},
-                      False, 'print refstate variables')),
+    ('field', command_flag(None, 'print field variables')),
+    ('sfield', command_flag(None, 'print surface field variables')),
+    ('rprof', command_flag(None, 'print rprof variables')),
+    ('time', command_flag(None, 'print time variables')),
+    ('refstate', command_flag(None, 'print refstate variables')),
 ))
 
-CONF_DEF['config'] = config_conf_section()
+CONF_DEF['config'] = tools.config_conf_section()

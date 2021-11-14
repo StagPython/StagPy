@@ -55,7 +55,7 @@ def parse_args(arglist=None):
 
     create_complete_files(climan, CONFIG_DIR, 'stagpy', zsh_sourceable=True)
 
-    cmd_args, all_subs = climan.parse_args(arglist)
+    cmd_args = climan.parse_args(arglist)
     sub_cmd = cmd_args.loam_sub_name
 
     if sub_cmd is None:
@@ -68,7 +68,7 @@ def parse_args(arglist=None):
         set_conf_str(conf, conf.common.set)
 
     if conf.common.config:
-        commands.config_pp(all_subs)
+        commands.config_pp(climan.sections_list(sub_cmd))
 
     load_mplstyle()
 

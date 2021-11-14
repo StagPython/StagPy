@@ -32,7 +32,7 @@ setup(
     },
     include_package_data=True,
     install_requires=[
-        'loam>=0.3.1',
+        'loam>=0.4.0',
         'f90nml>=1.3.1',
         'setuptools_scm>=6.2',
         'numpy>=1.19',

@@ -293,12 +293,10 @@ def plot_scalar_field(snap, fieldname):
         c_field = np.ma.masked_where(
             ~_continents_location(snap, at_surface=False),
             snap.fields['c'].values[0, :, :, 0])
-        cbar = conf.field.colorbar
-        conf.field.colorbar = False
         cmap = colors.ListedColormap(["k", "g", "m"])
-        field.plot_scalar(snap, 'c', c_field, axis, cmap=cmap,
-                          norm=colors.BoundaryNorm([2, 3, 4, 5], cmap.N))
-        conf.field.colorbar = cbar
+        with conf.field.context_(colorbar=False):
+            field.plot_scalar(snap, 'c', c_field, axis, cmap=cmap,
+                              norm=colors.BoundaryNorm([2, 3, 4, 5], cmap.N))
 
     # plotting velocity vectors
     field.plot_vec(axis, snap, 'sx' if conf.plates.stress else 'v')
