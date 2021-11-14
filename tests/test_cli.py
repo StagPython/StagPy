@@ -64,25 +64,25 @@ def all_cmd_plates(request, dir_isnap):
 
 def helper_test_cli(all_cmd, tmp):
     subprocess.run(all_cmd[0] + ' -n={}/stagpy'.format(tmp), shell=True)
-    produced_files = tmp.listdir(sort=True)
+    produced_files = sorted(tmp.iterdir())
     expected_files = [tmp / expfile for expfile in sorted(all_cmd[1])]
     assert produced_files == expected_files
 
 
-def test_field_cli(all_cmd_field, tmpdir):
-    helper_test_cli(all_cmd_field, tmpdir)
+def test_field_cli(all_cmd_field, tmp_path):
+    helper_test_cli(all_cmd_field, tmp_path)
 
 
-def test_rprof_cli(all_cmd_rprof, tmpdir):
-    helper_test_cli(all_cmd_rprof, tmpdir)
+def test_rprof_cli(all_cmd_rprof, tmp_path):
+    helper_test_cli(all_cmd_rprof, tmp_path)
 
 
-def test_time_cli(all_cmd_time, tmpdir):
-    helper_test_cli(all_cmd_time, tmpdir)
+def test_time_cli(all_cmd_time, tmp_path):
+    helper_test_cli(all_cmd_time, tmp_path)
 
 
-def test_plates_cli(all_cmd_plates, tmpdir):
-    helper_test_cli(all_cmd_plates, tmpdir)
+def test_plates_cli(all_cmd_plates, tmp_path):
+    helper_test_cli(all_cmd_plates, tmp_path)
 
 
 def test_err_cli():
