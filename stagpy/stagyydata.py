@@ -40,10 +40,13 @@ class _Scales:
     def __init__(self, sdat):
         self._sdat = sdat
 
-    @property
+    @crop
     def length(self):
         """Length in m."""
-        return self._sdat.par['geometry']['d_dimensional']
+        thick = self._sdat.par['geometry']['d_dimensional']
+        if self._sdat.par['boundaries']['air_layer']:
+            thick += self._sdat.par['boundaries']['air_thickness']
+        return thick
 
     @property
     def temperature(self):
