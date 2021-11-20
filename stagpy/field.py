@@ -168,9 +168,13 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
 
     xmesh, ymesh, fld, meta = get_meshes_fld(step, var,
                                              walls=not conf.field.interpolate)
+    # interpolate at cell centers, this should be abstracted by field objects
+    # via an "at_cell_centers" method or similar
+    if fld.shape[0] > max(step.geom.nxtot, step.geom.nytot):
+        fld = (fld[:-1] + fld[1:]) / 2
+
     if conf.field.interpolate and \
-       step.geom.spherical and step.geom.twod_yz and \
-       fld.shape[0] == step.geom.nytot:
+       step.geom.spherical and step.geom.twod_yz:
         # add one point to close spherical annulus
         xmesh = np.concatenate((xmesh, xmesh[:1]), axis=0)
         ymesh = np.concatenate((ymesh, ymesh[:1]), axis=0)
