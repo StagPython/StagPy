@@ -16,7 +16,8 @@ FIELD = OrderedDict((
     ('v1', Varf('x Velocity', 'm/s')),
     ('v2', Varf('y Velocity', 'm/s')),
     ('v3', Varf('z Velocity', 'm/s')),
-    ('p', Varf('Pressure', 'Pa')),
+    ('p_d', Varf('Dynamic Pressure', 'Pa')),		# AG
+    ('p_s', Varf('Static Pressure', 'Pa')),		# AG
     ('eta', Varf('Viscosity', 'Pa.s')),
     ('rho', Varf('Density', 'kg/m3')),
     ('rho4rhs', Varf('Density term in RHS', 'kg/m3')),
@@ -70,7 +71,8 @@ FIELD_FILES = OrderedDict((
 FIELD_FILES_H5 = OrderedDict((
     ('Temperature', ['T']),
     ('Velocity', ['v1', 'v2', 'v3']),
-    ('Dynamic_Pressure', ['p']),
+    ('Dynamic_Pressure', ['p_d']),	# AG
+    ('Pressure', ['p_s']),		# AG
     ('Composition', ['c']),
     ('IronContent', ['cFe']),
     ('HPE', ['hpe']),
