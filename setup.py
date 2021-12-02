@@ -10,7 +10,7 @@ setup(
 
     url='https://github.com/StagPython/StagPy',
 
-    author='Martina Ulvrova, Adrien Morison, Stéphane Labrosse',
+    author='Adrien Morison, Martina Ulvrova, Stéphane Labrosse',
     author_email='adrien.morison@gmail.com',
 
     license='Apache',
