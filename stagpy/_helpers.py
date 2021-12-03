@@ -1,25 +1,31 @@
 """Various helper functions and classes."""
 
+from __future__ import annotations
 from inspect import getdoc
+import typing
 
 import matplotlib.pyplot as plt
 
 from . import conf
 
+if typing.TYPE_CHECKING:
+    from typing import Optional, Any, List, Callable
+    from matplotlib.figure import Figure
+    from numpy import ndarray
 
-def out_name(stem, timestep=None):
+
+def out_name(stem: str, timestep: Optional[int] = None) -> str:
     """Return StagPy out file name.
 
     Args:
-        stem (str): short description of file content.
-        timestep (int): timestep if relevant.
+        stem: short description of file content.
+        timestep: timestep if relevant.
 
     Returns:
-        str: the output file name.
+        the output file name.
 
     Other Parameters:
-        conf.core.outname (str): the generic name stem, defaults to
-            ``'stagpy'``.
+        conf.core.outname: the generic name stem, defaults to ``'stagpy'``.
     """
     if conf.core.shortname:
         return conf.core.outname
@@ -28,32 +34,33 @@ def out_name(stem, timestep=None):
     return conf.core.outname + '_' + stem
 
 
-def scilabel(value, precision=2):
+def scilabel(value: float, precision: int = 2) -> str:
     """Build scientific notation of some value.
 
     This is dedicated to use in labels displaying scientific values.
 
     Args:
-        value (float): numeric value to format.
-        precision (int): number of decimal digits.
+        value: numeric value to format.
+        precision: number of decimal digits.
 
     Returns:
-        str: the scientific notation the specified value.
+        the scientific notation of the specified value.
     """
-    man, exp = f'{value:.{precision}e}'.split('e')
-    exp = int(exp)
+    man, exps = f'{value:.{precision}e}'.split('e')
+    exp = int(exps)
     return fr'{man}\times 10^{{{exp}}}'
 
 
-def saveplot(fig, *name_args, close=True, **name_kwargs):
+def saveplot(fig: Figure, *name_args: Any, close: bool = True,
+             **name_kwargs: Any):
     """Save matplotlib figure.
 
     You need to provide :data:`stem` as a positional or keyword argument (see
     :func:`out_name`).
 
     Args:
-        fig (:class:`matplotlib.figure.Figure`): matplotlib figure.
-        close (bool): whether to close the figure.
+        fig: the :class:`matplotlib.figure.Figure` to save.
+        close: whether to close the figure.
         name_args: positional arguments passed on to :func:`out_name`.
         name_kwargs: keyword arguments passed on to :func:`out_name`.
     """
@@ -64,7 +71,7 @@ def saveplot(fig, *name_args, close=True, **name_kwargs):
         plt.close(fig)
 
 
-def baredoc(obj):
+def baredoc(obj: object) -> str:
     """Return the first line of the docstring of an object.
 
     Trailing periods and spaces as well as leading spaces are removed from the
@@ -82,12 +89,12 @@ def baredoc(obj):
     return doc.rstrip(' .').lstrip()
 
 
-def list_of_vars(arg_plot):
+def list_of_vars(arg_plot: str) -> List[List[List[str]]]:
     """Construct list of variables per plot.
 
     Args:
-        arg_plot (str): string with variable names separated with
-            ``-`` (figures), ``.`` (subplots) and ``,`` (same subplot).
+        arg_plot: variable names separated with ``-`` (figures),
+            ``.`` (subplots) and ``,`` (same subplot).
     Returns:
         three nested lists of str
 
@@ -102,13 +109,13 @@ def list_of_vars(arg_plot):
     return [lov for lov in lovs if lov]
 
 
-def find_in_sorted_arr(value, array, after=False):
+def find_in_sorted_arr(value: Any, array: ndarray, after=False) -> int:
     """Return position of element in a sorted array.
 
     Returns:
-        int: the maximum position i such as array[i] <= value.  If after is
-            True, it returns the min i such as value <= array[i] (or 0 if such
-            an indices does not exist).
+        the maximum position i such as array[i] <= value.  If after is True, it
+        returns the min i such as value <= array[i] (or 0 if such an index does
+        not exist).
     """
     ielt = array.searchsorted(value)
     if ielt == array.size:
@@ -133,13 +140,13 @@ class CachedReadOnlyProperty:
     property is read-only instead of being writeable.
     """
 
-    def __init__(self, thunk):
+    def __init__(self, thunk: Callable[[Any], Any]):
         self._thunk = thunk
         self._name = thunk.__name__
         self._cache_name = f'_cropped_{self._name}'
         self.__doc__ = thunk.__doc__
 
-    def __get__(self, instance, _):
+    def __get__(self, instance: Any, _) -> Any:
         try:
             return getattr(instance, self._cache_name)
         except AttributeError:
@@ -148,6 +155,6 @@ class CachedReadOnlyProperty:
         setattr(instance, self._cache_name, cached_value)
         return cached_value
 
-    def __set__(self, instance, _):
+    def __set__(self, instance: Any, _):
         raise AttributeError(
             f'Cannot set {self._name} property of {instance!r}')
