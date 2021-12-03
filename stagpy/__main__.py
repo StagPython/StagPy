@@ -1,6 +1,5 @@
 """The stagpy module is callable."""
 
-import importlib
 import signal
 import sys
 import warnings
@@ -13,8 +12,7 @@ def main():
     if not DEBUG:
         signal.signal(signal.SIGINT, sigint_handler)
         warnings.simplefilter('ignore')
-    args = importlib.import_module('stagpy.args')
-    error = importlib.import_module('stagpy.error')
+    from . import args, error
     try:
         args.parse_args()()
     except error.StagpyError as err:
