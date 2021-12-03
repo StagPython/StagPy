@@ -5,13 +5,34 @@ EXTRA lists group variables that are not directly output by StagYY and need to
 be computed from other variables.
 """
 
-from collections import namedtuple
+from __future__ import annotations
 from operator import attrgetter
 from types import MappingProxyType
+from typing import NamedTuple, TYPE_CHECKING
 
 from . import processing
 
-Varf = namedtuple('Varf', ['description', 'dim'])
+if TYPE_CHECKING:
+    from typing import Union, Callable, Tuple
+    from numpy import ndarray
+    from ._step import Step
+    from .stagyydata import StagyyData
+
+
+class Varf(NamedTuple):
+    """Metadata of scalar fields.
+
+    Attributes:
+        description: short description of the variable if it is output by
+            StagYY, function to compute it otherwise.
+        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+            dimensional values.
+    """
+
+    description: Union[str, Callable[[Step], ndarray]]
+    dim: str
+
+
 FIELD = MappingProxyType({
     'T': Varf('Temperature', 'K'),
     'v1': Varf('x Velocity', 'm/s'),
@@ -129,7 +150,24 @@ SFIELD_FILES_H5 = MappingProxyType({
     'CrustThickness': ['crust'],
 })
 
-Varr = namedtuple('Varr', ['description', 'kind', 'dim'])
+
+class Varr(NamedTuple):
+    """Metadata of radial profiles.
+
+    Attributes:
+        description: short description of the variable if it is output by
+            StagYY, function to compute it otherwise.
+        kind: shorter description to group similar variables under the same
+            label.
+        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+            dimensional values.
+    """
+
+    description: Union[str, Callable[[Step], Tuple[ndarray, ndarray]]]
+    kind: str
+    dim: str
+
+
 RPROF = MappingProxyType({
     'r': Varr('Radial coordinate', 'Radius', 'm'),
     'Tmean': Varr('Temperature', 'Temperature', 'K'),
@@ -212,7 +250,24 @@ RPROF_EXTRA = MappingProxyType({
     'advth': Varr(processing.advth, 'Heat Flux', 'W/m2'),
 })
 
-Vart = namedtuple('Vart', ['description', 'kind', 'dim'])
+
+class Vart(NamedTuple):
+    """Metadata of time series.
+
+    Attributes:
+        description: short description of the variable if it is output by
+            StagYY, function to compute it otherwise.
+        kind: shorter description to group similar variables under the same
+            label.
+        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+            dimensional values.
+    """
+
+    description: Union[str, Callable[[StagyyData], Tuple[ndarray, ndarray]]]
+    kind: str
+    dim: str
+
+
 TIME = MappingProxyType({
     't': Vart('Time', 'Time', 's'),
     'ftop': Vart('Heat flux at top', 'Heat flux', 'W/m2'),

@@ -3,15 +3,7 @@ phyvars
 
 .. automodule:: stagpy.phyvars
 
-   .. class:: Varf
-
-      :class:`collections.namedtuple` whose instances hold metadata of
-      scalar fields. It defines the following fields:
-
-      - **description** (*str* or *func*): short description of the variable if
-        it is output by StagYY, function to compute it otherwise.
-      - **dim** (*str*): dimension used to
-        :func:`~stagpy.stagyydata.StagyyData.scale` to dimensional values.
+   .. autoclass:: Varf
 
    .. data:: FIELD
       :annotation: = {fieldvar: Varf()}
@@ -31,17 +23,7 @@ phyvars
       Dictionary of surface scalar fields output by StagYY. Keys are the
       variable names, values are :class:`Varf` instances.
 
-   .. class:: Varr
-
-      :class:`collections.namedtuple` whose instances hold metadata of
-      radial profiles. It defines the following fields:
-
-      - **description** (*str* or *func*): short description of the variable if
-        it is output by StagYY, function to compute it otherwise.
-      - **kind** (*str*): shorter description to group similar variables under
-        the same label.
-      - **dim** (*str*): dimension used to
-        :func:`~stagpy.stagyydata.StagyyData.scale` to dimensional values.
+   .. autoclass:: Varr
 
    .. data:: RPROF
       :annotation: = {rprofvar: Varr()}
@@ -61,17 +43,7 @@ phyvars
       Dictionary of radial profiles of the reference state. Keys are the
       variable names, values are :class:`Varr` instances.
 
-   .. class:: Vart
-
-      :class:`collections.namedtuple` whose instances hold metadata of
-      time series. It defines the following fields:
-
-      - **description** (*str* or *func*): short description of the variable if
-        it is output by StagYY, function to compute it otherwise.
-      - **kind** (*str*): shorter description to group similar variables under
-        the same label.
-      - **dim** (*str*): dimension used to
-        :func:`~stagpy.stagyydata.StagyyData.scale` to dimensional values.
+   .. autoclass:: Vart
 
    .. data:: TIME
       :annotation: = {timevar: Vart()}
