@@ -4,30 +4,36 @@ See :mod:`stagpy.args` for additional definitions related to the command line
 interface.
 """
 
+from __future__ import annotations
 import pathlib
+import typing
 
 from loam.manager import ConfOpt as Conf
 from loam import tools
 from loam.tools import switch_opt, command_flag
 
+if typing.TYPE_CHECKING:
+    from typing import Union, Callable, TypeVar, Tuple
+    T = TypeVar('T')
 
-def _slice_or_int(arg):
+
+def _slice_or_int(arg: str) -> Union[slice, int]:
     """Parse a string into an integer or slice."""
     if ':' in arg:
         idxs = arg.split(':')
         if len(idxs) > 3:
             raise ValueError(f'{arg} is an invalid slice')
-        idxs[0] = int(idxs[0]) if idxs[0] else None
-        idxs[1] = int(idxs[1]) if idxs[1] else None
+        slice_parts = [int(idxs[0]) if idxs[0] else None,
+                       int(idxs[1]) if idxs[1] else None]
         if len(idxs) == 3:
-            idxs[2] = int(idxs[2]) if idxs[2] else None
+            slice_parts.append(int(idxs[2]) if idxs[2] else None)
         else:
-            idxs = idxs[0:2] + [1]
-        return slice(*idxs)
+            slice_parts.append(1)
+        return slice(*slice_parts)
     return int(arg)
 
 
-def _list_of(from_str):
+def _list_of(from_str: Callable[[str], T]) -> Callable[[str], Tuple[T]]:
     """Return fn parsing a str as a comma-separated list of given type."""
     def parser(arg):
         return tuple(from_str(v) for v in map(str.strip, arg.split(',')) if v)
