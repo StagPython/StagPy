@@ -6,7 +6,7 @@ def test_time_series_prs(sdat):
     names = ['aa', 'bb', 'cc']
     data = prs.time_series(sdat.filename('time.dat'), list(names))
     assert (data.columns[:3] == names).all()
-    assert (data.columns[3:] == list(range(data.shape[1] - 3))).all()
+    assert (data.columns[3:] == list(map(str, range(data.shape[1] - 3)))).all()
 
 
 def test_time_series_invalid_prs():
@@ -17,7 +17,7 @@ def test_rprof_prs(sdat):
     names = ['aa', 'bb', 'cc']
     data, time = prs.rprof(sdat.filename('rprof.dat'), list(names))
     assert all((df.columns[:3] == names).all() for df in data.values())
-    assert all((df.columns[3:] == list(range(df.shape[1] - 3))).all()
+    assert all((df.columns[3:] == list(map(str, range(df.shape[1] - 3)))).all()
                for df in data.values())
 
 
