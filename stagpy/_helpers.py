@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 from inspect import getdoc
-import typing
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 import matplotlib.pyplot as plt
 
 from . import conf
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from typing import Optional, Any, List, Callable
     from matplotlib.figure import Figure
     from numpy import ndarray
@@ -125,7 +125,11 @@ def find_in_sorted_arr(value: Any, array: ndarray, after=False) -> int:
     return ielt
 
 
-class CachedReadOnlyProperty:
+T = TypeVar('T')
+V = TypeVar('V')
+
+
+class CachedReadOnlyProperty(Generic[T, V]):
     """Descriptor implementation of read-only cached properties.
 
     Properties are cached as ``_cropped_{name}`` instance attribute.
@@ -140,13 +144,13 @@ class CachedReadOnlyProperty:
     property is read-only instead of being writeable.
     """
 
-    def __init__(self, thunk: Callable[[Any], Any]):
+    def __init__(self, thunk: Callable[[T], V]):
         self._thunk = thunk
         self._name = thunk.__name__
         self._cache_name = f'_cropped_{self._name}'
         self.__doc__ = thunk.__doc__
 
-    def __get__(self, instance: Any, _) -> Any:
+    def __get__(self, instance: T, _) -> V:
         try:
             return getattr(instance, self._cache_name)
         except AttributeError:
@@ -155,6 +159,6 @@ class CachedReadOnlyProperty:
         setattr(instance, self._cache_name, cached_value)
         return cached_value
 
-    def __set__(self, instance: Any, _):
+    def __set__(self, instance: T, _):
         raise AttributeError(
             f'Cannot set {self._name} property of {instance!r}')
