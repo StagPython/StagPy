@@ -7,6 +7,7 @@ if typing.TYPE_CHECKING:
     from typing import Sequence
     from os import PathLike
     from .stagyydata import StagyyData
+    from ._step import Step
 
 
 class StagpyError(Exception):
@@ -32,6 +33,19 @@ class NoSnapshotError(StagpyError):
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
         super().__init__(f'no snapshot found for {sdat}')
+
+
+class NoGeomError(StagpyError):
+    """Raised when no geometry info can be found.
+
+    Attributes:
+        step: the :class:`~stagpy._step.Step` instance for which no geometry
+            was found.
+    """
+
+    def __init__(self, step: Step):
+        self.step = step
+        super().__init__(f"no geometry info found for {step!r}")
 
 
 class NoParFileError(StagpyError):
