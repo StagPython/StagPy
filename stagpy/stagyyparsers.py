@@ -660,22 +660,40 @@ def _read_coord_h5(files: List[Path], shapes: List[Tuple[int, ...]],
     header['e3_coord'] = header['e3_coord'][:-1]
 
 
+def _try_get(file: Path, elt: Element, key: str) -> str:
+    """Try getting an attribute or raise a ParsingError."""
+    att = elt.get(key)
+    if att is None:
+        raise ParsingError(file, f"Element {elt} has no attribute {key!r}")
+    return att
+
+
+def _try_find(file: Path, elt: Element, key: str) -> Element:
+    """Try finding a sub-element or raise a ParsingError."""
+    subelt = elt.find(key)
+    if subelt is None:
+        raise ParsingError(file, f"Element {elt} has no sub-element {key!r}")
+    return subelt
+
+
+def _try_text(file: Path, elt: Element) -> str:
+    """Try getting text of element or raise a ParsingError."""
+    text = elt.text
+    if text is None:
+        raise ParsingError(file, f"Element {elt} has no 'text'")
+    return text
+
+
 def _get_dim(xdmf_file: Path, data_item: Element) -> Tuple[int, ...]:
     """Extract shape of data item."""
-    dims = data_item.get('Dimensions')
-    if dims is None:
-        raise ParsingError(
-            xdmf_file, f"Element {data_item} has no attribute 'Dimensions'")
+    dims = _try_get(xdmf_file, data_item, 'Dimensions')
     return tuple(map(int, dims.split()))
 
 
 def _get_field(xdmf_file: Path, data_item: Element) -> Tuple[int, ndarray]:
     """Extract field from data item."""
     shp = _get_dim(xdmf_file, data_item)
-    data_text = data_item.text
-    if data_text is None:
-        raise ParsingError(
-            xdmf_file, f"Element {data_item} has no 'text'")
+    data_text = _try_text(xdmf_file, data_item)
     h5file, group = data_text.strip().split(':/', 1)
     # Field on yin is named <var>_XXXXX_YYYYY, on yang is <var>2XXXXX_YYYYY.
     numeral_part = group[-11:]
@@ -749,20 +767,21 @@ def read_geom_h5(
     coord_shape = []  # shape of meshes
     twod = None
     for elt_subdomain in elt_snap.findall('Grid'):
-        if elt_subdomain.get('Name').startswith('meshYang'):
+        elt_name = _try_get(xdmf_file, elt_subdomain, 'Name')
+        if elt_name.startswith('meshYang'):
             header['ntb'] = 2
             break  # iterate only through meshYin
-        elt_geom = elt_subdomain.find('Geometry')
+        elt_geom = _try_find(xdmf_file, elt_subdomain, 'Geometry')
         if elt_geom.get('Type') == 'X_Y' and twod is None:
             twod = ''
             for data_item in elt_geom.findall('DataItem'):
-                coord = data_item.text.strip()[-1]
+                coord = _try_text(xdmf_file, data_item).strip()[-1]
                 if coord in 'XYZ':
                     twod += coord
-        data_item = elt_geom.find('DataItem')
+        data_item = _try_find(xdmf_file, elt_geom, 'DataItem')
+        data_text = _try_text(xdmf_file, data_item)
         coord_shape.append(_get_dim(xdmf_file, data_item))
-        coord_h5.append(
-            xdmf_file.parent / data_item.text.strip().split(':/', 1)[0])
+        coord_h5.append(xdmf_file.parent / data_text.strip().split(':/', 1)[0])
     _read_coord_h5(coord_h5, coord_shape, header, twod)
     return header, xdmf_root
 
@@ -840,11 +859,13 @@ def read_field_h5(
     data_found = False
 
     for elt_subdomain in xdmf_root[0][0][snapshot].findall('Grid'):
-        ibk = int(elt_subdomain.get('Name').startswith('meshYang'))
+        elt_name = _try_get(xdmf_file, elt_subdomain, 'Name')
+        ibk = int(elt_name.startswith('meshYang'))
         for data_attr in elt_subdomain.findall('Attribute'):
             if data_attr.get('Name') != fieldname:
                 continue
-            icore, fld = _get_field(xdmf_file, data_attr.find('DataItem'))
+            icore, fld = _get_field(
+                xdmf_file, _try_find(xdmf_file, data_attr, 'DataItem'))
             # for some reason, the field is transposed
             fld = fld.T
             shp = fld.shape
@@ -907,7 +928,8 @@ def read_tracers_h5(xdmf_file: Path, infoname: str, snapshot: int,
         for axis in 'xyz':
             tra[axis] = [{}, {}]
     for elt_subdomain in xdmf_root[0][0][snapshot].findall('Grid'):
-        ibk = int(elt_subdomain.get('Name').startswith('meshYang'))
+        elt_name = _try_get(xdmf_file, elt_subdomain, 'Name')
+        ibk = int(elt_name.startswith('meshYang'))
         if position:
             for data_attr in elt_subdomain.findall('Geometry'):
                 for data_item, axis in zip(data_attr.findall('DataItem'),
@@ -917,7 +939,8 @@ def read_tracers_h5(xdmf_file: Path, infoname: str, snapshot: int,
         for data_attr in elt_subdomain.findall('Attribute'):
             if data_attr.get('Name') != infoname:
                 continue
-            icore, data = _get_field(xdmf_file, data_attr.find('DataItem'))
+            icore, data = _get_field(
+                xdmf_file, _try_find(xdmf_file, data_attr, 'DataItem'))
             tra[infoname][ibk][icore] = data
     for info in tra:
         tra[info] = [trab for trab in tra[info] if trab]  # remove empty blocks
