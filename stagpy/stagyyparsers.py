@@ -739,7 +739,7 @@ def _maybe_get(elt: Element, item: str, info: str,
 
 def read_geom_h5(
     xdmf_file: Path, snapshot: Optional[int]
-) -> Tuple[Optional[Dict[str, Any]], Element]:
+) -> Tuple[Dict[str, Any], Element]:
     """Extract geometry information from hdf5 files.
 
     Args:
@@ -751,7 +751,7 @@ def read_geom_h5(
     header: Dict[str, Any] = {}
     xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
     if snapshot is None:
-        return None, xdmf_root
+        return {}, xdmf_root
 
     # Domain, Temporal Collection, Snapshot
     # should check that this is indeed the required snapshot
@@ -922,7 +922,7 @@ def read_tracers_h5(xdmf_file: Path, infoname: str, snapshot: int,
         Tracers data organized by attribute and block.
     """
     xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
-    tra: Dict[str, List[ndarray]] = {}
+    tra: Dict[str, List[Dict[int, ndarray]]] = {}
     tra[infoname] = [{}, {}]  # two blocks, ordered by cores
     if position:
         for axis in 'xyz':
@@ -942,12 +942,14 @@ def read_tracers_h5(xdmf_file: Path, infoname: str, snapshot: int,
             icore, data = _get_field(
                 xdmf_file, _try_find(xdmf_file, data_attr, 'DataItem'))
             tra[infoname][ibk][icore] = data
+    tra_concat: Dict[str, List[ndarray]] = {}
     for info in tra:
         tra[info] = [trab for trab in tra[info] if trab]  # remove empty blocks
-        for iblk, trab in enumerate(tra[info]):
-            tra[info][iblk] = np.concatenate([trab[icore]
-                                              for icore in range(len(trab))])
-    return tra
+        tra_concat[info] = []
+        for trab in tra[info]:
+            tra_concat[info].append(
+                np.concatenate([trab[icore] for icore in range(len(trab))]))
+    return tra_concat
 
 
 def read_time_h5(h5folder: Path) -> Iterator[Tuple[int, int]]:
