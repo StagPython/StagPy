@@ -16,6 +16,7 @@ import numpy as np
 
 from . import conf, error, parfile, phyvars, stagyyparsers, _helpers, _step
 from ._helpers import CachedReadOnlyProperty as crop
+from .datatypes import Rprof
 
 
 def _as_view_item(obj):
@@ -294,7 +295,7 @@ class _RprofsAveraged(_step._Rprofs):
             nprofs += 1
             rprof += step.rprofs[name].values
         rprof /= nprofs
-        self._cached_data[name] = _step.Rprof(rprof, rad, meta)
+        self._cached_data[name] = Rprof(rprof, rad, meta)
         return self._cached_data[name]
 
 

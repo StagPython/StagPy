@@ -21,8 +21,6 @@ phyvars
       Dictionary of surface scalar fields output by StagYY. Keys are the
       variable names, values are :class:`Varf` instances.
 
-   .. autoclass:: Varr
-
    .. data:: RPROF
       :annotation: = {rprofvar: Varr()}
 

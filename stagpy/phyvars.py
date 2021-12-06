@@ -11,12 +11,11 @@ from types import MappingProxyType
 from typing import NamedTuple, TYPE_CHECKING
 
 from . import processing
-from .datatypes import Varf
+from .datatypes import Varf, Varr
 
 if TYPE_CHECKING:
     from typing import Union, Callable, Tuple
     from numpy import ndarray
-    from ._step import Step
     from .stagyydata import StagyyData
 
 
@@ -138,23 +137,6 @@ SFIELD_FILES_H5 = MappingProxyType({
 })
 
 
-class Varr(NamedTuple):
-    """Metadata of radial profiles.
-
-    Attributes:
-        description: short description of the variable if it is output by
-            StagYY, function to compute it otherwise.
-        kind: shorter description to group similar variables under the same
-            label.
-        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-            dimensional values.
-    """
-
-    description: Union[str, Callable[[Step], Tuple[ndarray, ndarray]]]
-    kind: str
-    dim: str
-
-
 RPROF = MappingProxyType({
     'r': Varr('Radial coordinate', 'Radius', 'm'),
     'Tmean': Varr('Temperature', 'Temperature', 'K'),
@@ -225,16 +207,16 @@ RPROF = MappingProxyType({
 })
 
 RPROF_EXTRA = MappingProxyType({
-    'dr': Varr(processing.delta_r, 'dr', 'm'),
-    'diff': Varr(processing.diff_prof, 'Heat flux', 'W/m2'),
-    'diffs': Varr(processing.diffs_prof, 'Heat flux', 'W/m2'),
-    'advts': Varr(processing.advts_prof, 'Heat flux', 'W/m2'),
-    'advds': Varr(processing.advds_prof, 'Heat flux', 'W/m2'),
-    'advas': Varr(processing.advas_prof, 'Heat flux', 'W/m2'),
-    'energy': Varr(processing.energy_prof, 'Heat flux', 'W/m2'),
-    'ciover': Varr(processing.init_c_overturn, 'Concentration', '1'),
-    'cfover': Varr(processing.c_overturned, 'Concentration', '1'),
-    'advth': Varr(processing.advth, 'Heat Flux', 'W/m2'),
+    'dr': processing.delta_r,
+    'diff': processing.diff_prof,
+    'diffs': processing.diffs_prof,
+    'advts': processing.advts_prof,
+    'advds': processing.advds_prof,
+    'advas': processing.advas_prof,
+    'energy': processing.energy_prof,
+    'ciover': processing.init_c_overturn,
+    'cfover': processing.c_overturned,
+    'advth': processing.advth,
 })
 
 

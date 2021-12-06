@@ -30,3 +30,35 @@ class Field(NamedTuple):
 
     values: ndarray
     meta: Varf
+
+
+class Varr(NamedTuple):
+    """Metadata of radial profiles.
+
+    Attributes:
+        description: short description of the variable if it is output by
+            StagYY, function to compute it otherwise.
+        kind: shorter description to group similar variables under the same
+            label.
+        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+            dimensional values.
+    """
+
+    description: str
+    # Callable[[Step], Tuple[ndarray, ndarray]]]
+    kind: str
+    dim: str
+
+
+class Rprof(NamedTuple):
+    """Radial profile with associated radius and metadata.
+
+    Attributes:
+        values: the profile itself.
+        rad: the radial position.
+        meta: the metadata of the profile.
+    """
+
+    values: ndarray
+    rad: ndarray
+    meta: Varr

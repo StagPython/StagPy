@@ -12,7 +12,7 @@ import numpy as np
 from scipy import integrate
 
 from .error import NotAvailableError
-from .datatypes import Field, Varf
+from .datatypes import Field, Varf, Rprof, Varr
 
 if typing.TYPE_CHECKING:
     from typing import Tuple
@@ -94,8 +94,8 @@ def mobility(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
     return np.array(mob), np.array(time)
 
 
-def delta_r(step: Step) -> Tuple[ndarray, ndarray]:
-    """Cells thickness.
+def delta_r(step: Step) -> Rprof:
+    """Compute cell thicknesses.
 
     Args:
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
@@ -103,7 +103,8 @@ def delta_r(step: Step) -> Tuple[ndarray, ndarray]:
         the thickness of the cells and radius.
     """
     edges = step.rprofs.walls
-    return (edges[1:] - edges[:-1]), step.rprofs.centers
+    meta = Varr("Cell thickness", 'dr', 'm')
+    return Rprof((edges[1:] - edges[:-1]), step.rprofs.centers, meta)
 
 
 def _scale_prof(step: Step, rprof: ndarray, rad: ndarray = None) -> ndarray:
@@ -116,8 +117,8 @@ def _scale_prof(step: Step, rprof: ndarray, rad: ndarray = None) -> ndarray:
     return rprof * (2 * rad / (rtop + rbot))**2
 
 
-def diff_prof(step: Step) -> Tuple[ndarray, ndarray]:
-    """Diffusion.
+def diff_prof(step: Step) -> Rprof:
+    """Compute diffusion flux.
 
     Args:
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
@@ -132,11 +133,12 @@ def diff_prof(step: Step) -> Tuple[ndarray, ndarray]:
     diff = np.insert(diff, 0, (1 - tprof[0]) / (rad[0] - rbot))
     # assume ttop = 0
     diff = np.append(diff, tprof[-1] / (rtop - rad[-1]))
-    return diff, step.rprofs.walls
+    meta = Varr("Diffusion", 'Heat flux', 'W/m2')
+    return Rprof(diff, step.rprofs.walls, meta)
 
 
-def diffs_prof(step: Step) -> Tuple[ndarray, ndarray]:
-    """Scaled diffusion.
+def diffs_prof(step: Step) -> Rprof:
+    """Compute scaled diffusion flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -145,12 +147,13 @@ def diffs_prof(step: Step) -> Tuple[ndarray, ndarray]:
     Returns:
         the diffusion and radius.
     """
-    diff, rad = diff_prof(step)
-    return _scale_prof(step, diff, rad), rad
+    diff, rad, _ = diff_prof(step)
+    meta = Varr("Scaled diffusion", 'Heat flux', 'W/m2')
+    return Rprof(_scale_prof(step, diff, rad), rad, meta)
 
 
-def advts_prof(step: Step) -> Tuple[ndarray, ndarray]:
-    """Scaled advection.
+def advts_prof(step: Step) -> Rprof:
+    """Compute scaled advection flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -159,11 +162,13 @@ def advts_prof(step: Step) -> Tuple[ndarray, ndarray]:
     Returns:
         the scaled advection and radius.
     """
-    return _scale_prof(step, step.rprofs['advtot'].values), step.rprofs.centers
+    return Rprof(_scale_prof(step, step.rprofs['advtot'].values),
+                 step.rprofs.centers,
+                 Varr("Scaled advection", 'Heat flux', 'W/m2'))
 
 
-def advds_prof(step: Step) -> Tuple[ndarray, ndarray]:
-    """Scaled downward advection.
+def advds_prof(step: Step) -> Rprof:
+    """Compute scaled downward advection flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -172,12 +177,13 @@ def advds_prof(step: Step) -> Tuple[ndarray, ndarray]:
     Returns:
         the scaled downward advection and radius.
     """
-    return (_scale_prof(step, step.rprofs['advdesc'].values),
-            step.rprofs.centers)
+    return Rprof(_scale_prof(step, step.rprofs['advdesc'].values),
+                 step.rprofs.centers,
+                 Varr("Scaled downward advection", 'Heat flux', 'W/m2'))
 
 
-def advas_prof(step: Step) -> Tuple[ndarray, ndarray]:
-    """Scaled upward advection.
+def advas_prof(step: Step) -> Rprof:
+    """Compute scaled upward advection flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -186,11 +192,13 @@ def advas_prof(step: Step) -> Tuple[ndarray, ndarray]:
     Returns:
         the scaled upward advection and radius.
     """
-    return _scale_prof(step, step.rprofs['advasc'].values), step.rprofs.centers
+    return Rprof(_scale_prof(step, step.rprofs['advasc'].values),
+                 step.rprofs.centers,
+                 Varr("Scaled upward advection", 'Heat flux', 'W/m2'))
 
 
-def energy_prof(step: Step) -> Tuple[ndarray, ndarray]:
-    """Energy flux.
+def energy_prof(step: Step) -> Rprof:
+    """Compute total heat flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -199,13 +207,14 @@ def energy_prof(step: Step) -> Tuple[ndarray, ndarray]:
     Returns:
         the energy flux and radius.
     """
-    diff, rad = diffs_prof(step)
-    adv, _ = advts_prof(step)
-    return (diff + np.append(adv, 0)), rad
+    diff, rad, _ = diffs_prof(step)
+    adv, _, _ = advts_prof(step)
+    return Rprof(diff + np.append(adv, 0), rad,
+                 Varr("Total heat flux", 'Heat flux', 'W/m2'))
 
 
-def advth(step: Step) -> Tuple[ndarray, ndarray]:
-    """Theoretical advection.
+def advth(step: Step) -> Rprof:
+    """Compute theoretical advection.
 
     This compute the theoretical profile of total advection as function of
     radius.
@@ -225,11 +234,12 @@ def advth(step: Step) -> Tuple[ndarray, ndarray]:
         th_adv = rad - rtop
     th_adv *= radio
     th_adv += step.timeinfo['Nutop']
-    return th_adv, rad
+    return Rprof(th_adv, rad,
+                 Varr("Theoretical advection", 'Heat flux', 'W/m2'))
 
 
-def init_c_overturn(step: Step) -> Tuple[ndarray, ndarray]:
-    """Initial concentration.
+def init_c_overturn(step: Step) -> Rprof:
+    """Compute concentration before overturn.
 
     This compute the resulting composition profile if fractional
     crystallization of a SMO is assumed.
@@ -257,11 +267,12 @@ def init_c_overturn(step: Step) -> Tuple[ndarray, ndarray]:
 
     rad = np.linspace(rbot, rtop, 500)
     initprof = np.vectorize(initprof)
-    return initprof(rad), rad
+    return Rprof(initprof(rad), rad,
+                 Varr("Concentration before overturn", 'Concentration', '1'))
 
 
-def c_overturned(step: Step) -> Tuple[ndarray, ndarray]:
-    """Theoretical overturned concentration.
+def c_overturned(step: Step) -> Rprof:
+    """Compute theoretical overturned concentration.
 
     This compute the resulting composition profile if fractional
     crystallization of a SMO is assumed and then a purely radial
@@ -273,9 +284,10 @@ def c_overturned(step: Step) -> Tuple[ndarray, ndarray]:
         the composition and radius.
     """
     rbot, rtop = step.rprofs.bounds
-    cinit, rad = init_c_overturn(step)
-    radf = (rtop**3 + rbot**3 - rad**3)**(1 / 3)
-    return cinit, radf
+    cinit = init_c_overturn(step)
+    radf = (rtop**3 + rbot**3 - cinit.rad**3)**(1 / 3)
+    return Rprof(cinit.values, radf,
+                 Varr("Overturned concentration", 'Concentration', '1'))
 
 
 def stream_function(step: Step) -> Field:

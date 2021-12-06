@@ -9,21 +9,20 @@ Note:
 from __future__ import annotations
 from collections import abc
 from itertools import chain
-from typing import NamedTuple, TYPE_CHECKING
+import typing
 
 import numpy as np
 
-from . import error, phyvars, stagyyparsers, _helpers
+from . import error, phyvars, stagyyparsers
 from ._helpers import CachedReadOnlyProperty as crop
-from .datatypes import Field
+from .datatypes import Field, Rprof, Varr
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from typing import (Dict, Any, Mapping, List, Iterator, Tuple, Optional,
                         Callable)
     from numpy import ndarray, signedinteger
     from pandas import DataFrame, Series
     from .datatypes import Varf
-    from .phyvars import Varr
     from .stagyydata import StagyyData
 
 
@@ -407,30 +406,14 @@ class _Tracers:
         raise TypeError('tracers collection is not iterable')
 
 
-class Rprof(NamedTuple):
-    """Radial profile with associated radius and metadata.
-
-    Attributes:
-        values: the profile itself.
-        rad: the radial position.
-        meta: the metadata of the profile.
-    """
-
-    values: ndarray
-    rad: ndarray
-    meta: Varr
-
-
 class _Rprofs:
     """Radial profiles data structure.
 
     The :attr:`Step.rprofs` attribute is an instance of this class.
 
     :class:`_Rprofs` implements the getitem mechanism.  Keys are profile names
-    defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  An item is a named tuple
-    ('values', 'rad', 'meta'), respectively the profile itself, the radial
-    position at which it is evaluated, and meta is a
-    :class:`stagpy.phyvars.Varr` instance with relevant metadata.  Note that
+    defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  Items are
+    :class:`stagpy.datatypes.Rprof` instances.  Note that
     profiles are automatically scaled if conf.scaling.dimensional is True.
 
     Attributes:
@@ -462,15 +445,12 @@ class _Rprofs:
             if name in phyvars.RPROF:
                 meta = phyvars.RPROF[name]
             else:
-                meta = phyvars.Varr(name, '', '1')
+                meta = Varr(name, '', '1')
         elif name in self._cached_extra:
             rprof, rad, meta = self._cached_extra[name]
         elif name in phyvars.RPROF_EXTRA:
-            meta = phyvars.RPROF_EXTRA[name]
-            rprof, rad = meta.description(step)
-            meta = phyvars.Varr(_helpers.baredoc(meta.description),
-                                meta.kind, meta.dim)
-            self._cached_extra[name] = Rprof(rprof, rad, meta)
+            self._cached_extra[name] = phyvars.RPROF_EXTRA[name](step)
+            rprof, rad, meta = self._cached_extra[name]
         else:
             raise error.UnknownRprofVarError(name)
         rprof, _ = step.sdat.scale(rprof, meta.dim)
