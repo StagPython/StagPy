@@ -48,6 +48,19 @@ class NoGeomError(StagpyError):
         super().__init__(f"no geometry info found for {step!r}")
 
 
+class NoRefstateError(StagpyError):
+    """Raised when no refstate output can be found.
+
+    Attributes:
+        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance for which no
+            refstate output was found.
+    """
+
+    def __init__(self, sdat: StagyyData):
+        self.sdat = sdat
+        super().__init__(f"no refstate found for {sdat!r}")
+
+
 class NoParFileError(StagpyError):
     """Raised when no par file can be found.
 

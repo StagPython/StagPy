@@ -8,15 +8,20 @@ Note:
 """
 
 from __future__ import annotations
+from itertools import zip_longest
 import re
 import pathlib
-from itertools import zip_longest
+import typing
 
 import numpy as np
 
 from . import conf, error, parfile, phyvars, stagyyparsers, _helpers, _step
 from ._helpers import CachedReadOnlyProperty as crop
 from .datatypes import Rprof, Tseries, Vart
+
+if typing.TYPE_CHECKING:
+    from typing import Tuple, List
+    from pandas import DataFrame
 
 
 def _as_view_item(obj):
@@ -107,24 +112,26 @@ class _Refstate:
     object.
 
     Args:
-        sdat (:class:`StagyyData`): the StagyyData instance owning the
-            :class:`_Steps` instance.
+        sdat: the StagyyData instance owning the :class:`_Refstate` instance.
     """
 
-    def __init__(self, sdat):
+    def __init__(self, sdat: StagyyData):
         self._sdat = sdat
 
     @crop
-    def _data(self):
+    def _data(self) -> Tuple[List[List[DataFrame]], List[DataFrame]]:
         """Read reference state profile."""
         reffile = self._sdat.filename('refstat.dat')
         if self._sdat.hdf5 and not reffile.is_file():
             # check legacy folder as well
             reffile = self._sdat.filename('refstat.dat', force_legacy=True)
-        return stagyyparsers.refstate(reffile)
+        data = stagyyparsers.refstate(reffile)
+        if data is None:
+            raise error.NoRefstateError(self._sdat)
+        return data
 
     @property
-    def systems(self):
+    def systems(self) -> List[List[DataFrame]]:
         """Reference state profiles of phases.
 
         It is a list of list of :class:`pandas.DataFrame` containing
@@ -139,7 +146,7 @@ class _Refstate:
         return self._data[0]
 
     @property
-    def adiabats(self):
+    def adiabats(self) -> List[DataFrame]:
         """Adiabatic reference state profiles.
 
         It is a list of :class:`pandas.DataFrame` containing the reference

@@ -247,7 +247,7 @@ def _clean_names_refstate(names: List[str]) -> List[str]:
 
 def refstate(
     reffile: Path, ncols: int = 8
-) -> Tuple[Optional[List[List[DataFrame]]], Optional[List[DataFrame]]]:
+) -> Optional[Tuple[List[List[DataFrame]], List[DataFrame]]]:
     """Extract reference state profiles.
 
     Args:
@@ -266,7 +266,7 @@ def refstate(
         item being the combined adiabat.
     """
     if not reffile.is_file():
-        return None, None
+        return None
     data = pd.read_csv(reffile, delim_whitespace=True, dtype=str,
                        header=None, names=range(ncols),
                        engine='c', memory_map=True, on_bad_lines='skip')

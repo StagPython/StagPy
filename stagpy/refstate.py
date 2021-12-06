@@ -42,8 +42,6 @@ def cmd():
         conf.plot
     """
     sdat = StagyyData()
-    if sdat.refstate.adiabats is None:
-        return
 
     lov = conf.refstate.plot.split(',')
     if not lov:
