@@ -17,11 +17,29 @@ import numpy as np
 
 from . import conf, error, parfile, phyvars, stagyyparsers, _helpers, _step
 from ._helpers import CachedReadOnlyProperty as crop
+from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
 
 if typing.TYPE_CHECKING:
-    from typing import Tuple, List
-    from pandas import DataFrame
+    from typing import Tuple, List, Dict, Optional, Union, Sequence, Iterator
+    from numpy import ndarray
+    from pandas import DataFrame, Series
+    StepIndex = Union[int, slice]
+
+
+@typing.overload
+def _as_view_item(obj: Sequence[StepIndex]) -> Sequence[StepIndex]:
+    ...
+
+
+@typing.overload
+def _as_view_item(obj: slice) -> Sequence[slice]:
+    ...
+
+
+@typing.overload
+def _as_view_item(obj: int) -> None:
+    ...
 
 
 def _as_view_item(obj):
@@ -176,16 +194,16 @@ class _Tseries:
     automatically scaled if conf.scaling.dimensional is True.
 
     Attributes:
-        sdat (:class:`StagyyData`): the StagyyData instance owning the
-            :class:`_Tseries` instance.
+        sdat: the :class:`StagyyData` instance owning the :class:`_Tseries`
+            instance.
     """
 
-    def __init__(self, sdat):
+    def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._cached_extra = {}
+        self._cached_extra: Dict[str, Tseries] = {}
 
     @crop
-    def _data(self):
+    def _data(self) -> Optional[DataFrame]:
         timefile = self.sdat.filename('TimeSeries.h5')
         data = stagyyparsers.time_series_h5(
             timefile, list(phyvars.TIME.keys()))
@@ -199,12 +217,12 @@ class _Tseries:
         return data
 
     @property
-    def _tseries(self):
+    def _tseries(self) -> DataFrame:
         if self._data is None:
             raise error.MissingDataError(f'No tseries data in {self.sdat}')
         return self._data
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Tseries:
         if name in self._tseries.columns:
             series = self._tseries[name].values
             time = self.time
@@ -223,15 +241,16 @@ class _Tseries:
         time, _ = self.sdat.scale(time, 's')
         return Tseries(series, time, meta)
 
-    def tslice(self, name, tstart=None, tend=None):
+    def tslice(self, name: str, tstart: Optional[float] = None,
+               tend: Optional[float] = None) -> Tseries:
         """Return a Tseries between specified times.
 
         Args:
-            name (str): time variable.
-            tstart (float): starting time. Set to None to start at the
-                beginning of available data.
-            tend (float): ending time. Set to None to stop at the end of
+            name: time variable.
+            tstart: starting time. Set to None to start at the beginning of
                 available data.
+            tend: ending time. Set to None to stop at the end of available
+                data.
         """
         data, time, meta = self[name]
         istart = 0
@@ -243,19 +262,19 @@ class _Tseries:
         return Tseries(data[istart:iend], time[istart:iend], meta)
 
     @property
-    def time(self):
+    def time(self) -> ndarray:
         """Time vector."""
         return self._tseries['t'].values
 
     @property
-    def isteps(self):
+    def isteps(self) -> ndarray:
         """Step indices.
 
         This is such that time[istep] is at step isteps[istep].
         """
         return self._tseries.index.values
 
-    def at_step(self, istep):
+    def at_step(self, istep: int) -> Series:
         """Time series output for a given step."""
         return self._tseries.loc[istep]
 
@@ -270,16 +289,16 @@ class _RprofsAveraged(_step._Rprofs):
     returns time-averaged profiles instead.
 
     Attributes:
-        steps (:class:`_StepsView`): the object owning the
-            :class:`_RprofsAveraged` instance
+        steps: the :class:`_StepsView` owning the :class:`_RprofsAveraged`
+            instance.
     """
 
-    def __init__(self, steps):
+    def __init__(self, steps: _StepsView):
         self.steps = steps.filter(rprofs=True)
-        self._cached_data = {}
+        self._cached_data: Dict[str, Rprof] = {}
         super().__init__(next(iter(self.steps)))
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Rprof:
         # the averaging method has two shortcomings:
         # - does not take into account time changing geometry;
         # - does not take into account time changing timestep.
@@ -322,20 +341,25 @@ class _Steps:
             # iterate through steps 0, 3, 5 and the last two
             do_something(step)
 
-    Args:
-        sdat (:class:`StagyyData`): the StagyyData instance owning the
-            :class:`_Steps` instance.
     Attributes:
-        sdat (:class:`StagyyData`): the StagyyData instance owning the
-            :class:`_Steps` instance.
+        sdat: the StagyyData instance owning the :class:`_Steps` instance.
     """
 
-    def __init__(self, sdat):
+    def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._data = {}
+        self._data: Dict[int, Step] = {}
 
     def __repr__(self):
         return f'{self.sdat!r}.steps'
+
+    @typing.overload
+    def __getitem__(self, istep: int) -> Step:
+        ...
+
+    @typing.overload
+    def __getitem__(self,
+                    istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
+        ...
 
     def __getitem__(self, istep):
         keys = _as_view_item(istep)
@@ -354,38 +378,38 @@ class _Steps:
                     self.sdat, istep,
                     f'Last istep is {len(self) - 1}')
         if istep not in self._data:
-            self._data[istep] = _step.Step(istep, self.sdat)
+            self._data[istep] = Step(istep, self.sdat)
         return self._data[istep]
 
-    def __delitem__(self, istep):
+    def __delitem__(self, istep: Optional[int]):
         if istep is not None and istep in self._data:
             self.sdat._collected_fields = [
                 (i, f) for i, f in self.sdat._collected_fields if i != istep]
             del self._data[istep]
 
     @crop
-    def _len(self):
+    def _len(self) -> int:
         # not necessarily the last one...
         return self.sdat.tseries.isteps[-1] + 1
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._len
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Step]:
         return iter(self[:])
 
-    def at_time(self, time, after=False):
+    def at_time(self, time: float, after: bool = False) -> Step:
         """Return step corresponding to a given physical time.
 
         Args:
-            time (float): the physical time requested.
-            after (bool): when False (the default), the returned step is such
-                that its time is immediately before the requested physical
-                time. When True, the returned step is the next one instead (if
-                it exists, otherwise the same step is returned).
+            time: the physical time requested.
+            after: when False (the default), the returned step is such that its
+                time is immediately before the requested physical time. When
+                True, the returned step is the next one instead (if it exists,
+                otherwise the same step is returned).
 
         Returns:
-            :class:`~stagpy._step.Step`: the relevant step.
+            the relevant step.
         """
         itime = _helpers.find_in_sorted_arr(time, self.sdat.tseries.time,
                                             after)
@@ -408,12 +432,9 @@ class _Snaps(_Steps):
 
     This class inherits from :class:`_Steps`.
 
-    Args:
-        sdat (:class:`StagyyData`): the StagyyData instance owning the
-            :class:`_Snaps` instance.
     Attributes:
-        sdat (:class:`StagyyData`): the StagyyData instance owning the
-            :class:`_Snaps` instance.
+        sdat: the :class:`StagyyData` instance owning the :class:`_Snaps`
+            instance.
     """
 
     def __init__(self, sdat):
