@@ -5,7 +5,6 @@ _step
    :members:
    :private-members:
    :exclude-members: _init_shape, _get_raw_data, _scale_radius_mo,
-                     Field, Rprof, _present_fields
+                     Rprof, _present_fields
 
-   .. autoclass:: Field
    .. autoclass:: Rprof

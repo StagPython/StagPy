@@ -3,8 +3,6 @@ phyvars
 
 .. automodule:: stagpy.phyvars
 
-   .. autoclass:: Varf
-
    .. data:: FIELD
       :annotation: = {fieldvar: Varf()}
 

@@ -11,26 +11,13 @@ from types import MappingProxyType
 from typing import NamedTuple, TYPE_CHECKING
 
 from . import processing
+from .datatypes import Varf
 
 if TYPE_CHECKING:
     from typing import Union, Callable, Tuple
     from numpy import ndarray
     from ._step import Step
     from .stagyydata import StagyyData
-
-
-class Varf(NamedTuple):
-    """Metadata of scalar fields.
-
-    Attributes:
-        description: short description of the variable if it is output by
-            StagYY, function to compute it otherwise.
-        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-            dimensional values.
-    """
-
-    description: Union[str, Callable[[Step], ndarray]]
-    dim: str
 
 
 FIELD = MappingProxyType({
@@ -66,7 +53,7 @@ FIELD = MappingProxyType({
 })
 
 FIELD_EXTRA = MappingProxyType({
-    'stream': Varf(processing.stream_function, 'm2/s'),
+    'stream': processing.stream_function,
 })
 
 FIELD_FILES = MappingProxyType({

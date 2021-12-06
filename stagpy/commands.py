@@ -110,8 +110,7 @@ def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
 def _layout(dict_vars, dict_vars_extra):
     """Print nicely [(var, description)] from phyvars."""
     desc = [(v, m.description) for v, m in dict_vars.items()]
-    desc.extend((v, baredoc(m.description))
-                for v, m in dict_vars_extra.items())
+    desc.extend((v, baredoc(m)) for v, m in dict_vars_extra.items())
     _pretty_print(desc, min_col_width=26)
 
 

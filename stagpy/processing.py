@@ -12,6 +12,7 @@ import numpy as np
 from scipy import integrate
 
 from .error import NotAvailableError
+from .datatypes import Field, Varf
 
 if typing.TYPE_CHECKING:
     from typing import Tuple
@@ -277,13 +278,13 @@ def c_overturned(step: Step) -> Tuple[ndarray, ndarray]:
     return cinit, radf
 
 
-def stream_function(step: Step) -> ndarray:
-    """Stream function.
+def stream_function(step: Step) -> Field:
+    """Compute the stream function in 2D geometry.
 
     Args:
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
     Returns:
-        the stream function field, with four dimensions (x, y, z and block).
+        the stream function field.
     """
     if step.geom.twod_yz:
         x_coord = step.geom.y_walls
@@ -327,4 +328,4 @@ def stream_function(step: Step) -> ndarray:
     if step.geom.twod_xz:
         psi = - psi
     psi = np.reshape(psi, shape)
-    return psi
+    return Field(psi, Varf("Stream function", 'm2/s'))

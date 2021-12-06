@@ -15,12 +15,15 @@ import numpy as np
 
 from . import error, phyvars, stagyyparsers, _helpers
 from ._helpers import CachedReadOnlyProperty as crop
+from .datatypes import Field
 
 if TYPE_CHECKING:
-    from typing import Dict, Any, Mapping, List, Iterator, Tuple, Optional
+    from typing import (Dict, Any, Mapping, List, Iterator, Tuple, Optional,
+                        Callable)
     from numpy import ndarray, signedinteger
     from pandas import DataFrame, Series
-    from .phyvars import Varf, Varr
+    from .datatypes import Varf
+    from .phyvars import Varr
     from .stagyydata import StagyyData
 
 
@@ -226,18 +229,6 @@ class _Geometry:
         return np.argmin(np.abs(self.r_centers - rval))
 
 
-class Field(NamedTuple):
-    """Scalar field and associated metadata.
-
-    Attributes:
-        values: the field itself.
-        meta: the metadata of the field.
-    """
-
-    values: ndarray
-    meta: Varf
-
-
 class _Fields(abc.Mapping):
     """Fields data structure.
 
@@ -245,15 +236,15 @@ class _Fields(abc.Mapping):
 
     :class:`_Fields` inherits from :class:`collections.abc.Mapping`. Keys are
     fields names defined in :data:`stagpy.phyvars.[S]FIELD[_EXTRA]`.  Each item
-    is a name tuple ('values', 'meta'), respectively the field itself, and a
-    :class:`stagpy.phyvars.Varf` instance with relevant metadata.
+    is a :class:`stagpy.datatypes.Field` instance.
 
     Attributes:
         step: the step object owning the :class:`_Fields` instance.
     """
 
     def __init__(self, step: Step, variables: Mapping[str, Varf],
-                 extravars: Mapping[str, Varf], files: Mapping[str, List[str]],
+                 extravars: Mapping[str, Callable[[Step], Field]],
+                 files: Mapping[str, List[str]],
                  filesh5: Mapping[str, List[str]]):
         self.step = step
         self._vars = variables
@@ -269,10 +260,7 @@ class _Fields(abc.Mapping):
         if name in self._vars:
             fld_names, parsed_data = self._get_raw_data(name)
         elif name in self._extra:
-            meta = self._extra[name]
-            field = meta.description(self.step)
-            meta = phyvars.Varf(_helpers.baredoc(meta.description), meta.dim)
-            self._data[name] = Field(field, meta)
+            self._data[name] = self._extra[name](self.step)
             return self._data[name]
         else:
             raise error.UnknownFieldVarError(name)
