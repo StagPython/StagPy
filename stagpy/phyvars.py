@@ -5,18 +5,11 @@ EXTRA lists group variables that are not directly output by StagYY and need to
 be computed from other variables.
 """
 
-from __future__ import annotations
 from operator import attrgetter
 from types import MappingProxyType
-from typing import NamedTuple, TYPE_CHECKING
 
 from . import processing
-from .datatypes import Varf, Varr
-
-if TYPE_CHECKING:
-    from typing import Union, Callable, Tuple
-    from numpy import ndarray
-    from .stagyydata import StagyyData
+from .datatypes import Varf, Varr, Vart
 
 
 FIELD = MappingProxyType({
@@ -220,23 +213,6 @@ RPROF_EXTRA = MappingProxyType({
 })
 
 
-class Vart(NamedTuple):
-    """Metadata of time series.
-
-    Attributes:
-        description: short description of the variable if it is output by
-            StagYY, function to compute it otherwise.
-        kind: shorter description to group similar variables under the same
-            label.
-        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-            dimensional values.
-    """
-
-    description: Union[str, Callable[[StagyyData], Tuple[ndarray, ndarray]]]
-    kind: str
-    dim: str
-
-
 TIME = MappingProxyType({
     't': Vart('Time', 'Time', 's'),
     'ftop': Vart('Heat flux at top', 'Heat flux', 'W/m2'),
@@ -270,10 +246,10 @@ TIME = MappingProxyType({
 })
 
 TIME_EXTRA = MappingProxyType({
-    'dt': Vart(processing.dtime, 'dt', 's'),
-    'dTdt': Vart(processing.dt_dt, r'dT/dt', 'K/s'),
-    'ebalance': Vart(processing.ebalance, r'$\mathrm{Nu}$', '1'),
-    'mobility': Vart(processing.mobility, 'Mobility', '1'),
+    'dt': processing.dtime,
+    'dTdt': processing.dt_dt,
+    'ebalance': processing.ebalance,
+    'mobility': processing.mobility,
 })
 
 REFSTATE = MappingProxyType({

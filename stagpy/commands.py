@@ -50,8 +50,8 @@ def info_cmd():
             series = series.copy()
             dimensions = []
             for var, val in series.iteritems():
-                dim = phyvars.TIME.get(var) or phyvars.TIME_EXTRA.get(var)
-                dim = dim.dim if dim is not None else '1'
+                meta = phyvars.TIME.get(var)
+                dim = meta.dim if meta is not None else '1'
                 if dim == '1':
                     dimensions.append('')
                 else:

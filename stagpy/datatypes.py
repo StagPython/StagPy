@@ -62,3 +62,34 @@ class Rprof(NamedTuple):
     values: ndarray
     rad: ndarray
     meta: Varr
+
+
+class Vart(NamedTuple):
+    """Metadata of time series.
+
+    Attributes:
+        description: short description of the variable if it is output by
+            StagYY, function to compute it otherwise.
+        kind: shorter description to group similar variables under the same
+            label.
+        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+            dimensional values.
+    """
+
+    description: str
+    kind: str
+    dim: str
+
+
+class Tseries(NamedTuple):
+    """A time series with associated time and metadata.
+
+    Attributes:
+        values: the series itself.
+        time: the time vector.
+        meta: the metadata of the series.
+    """
+
+    values: ndarray
+    time: ndarray
+    meta: Vart

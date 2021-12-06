@@ -1,19 +1,22 @@
 from stagpy import processing, phyvars
 
 
+def tseries_checks(tseries, expected_size):
+    assert tseries.values.shape == tseries.time.shape == (expected_size,)
+    assert tseries.meta.dim == '1' or tseries.meta.dim in phyvars.SCALES
+
+
 def rprof_checks(rprof, expected_size):
     assert rprof.values.shape == rprof.rad.shape == (expected_size,)
     assert rprof.meta.dim == '1' or rprof.meta.dim in phyvars.SCALES
 
 
 def test_dt_dt(sdat):
-    dtdt, time = processing.dt_dt(sdat)
-    assert dtdt.shape == time.shape == (sdat.tseries.time.shape[0] - 1,)
+    tseries_checks(processing.dt_dt(sdat), sdat.tseries.time.shape[0] - 1)
 
 
 def test_ebalance(sdat):
-    ebal, time = processing.ebalance(sdat)
-    assert ebal.shape == time.shape == (sdat.tseries.time.shape[0] - 1,)
+    tseries_checks(processing.ebalance(sdat), sdat.tseries.time.shape[0] - 1)
 
 
 def test_r_edges(step):

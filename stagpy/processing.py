@@ -12,17 +12,16 @@ import numpy as np
 from scipy import integrate
 
 from .error import NotAvailableError
-from .datatypes import Field, Varf, Rprof, Varr
+from .datatypes import Field, Varf, Rprof, Varr, Tseries, Vart
 
 if typing.TYPE_CHECKING:
-    from typing import Tuple
     from numpy import ndarray
     from .stagyydata import StagyyData
     from ._step import Step
 
 
-def dtime(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
-    """Time increment dt.
+def dtime(sdat: StagyyData) -> Tseries:
+    """Compute time increment.
 
     Compute dt as a function of time.
 
@@ -32,11 +31,12 @@ def dtime(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
         dt and time arrays.
     """
     time = sdat.tseries.time
-    return time[1:] - time[:-1], time[:-1]
+    return Tseries(time[1:] - time[:-1], time[:-1],
+                   Vart("Time increment dt", 'dt', 's'))
 
 
-def dt_dt(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
-    """Derivative of temperature.
+def dt_dt(sdat: StagyyData) -> Tseries:
+    """Compute derivative of temperature.
 
     Compute dT/dt as a function of time using an explicit Euler scheme.
 
@@ -47,11 +47,12 @@ def dt_dt(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
     """
     temp, time, _ = sdat.tseries['Tmean']
     dtdt = (temp[1:] - temp[:-1]) / (time[1:] - time[:-1])
-    return dtdt, time[:-1]
+    return Tseries(dtdt, time[:-1],
+                   Vart("Derivative of temperature", r'dT/dt', 'K/s'))
 
 
-def ebalance(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
-    """Energy balance.
+def ebalance(sdat: StagyyData) -> Tseries:
+    """Compute energy balance.
 
     Compute Nu_t - Nu_b + V*dT/dt as a function of time using an explicit
     Euler scheme. This should be zero if energy is conserved.
@@ -68,16 +69,17 @@ def ebalance(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
     else:
         coefsurf = 1.
         volume = 1.
-    dtdt, time = dt_dt(sdat)
+    dtdt, time, _ = dt_dt(sdat)
     ftop = sdat.tseries['ftop'].values * coefsurf
     fbot = sdat.tseries['fbot'].values
     radio = sdat.tseries['H_int'].values
     ebal = ftop[1:] - fbot[1:] + volume * (dtdt - radio[1:])
-    return ebal, time
+    return Tseries(ebal, time,
+                   Vart("Energy balance", r'$\mathrm{Nu}$', '1'))
 
 
-def mobility(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
-    """Plates mobility.
+def mobility(sdat: StagyyData) -> Tseries:
+    """Compute plates mobility.
 
     Compute the ratio vsurf / vrms.
 
@@ -91,7 +93,8 @@ def mobility(sdat: StagyyData) -> Tuple[ndarray, ndarray]:
     for step in sdat.steps.filter(rprofs=True):
         time.append(step.timeinfo['t'])
         mob.append(step.rprofs['vrms'].values[-1] / step.timeinfo['vrms'])
-    return np.array(mob), np.array(time)
+    return Tseries(np.array(mob), np.array(time),
+                   Vart("Plates mobility", 'Mobility', '1'))
 
 
 def delta_r(step: Step) -> Rprof:

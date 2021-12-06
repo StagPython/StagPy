@@ -39,8 +39,6 @@ phyvars
       Dictionary of radial profiles of the reference state. Keys are the
       variable names, values are :class:`Varr` instances.
 
-   .. autoclass:: Vart
-
    .. data:: TIME
       :annotation: = {timevar: Vart()}
 

@@ -9,14 +9,13 @@ Note:
 
 import re
 import pathlib
-from collections import namedtuple
 from itertools import zip_longest
 
 import numpy as np
 
 from . import conf, error, parfile, phyvars, stagyyparsers, _helpers, _step
 from ._helpers import CachedReadOnlyProperty as crop
-from .datatypes import Rprof
+from .datatypes import Rprof, Tseries, Vart
 
 
 def _as_view_item(obj):
@@ -159,20 +158,15 @@ class _Refstate:
         return self._data[1]
 
 
-Tseries = namedtuple('Tseries', ['values', 'time', 'meta'])
-
-
 class _Tseries:
     """Time series.
 
     The :attr:`StagyyData.tseries` attribute is an instance of this class.
 
     :class:`_Tseries` implements the getitem mechanism.  Keys are series names
-    defined in :data:`stagpy.phyvars.TIME[_EXTRA]`.  An item is a named tuple
-    ('values', 'time', 'meta'), respectively the series itself, the time at
-    which it is evaluated, and meta is a :class:`stagpy.phyvars.Vart` instance
-    with relevant metadata.  Note that series are automatically scaled if
-    conf.scaling.dimensional is True.
+    defined in :data:`stagpy.phyvars.TIME[_EXTRA]`.  Items are
+    :class:`stagpy.datatypes.Tseries` instances.  Note that series are
+    automatically scaled if conf.scaling.dimensional is True.
 
     Attributes:
         sdat (:class:`StagyyData`): the StagyyData instance owning the
@@ -210,15 +204,12 @@ class _Tseries:
             if name in phyvars.TIME:
                 meta = phyvars.TIME[name]
             else:
-                meta = phyvars.Vart(name, None, '1')
+                meta = Vart(name, '', '1')
         elif name in self._cached_extra:
             series, time, meta = self._cached_extra[name]
         elif name in phyvars.TIME_EXTRA:
-            meta = phyvars.TIME_EXTRA[name]
-            series, time = meta.description(self.sdat)
-            meta = phyvars.Vart(_helpers.baredoc(meta.description),
-                                meta.kind, meta.dim)
-            self._cached_extra[name] = series, time, meta
+            self._cached_extra[name] = phyvars.TIME_EXTRA[name](self.sdat)
+            series, time, meta = self._cached_extra[name]
         else:
             raise error.UnknownTimeVarError(name)
         series, _ = self.sdat.scale(series, meta.dim)
