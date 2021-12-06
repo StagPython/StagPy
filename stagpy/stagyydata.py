@@ -7,6 +7,7 @@ Note:
 
 """
 
+from __future__ import annotations
 import re
 import pathlib
 from itertools import zip_longest
@@ -30,18 +31,17 @@ def _as_view_item(obj):
 
 
 class _Scales:
-    """Dimensionful scales.
+    """Dimensional scales.
 
     Args:
-        sdat (:class:`StagyyData`): the StagyyData instance owning the
-            :class:`_Scales` instance.
+        sdat: the StagyyData instance owning the :class:`_Scales` instance.
     """
 
-    def __init__(self, sdat):
+    def __init__(self, sdat: StagyyData):
         self._sdat = sdat
 
     @crop
-    def length(self):
+    def length(self) -> float:
         """Length in m."""
         thick = self._sdat.par['geometry']['d_dimensional']
         if self._sdat.par['boundaries']['air_layer']:
@@ -49,52 +49,52 @@ class _Scales:
         return thick
 
     @property
-    def temperature(self):
+    def temperature(self) -> float:
         """Temperature in K."""
         return self._sdat.par['refstate']['deltaT_dimensional']
 
     @property
-    def density(self):
+    def density(self) -> float:
         """Density in kg/m3."""
         return self._sdat.par['refstate']['dens_dimensional']
 
     @property
-    def th_cond(self):
+    def th_cond(self) -> float:
         """Thermal conductivity in W/(m.K)."""
         return self._sdat.par['refstate']['tcond_dimensional']
 
     @property
-    def sp_heat(self):
+    def sp_heat(self) -> float:
         """Specific heat capacity in J/(kg.K)."""
         return self._sdat.par['refstate']['Cp_dimensional']
 
     @property
-    def dyn_visc(self):
+    def dyn_visc(self) -> float:
         """Dynamic viscosity in Pa.s."""
         return self._sdat.par['viscosity']['eta0']
 
     @property
-    def th_diff(self):
+    def th_diff(self) -> float:
         """Thermal diffusivity in m2/s."""
         return self.th_cond / (self.density * self.sp_heat)
 
     @property
-    def time(self):
+    def time(self) -> float:
         """Time in s."""
         return self.length**2 / self.th_diff
 
     @property
-    def power(self):
+    def power(self) -> float:
         """Power in W."""
         return self.th_cond * self.temperature * self.length
 
     @property
-    def heat_flux(self):
+    def heat_flux(self) -> float:
         """Local heat flux in W/m2."""
         return self.power / self.length**2
 
     @property
-    def stress(self):
+    def stress(self) -> float:
         """Stress in Pa."""
         return self.dyn_visc / self.time
 
