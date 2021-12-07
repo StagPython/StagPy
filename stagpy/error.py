@@ -48,6 +48,19 @@ class NoGeomError(StagpyError):
         super().__init__(f"no geometry info found for {step!r}")
 
 
+class NoTimeError(StagpyError):
+    """Raised when no time can be found for a step.
+
+    Attributes:
+        step: the :class:`~stagpy._step.Step` instance for which no geometry
+            was found.
+    """
+
+    def __init__(self, step: Step):
+        self.step = step
+        super().__init__(f"no time found for {step!r}")
+
+
 class NoRefstateError(StagpyError):
     """Raised when no refstate output can be found.
 

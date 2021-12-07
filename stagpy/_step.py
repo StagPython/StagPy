@@ -343,6 +343,8 @@ class _Fields(abc.Mapping):
 
     @crop
     def _header(self) -> Optional[Dict[str, Any]]:
+        if self.step.isnap is None:
+            return None
         binfiles = self.step.sdat._binfiles_set(self.step.isnap)
         header = None
         if binfiles:
@@ -570,7 +572,7 @@ class Step:
         return info
 
     @property
-    def time(self) -> Optional[float]:
+    def time(self) -> float:
         """Time of this time step."""
         steptime = None
         try:
@@ -578,6 +580,8 @@ class Step:
         except error.MissingDataError:
             if self.isnap is not None:
                 steptime = self.geom._header.get('ti_ad')
+        if steptime is None:
+            raise error.NoTimeError(self)
         return steptime
 
     @property
