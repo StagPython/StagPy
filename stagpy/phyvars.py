@@ -5,14 +5,22 @@ EXTRA lists group variables that are not directly output by StagYY and need to
 be computed from other variables.
 """
 
+from __future__ import annotations
 from operator import attrgetter
 from types import MappingProxyType
+import typing
 
 from . import processing
 from .datatypes import Varf, Varr, Vart
 
+if typing.TYPE_CHECKING:
+    from typing import Mapping, Callable, List
+    from .datatypes import Field, Rprof, Tseries
+    from ._step import Step
+    from .stagyydata import StagyyData, _Scales
 
-FIELD = MappingProxyType({
+
+FIELD: Mapping[str, Varf] = MappingProxyType({
     'T': Varf('Temperature', 'K'),
     'v1': Varf('x Velocity', 'm/s'),
     'v2': Varf('y Velocity', 'm/s'),
@@ -44,11 +52,11 @@ FIELD = MappingProxyType({
     'prim': Varf('Primordial layer', '1'),
 })
 
-FIELD_EXTRA = MappingProxyType({
+FIELD_EXTRA: Mapping[str, Callable[[Step], Field]] = MappingProxyType({
     'stream': processing.stream_function,
 })
 
-FIELD_FILES = MappingProxyType({
+FIELD_FILES: Mapping[str, List[str]] = MappingProxyType({
     't': ['T'],
     'vp': ['v1', 'v2', 'v3', 'p'],
     'c': ['c'],
@@ -66,7 +74,7 @@ FIELD_FILES = MappingProxyType({
     'prm': ['prim'],
 })
 
-FIELD_FILES_H5 = MappingProxyType({
+FIELD_FILES_H5: Mapping[str, List[str]] = MappingProxyType({
     'Temperature': ['T'],
     'Velocity': ['v1', 'v2', 'v3'],
     'Dynamic_Pressure': ['p'],
@@ -92,7 +100,7 @@ FIELD_FILES_H5 = MappingProxyType({
     'Primordial': ['prim'],
 })
 
-SFIELD = MappingProxyType({
+SFIELD: Mapping[str, Varf] = MappingProxyType({
     'topo_top': Varf('Topography at top', 'm'),
     'topo_bot': Varf('Topography at bottom', 'm'),
     'geoid_top': Varf('Geoid at top', 'm'),
@@ -106,7 +114,7 @@ SFIELD = MappingProxyType({
     'crust': Varf('Crustal thickness', 'm'),
 })
 
-SFIELD_FILES = MappingProxyType({
+SFIELD_FILES: Mapping[str, List[str]] = MappingProxyType({
     'cs': ['topo_bot', 'topo_top'],
     'g': ['geoid_bot', 'geoid_top'],
     'csg': ['topo_g_bot', 'topo_g_top'],
@@ -115,7 +123,7 @@ SFIELD_FILES = MappingProxyType({
     'cr': ['crust'],
 })
 
-SFIELD_FILES_H5 = MappingProxyType({
+SFIELD_FILES_H5: Mapping[str, List[str]] = MappingProxyType({
     'BottomTopography': ['topo_bot'],
     'SurfaceTopography': ['topo_top'],
     'BottomGeoid': ['geoid_bot'],
@@ -130,7 +138,7 @@ SFIELD_FILES_H5 = MappingProxyType({
 })
 
 
-RPROF = MappingProxyType({
+RPROF: Mapping[str, Varr] = MappingProxyType({
     'r': Varr('Radial coordinate', 'Radius', 'm'),
     'Tmean': Varr('Temperature', 'Temperature', 'K'),
     'Tmin': Varr('Min temperature', 'Temperature', 'K'),
@@ -199,7 +207,7 @@ RPROF = MappingProxyType({
     'advasc': Varr('Upward advection', 'Heat flux', 'W/m2'),
 })
 
-RPROF_EXTRA = MappingProxyType({
+RPROF_EXTRA: Mapping[str, Callable[[Step], Rprof]] = MappingProxyType({
     'dr': processing.delta_r,
     'diff': processing.diff_prof,
     'diffs': processing.diffs_prof,
@@ -213,7 +221,7 @@ RPROF_EXTRA = MappingProxyType({
 })
 
 
-TIME = MappingProxyType({
+TIME: Mapping[str, Vart] = MappingProxyType({
     't': Vart('Time', 'Time', 's'),
     'ftop': Vart('Heat flux at top', 'Heat flux', 'W/m2'),
     'fbot': Vart('Heat flux at bottom', 'Heat flux', 'W/m2'),
@@ -245,14 +253,14 @@ TIME = MappingProxyType({
     'botT_val': Vart('Temperature at bottom', 'Temperature', 'K'),
 })
 
-TIME_EXTRA = MappingProxyType({
+TIME_EXTRA: Mapping[str, Callable[[StagyyData], Tseries]] = MappingProxyType({
     'dt': processing.dtime,
     'dTdt': processing.dt_dt,
     'ebalance': processing.ebalance,
     'mobility': processing.mobility,
 })
 
-REFSTATE = MappingProxyType({
+REFSTATE: Mapping[str, Varr] = MappingProxyType({
     'z': Varr('z position', 'z position', 'm'),
     'T': Varr('Temperature', 'Temperature', 'K'),
     'rho': Varr('Density', 'Density', 'kg/m3'),
@@ -263,7 +271,7 @@ REFSTATE = MappingProxyType({
     'grav': Varr('Gravity', 'Gravity', 'm/s2'),
 })
 
-SCALES = MappingProxyType({
+SCALES: Mapping[str, Callable[[_Scales], float]] = MappingProxyType({
     'm': attrgetter('length'),
     'kg/m3': attrgetter('density'),
     'K': attrgetter('temperature'),
