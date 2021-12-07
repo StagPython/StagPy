@@ -9,8 +9,8 @@ Note:
 
 from __future__ import annotations
 from itertools import zip_longest
+from pathlib import Path
 import re
-import pathlib
 import typing
 
 import numpy as np
@@ -21,7 +21,10 @@ from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
 
 if typing.TYPE_CHECKING:
-    from typing import Tuple, List, Dict, Optional, Union, Sequence, Iterator
+    from typing import (Tuple, List, Dict, Optional, Union, Sequence, Iterator,
+                        Set)
+    from os import PathLike
+    from f90nml.namelist import Namelist
     from numpy import ndarray
     from pandas import DataFrame, Series
     StepIndex = Union[int, slice]
@@ -348,6 +351,7 @@ class _Steps:
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
         self._data: Dict[int, Step] = {}
+        self._len: Optional[int] = None
 
     def __repr__(self):
         return f'{self.sdat!r}.steps'
@@ -387,12 +391,9 @@ class _Steps:
                 (i, f) for i, f in self.sdat._collected_fields if i != istep]
             del self._data[istep]
 
-    @crop
-    def _len(self) -> int:
-        # not necessarily the last one...
-        return self.sdat.tseries.isteps[-1] + 1
-
     def __len__(self) -> int:
+        if self._len is None:
+            self._len = self.sdat.tseries.isteps[-1] + 1
         return self._len
 
     def __iter__(self) -> Iterator[Step]:
@@ -437,13 +438,22 @@ class _Snaps(_Steps):
             instance.
     """
 
-    def __init__(self, sdat):
-        self._isteps = {}
+    def __init__(self, sdat: StagyyData):
+        self._isteps: Dict[int, Optional[int]] = {}
         self._all_isteps_known = False
         super().__init__(sdat)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.sdat!r}.snaps'
+
+    @typing.overload
+    def __getitem__(self, istep: int) -> Step:
+        ...
+
+    @typing.overload
+    def __getitem__(self,
+                    istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
+        ...
 
     def __getitem__(self, isnap):
         keys = _as_view_item(isnap)
@@ -472,41 +482,43 @@ class _Snaps(_Steps):
                 self.sdat, isnap, 'Invalid snapshot index')
         return self.sdat.steps[istep]
 
-    def __delitem__(self, isnap):
-        istep = self._isteps.get(isnap)
-        del self.sdat.steps[istep]
+    def __delitem__(self, isnap: Optional[int]):
+        if isnap is not None:
+            istep = self._isteps.get(isnap)
+            del self.sdat.steps[istep]
 
-    @crop
-    def _len(self):
-        length = -1
-        if self.sdat.hdf5:
-            isnap = -1
-            for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                self._bind(isnap, istep)
-            length = isnap
-            self._all_isteps_known = True
-        if length < 0:
-            out_stem = re.escape(pathlib.Path(
-                self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
-            rgx = re.compile(f'^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$')
-            fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-            for fname in self.sdat._files:
-                match = rgx.match(fname.name)
-                if match is not None and match.group(1) in fstems:
-                    length = max(int(match.group(2)), length)
-        if length < 0:
-            raise error.NoSnapshotError(self.sdat)
-        return length + 1
+    def __len__(self) -> int:
+        if self._len is None:
+            length = -1
+            if self.sdat.hdf5:
+                isnap = -1
+                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                    self._bind(isnap, istep)
+                length = isnap
+                self._all_isteps_known = True
+            if length < 0:
+                out_stem = re.escape(Path(
+                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
+                rgx = re.compile(f'^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$')
+                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
+                for fname in self.sdat._files:
+                    match = rgx.match(fname.name)
+                    if match is not None and match.group(1) in fstems:
+                        length = max(int(match.group(2)), length)
+            if length < 0:
+                raise error.NoSnapshotError(self.sdat)
+            self._len = length + 1
+        return self._len
 
-    def at_time(self, time, after=False):
+    def at_time(self, time: float, after: bool = False) -> Step:
         """Return snap corresponding to a given physical time.
 
         Args:
-            time (float): the physical time requested.
-            after (bool): when False (the default), the returned snap is such
-                that its time is immediately before the requested physical
-                time. When True, the returned snap is the next one instead (if
-                it exists, otherwise the same snap is returned).
+            time: the physical time requested.
+            after: when False (the default), the returned snap is such that its
+                time is immediately before the requested physical time. When
+                True, the returned snap is the next one instead (if it exists,
+                otherwise the same snap is returned).
 
         Returns:
             :class:`~stagpy._step.Step`: the relevant snap.
@@ -525,7 +537,7 @@ class _Snaps(_Steps):
             igp -= 1
         return self[igp]
 
-    def _bind(self, isnap, istep):
+    def _bind(self, isnap: int, istep: int):
         """Register the isnap / istep correspondence.
 
         Args:
@@ -543,16 +555,15 @@ class _StepsView:
     :attr:`StagyyData.steps` or :attr:`StagyyData.snaps` attributes.
 
     Args:
-        steps_col (:class:`_Steps` or :class:`_Snaps`): steps collection,
-            i.e. :attr:`StagyyData.steps` or :attr:`StagyyData.snaps`
-            attributes.
+        steps_col: steps collection, i.e. :attr:`StagyyData.steps` or
+            :attr:`StagyyData.snaps` attributes.
         items (iterable): iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col, items):
+    def __init__(self, steps_col: Union[_Steps, _Snaps], items):
         self._col = steps_col
         self._items = items
-        self._rprofs_averaged = None
+        self._rprofs_averaged: Optional[_RprofsAveraged] = None
         self._flt = {
             'snap': False,
             'rprofs': False,
@@ -562,14 +573,14 @@ class _StepsView:
         self._dflt_func = self._flt['func']
 
     @property
-    def rprofs_averaged(self):
+    def rprofs_averaged(self) -> _RprofsAveraged:
         """Time-averaged radial profiles."""
         if self._rprofs_averaged is None:
             self._rprofs_averaged = _RprofsAveraged(self)
         return self._rprofs_averaged
 
     @crop
-    def stepstr(self):
+    def stepstr(self) -> str:
         """String representation of the requested set of steps."""
         items = []
         no_slice = True
@@ -585,7 +596,7 @@ class _StepsView:
         colstr = repr(self._col).rsplit('.', maxsplit=1)[-1]
         return f'{colstr}[{item_str}]'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         rep = f'{self._col.sdat!r}.{self.stepstr}'
         flts = []
         for flt in ('snap', 'rprofs', 'fields'):
@@ -597,7 +608,7 @@ class _StepsView:
             rep += '.filter({})'.format(', '.join(flts))
         return rep
 
-    def _pass(self, item):
+    def _pass(self, item) -> bool:
         """Check whether an item passes the filters."""
         try:
             step = self._col[item]
@@ -645,7 +656,7 @@ class _StepsView:
             raise error.UnknownFiltersError(filters.keys())
         return self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Step]:
         for item in self._items:
             if isinstance(item, slice):
                 idx = item.indices(len(self._col))
@@ -654,7 +665,7 @@ class _StepsView:
             elif self._pass(item):
                 yield self._col[item]
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return all(s1 is s2 for s1, s2 in zip_longest(self, other))
 
 
@@ -662,11 +673,11 @@ class StagyyData:
     """Generic lazy interface to StagYY output data.
 
     Args:
-        path (pathlike): path of the StagYY run. It can either be the path
-            of the directory containing the par file, or the path of the
-            par file. If the path given is a directory, the path of the par
-            file is assumed to be path/par.  If no path is given (or None)
-            it is set to ``conf.core.path``.
+        path: path of the StagYY run. It can either be the path of the
+            directory containing the par file, or the path of the par file. If
+            the path given is a directory, the path of the par file is assumed
+            to be path/par.  If no path is given (or None) it is set to
+            ``conf.core.path``.
 
     Other Parameters:
         conf.core.path: the default path.
@@ -678,10 +689,10 @@ class StagyyData:
         refstate (:class:`_Refstate`): reference state profiles.
     """
 
-    def __init__(self, path=None):
+    def __init__(self, path: Optional[PathLike] = None):
         if path is None:
             path = conf.core.path
-        runpath = pathlib.Path(path)
+        runpath = Path(path)
         if runpath.is_file():
             parname = runpath.name
             runpath = runpath.parent
@@ -695,41 +706,34 @@ class StagyyData:
         self.tseries = _Tseries(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
-        self._nfields_max = 50
+        self._nfields_max: Optional[int] = 50
         # list of (istep, field_name) in memory
-        self._collected_fields = []
+        self._collected_fields: List[Tuple[int, str]] = []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'StagyyData({self.path!r})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'StagyyData in {self.path}'
 
     @property
-    def path(self):
-        """Path of StagYY run directory.
-
-        :class:`pathlib.Path` instance.
-        """
+    def path(self) -> Path:
+        """Path of StagYY run directory."""
         return self._rundir['path']
 
     @property
-    def parpath(self):
-        """Path of par file.
-
-        :class:`pathlib.Path` instance.
-        """
+    def parpath(self) -> Path:
+        """Path of par file."""
         return self.path / self._rundir['par']
 
     @crop
-    def hdf5(self):
+    def hdf5(self) -> Optional[Path]:
         """Path of output hdf5 folder if relevant, None otherwise."""
         h5_folder = self.path / self.par['ioin']['hdf5_output_folder']
-        if (h5_folder / 'Data.xmf').is_file():
-            return h5_folder
+        return h5_folder if (h5_folder / 'Data.xmf').is_file() else None
 
     @property
-    def par(self):
+    def par(self) -> Namelist:
         """Content of par file.
 
         This is a :class:`f90nml.namelist.Namelist`, the first key being
@@ -738,7 +742,9 @@ class StagyyData:
         return self._par
 
     @crop
-    def _rprof_and_times(self):
+    def _rprof_and_times(
+        self
+    ) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
         rproffile = self.filename('rprof.h5')
         data = stagyyparsers.rprof_h5(rproffile, list(phyvars.RPROF.keys()))
         if data[1] is not None:
@@ -750,24 +756,21 @@ class StagyyData:
         return stagyyparsers.rprof(rproffile, list(phyvars.RPROF.keys()))
 
     @property
-    def rtimes(self):
-        """Radial profiles times.
-
-        This is a :class:`pandas.DataFrame` with istep as index.
-        """
+    def rtimes(self) -> DataFrame:
+        """Radial profiles times."""
         return self._rprof_and_times[1]
 
     @crop
-    def _files(self):
+    def _files(self) -> Set[Path]:
         """Set of found binary files output by StagYY."""
-        out_stem = pathlib.Path(self.par['ioin']['output_file_stem'] + '_')
+        out_stem = Path(self.par['ioin']['output_file_stem'] + '_')
         out_dir = self.path / out_stem.parent
         if out_dir.is_dir():
             return set(out_dir.iterdir())
         return set()
 
     @property
-    def walk(self):
+    def walk(self) -> _StepsView:
         """Return view on configured steps slice.
 
         Other Parameters:
@@ -781,7 +784,7 @@ class StagyyData:
         return self.snaps[-1, ]
 
     @property
-    def nfields_max(self):
+    def nfields_max(self) -> Optional[int]:
         """Maximum number of scalar fields kept in memory.
 
         Setting this to a value lower or equal to 5 raises a
@@ -792,20 +795,20 @@ class StagyyData:
         return self._nfields_max
 
     @nfields_max.setter
-    def nfields_max(self, nfields):
+    def nfields_max(self, nfields: Optional[int]):
         """Check nfields > 5 or None."""
         if nfields is not None and nfields <= 5:
             raise error.InvalidNfieldsError(nfields)
         self._nfields_max = nfields
 
-    def scale(self, data, unit):
+    def scale(self, data: ndarray, unit: str) -> Tuple[ndarray, str]:
         """Scales quantity to obtain dimensionful quantity.
 
         Args:
-            data (numpy.array): the quantity that should be scaled.
-            dim (str): the dimension of data as defined in phyvars.
+            data: the quantity that should be scaled.
+            unit: the dimension of data as defined in phyvars.
         Return:
-            (float, str): scaling factor and unit string.
+            scaled quantity and unit string.
         Other Parameters:
             conf.scaling.dimensional: if set to False (default), the factor is
                 always 1.
@@ -827,18 +830,17 @@ class StagyyData:
             unit = factor + unit
         return data * scaling, unit
 
-    def filename(self, fname, timestep=None, suffix='', force_legacy=False):
+    def filename(self, fname: str, timestep: Optional[int] = None,
+                 suffix: str = '', force_legacy: bool = False) -> Path:
         """Return name of StagYY output file.
 
         Args:
-            fname (str): name stem.
-            timestep (int): snapshot number, set to None if this is not
-                relevant.
-            suffix (str): optional suffix of file name.
-            force_legacy (bool): force returning the legacy output path.
+            fname: name stem.
+            timestep: snapshot number if relevant.
+            suffix: optional suffix of file name.
+            force_legacy: force returning the legacy output path.
         Returns:
-            :class:`pathlib.Path`: the path of the output file constructed
-            with the provided segments.
+            the path of the output file constructed with the provided segments.
         """
         if timestep is not None:
             fname += f'{timestep:05d}'
@@ -850,14 +852,13 @@ class StagyyData:
             fpath = self.path / fpath
         return fpath
 
-    def _binfiles_set(self, isnap):
+    def _binfiles_set(self, isnap: int) -> Set[Path]:
         """Set of existing binary files at a given snap.
 
         Args:
-            isnap (int): snapshot index.
+            isnap: snapshot index.
         Returns:
-            set of pathlib.Path: the set of output files available for this
-            snapshot number.
+            the set of output files available for this snapshot number.
         """
         possible_files = set(self.filename(fstem, isnap, force_legacy=True)
                              for fstem in phyvars.FIELD_FILES)

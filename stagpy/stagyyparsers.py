@@ -738,7 +738,7 @@ def _maybe_get(elt: Element, item: str, info: str,
 
 
 def read_geom_h5(
-    xdmf_file: Path, snapshot: Optional[int]
+    xdmf_file: Path, snapshot: int
 ) -> Tuple[Dict[str, Any], Element]:
     """Extract geometry information from hdf5 files.
 
