@@ -110,6 +110,16 @@ class _Scales:
         return self.length**2 / self.th_diff
 
     @property
+    def velocity(self) -> float:
+        """Velocity in m/s."""
+        return self.length / self.time
+
+    @property
+    def acceleration(self) -> float:
+        """Acceleration in m/s2."""
+        return self.length / self.time**2
+
+    @property
     def power(self) -> float:
         """Power in W."""
         return self.th_cond * self.temperature * self.length
@@ -118,6 +128,11 @@ class _Scales:
     def heat_flux(self) -> float:
         """Local heat flux in W/m2."""
         return self.power / self.length**2
+
+    @property
+    def heat_production(self) -> float:
+        """Local heat production in W/m3."""
+        return self.power / self.length**3
 
     @property
     def stress(self) -> float:

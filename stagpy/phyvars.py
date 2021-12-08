@@ -281,11 +281,11 @@ SCALES: Mapping[str, Callable[[_Scales], float]] = MappingProxyType({
     's': attrgetter('time'),
     'W/(m.K)': attrgetter('th_cond'),
     'm2/s': attrgetter('th_diff'),
-    'W/m3': lambda scl: scl.power / scl.length**3,
+    'W/m3': attrgetter('heat_production'),
     '1/s': lambda scl: 1 / scl.time,
     'K/s': lambda scl: scl.temperature / scl.time,
-    'm/s': lambda scl: scl.length / scl.time,
-    'm/s2': lambda scl: scl.length / scl.time**2,
+    'm/s': attrgetter('velocity'),
+    'm/s2': attrgetter('acceleration'),
 })
 
 PREFIXES = ('k', 'M', 'G')
