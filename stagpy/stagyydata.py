@@ -707,14 +707,9 @@ class StagyyData:
     def __init__(self, path: Optional[PathLike] = None):
         if path is None:
             path = conf.core.path
-        runpath = Path(path)
-        if runpath.is_file():
-            parname = runpath.name
-            runpath = runpath.parent
-        else:
-            parname = 'par'
-        self._rundir = {'path': runpath,
-                        'par': parname}
+        self._parpath = Path(path)
+        if not self._parpath.is_file():
+            self._parpath /= 'par'
         self._par = parfile.readpar(self.parpath, self.path)
         self.scales = _Scales(self)
         self.refstate = _Refstate(self)
@@ -734,12 +729,12 @@ class StagyyData:
     @property
     def path(self) -> Path:
         """Path of StagYY run directory."""
-        return self._rundir['path']
+        return self._parpath.parent
 
     @property
     def parpath(self) -> Path:
         """Path of par file."""
-        return self.path / self._rundir['par']
+        return self._parpath
 
     @crop
     def hdf5(self) -> Optional[Path]:
