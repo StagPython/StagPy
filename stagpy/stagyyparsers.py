@@ -21,8 +21,8 @@ from .error import ParsingError
 from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
 
 if typing.TYPE_CHECKING:
-    from typing import (List, Optional, Tuple, Dict, BinaryIO, Union, Any,
-                        Callable, Iterator)
+    from typing import (List, Optional, Tuple, Dict, BinaryIO, Any, Callable,
+                        Iterator)
     from pathlib import Path
     from xml.etree.ElementTree import Element
     from numpy import ndarray
@@ -339,9 +339,118 @@ def _readbin(fid: BinaryIO, fmt: str = 'i', nwords: int = 1,
     return elts
 
 
-def fields(fieldfile: Path, only_header: bool = False,
-           only_istep: bool = False) -> Union[None, int, Dict[str, Any],
-                                              Tuple[Dict[str, Any], ndarray]]:
+class _HeaderInfo(typing.NamedTuple):
+    """Header information."""
+
+    magic: int
+    nval: int
+    sfield: bool
+    readbin: Callable
+    header: Dict[str, Any]
+
+
+def _legacy_header(filepath: Path, fid: BinaryIO,
+                   stop_at_istep: bool = False) -> _HeaderInfo:
+    """Read the header of a legacy binary file."""
+    readbin = partial(_readbin, fid)
+    magic = readbin()
+    if magic > 8000:  # 64 bits
+        magic -= 8000
+        readbin()  # need to read 4 more bytes
+        readbin = partial(readbin, file64=True)
+
+    # check nb components
+    nval = 1
+    sfield = False
+    if magic > 400:
+        nval = 4
+    elif magic > 300:
+        nval = 3
+    elif magic > 100:
+        sfield = True
+
+    magic %= 100
+    if magic < 9:
+        raise ParsingError(filepath, 'magic < 9 not supported')
+
+    header_info = _HeaderInfo(magic, nval, sfield, readbin, {})
+    header = header_info.header
+    # extra ghost point in horizontal direction
+    header['xyp'] = int(nval == 4)  # magic >= 9
+
+    # total number of values in relevant space basis
+    # (e1, e2, e3) = (theta, phi, radius) in spherical geometry
+    #              = (x, y, z)            in cartesian geometry
+    header['nts'] = readbin(nwords=3)
+
+    # number of blocks, 2 for yinyang or cubed sphere
+    header['ntb'] = readbin()  # magic >= 7
+
+    # aspect ratio
+    header['aspect'] = readbin('f', 2)
+
+    # number of parallel subdomains
+    header['ncs'] = readbin(nwords=3)  # (e1, e2, e3) space
+    header['ncb'] = readbin()  # magic >= 8, blocks
+
+    # r - coordinates
+    # rgeom[0:self.nrtot+1, 0] are edge radial position
+    # rgeom[0:self.nrtot, 1] are cell-center radial position
+    header['rgeom'] = readbin('f', header['nts'][2] * 2 + 1)  # magic >= 2
+    header['rgeom'] = np.resize(header['rgeom'], (header['nts'][2] + 1, 2))
+
+    header['rcmb'] = readbin('f')  # magic >= 7
+
+    header['ti_step'] = readbin()  # magic >= 3
+    if stop_at_istep:
+        return header_info
+
+    header['ti_ad'] = readbin('f')  # magic >= 3
+    header['erupta_total'] = readbin('f')  # magic >= 5
+    header['bot_temp'] = readbin('f')  # magic >= 6
+    header['core_temp'] = readbin('f') if magic >= 10 else 1
+
+    # magic >= 4
+    header['e1_coord'] = readbin('f', header['nts'][0])
+    header['e2_coord'] = readbin('f', header['nts'][1])
+    header['e3_coord'] = readbin('f', header['nts'][2])
+
+    return header_info
+
+
+def field_istep(fieldfile: Path) -> Optional[int]:
+    """Read istep from binary field file.
+
+    Args:
+        fieldfile: path of the binary field file.
+
+    Returns:
+        the time step at which the binary file was written.
+    """
+    if not fieldfile.is_file():
+        return None
+    with fieldfile.open('rb') as fid:
+        hdr = _legacy_header(fieldfile, fid, stop_at_istep=True)
+    return hdr.header['ti_step']
+
+
+def field_header(fieldfile: Path) -> Optional[Dict[str, Any]]:
+    """Read header info from binary field file.
+
+    Args:
+        fieldfile: path of the binary field file.
+
+    Returns:
+        the header information of the binary file.
+    """
+    if not fieldfile.is_file():
+        return None
+    with fieldfile.open('rb') as fid:
+        hdr = _legacy_header(fieldfile, fid)
+    return hdr.header
+
+
+def fields(fieldfile: Path) -> Optional[Tuple[Dict[str, Any], ndarray]]:
     """Extract fields data.
 
     Args:
@@ -351,83 +460,15 @@ def fields(fieldfile: Path, only_header: bool = False,
         only_istep: when True, only :data:`istep` is returned.
 
     Returns:
-        If :data:`only_istep` is True, this function returns the time step at
-        which the binary file was written.
-
-        Else, if :data:`only_header` is True, this function returns a dict
-        containing the header informations of the binary file.
-
-        Otherwise, this function returns the tuple :data:`(header, fields)`.
-        :data:`fields` is an array of scalar fields indexed by variable,
-        x-direction, y-direction, z-direction, block.
+        the tuple :data:`(header, fields)`.  :data:`fields` is an array of
+        scalar fields indexed by variable, x-direction, y-direction,
+        z-direction, block.
     """
-    # something to skip header?
     if not fieldfile.is_file():
         return None
-    header: Dict[str, Any] = {}
     with fieldfile.open('rb') as fid:
-        readbin = partial(_readbin, fid)
-        magic = readbin()
-        if magic > 8000:  # 64 bits
-            magic -= 8000
-            readbin()  # need to read 4 more bytes
-            readbin = partial(readbin, file64=True)
-
-        # check nb components
-        nval = 1
-        sfield = False
-        if magic > 400:
-            nval = 4
-        elif magic > 300:
-            nval = 3
-        elif magic > 100:
-            sfield = True
-
-        magic %= 100
-        if magic < 9:
-            raise ParsingError(fieldfile, 'magic < 9 not supported')
-
-        # extra ghost point in horizontal direction
-        header['xyp'] = int(nval == 4)  # magic >= 9
-
-        # total number of values in relevant space basis
-        # (e1, e2, e3) = (theta, phi, radius) in spherical geometry
-        #              = (x, y, z)            in cartesian geometry
-        header['nts'] = readbin(nwords=3)
-
-        # number of blocks, 2 for yinyang or cubed sphere
-        header['ntb'] = readbin()  # magic >= 7
-
-        # aspect ratio
-        header['aspect'] = readbin('f', 2)
-
-        # number of parallel subdomains
-        header['ncs'] = readbin(nwords=3)  # (e1, e2, e3) space
-        header['ncb'] = readbin()  # magic >= 8, blocks
-
-        # r - coordinates
-        # rgeom[0:self.nrtot+1, 0] are edge radial position
-        # rgeom[0:self.nrtot, 1] are cell-center radial position
-        header['rgeom'] = readbin('f', header['nts'][2] * 2 + 1)  # magic >= 2
-        header['rgeom'] = np.resize(header['rgeom'], (header['nts'][2] + 1, 2))
-
-        header['rcmb'] = readbin('f')  # magic >= 7
-
-        header['ti_step'] = readbin()  # magic >= 3
-        if only_istep:
-            return header['ti_step']
-        header['ti_ad'] = readbin('f')  # magic >= 3
-        header['erupta_total'] = readbin('f')  # magic >= 5
-        header['bot_temp'] = readbin('f')  # magic >= 6
-        header['core_temp'] = readbin('f') if magic >= 10 else 1
-
-        # magic >= 4
-        header['e1_coord'] = readbin('f', header['nts'][0])
-        header['e2_coord'] = readbin('f', header['nts'][1])
-        header['e3_coord'] = readbin('f', header['nts'][2])
-
-        if only_header:
-            return header
+        hdr = _legacy_header(fieldfile, fid)
+        header = hdr.header
 
         # READ FIELDS
         # number of points in (e1, e2, e3) directions PER CPU
@@ -436,11 +477,11 @@ def fields(fieldfile: Path, only_header: bool = False,
         nbk = header['ntb'] // header['ncb']
         # number of values per 'read' block
         npi = (npc[0] + header['xyp']) * (npc[1] + header['xyp']) * npc[2] * \
-            nbk * nval
+            nbk * hdr.nval
 
-        header['scalefac'] = readbin('f') if nval > 1 else 1
+        header['scalefac'] = hdr.readbin('f') if hdr.nval > 1 else 1
 
-        flds = np.zeros((nval,
+        flds = np.zeros((hdr.nval,
                          header['nts'][0] + header['xyp'],
                          header['nts'][1] + header['xyp'],
                          header['nts'][2],
@@ -452,7 +493,7 @@ def fields(fieldfile: Path, only_header: bool = False,
                             range(header['ncs'][1]),
                             range(header['ncs'][0])):
             # read the data for one CPU
-            data_cpu = readbin('f', npi) * header['scalefac']
+            data_cpu = hdr.readbin('f', npi) * header['scalefac']
 
             # icpu is (icpu block, icpu z, icpu y, icpu x)
             # data from file is transposed to obtained a field
@@ -464,8 +505,8 @@ def fields(fieldfile: Path, only_header: bool = False,
                  icpu[0] * nbk:(icpu[0] + 1) * nbk  # block
                  ] = np.transpose(data_cpu.reshape(
                      (nbk, npc[2], npc[1] + header['xyp'],
-                      npc[0] + header['xyp'], nval)))
-        if sfield:
+                      npc[0] + header['xyp'], hdr.nval)))
+        if hdr.sfield:
             # for surface fields, variables are written along z direction
             flds = np.swapaxes(flds, 0, 3)
     return header, flds

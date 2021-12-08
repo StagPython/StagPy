@@ -485,7 +485,7 @@ class _Snaps(_Steps):
             # isnap not in _isteps but not all isteps known, keep looking
             binfiles = self.sdat._binfiles_set(isnap)
             if binfiles:
-                istep = stagyyparsers.fields(binfiles.pop(), only_istep=True)
+                istep = stagyyparsers.field_istep(binfiles.pop())
             else:
                 istep = None
             if istep is not None:

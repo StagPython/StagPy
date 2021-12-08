@@ -348,7 +348,7 @@ class _Fields(abc.Mapping):
         binfiles = self.step.sdat._binfiles_set(self.step.isnap)
         header = None
         if binfiles:
-            header = stagyyparsers.fields(binfiles.pop(), only_header=True)
+            header = stagyyparsers.field_header(binfiles.pop())
         elif self.step.sdat.hdf5:
             xmf = self.step.sdat.hdf5 / 'Data.xmf'
             header = stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]

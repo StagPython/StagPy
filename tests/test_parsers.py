@@ -32,14 +32,13 @@ def test_fields_prs(sdat):
     assert flds.shape[1:4] == tuple(hdr['nts'])
 
 
-def test_fields_header_only_prs(sdat):
-    hdr = prs.fields(sdat.filename('t', len(sdat.snaps) - 1), only_header=True)
+def test_field_header_prs(sdat):
+    hdr = prs.field_header(sdat.filename('t', len(sdat.snaps) - 1))
     assert hdr['nts'].shape == (3,)
 
 
-def test_fields_istep_only_prs(sdat):
-    istep = prs.fields(sdat.filename('t', len(sdat.snaps) - 1),
-                       only_istep=True)
+def test_fields_istep_prs(sdat):
+    istep = prs.field_istep(sdat.filename('t', len(sdat.snaps) - 1))
     assert istep == sdat.snaps[-1].istep
 
 
