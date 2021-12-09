@@ -1,6 +1,8 @@
 """Plot scalar and vector fields."""
 
+from __future__ import annotations
 from itertools import chain
+import typing
 
 import numpy as np
 import matplotlib as mpl
@@ -12,12 +14,21 @@ from . import conf, phyvars, _helpers
 from .error import NotAvailableError
 from .stagyydata import StagyyData
 
+if typing.TYPE_CHECKING:
+    from typing import Tuple, Optional, Any, Iterable, Dict
+    from numpy import ndarray
+    from matplotlib.axes import Axes
+    from .datatypes import Varf
+    from ._step import Step
+
 
 # The location is off for vertical velocities: they have an extra
 # point in (x,y) instead of z in the output
 
 
-def _threed_extract(step, var, walls=False):
+def _threed_extract(
+    step: Step, var: str, walls: bool = False
+) -> Tuple[Tuple[ndarray, ndarray], Any]:
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
     hwalls = is_vector or walls
@@ -53,33 +64,33 @@ def _threed_extract(step, var, walls=False):
     return (xcoord, ycoord), data
 
 
-def valid_field_var(var):
+def valid_field_var(var: str) -> bool:
     """Whether a field variable is defined.
 
-    This function checks if a definition of the variable exists in
-    :data:`~stagpy.phyvars.FIELD` or :data:`~stagpy.phyvars.FIELD_EXTRA`.
-
     Args:
-        var (str): the variable name to be checked.
+        var: the variable name to be checked.
     Returns:
-        bool: True is the var is defined, False otherwise.
+        whether the var is defined in :data:`~stagpy.phyvars.FIELD` or
+        :data:`~stagpy.phyvars.FIELD_EXTRA`.
     """
     return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
 
-def get_meshes_fld(step, var, walls=False):
+def get_meshes_fld(
+    step: Step, var: str, walls: bool = False
+) -> Tuple[ndarray, ndarray, ndarray, Varf]:
     """Return scalar field along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
 
     Args:
-        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        var (str): scalar field name.
-        walls (bool): consider the walls as the relevant mesh.
+        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        var: scalar field name.
+        walls: consider the walls as the relevant mesh.
     Returns:
-        tuple of :class:`numpy.array`: xmesh, ymesh, fld, meta
-            2D arrays containing respectively the x position, y position, the
-            values and the metadata of the requested field.
+        tuple (xmesh, ymesh, fld, meta).  2D arrays containing respectively the
+        x position, y position, the values and the metadata of the requested
+        field.
     """
     fld, meta = step.fields[var]
     hwalls = (walls or fld.shape[0] != step.geom.nxtot or
@@ -102,18 +113,20 @@ def get_meshes_fld(step, var, walls=False):
     return xmesh, ymesh, fld, meta
 
 
-def get_meshes_vec(step, var):
+def get_meshes_vec(
+    step: Step, var: str
+) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
     """Return vector field components along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
 
     Args:
-        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        var (str): vector field name.
+        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        var: vector field name.
     Returns:
-        tuple of :class:`numpy.array`: xmesh, ymesh, fldx, fldy
-            2D arrays containing respectively the x position, y position, x
-            component and y component of the requested vector field.
+        tuple (xmesh, ymesh, fldx, fldy).  2D arrays containing respectively
+        the x position, y position, x component and y component of the
+        requested vector field.
     """
     if step.geom.threed and step.geom.cartesian:
         (xcoord, ycoord), (vec1, vec2) = _threed_extract(step, var)
@@ -140,20 +153,21 @@ def get_meshes_vec(step, var):
     return xmesh, ymesh, vec1, vec2
 
 
-def plot_scalar(step, var, field=None, axis=None, **extra):
+def plot_scalar(step: Step, var: str, field: Optional[ndarray] = None,
+                axis: Optional[Axes] = None, **extra: Any):
     """Plot scalar field.
 
     Args:
-        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        var (str): the scalar field name.
-        field (:class:`numpy.array`): if not None, it is plotted instead of
-            step.fields[var].  This is useful to plot a masked or rescaled
-            array.  Note that if conf.scaling.dimensional is True, this
-            field will be scaled accordingly.
-        axis (:class:`matplotlib.axes.Axes`): the axis objet where the field
-            should be plotted.  If set to None, a new figure with one subplot
-            is created.
-        extra (dict): options that will be passed on to
+        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        var: the scalar field name.
+        field: if not None, it is plotted instead of step.fields[var].  This is
+            useful to plot a masked or rescaled array.  Note that if
+            conf.scaling.dimensional is True, this field will be scaled
+            accordingly.
+        axis: the :class:`matplotlib.axes.Axes` object where the field should
+            be plotted.  If set to None, a new figure with one subplot is
+            created.
+        extra: options that will be passed on to
             :func:`matplotlib.axes.Axes.pcolormesh`.
     Returns:
         fig, axis, surf, cbar
@@ -241,22 +255,21 @@ def plot_scalar(step, var, field=None, axis=None, **extra):
     return fig, axis, surf, cbar
 
 
-def plot_iso(axis, step, var, **extra):
+def plot_iso(axis: Axes, step: Step, var: str, **extra: Any):
     """Plot isocontours of scalar field.
 
     Args:
-        axis (:class:`matplotlib.axes.Axes`): the axis handler of an
-            existing matplotlib figure where the isocontours should
-            be plotted.
-        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        var (str): the scalar field name.
-        extra (dict): options that will be passed on to
+        axis: the :class:`matplotlib.axes.Axes` of an existing matplotlib
+            figure where the isocontours should be plotted.
+        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        var: the scalar field name.
+        extra: options that will be passed on to
             :func:`matplotlib.axes.Axes.contour`.
     """
     xmesh, ymesh, fld, _ = get_meshes_fld(step, var)
     if conf.field.shift:
         fld = np.roll(fld, conf.field.shift, axis=0)
-    extra_opts = dict(linewidths=1)
+    extra_opts: Dict[str, Any] = dict(linewidths=1)
     if 'cmap' not in extra and conf.field.isocolors:
         extra_opts['colors'] = conf.field.isocolors.split(',')
     elif 'colors' not in extra:
@@ -267,15 +280,14 @@ def plot_iso(axis, step, var, **extra):
     axis.contour(xmesh, ymesh, fld, **extra_opts)
 
 
-def plot_vec(axis, step, var):
+def plot_vec(axis: Axes, step: Step, var: str):
     """Plot vector field.
 
     Args:
-        axis (:class:`matplotlib.axes.Axes`): the axis handler of an
-            existing matplotlib figure where the vector field should
-            be plotted.
-        step (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        var (str): the vector field name.
+        axis: the :class:`matplotlib.axes.Axes` of an existing matplotlib
+            figure where the vector field should be plotted.
+        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        var: the vector field name.
     """
     xmesh, ymesh, vec1, vec2 = get_meshes_vec(step, var)
     dipz = step.geom.nztot // 10
@@ -292,9 +304,11 @@ def plot_vec(axis, step, var):
                 linewidths=1)
 
 
-def _findminmax(sdat, sovs):
+def _findminmax(
+    sdat: StagyyData, sovs: Iterable[str]
+) -> Dict[str, Tuple[float, float]]:
     """Find min and max values of several fields."""
-    minmax = {}
+    minmax: Dict[str, Tuple[float, float]] = {}
     for step in sdat.walk.filter(snap=True):
         for var in sovs:
             if var in step.fields:
@@ -333,7 +347,7 @@ def cmd():
                 if var[0] not in step.fields:
                     print(f"{var[0]!r} field on snap {step.isnap} not found")
                     continue
-                opts = {}
+                opts: Dict[str, Any] = {}
                 if var[0] in minmax:
                     opts = dict(vmin=minmax[var[0]][0], vmax=minmax[var[0]][1])
                 plot_scalar(step, var[0], axis=axis, **opts)

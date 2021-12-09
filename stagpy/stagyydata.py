@@ -832,7 +832,18 @@ class StagyyData:
             raise error.InvalidNfieldsError(nfields)
         self._nfields_max = nfields
 
+    @typing.overload
     def scale(self, data: ndarray, unit: str) -> Tuple[ndarray, str]:
+        """Scale a ndarray."""
+        ...
+
+    @typing.overload
+    def scale(self, data: float, unit: str) -> Tuple[float, str]:
+        """Scale a float."""
+        ...
+
+    def scale(self, data: Union[ndarray, float],
+              unit: str) -> Tuple[Union[ndarray, float], str]:
         """Scales quantity to obtain dimensionful quantity.
 
         Args:
