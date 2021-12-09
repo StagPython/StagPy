@@ -8,6 +8,7 @@ Note:
 """
 
 from __future__ import annotations
+from dataclasses import dataclass, field
 from itertools import zip_longest
 from pathlib import Path
 import re
@@ -22,7 +23,7 @@ from .datatypes import Rprof, Tseries, Vart
 
 if typing.TYPE_CHECKING:
     from typing import (Tuple, List, Dict, Optional, Union, Sequence, Iterator,
-                        Set)
+                        Set, Callable, Iterable)
     from os import PathLike
     from f90nml.namelist import Namelist
     from numpy import ndarray
@@ -431,9 +432,11 @@ class _Steps:
                                             after)
         return self[self.sdat.tseries.isteps[itime]]
 
-    def filter(self, **filters):
+    def filter(self, snap: bool = False, rprofs: bool = False,
+               fields: Optional[Iterable[str]] = None,
+               func: Optional[Callable[[Step], bool]] = None) -> _StepsView:
         """Build a _StepsView with requested filters."""
-        return self[:].filter(**filters)
+        return self[:].filter(snap, rprofs, fields, func)
 
 
 class _Snaps(_Steps):
@@ -563,6 +566,41 @@ class _Snaps(_Steps):
         self.sdat.steps[istep]._isnap = isnap
 
 
+@dataclass
+class _Filters:
+    """Filters on a step view."""
+
+    snap: bool = False
+    rprofs: bool = False
+    fields: Set[str] = field(default_factory=set)
+    funcs: List[Callable[[Step], bool]] = field(default_factory=list)
+
+    def passes(self, step: Step) -> bool:
+        """Whether a given Step passes the filters."""
+        if self.snap and step.isnap is None:
+            return False
+        if self.rprofs:
+            try:
+                _ = step.rprofs.centers
+            except error.MissingDataError:
+                return False
+        if any(fld not in step.fields for fld in self.fields):
+            return False
+        return all(func(step) for func in self.funcs)
+
+    def __repr__(self) -> str:
+        flts = []
+        if self.snap:
+            flts.append('snap=True')
+        if self.rprofs:
+            flts.append('rprofs=True')
+        if self.fields:
+            flts.append(f"fields={self.fields!r}")
+        if self.funcs:
+            flts.append(f"func={self.funcs!r}")
+        return ', '.join(flts)
+
+
 class _StepsView:
     """Filtered iterator over steps or snaps.
 
@@ -579,13 +617,7 @@ class _StepsView:
         self._col = steps_col
         self._items = items
         self._rprofs_averaged: Optional[_RprofsAveraged] = None
-        self._flt = {
-            'snap': False,
-            'rprofs': False,
-            'fields': [],
-            'func': lambda _: True,
-        }
-        self._dflt_func = self._flt['func']
+        self._flt = _Filters()
 
     @property
     def rprofs_averaged(self) -> _RprofsAveraged:
@@ -613,62 +645,51 @@ class _StepsView:
 
     def __repr__(self) -> str:
         rep = f'{self._col.sdat!r}.{self.stepstr}'
-        flts = []
-        for flt in ('snap', 'rprofs', 'fields'):
-            if self._flt[flt]:
-                flts.append(f'{flt}={self._flt[flt]!r}')
-        if self._flt['func'] is not self._dflt_func:
-            flts.append(f"func={self._flt['func']!r}")
+        flts = repr(self._flt)
         if flts:
-            rep += '.filter({})'.format(', '.join(flts))
+            rep += f'.filter({flts})'
         return rep
 
-    def _pass(self, item) -> bool:
+    def _pass(self, item: int) -> bool:
         """Check whether an item passes the filters."""
         try:
             step = self._col[item]
         except KeyError:
             return False
-        okf = True
-        okf = okf and (not self._flt['snap'] or step.isnap is not None)
-        if self._flt['rprofs']:
-            try:
-                _ = step.rprofs.centers
-            except error.MissingDataError:
-                return False
-        okf = okf and all(f in step.fields for f in self._flt['fields'])
-        okf = okf and bool(self._flt['func'](step))
-        return okf
+        return self._flt.passes(step)
 
-    def filter(self, **filters):
-        """Update filters with provided arguments.
+    def filter(self, snap: bool = False, rprofs: bool = False,
+               fields: Optional[Iterable[str]] = None,
+               func: Optional[Callable[[Step], bool]] = None) -> _StepsView:
+        """Add filters to the view.
 
-        Note that filters are only resolved when the view is iterated, and
-        hence they do not compose. Each call to filter merely updates the
-        relevant filters. For example, with this code::
+        Note that filters are only resolved when the view is iterated.
+        Successive calls to :meth:`filter` compose.  For example, with this
+        code::
 
             view = sdat.steps[500:].filter(rprofs=True, fields=['T'])
-            view.filter(fields=[])
+            view.filter(fields=['eta'])
 
         the produced ``view``, when iterated, will generate the steps after the
-        500-th that have radial profiles. The ``fields`` filter set in the
-        first line is emptied in the second line.
+        500-th that have radial profiles, and both the temperature and
+        viscosity fields.
 
         Args:
-            snap (bool): the step must be a snapshot to pass.
-            rprofs (bool): the step must have rprofs data to pass.
-            fields (list): list of fields that must be present to pass.
-            func (function): arbitrary function taking a
-                :class:`~stagpy._step.Step` as argument and returning a True
-                value if the step should pass the filter.
+            snap: if true, the step must be a snapshot to pass.
+            rprofs: if true, the step must have rprofs data to pass.
+            fields: list of fields that must be present to pass.
+            func: arbitrary function returning whether a step should pass the
+                filter.
 
         Returns:
             self.
         """
-        for flt, val in self._flt.items():
-            self._flt[flt] = filters.pop(flt, val)
-        if filters:
-            raise error.UnknownFiltersError(filters.keys())
+        self._flt.snap = self._flt.snap or snap
+        self._flt.rprofs = self._flt.rprofs or rprofs
+        if fields is not None:
+            self._flt.fields = self._flt.fields.union(fields)
+        if func is not None:
+            self._flt.funcs.append(func)
         return self
 
     def __iter__(self) -> Iterator[Step]:

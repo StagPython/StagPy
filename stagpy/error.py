@@ -4,7 +4,6 @@ from __future__ import annotations
 import typing
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence
     from os import PathLike
     from .stagyydata import StagyyData
     from ._step import Step
@@ -192,18 +191,6 @@ class UnknownVarError(StagpyError, KeyError):
     def __init__(self, varname: str):
         self.varname = varname
         super().__init__(varname)
-
-
-class UnknownFiltersError(StagpyError):
-    """Raised when invalid step filter is requested.
-
-    Attributes:
-        filters: the invalid filter names.
-    """
-
-    def __init__(self, filters: Sequence[str]):
-        self.filters = filters
-        super().__init__(', '.join(repr(f) for f in filters))
 
 
 class UnknownFieldVarError(UnknownVarError):
