@@ -21,10 +21,7 @@ def plot_rprofs(rprofs: _Rprofs, names: str):
         names: profile names separated by ``-`` (figures), ``.`` (subplots) and
             ``,`` (same subplot).
     """
-    try:
-        stepstr = rprofs.steps.stepstr
-    except AttributeError:
-        stepstr = str(rprofs.step.istep)
+    stepstr = rprofs.stepstr
     sdat = rprofs.step.sdat
 
     for vfig in _helpers.list_of_vars(names):

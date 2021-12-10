@@ -334,6 +334,11 @@ class _RprofsAveraged(_step._Rprofs):
         self._cached_data[name] = Rprof(rprof, rad, meta)
         return self._cached_data[name]
 
+    @property
+    def stepstr(self) -> str:
+        """String representation of steps indices."""
+        return self.steps.stepstr
+
 
 class _Steps:
     """Collections of time steps.

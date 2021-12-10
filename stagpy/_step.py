@@ -460,6 +460,11 @@ class _Rprofs:
 
         return Rprof(rprof, rad, meta)
 
+    @property
+    def stepstr(self) -> str:
+        """String representation of the parent :class:`Step`."""
+        return str(self.step.istep)
+
     @crop
     def centers(self) -> ndarray:
         """Radial position of cell centers."""
