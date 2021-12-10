@@ -16,7 +16,7 @@ Truthy values for environment variables are 'true', 't', 'yes', 'y', 'on', '1',
 and uppercase versions of those.
 """
 
-import importlib
+from __future__ import annotations
 import os
 import pathlib
 import shutil
@@ -30,7 +30,7 @@ from loam.manager import ConfigurationManager
 from . import config
 
 
-def _env(var):
+def _env(var: str) -> bool:
     """Return whether var is set to True."""
     val = os.getenv(var, default='').lower()
     return val in ('true', 't', 'yes', 'y', 'on', '1')
@@ -69,7 +69,7 @@ def _check_config():
 
 def load_mplstyle():
     """Try to load conf.plot.mplstyle matplotlib style."""
-    plt = importlib.import_module('matplotlib.pyplot')
+    import matplotlib.pyplot as plt
     if conf.plot.mplstyle:
         for style in conf.plot.mplstyle.split():
             found = False

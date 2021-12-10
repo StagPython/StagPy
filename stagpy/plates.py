@@ -1,7 +1,9 @@
 """Plate analysis."""
 
+from __future__ import annotations
 from contextlib import suppress
 from functools import lru_cache
+import typing
 
 import matplotlib.pyplot as plt
 from matplotlib import colors
@@ -10,11 +12,17 @@ from scipy.signal import argrelmin, argrelmax
 
 from . import conf, error, field, phyvars, _helpers
 from ._helpers import saveplot
-from ._step import Field
+from .datatypes import Field
 from .stagyydata import StagyyData
 
+if typing.TYPE_CHECKING:
+    from typing import Iterable, Tuple, TextIO, Union
+    from matplotlib.axes import Axes
+    from numpy import ndarray
+    from ._step import Step, _Geometry
 
-def _vzcheck(iphis, snap, vz_thres):
+
+def _vzcheck(iphis: Iterable[int], snap: Step, vz_thres: float) -> ndarray:
     """Remove positions where vz is below threshold."""
     # verifying vertical velocity
     vzabs = np.abs(snap.fields['v3'].values[0, ..., 0])
@@ -27,20 +35,21 @@ def _vzcheck(iphis, snap, vz_thres):
 
 
 @lru_cache()
-def detect_plates(snap, vz_thres_ratio=0):
+def detect_plates(snap: Step,
+                  vz_thres_ratio: float = 0) -> Tuple[ndarray, ndarray]:
     """Detect plate limits using derivative of horizontal velocity.
 
     This function is cached for convenience.
 
     Args:
-        snap (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        vz_thres_ratio (float): if above zero, an additional check based on the
+        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        vz_thres_ratio: if above zero, an additional check based on the
             vertical velocities is performed.  Limits detected above a region
             where the vertical velocity is below vz_thres_ratio * mean(vzabs)
             are ignored.
     Returns:
-        tuple of :class:`numpy.array`: itrenches, iridges
-            1D arrays containing phi-index of detected trenches and ridges.
+        tuple (itrenches, iridges).  1D arrays containing phi-index of detected
+        trenches and ridges.
     """
     dvphi = _surf_diag(snap, 'dv2').values
 
@@ -83,7 +92,7 @@ def detect_plates(snap, vz_thres_ratio=0):
     return itrenches, iridges
 
 
-def _plot_plate_limits(axis, trenches, ridges):
+def _plot_plate_limits(axis: Axes, trenches: ndarray, ridges: ndarray):
     """Plot lines designating ridges and trenches."""
     for trench in trenches:
         axis.axvline(x=trench, color='red', ls='dashed', alpha=0.4)
@@ -91,7 +100,9 @@ def _plot_plate_limits(axis, trenches, ridges):
         axis.axvline(x=ridge, color='green', ls='dashed', alpha=0.4)
 
 
-def _annot_pos(geom, iphi):
+def _annot_pos(
+    geom: _Geometry, iphi: int
+) -> Tuple[Tuple[float, float], Tuple[float, float]]:
     """Position of arrows to mark limit positions."""
     phi = geom.p_centers[iphi]
     rtot = geom.r_walls[-1]
@@ -106,7 +117,7 @@ def _annot_pos(geom, iphi):
     return p_beg, p_end
 
 
-def _plot_plate_limits_field(axis, snap):
+def _plot_plate_limits_field(axis: Axes, snap: Step):
     """Plot arrows designating ridges and trenches in 2D field plots."""
     itrenches, iridges = detect_plates(snap, conf.plates.vzratio)
     for itrench in itrenches:
@@ -121,7 +132,7 @@ def _plot_plate_limits_field(axis, snap):
                       annotation_clip=False)
 
 
-def _isurf(snap):
+def _isurf(snap: Step) -> int:
     """Return index of surface accounting for air layer."""
     if snap.sdat.par['boundaries']['air_layer']:
         dsa = snap.sdat.par['boundaries']['air_thickness']
@@ -134,7 +145,7 @@ def _isurf(snap):
     return isurf
 
 
-def _surf_diag(snap, name):
+def _surf_diag(snap: Step, name: str) -> Field:
     """Get a surface field.
 
     Can be a sfield, a regular scalar field evaluated at the surface,
@@ -157,12 +168,13 @@ def _surf_diag(snap, name):
     raise error.UnknownVarError(name)
 
 
-def _continents_location(snap, at_surface=True):
+def _continents_location(snap: Step, at_surface: bool = True) -> ndarray:
     """Location of continents as a boolean array.
 
     If at_surface is True, it is evaluated only at the surface, otherwise it is
     evaluated in the entire domain.
     """
+    icont: Union[int, slice]
     if at_surface:
         if snap.sdat.par['boundaries']['air_layer']:
             icont = _isurf(snap) - 6
@@ -182,13 +194,13 @@ def _continents_location(snap, at_surface=True):
     return csurf >= 2
 
 
-def plot_at_surface(snap, names):
+def plot_at_surface(snap: Step, names: str):
     """Plot surface diagnostics.
 
     Args:
-        snap (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        names (str): names of requested surface diagnotics. They are separated
-            by ``-`` (figures), ``.`` (subplots) and ``,`` (same subplot).
+        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        names: names of requested surface diagnotics. They are separated by
+            ``-`` (figures), ``.`` (subplots) and ``,`` (same subplot).
             Surface diagnotics can be valid surface field names, field names,
             or `"dv2"` which is d(vphi)/dphi.
     """
@@ -226,8 +238,9 @@ def plot_at_surface(snap, names):
         saveplot(fig, fname, snap.isnap)
 
 
-def _write_trench_diagnostics(step, vrms_surf, fid):
+def _write_trench_diagnostics(step: Step, vrms_surf: float, fid: TextIO):
     """Print out some trench diagnostics."""
+    assert step.isnap is not None
     itrenches, _ = detect_plates(step, conf.plates.vzratio)
     time = step.time * vrms_surf *\
         conf.scaling.ttransit / conf.scaling.yearins / 1.e6
@@ -279,12 +292,12 @@ def _write_trench_diagnostics(step, vrms_surf, fid):
                 agetrenches[isubd]))
 
 
-def plot_scalar_field(snap, fieldname):
+def plot_scalar_field(snap: Step, fieldname: str):
     """Plot scalar field with plate information.
 
     Args:
-        snap (:class:`~stagpy._step.Step`): a step of a StagyyData instance.
-        fieldname (str): name of the field that should be decorated with plate
+        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        fieldname: name of the field that should be decorated with plate
             informations.
     """
     fig, axis, _, _ = field.plot_scalar(snap, fieldname)

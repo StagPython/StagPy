@@ -6,7 +6,7 @@ def test_time_series_prs(sdat):
     names = ['aa', 'bb', 'cc']
     data = prs.time_series(sdat.filename('time.dat'), list(names))
     assert (data.columns[:3] == names).all()
-    assert (data.columns[3:] == list(range(data.shape[1] - 3))).all()
+    assert (data.columns[3:] == list(map(str, range(data.shape[1] - 3)))).all()
 
 
 def test_time_series_invalid_prs():
@@ -17,7 +17,7 @@ def test_rprof_prs(sdat):
     names = ['aa', 'bb', 'cc']
     data, time = prs.rprof(sdat.filename('rprof.dat'), list(names))
     assert all((df.columns[:3] == names).all() for df in data.values())
-    assert all((df.columns[3:] == list(range(df.shape[1] - 3))).all()
+    assert all((df.columns[3:] == list(map(str, range(df.shape[1] - 3)))).all()
                for df in data.values())
 
 
@@ -32,14 +32,13 @@ def test_fields_prs(sdat):
     assert flds.shape[1:4] == tuple(hdr['nts'])
 
 
-def test_fields_header_only_prs(sdat):
-    hdr = prs.fields(sdat.filename('t', len(sdat.snaps) - 1), only_header=True)
+def test_field_header_prs(sdat):
+    hdr = prs.field_header(sdat.filename('t', len(sdat.snaps) - 1))
     assert hdr['nts'].shape == (3,)
 
 
-def test_fields_istep_only_prs(sdat):
-    istep = prs.fields(sdat.filename('t', len(sdat.snaps) - 1),
-                       only_istep=True)
+def test_fields_istep_prs(sdat):
+    istep = prs.field_istep(sdat.filename('t', len(sdat.snaps) - 1))
     assert istep == sdat.snaps[-1].istep
 
 

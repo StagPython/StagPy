@@ -3,3 +3,18 @@ requires = ["setuptools>=45", "setuptools_scm>=6.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+
+[tool.mypy]
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "setuptools_scm",
+    "f90nml.*",
+    "h5py.*",
+    "matplotlib.*",
+    "mpl_toolkits.*",
+    "pandas.*",
+    "scipy.*",
+]
+ignore_missing_imports = true

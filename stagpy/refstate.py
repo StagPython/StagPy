@@ -1,5 +1,7 @@
 """Plot reference state profiles."""
 
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 
 from . import conf, _helpers
@@ -7,13 +9,12 @@ from .phyvars import REFSTATE
 from .stagyydata import StagyyData
 
 
-def plot_ref(sdat, var):
+def plot_ref(sdat: StagyyData, var: str):
     """Plot one reference state.
 
     Args:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        var (str): refstate variable, a key of
-            :data:`~stagpy.phyvars.REFSTATE`.
+        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        var: refstate variable, a key of :data:`~stagpy.phyvars.REFSTATE`.
     """
     fig, axis = plt.subplots()
     adbts = sdat.refstate.adiabats
@@ -42,8 +43,6 @@ def cmd():
         conf.plot
     """
     sdat = StagyyData()
-    if sdat.refstate.adiabats is None:
-        return
 
     lov = conf.refstate.plot.split(',')
     if not lov:

@@ -6,14 +6,24 @@ Note:
     :class:`~stagpy.stagyydata.StagyyData` class.
 """
 
-from collections.abc import Mapping
-from collections import namedtuple
+from __future__ import annotations
+from collections import abc
 from itertools import chain
+import typing
 
 import numpy as np
 
-from . import error, phyvars, stagyyparsers, _helpers
+from . import error, phyvars, stagyyparsers
 from ._helpers import CachedReadOnlyProperty as crop
+from .datatypes import Field, Rprof, Varr
+
+if typing.TYPE_CHECKING:
+    from typing import (Dict, Any, Mapping, List, Iterator, Tuple, Optional,
+                        Callable)
+    from numpy import ndarray
+    from pandas import DataFrame, Series
+    from .datatypes import Varf
+    from .stagyydata import StagyyData
 
 
 class _Geometry:
@@ -23,14 +33,15 @@ class _Geometry:
     output by StagYY.
     """
 
-    def __init__(self, header, step):
+    def __init__(self, header: Dict[str, Any], step: Step):
         self._header = header
         self._step = step
-        self._shape = {'sph': False, 'cyl': False, 'axi': False,
-                       'ntot': list(header['nts']) + [header['ntb']]}
+        self._shape: Dict[str, Any] = {
+            'sph': False, 'cyl': False, 'axi': False,
+            'ntot': list(header['nts']) + [header['ntb']]}
         self._init_shape()
 
-    def _scale_radius_mo(self, radius):
+    def _scale_radius_mo(self, radius: ndarray) -> ndarray:
         """Rescale radius for MO runs."""
         if self._step.sdat.par['magma_oceans_in']['magma_oceans_mode']:
             return self._header['mo_thick_sol'] * (
@@ -38,22 +49,22 @@ class _Geometry:
         return radius
 
     @crop
-    def nttot(self):
+    def nttot(self) -> int:
         """Number of grid point along the x/theta direction."""
         return self._shape['ntot'][0]
 
     @crop
-    def nptot(self):
+    def nptot(self) -> int:
         """Number of grid point along the y/phi direction."""
         return self._shape['ntot'][1]
 
     @crop
-    def nrtot(self):
+    def nrtot(self) -> int:
         """Number of grid point along the z/r direction."""
         return self._shape['ntot'][2]
 
     @crop
-    def nbtot(self):
+    def nbtot(self) -> int:
         """Number of blocks."""
         return self._shape['ntot'][3]
 
@@ -62,7 +73,7 @@ class _Geometry:
     nztot = nrtot
 
     @crop
-    def r_walls(self):
+    def r_walls(self) -> ndarray:
         """Position of FV walls along the z/r direction."""
         rgeom = self._header.get("rgeom")
         if rgeom is not None:
@@ -73,7 +84,7 @@ class _Geometry:
         return self._scale_radius_mo(walls)
 
     @crop
-    def r_centers(self):
+    def r_centers(self) -> ndarray:
         """Position of FV centers along the z/r direction."""
         rgeom = self._header.get("rgeom")
         if rgeom is not None:
@@ -83,7 +94,7 @@ class _Geometry:
         return self._scale_radius_mo(walls)
 
     @crop
-    def t_walls(self):
+    def t_walls(self) -> ndarray:
         """Position of FV walls along x/theta."""
         if self.threed or self.twod_xz:
             if self.yinyang:
@@ -103,12 +114,12 @@ class _Geometry:
         return np.array([center - d_t, center + d_t])
 
     @crop
-    def t_centers(self):
+    def t_centers(self) -> ndarray:
         """Position of FV centers along x/theta."""
         return (self.t_walls[:-1] + self.t_walls[1:]) / 2
 
     @crop
-    def p_walls(self):
+    def p_walls(self) -> ndarray:
         """Position of FV walls along y/phi."""
         if self.threed or self.twod_yz:
             if self.yinyang:
@@ -126,7 +137,7 @@ class _Geometry:
         return np.array([-d_p, d_p])
 
     @crop
-    def p_centers(self):
+    def p_centers(self) -> ndarray:
         """Position of FV centers along y/phi."""
         return (self.p_walls[:-1] + self.p_walls[1:]) / 2
 
@@ -141,72 +152,65 @@ class _Geometry:
         """Determine shape of geometry."""
         shape = self._step.sdat.par['geometry']['shape'].lower()
         aspect = self._header['aspect']
-        if self._header['rcmb'] is not None and self._header['rcmb'] >= 0:
+        if self._header['rcmb'] >= 0:
             # curvilinear
             self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
                                                    aspect[0] >= np.pi)
             self._shape['sph'] = not self._shape['cyl']
-        elif self._header['rcmb'] is None:
-            self._header['rcmb'] = self._step.sdat.par['geometry']['r_cmb']
-            if self._header['rcmb'] >= 0:
-                if self.twod_xz and shape == 'cylindrical':
-                    self._shape['cyl'] = True
-                elif shape == 'spherical':
-                    self._shape['sph'] = True
         self._shape['axi'] = self.cartesian and self.twod_xz and \
             shape == 'axisymmetric'
 
     @crop
-    def rcmb(self):
+    def rcmb(self) -> float:
         """Radius of CMB, 0 in cartesian geometry."""
         return max(self._header["rcmb"], 0)
 
     @property
-    def cartesian(self):
+    def cartesian(self) -> bool:
         """Whether the grid is in cartesian geometry."""
         return not self.curvilinear
 
     @property
-    def curvilinear(self):
+    def curvilinear(self) -> bool:
         """Whether the grid is in curvilinear geometry."""
         return self.spherical or self.cylindrical
 
     @property
-    def cylindrical(self):
+    def cylindrical(self) -> bool:
         """Whether the grid is in cylindrical geometry (2D spherical)."""
         return self._shape['cyl']
 
     @property
-    def spherical(self):
+    def spherical(self) -> bool:
         """Whether the grid is in spherical geometry."""
         return self._shape['sph']
 
     @property
-    def yinyang(self):
+    def yinyang(self) -> bool:
         """Whether the grid is in Yin-yang geometry (3D spherical)."""
         return self.spherical and self.nbtot == 2
 
     @property
-    def twod_xz(self):
+    def twod_xz(self) -> bool:
         """Whether the grid is in the XZ plane only."""
         return self.nytot == 1
 
     @property
-    def twod_yz(self):
+    def twod_yz(self) -> bool:
         """Whether the grid is in the YZ plane only."""
         return self.nxtot == 1
 
     @property
-    def twod(self):
+    def twod(self) -> bool:
         """Whether the grid is 2 dimensional."""
         return self.twod_xz or self.twod_yz
 
     @property
-    def threed(self):
+    def threed(self) -> bool:
         """Whether the grid is 3 dimensional."""
         return not self.twod
 
-    def at_z(self, zval):
+    def at_z(self, zval: float) -> int:
         """Return iz closest to given zval position.
 
         In spherical geometry, the bottom boundary is considered to be at z=0.
@@ -214,53 +218,48 @@ class _Geometry:
         """
         if self.curvilinear:
             zval += self.rcmb
-        return np.argmin(np.abs(self.z_centers - zval))
+        return int(np.argmin(np.abs(self.z_centers - zval)))
 
-    def at_r(self, rval):
+    def at_r(self, rval: float) -> int:
         """Return ir closest to given rval position.
 
         If called in cartesian geometry, this is equivalent to :meth:`at_z`.
         """
-        return np.argmin(np.abs(self.r_centers - rval))
+        return int(np.argmin(np.abs(self.r_centers - rval)))
 
 
-Field = namedtuple('Field', ['values', 'meta'])
-
-
-class _Fields(Mapping):
+class _Fields(abc.Mapping):
     """Fields data structure.
 
     The :attr:`Step.fields` attribute is an instance of this class.
 
     :class:`_Fields` inherits from :class:`collections.abc.Mapping`. Keys are
     fields names defined in :data:`stagpy.phyvars.[S]FIELD[_EXTRA]`.  Each item
-    is a name tuple ('values', 'meta'), respectively the field itself, and a
-    :class:`stagpy.phyvars.Varf` instance with relevant metadata.
+    is a :class:`stagpy.datatypes.Field` instance.
 
     Attributes:
-        step (:class:`Step`): the step object owning the :class:`_Fields`
-            instance.
+        step: the step object owning the :class:`_Fields` instance.
     """
 
-    def __init__(self, step, variables, extravars, files, filesh5):
+    def __init__(self, step: Step, variables: Mapping[str, Varf],
+                 extravars: Mapping[str, Callable[[Step], Field]],
+                 files: Mapping[str, List[str]],
+                 filesh5: Mapping[str, List[str]]):
         self.step = step
         self._vars = variables
         self._extra = extravars
         self._files = files
         self._filesh5 = filesh5
-        self._data = {}
+        self._data: Dict[str, Field] = {}
         super().__init__()
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Field:
         if name in self._data:
             return self._data[name]
         if name in self._vars:
             fld_names, parsed_data = self._get_raw_data(name)
         elif name in self._extra:
-            meta = self._extra[name]
-            field = meta.description(self.step)
-            meta = phyvars.Varf(_helpers.baredoc(meta.description), meta.dim)
-            self._data[name] = Field(field, meta)
+            self._data[name] = self._extra[name](self.step)
             return self._data[name]
         else:
             raise error.UnknownFieldVarError(name)
@@ -273,34 +272,40 @@ class _Fields(Mapping):
             self._set(fld_name, fld)
         return self._data[name]
 
-    def __iter__(self):
-        return (fld for fld in chain(self._vars, self._extra)
-                if fld in self)
+    @crop
+    def _present_fields(self) -> List[str]:
+        return [fld for fld in chain(self._vars, self._extra)
+                if fld in self]
 
-    def __contains__(self, item):
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._present_fields)
+
+    def __contains__(self, item) -> bool:
         try:
             return self[item] is not None
         except error.MissingDataError:
             return False
 
-    def __len__(self):
-        return len(iter(self))
+    def __len__(self) -> int:
+        return len(self._present_fields)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self is other
 
-    def _get_raw_data(self, name):
+    def _get_raw_data(self, name: str) -> Tuple[List[str], Any]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
         filestem = ''
         for filestem, list_fvar in self._files.items():
             if name in list_fvar:
                 break
+        parsed_data = None
+        if self.step.isnap is None:
+            return list_fvar, None
         fieldfile = self.step.sdat.filename(filestem, self.step.isnap,
                                             force_legacy=True)
         if not fieldfile.is_file():
             fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
-        parsed_data = None
         if fieldfile.is_file():
             parsed_data = stagyyparsers.fields(fieldfile)
         elif self.step.sdat.hdf5 and self._filesh5:
@@ -322,7 +327,7 @@ class _Fields(Mapping):
                     break
         return list_fvar, parsed_data
 
-    def _set(self, name, fld):
+    def _set(self, name: str, fld: ndarray):
         sdat = self.step.sdat
         col_fld = sdat._collected_fields
         col_fld.append((self.step.istep, name))
@@ -337,24 +342,29 @@ class _Fields(Mapping):
             del self._data[name]
 
     @crop
-    def _header(self):
+    def _header(self) -> Optional[Dict[str, Any]]:
+        if self.step.isnap is None:
+            return None
         binfiles = self.step.sdat._binfiles_set(self.step.isnap)
+        header = None
         if binfiles:
-            return stagyyparsers.fields(binfiles.pop(), only_header=True)
+            header = stagyyparsers.field_header(binfiles.pop())
         elif self.step.sdat.hdf5:
             xmf = self.step.sdat.hdf5 / 'Data.xmf'
-            return stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]
+            header = stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]
+        return header if header else None
 
     @crop
-    def geom(self):
+    def geom(self) -> _Geometry:
         """Geometry information.
 
         :class:`_Geometry` instance holding geometry information. It is
         issued from binary files holding field information. It is set to
         None if not available for this time step.
         """
-        if self._header is not None:
-            return _Geometry(self._header, self.step)
+        if self._header is None:
+            raise error.NoGeomError(self.step)
+        return _Geometry(self._header, self.step)
 
 
 class _Tracers:
@@ -367,17 +377,18 @@ class _Tracers:
     and 'z' items.
 
     Attributes:
-        step (:class:`Step`): the step object owning the :class:`_Tracers`
-            instance.
+        step: the :class:`Step` owning the :class:`_Tracers` instance.
     """
 
-    def __init__(self, step):
+    def __init__(self, step: Step):
         self.step = step
-        self._data = {}
+        self._data: Dict[str, Optional[List[ndarray]]] = {}
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Optional[List[ndarray]]:
         if name in self._data:
             return self._data[name]
+        if self.step.isnap is None:
+            return None
         data = stagyyparsers.tracers(
             self.step.sdat.filename('tra', timestep=self.step.isnap,
                                     force_legacy=True))
@@ -397,44 +408,38 @@ class _Tracers:
         raise TypeError('tracers collection is not iterable')
 
 
-Rprof = namedtuple('Rprof', ['values', 'rad', 'meta'])
-
-
 class _Rprofs:
     """Radial profiles data structure.
 
     The :attr:`Step.rprofs` attribute is an instance of this class.
 
     :class:`_Rprofs` implements the getitem mechanism.  Keys are profile names
-    defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  An item is a named tuple
-    ('values', 'rad', 'meta'), respectively the profile itself, the radial
-    position at which it is evaluated, and meta is a
-    :class:`stagpy.phyvars.Varr` instance with relevant metadata.  Note that
+    defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  Items are
+    :class:`stagpy.datatypes.Rprof` instances.  Note that
     profiles are automatically scaled if conf.scaling.dimensional is True.
 
     Attributes:
-        step (:class:`Step`): the step object owning the :class:`_Rprofs`
-            instance
+        step: the :class:`Step` owning the :class:`_Rprofs` instance
     """
 
-    def __init__(self, step):
+    def __init__(self, step: Step):
         self.step = step
-        self._cached_extra = {}
+        self._cached_extra: Dict[str, Rprof] = {}
 
     @crop
-    def _data(self):
+    def _data(self) -> Optional[DataFrame]:
         step = self.step
         return step.sdat._rprof_and_times[0].get(step.istep)
 
     @property
-    def _rprofs(self):
+    def _rprofs(self) -> DataFrame:
         if self._data is None:
             step = self.step
             raise error.MissingDataError(
                 f'No rprof data in step {step.istep} of {step.sdat}')
         return self._data
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Rprof:
         step = self.step
         if name in self._rprofs.columns:
             rprof = self._rprofs[name].values
@@ -442,15 +447,12 @@ class _Rprofs:
             if name in phyvars.RPROF:
                 meta = phyvars.RPROF[name]
             else:
-                meta = phyvars.Varr(name, None, '1')
+                meta = Varr(name, '', '1')
         elif name in self._cached_extra:
             rprof, rad, meta = self._cached_extra[name]
         elif name in phyvars.RPROF_EXTRA:
-            meta = phyvars.RPROF_EXTRA[name]
-            rprof, rad = meta.description(step)
-            meta = phyvars.Varr(_helpers.baredoc(meta.description),
-                                meta.kind, meta.dim)
-            self._cached_extra[name] = rprof, rad, meta
+            self._cached_extra[name] = phyvars.RPROF_EXTRA[name](step)
+            rprof, rad, meta = self._cached_extra[name]
         else:
             raise error.UnknownRprofVarError(name)
         rprof, _ = step.sdat.scale(rprof, meta.dim)
@@ -458,13 +460,18 @@ class _Rprofs:
 
         return Rprof(rprof, rad, meta)
 
+    @property
+    def stepstr(self) -> str:
+        """String representation of the parent :class:`Step`."""
+        return str(self.step.istep)
+
     @crop
-    def centers(self):
+    def centers(self) -> ndarray:
         """Radial position of cell centers."""
         return self._rprofs['r'].values + self.bounds[0]
 
     @crop
-    def walls(self):
+    def walls(self) -> ndarray:
         """Radial position of cell walls."""
         rbot, rtop = self.bounds
         try:
@@ -479,15 +486,15 @@ class _Rprofs:
         return walls
 
     @crop
-    def bounds(self):
+    def bounds(self) -> Tuple[float, float]:
         """Radial or vertical position of boundaries.
 
         Radial/vertical positions of boundaries of the domain.
         """
         step = self.step
-        if step.geom is not None:
+        try:
             rcmb = step.geom.rcmb
-        else:
+        except error.NoGeomError:
             rcmb = step.sdat.par['geometry']['r_cmb']
             if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
                 rcmb = 0
@@ -519,41 +526,39 @@ class Step:
         >>> assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
 
     Args:
-        istep (int): the index of the time step that the instance
-            represents.
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
-            instance owning the :class:`Step` instance.
+        istep: the index of the time step that the instance represents.
+        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance owning the
+            :class:`Step` instance.
 
     Attributes:
-        istep (int): the index of the time step that the instance
-            represents.
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): the StagyyData
-            instance owning the :class:`Step` instance.
+        istep: the index of the time step that the instance represents.
+        sdat: the :class:`~stagpy.stagyydata.StagyyData` StagyyData instance
+            owning the :class:`Step` instance.
         fields (:class:`_Fields`): fields available at this time step.
         sfields (:class:`_Fields`): surface fields available at this time
             step.
         tracers (:class:`_Tracers`): tracers available at this time step.
     """
 
-    def __init__(self, istep, sdat):
+    def __init__(self, istep: int, sdat: StagyyData):
         self.istep = istep
         self.sdat = sdat
         self.fields = _Fields(self, phyvars.FIELD, phyvars.FIELD_EXTRA,
                               phyvars.FIELD_FILES, phyvars.FIELD_FILES_H5)
-        self.sfields = _Fields(self, phyvars.SFIELD, [],
+        self.sfields = _Fields(self, phyvars.SFIELD, {},
                                phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5)
         self.tracers = _Tracers(self)
         self.rprofs = _Rprofs(self)
-        self._isnap = -1
+        self._isnap: Optional[int] = -1
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.isnap is not None:
             return f'{self.sdat!r}.snaps[{self.isnap}]'
         else:
             return f'{self.sdat!r}.steps[{self.istep}]'
 
     @property
-    def geom(self):
+    def geom(self) -> _Geometry:
         """Geometry information.
 
         :class:`_Geometry` instance holding geometry information. It is
@@ -563,7 +568,7 @@ class Step:
         return self.fields.geom
 
     @property
-    def timeinfo(self):
+    def timeinfo(self) -> Series:
         """Time series data of the time step."""
         try:
             info = self.sdat.tseries.at_step(self.istep)
@@ -572,7 +577,7 @@ class Step:
         return info
 
     @property
-    def time(self):
+    def time(self) -> float:
         """Time of this time step."""
         steptime = None
         try:
@@ -580,13 +585,15 @@ class Step:
         except error.MissingDataError:
             if self.isnap is not None:
                 steptime = self.geom._header.get('ti_ad')
+        if steptime is None:
+            raise error.NoTimeError(self)
         return steptime
 
     @property
-    def isnap(self):
+    def isnap(self) -> Optional[int]:
         """Snapshot index corresponding to time step.
 
-        It is set to None if no snapshot exists for the time step.
+        It is None if no snapshot exists for the time step.
         """
         if self._isnap == -1:
             istep = None

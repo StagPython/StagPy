@@ -1,5 +1,8 @@
 """Plots time series."""
 
+from __future__ import annotations
+import typing
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -8,8 +11,12 @@ from . import conf, _helpers
 from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData
 
+if typing.TYPE_CHECKING:
+    from typing import Optional
+    from pandas import DataFrame
 
-def _collect_marks(sdat):
+
+def _collect_marks(sdat: StagyyData):
     """Concatenate mark* config variable."""
     times = list(conf.time.marktimes)
     times.extend(step.timeinfo['t']
@@ -19,13 +26,13 @@ def _collect_marks(sdat):
     return times
 
 
-def plot_time_series(sdat, names):
+def plot_time_series(sdat: StagyyData, names: str):
     """Plot requested time series.
 
     Args:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        names (str): time series names separated by ``-`` (figures), ``.``
-            (subplots) and ``,`` (same subplot).
+        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        names: time series names separated by ``-`` (figures), ``.`` (subplots)
+            and ``,`` (same subplot).
 
     Other Parameters:
         conf.time.tstart: the starting time.
@@ -81,19 +88,19 @@ def plot_time_series(sdat, names):
         _helpers.saveplot(fig, '_'.join(fname))
 
 
-def compstat(sdat, *names, tstart=None, tend=None):
+def compstat(sdat: StagyyData, *names: str, tstart: Optional[float] = None,
+             tend: Optional[float] = None) -> DataFrame:
     """Compute statistics from series output by StagYY.
 
     Args:
-        sdat (:class:`~stagpy.stagyydata.StagyyData`): a StagyyData instance.
-        names (str): variables whose statistics should be computed.
-        tstart (float): starting time. Set to None to start at the beginning of
+        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        names: variables whose statistics should be computed.
+        tstart: starting time. Set to None to start at the beginning of
             available data.
-        tend (float): ending time. Set to None to stop at the end of available
-            data.
+        tend: ending time. Set to None to stop at the end of available data.
     Returns:
-        :class:`pandas.DataFrame`: computed statistics with 'mean' and 'rms' as
-            index and variable names as columns.
+        a :class:`pandas.DataFrame` with statistics. 'mean' and 'rms' as index,
+        variable names as columns.
     """
     stats = pd.DataFrame(columns=names, index=['mean', 'rms'])
     for name in names:

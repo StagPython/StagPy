@@ -1,11 +1,17 @@
 """StagYY par file handling."""
 
+from __future__ import annotations
 from copy import deepcopy
+import typing
 
 import f90nml
 
 from .config import CONFIG_DIR
 from .error import NoParFileError
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
+    from f90nml.namelist import Namelist
 
 PAR_DFLT_FILE = CONFIG_DIR / 'par'
 PAR_DEFAULT = f90nml.namelist.Namelist({
@@ -620,7 +626,7 @@ PAR_DEFAULT = f90nml.namelist.Namelist({
 })
 
 
-def _enrich_with_par(par_nml, par_file):
+def _enrich_with_par(par_nml: Namelist, par_file: Path):
     """Enrich a par namelist with the content of a file."""
     par_new = f90nml.read(str(par_file))
     for section, content in par_new.items():
@@ -634,7 +640,7 @@ def _enrich_with_par(par_nml, par_file):
         par_nml[section].update(content)
 
 
-def readpar(par_file, root):
+def readpar(par_file: Path, root: Path) -> Namelist:
     """Read StagYY par file.
 
     The namelist is populated in chronological order with:
@@ -646,13 +652,12 @@ def readpar(par_file, root):
     - ``parameters.dat`` if it can be found in the StagYY output directories.
 
     Args:
-        par_file (:class:`pathlib.Path`): path of par file.
-        root (:class:`pathlib.Path`): path on which other paths are rooted.
-            This is usually par.parent.
+        par_file: path of par file.
+        root: path on which other paths are rooted. This is usually par.parent.
     Returns:
-        :class:`f90nml.namelist.Namelist`: case insensitive dict of dict of
-        values with first key being the namelist and second key the variables'
-        name.
+        A :class:`f90nml.namelist.Namelist`. It is a case-insensitive dict of
+        dict of values with first key being the namelist and second key the
+        names of variables.
     """
     par_nml = deepcopy(PAR_DEFAULT)
 
