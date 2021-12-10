@@ -1,18 +1,25 @@
 """Plot radial profiles."""
+
+from __future__ import annotations
+import typing
+
 import matplotlib.pyplot as plt
 
 from . import conf, _helpers
 from .stagyydata import StagyyData
 
+if typing.TYPE_CHECKING:
+    from ._step import Step, _Rprofs
 
-def plot_rprofs(rprofs, names):
+
+def plot_rprofs(rprofs: _Rprofs, names: str):
     """Plot requested radial profiles.
 
     Args:
-        rprofs (:class:`~stagpy._step._Rprofs`): a radial profile viewer
-            such as :attr:`Step.rprofs` and :attr:`_StepsView.rprofs_averaged`.
-        names (str): profile names separated by ``-`` (figures), ``.``
-            (subplots) and ``,`` (same subplot).
+        rprofs: a radial profile collection, such as :attr:`Step.rprofs` or
+            :attr:`_StepsView.rprofs_averaged`.
+        names: profile names separated by ``-`` (figures), ``.`` (subplots) and
+            ``,`` (same subplot).
     """
     try:
         stepstr = rprofs.steps.stepstr
@@ -59,7 +66,7 @@ def plot_rprofs(rprofs, names):
         _helpers.saveplot(fig, fname + stepstr)
 
 
-def plot_grid(step):
+def plot_grid(step: Step):
     """Plot cell position and thickness.
 
     The figure is call grid_N.pdf where N is replace by the step index.
