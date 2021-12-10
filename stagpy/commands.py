@@ -1,10 +1,12 @@
 """Definition of non-processing subcommands."""
 
+from __future__ import annotations
 from itertools import zip_longest
 from math import ceil
 from shutil import get_terminal_size
 from textwrap import indent, TextWrapper
 import sys
+import typing
 
 import loam.tools
 import pandas
@@ -13,6 +15,12 @@ from . import conf, phyvars, __version__
 from . import stagyydata
 from .config import CONFIG_FILE, CONFIG_LOCAL
 from ._helpers import baredoc
+
+if typing.TYPE_CHECKING:
+    from typing import (Sequence, Tuple, Optional, Mapping, Callable, Union,
+                        Iterable, Any)
+    from pathlib import Path
+    from .datatypes import Varf, Varr, Vart
 
 
 def info_cmd():
@@ -65,15 +73,16 @@ def info_cmd():
         print()
 
 
-def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
+def _pretty_print(key_val: Sequence[Tuple[str, str]], sep: str = ': ',
+                  min_col_width: int = 39, text_width: Optional[int] = None):
     """Print a iterable of key/values.
 
     Args:
-        key_val (list of (str, str)): the pairs of section names and text.
-        sep (str): separator between section names and text.
-        min_col_width (int): minimal acceptable column width
-        text_width (int): text width to use. If set to None, will try to infer
-            the size of the terminal.
+        key_val: the pairs of section names and text.
+        sep: separator between section names and text.
+        min_col_width: minimal acceptable column width
+        text_width: text width to use. If set to None, will try to infer the
+            size of the terminal.
     """
     if text_width is None:
         text_width = get_terminal_size().columns
@@ -100,14 +109,15 @@ def _pretty_print(key_val, sep=': ', min_col_width=39, text_width=None):
         chunks.append(lines[:isep])
         lines = lines[isep:]
     chunks.append(lines)
-    lines = zip_longest(*chunks, fillvalue='')
+    full_lines = zip_longest(*chunks, fillvalue='')
 
     fmt = '|'.join([f'{{:{colw}}}'] * (ncols - 1))
     fmt += '|{}' if ncols > 1 else '{}'
-    print(*(fmt.format(*line) for line in lines), sep='\n')
+    print(*(fmt.format(*line) for line in full_lines), sep='\n')
 
 
-def _layout(dict_vars, dict_vars_extra):
+def _layout(dict_vars: Mapping[str, Union[Varf, Varr, Vart]],
+            dict_vars_extra: Mapping[str, Callable]):
     """Print nicely [(var, description)] from phyvars."""
     desc = [(v, m.description) for v, m in dict_vars.items()]
     desc.extend((v, baredoc(m)) for v, m in dict_vars_extra.items())
@@ -151,7 +161,8 @@ def version_cmd():
     print(f'stagpy version: {__version__}')
 
 
-def report_parsing_problems(parsing_out):
+def report_parsing_problems(
+        parsing_out: Tuple[Any, Sequence[Path], Sequence[Path]]):
     """Output message about potential parsing problems."""
     _, empty, faulty = parsing_out
     if CONFIG_FILE in empty or CONFIG_FILE in faulty:
@@ -166,12 +177,11 @@ def report_parsing_problems(parsing_out):
               sep='\n', end='\n\n', file=sys.stderr)
 
 
-def config_pp(subs):
+def config_pp(subs: Iterable[str]):
     """Pretty print of configuration options.
 
     Args:
-        subs (iterable of str): iterable with the list of conf sections to
-            print.
+        subs: conf sections to print.
     """
     print('(c|f): available only as CLI argument/in the config file',
           end='\n\n')
