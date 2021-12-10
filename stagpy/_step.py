@@ -20,7 +20,7 @@ from .datatypes import Field, Rprof, Varr
 if typing.TYPE_CHECKING:
     from typing import (Dict, Any, Mapping, List, Iterator, Tuple, Optional,
                         Callable)
-    from numpy import ndarray, signedinteger
+    from numpy import ndarray
     from pandas import DataFrame, Series
     from .datatypes import Varf
     from .stagyydata import StagyyData
@@ -210,7 +210,7 @@ class _Geometry:
         """Whether the grid is 3 dimensional."""
         return not self.twod
 
-    def at_z(self, zval: float) -> signedinteger:
+    def at_z(self, zval: float) -> int:
         """Return iz closest to given zval position.
 
         In spherical geometry, the bottom boundary is considered to be at z=0.
@@ -218,14 +218,14 @@ class _Geometry:
         """
         if self.curvilinear:
             zval += self.rcmb
-        return np.argmin(np.abs(self.z_centers - zval))
+        return int(np.argmin(np.abs(self.z_centers - zval)))
 
-    def at_r(self, rval: float) -> signedinteger:
+    def at_r(self, rval: float) -> int:
         """Return ir closest to given rval position.
 
         If called in cartesian geometry, this is equivalent to :meth:`at_z`.
         """
-        return np.argmin(np.abs(self.r_centers - rval))
+        return int(np.argmin(np.abs(self.r_centers - rval)))
 
 
 class _Fields(abc.Mapping):
