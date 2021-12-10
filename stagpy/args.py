@@ -1,7 +1,9 @@
 """Parse command line arguments and update :attr:`stagpy.conf`."""
 
-from collections import OrderedDict
+from __future__ import annotations
 from inspect import isfunction
+from types import MappingProxyType
+import typing
 
 from loam.tools import set_conf_str, create_complete_files
 from loam.cli import Subcmd, CLIManager
@@ -12,8 +14,11 @@ from . import commands, field, rprof, time_series, refstate, plates
 from ._helpers import baredoc
 from .config import CONFIG_DIR
 
+if typing.TYPE_CHECKING:
+    from typing import Any, Optional, List, Callable
 
-def _sub(cmd, *sections):
+
+def _sub(cmd: Any, *sections: str) -> Subcmd:
     """Build Subcmd instance."""
     cmd_func = cmd if isfunction(cmd) else cmd.cmd
     return Subcmd(baredoc(cmd), *sections, func=cmd_func)
@@ -25,31 +30,31 @@ def _bare_cmd():
     print('Run `stagpy -h` for usage')
 
 
-SUB_CMDS = OrderedDict((
-    ('common_', Subcmd(doc_module, 'common', func=_bare_cmd)),
-    ('field', _sub(field, 'core', 'plot', 'scaling')),
-    ('rprof', _sub(rprof, 'core', 'plot', 'scaling')),
-    ('time', _sub(time_series, 'core', 'plot', 'scaling')),
-    ('refstate', _sub(refstate, 'core', 'plot')),
-    ('plates', _sub(plates, 'core', 'plot', 'scaling')),
-    ('info', _sub(commands.info_cmd, 'core', 'scaling')),
-    ('var', _sub(commands.var_cmd)),
-    ('version', _sub(commands.version_cmd)),
-    ('config', _sub(commands.config_cmd)),
-))
+SUB_CMDS = MappingProxyType({
+    'common_': Subcmd(doc_module, 'common', func=_bare_cmd),
+    'field': _sub(field, 'core', 'plot', 'scaling'),
+    'rprof': _sub(rprof, 'core', 'plot', 'scaling'),
+    'time': _sub(time_series, 'core', 'plot', 'scaling'),
+    'refstate': _sub(refstate, 'core', 'plot'),
+    'plates': _sub(plates, 'core', 'plot', 'scaling'),
+    'info': _sub(commands.info_cmd, 'core', 'scaling'),
+    'var': _sub(commands.var_cmd),
+    'version': _sub(commands.version_cmd),
+    'config': _sub(commands.config_cmd),
+})
 
 
-def parse_args(arglist=None):
+def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
     """Parse cmd line arguments.
 
     Update :attr:`stagpy.conf` accordingly.
 
     Args:
-        arglist (list of str): the list of cmd line arguments. If set to
-            None, the arguments are taken from :attr:`sys.argv`.
+        arglist: the list of cmd line arguments. If set to None, the arguments
+            are taken from :attr:`sys.argv`.
 
     Returns:
-        function: the function implementing the sub command to be executed.
+        the function implementing the sub command to be executed.
     """
     climan = CLIManager(conf, **SUB_CMDS)
 
