@@ -18,8 +18,9 @@ def test_help(capsys):
         stagpy.args.parse_args(['-h'])
     output = capsys.readouterr()
     expected = re.compile(
-        r'^usage:.*\nStagPy is a tool to.*'
-        r'\npositional arguments.*\noptional arguments.*$',
+        r'^usage:.*\nStagPy is a tool to.*\n'
+        r'.*field.*Plot scalar and vector fields\n'
+        r'.*--help.*show this help message and exit.*$',
         flags=re.DOTALL)
     assert expected.fullmatch(output.out)
 
