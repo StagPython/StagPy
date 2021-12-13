@@ -92,7 +92,7 @@ def detect_plates(snap: Step,
     return itrenches, iridges
 
 
-def _plot_plate_limits(axis: Axes, trenches: ndarray, ridges: ndarray):
+def _plot_plate_limits(axis: Axes, trenches: ndarray, ridges: ndarray) -> None:
     """Plot lines designating ridges and trenches."""
     for trench in trenches:
         axis.axvline(x=trench, color='red', ls='dashed', alpha=0.4)
@@ -117,7 +117,7 @@ def _annot_pos(
     return p_beg, p_end
 
 
-def _plot_plate_limits_field(axis: Axes, snap: Step):
+def _plot_plate_limits_field(axis: Axes, snap: Step) -> None:
     """Plot arrows designating ridges and trenches in 2D field plots."""
     itrenches, iridges = detect_plates(snap, conf.plates.vzratio)
     for itrench in itrenches:
@@ -194,7 +194,7 @@ def _continents_location(snap: Step, at_surface: bool = True) -> ndarray:
     return csurf >= 2
 
 
-def plot_at_surface(snap: Step, names: str):
+def plot_at_surface(snap: Step, names: str) -> None:
     """Plot surface diagnostics.
 
     Args:
@@ -238,7 +238,8 @@ def plot_at_surface(snap: Step, names: str):
         saveplot(fig, fname, snap.isnap)
 
 
-def _write_trench_diagnostics(step: Step, vrms_surf: float, fid: TextIO):
+def _write_trench_diagnostics(step: Step, vrms_surf: float,
+                              fid: TextIO) -> None:
     """Print out some trench diagnostics."""
     assert step.isnap is not None
     itrenches, _ = detect_plates(step, conf.plates.vzratio)
@@ -292,7 +293,7 @@ def _write_trench_diagnostics(step: Step, vrms_surf: float, fid: TextIO):
                 agetrenches[isubd]))
 
 
-def plot_scalar_field(snap: Step, fieldname: str):
+def plot_scalar_field(snap: Step, fieldname: str) -> None:
     """Plot scalar field with plate information.
 
     Args:
@@ -339,7 +340,7 @@ def plot_scalar_field(snap: Step, fieldname: str):
         saveplot(fig, f'plates_zoom_{fieldname}', snap.isnap)
 
 
-def cmd():
+def cmd() -> None:
     """Implementation of plates subcommand.
 
     Other Parameters:

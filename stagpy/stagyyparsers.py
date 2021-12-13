@@ -29,10 +29,11 @@ if typing.TYPE_CHECKING:
     from pandas import DataFrame
 
 
-def _tidy_names(names: List[str], nnames: int, extra_names: List[str] = None):
+def _tidy_names(names: List[str], nnames: int,
+                extra_names: List[str] = None) -> None:
     """Truncate or extend names so that its len is nnames.
 
-    The list is modified, this function returns nothing.
+    The list is modified in-place.
 
     Args:
         names: list of names.
@@ -642,7 +643,7 @@ def _conglomerate_meshes(meshin: List[Dict[str, ndarray]],
 
 
 def _read_coord_h5(files: List[Path], shapes: List[Tuple[int, ...]],
-                   header: Dict[str, Any], twod: Optional[str]):
+                   header: Dict[str, Any], twod: Optional[str]) -> None:
     """Read all coord hdf5 files of a snapshot.
 
     Args:

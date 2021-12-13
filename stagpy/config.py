@@ -33,9 +33,9 @@ def _slice_or_int(arg: str) -> Union[slice, int]:
     return int(arg)
 
 
-def _list_of(from_str: Callable[[str], T]) -> Callable[[str], Tuple[T]]:
+def _list_of(from_str: Callable[[str], T]) -> Callable[[str], Tuple[T, ...]]:
     """Return fn parsing a str as a comma-separated list of given type."""
-    def parser(arg):
+    def parser(arg: str) -> Tuple[T, ...]:
         return tuple(from_str(v) for v in map(str.strip, arg.split(',')) if v)
     return parser
 

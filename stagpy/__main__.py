@@ -7,7 +7,7 @@ import warnings
 from . import DEBUG, sigint_handler
 
 
-def main():
+def main() -> None:
     """Implement StagPy entry point."""
     if not DEBUG:
         signal.signal(signal.SIGINT, sigint_handler)

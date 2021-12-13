@@ -22,12 +22,16 @@ import pathlib
 import shutil
 import signal
 import sys
+import typing
 
 from pkg_resources import get_distribution, DistributionNotFound
 from setuptools_scm import get_version
 from loam.manager import ConfigurationManager
 
 from . import config
+
+if typing.TYPE_CHECKING:
+    from typing import NoReturn, Any
 
 
 def _env(var: str) -> bool:
@@ -40,7 +44,7 @@ DEBUG = _env('STAGPY_DEBUG')
 ISOLATED = _env('STAGPY_ISOLATED')
 
 
-def sigint_handler(*_):
+def sigint_handler(*_: Any) -> NoReturn:
     """Handler of SIGINT signal.
 
     It is set when you use StagPy as a command line tool to handle gracefully
@@ -50,7 +54,7 @@ def sigint_handler(*_):
     sys.exit()
 
 
-def _check_config():
+def _check_config() -> None:
     """Create config files as necessary."""
     config.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     verfile = config.CONFIG_DIR / '.version'
@@ -67,7 +71,7 @@ def _check_config():
             shutil.copy(str(stfile_local), str(stfile_conf))
 
 
-def load_mplstyle():
+def load_mplstyle() -> None:
     """Try to load conf.plot.mplstyle matplotlib style."""
     import matplotlib.pyplot as plt
     if conf.plot.mplstyle:

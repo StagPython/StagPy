@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
     from ._step import Step, _Rprofs
 
 
-def plot_rprofs(rprofs: _Rprofs, names: str):
+def plot_rprofs(rprofs: _Rprofs, names: str) -> None:
     """Plot requested radial profiles.
 
     Args:
@@ -63,7 +63,7 @@ def plot_rprofs(rprofs: _Rprofs, names: str):
         _helpers.saveplot(fig, fname + stepstr)
 
 
-def plot_grid(step: Step):
+def plot_grid(step: Step) -> None:
     """Plot cell position and thickness.
 
     The figure is call grid_N.pdf where N is replace by the step index.
@@ -86,7 +86,7 @@ def plot_grid(step: Step):
     _helpers.saveplot(fig, 'grid', step.istep)
 
 
-def cmd():
+def cmd() -> None:
     """Implementation of rprof subcommand.
 
     Other Parameters:

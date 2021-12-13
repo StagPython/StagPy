@@ -9,7 +9,7 @@ from .phyvars import REFSTATE
 from .stagyydata import StagyyData
 
 
-def plot_ref(sdat: StagyyData, var: str):
+def plot_ref(sdat: StagyyData, var: str) -> None:
     """Plot one reference state.
 
     Args:
@@ -35,7 +35,7 @@ def plot_ref(sdat: StagyyData, var: str):
     _helpers.saveplot(fig, f'refstate_{var}')
 
 
-def cmd():
+def cmd() -> None:
     """Implementation of refstate subcommand.
 
     Other Parameters:

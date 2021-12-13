@@ -18,6 +18,9 @@ if typing.TYPE_CHECKING:
     from typing import Tuple, Optional, Any, Iterable, Dict
     from numpy import ndarray
     from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+    from matplotlib.collections import QuadMesh
+    from matplotlib.colorbar import Colorbar
     from .datatypes import Varf
     from ._step import Step
 
@@ -154,7 +157,8 @@ def get_meshes_vec(
 
 
 def plot_scalar(step: Step, var: str, field: Optional[ndarray] = None,
-                axis: Optional[Axes] = None, **extra: Any):
+                axis: Optional[Axes] = None, **extra: Any
+                ) -> Tuple[Figure, Axes, QuadMesh, Colorbar]:
     """Plot scalar field.
 
     Args:
@@ -255,7 +259,7 @@ def plot_scalar(step: Step, var: str, field: Optional[ndarray] = None,
     return fig, axis, surf, cbar
 
 
-def plot_iso(axis: Axes, step: Step, var: str, **extra: Any):
+def plot_iso(axis: Axes, step: Step, var: str, **extra: Any) -> None:
     """Plot isocontours of scalar field.
 
     Args:
@@ -280,7 +284,7 @@ def plot_iso(axis: Axes, step: Step, var: str, **extra: Any):
     axis.contour(xmesh, ymesh, fld, **extra_opts)
 
 
-def plot_vec(axis: Axes, step: Step, var: str):
+def plot_vec(axis: Axes, step: Step, var: str) -> None:
     """Plot vector field.
 
     Args:
@@ -322,7 +326,7 @@ def _findminmax(
     return minmax
 
 
-def cmd():
+def cmd() -> None:
     """Implementation of field subcommand.
 
     Other Parameters:

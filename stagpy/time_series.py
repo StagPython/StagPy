@@ -12,11 +12,11 @@ from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Optional
+    from typing import Optional, List
     from pandas import DataFrame
 
 
-def _collect_marks(sdat: StagyyData):
+def _collect_marks(sdat: StagyyData) -> List[float]:
     """Concatenate mark* config variable."""
     times = list(conf.time.marktimes)
     times.extend(step.timeinfo['t']
@@ -26,7 +26,7 @@ def _collect_marks(sdat: StagyyData):
     return times
 
 
-def plot_time_series(sdat: StagyyData, names: str):
+def plot_time_series(sdat: StagyyData, names: str) -> None:
     """Plot requested time series.
 
     Args:
@@ -113,7 +113,7 @@ def compstat(sdat: StagyyData, *names: str, tstart: Optional[float] = None,
     return stats
 
 
-def cmd():
+def cmd() -> None:
     """Implementation of time subcommand.
 
     Other Parameters:

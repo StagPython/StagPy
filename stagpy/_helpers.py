@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from . import conf
 
 if TYPE_CHECKING:
-    from typing import Optional, Any, List, Callable
+    from typing import Optional, Any, List, Callable, NoReturn
     from matplotlib.figure import Figure
     from numpy import ndarray
 
@@ -52,7 +52,7 @@ def scilabel(value: float, precision: int = 2) -> str:
 
 
 def saveplot(fig: Figure, *name_args: Any, close: bool = True,
-             **name_kwargs: Any):
+             **name_kwargs: Any) -> None:
     """Save matplotlib figure.
 
     You need to provide :data:`stem` as a positional or keyword argument (see
@@ -109,7 +109,7 @@ def list_of_vars(arg_plot: str) -> List[List[List[str]]]:
     return [lov for lov in lovs if lov]
 
 
-def find_in_sorted_arr(value: Any, array: ndarray, after=False) -> int:
+def find_in_sorted_arr(value: Any, array: ndarray, after: bool = False) -> int:
     """Return position of element in a sorted array.
 
     Returns:
@@ -150,7 +150,7 @@ class CachedReadOnlyProperty(Generic[T, V]):
         self._cache_name = f'_cropped_{self._name}'
         self.__doc__ = thunk.__doc__
 
-    def __get__(self, instance: T, _) -> V:
+    def __get__(self, instance: T, _: Any) -> V:
         try:
             return getattr(instance, self._cache_name)
         except AttributeError:
@@ -159,6 +159,6 @@ class CachedReadOnlyProperty(Generic[T, V]):
         setattr(instance, self._cache_name, cached_value)
         return cached_value
 
-    def __set__(self, instance: T, _):
+    def __set__(self, instance: T, _: Any) -> NoReturn:
         raise AttributeError(
             f'Cannot set {self._name} property of {instance!r}')

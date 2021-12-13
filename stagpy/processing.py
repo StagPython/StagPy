@@ -261,7 +261,7 @@ def init_c_overturn(step: Step) -> Rprof:
     rsup = (rtop**3 - xired**(1 / (1 - k_fe)) *
             (rtop**3 - rbot**3))**(1 / 3)
 
-    def initprof(rpos):
+    def initprof(rpos: float) -> float:
         """Theoretical initial profile."""
         if rpos < rsup:
             return xi0s * ((rtop**3 - rbot**3) /
@@ -269,8 +269,8 @@ def init_c_overturn(step: Step) -> Rprof:
         return xieut
 
     rad = np.linspace(rbot, rtop, 500)
-    initprof = np.vectorize(initprof)
-    return Rprof(initprof(rad), rad,
+    initprof_vec = np.vectorize(initprof)
+    return Rprof(initprof_vec(rad), rad,
                  Varr("Concentration before overturn", 'Concentration', '1'))
 
 

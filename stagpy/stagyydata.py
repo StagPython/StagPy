@@ -8,6 +8,7 @@ Note:
 """
 
 from __future__ import annotations
+from collections import abc
 from dataclasses import dataclass, field
 from itertools import zip_longest
 from pathlib import Path
@@ -23,7 +24,7 @@ from .datatypes import Rprof, Tseries, Vart
 
 if typing.TYPE_CHECKING:
     from typing import (Tuple, List, Dict, Optional, Union, Sequence, Iterator,
-                        Set, Callable, Iterable)
+                        Set, Callable, Iterable, Any)
     from os import PathLike
     from f90nml.namelist import Namelist
     from numpy import ndarray
@@ -46,15 +47,18 @@ def _as_view_item(obj: int) -> None:
     ...
 
 
-def _as_view_item(obj):
+def _as_view_item(
+    obj: Union[Sequence[StepIndex], slice, int]
+) -> Union[Sequence[StepIndex], Sequence[slice], None]:
     """Return None or a suitable iterable to build a _StepsView."""
     try:
-        iter(obj)
-        return obj
+        iter(obj)  # type: ignore
+        return obj  # type: ignore
     except TypeError:
         pass
     if isinstance(obj, slice):
         return (obj,)
+    return None
 
 
 class _Scales:
@@ -374,7 +378,7 @@ class _Steps:
         self._data: Dict[int, Step] = {}
         self._len: Optional[int] = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.sdat!r}.steps'
 
     @typing.overload
@@ -386,15 +390,18 @@ class _Steps:
                     istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
         ...
 
-    def __getitem__(self, istep):
+    def __getitem__(
+        self, istep: Union[int, slice, Sequence[StepIndex]]
+    ) -> Union[Step, _StepsView]:
         keys = _as_view_item(istep)
         if keys is not None:
             return _StepsView(self, keys)
         try:
-            istep = int(istep)
+            istep = int(istep)  # type: ignore
         except ValueError:
             raise error.InvalidTimestepError(
-                self.sdat, istep, 'Time step should be an integer value')
+                self.sdat, istep,  # type: ignore
+                'Time step should be an integer value')
         if istep < 0:
             istep += len(self)
             if istep < 0:
@@ -406,7 +413,7 @@ class _Steps:
             self._data[istep] = Step(istep, self.sdat)
         return self._data[istep]
 
-    def __delitem__(self, istep: Optional[int]):
+    def __delitem__(self, istep: Optional[int]) -> None:
         if istep is not None and istep in self._data:
             self.sdat._collected_fields = [
                 (i, f) for i, f in self.sdat._collected_fields if i != istep]
@@ -478,7 +485,7 @@ class _Snaps(_Steps):
                     istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
         ...
 
-    def __getitem__(self, isnap):
+    def __getitem__(self, isnap: Any) -> Union[Step, _StepsView]:
         keys = _as_view_item(isnap)
         if keys is not None:
             return _StepsView(self, keys).filter(snap=True)
@@ -505,7 +512,7 @@ class _Snaps(_Steps):
                 self.sdat, isnap, 'Invalid snapshot index')
         return self.sdat.steps[istep]
 
-    def __delitem__(self, isnap: Optional[int]):
+    def __delitem__(self, isnap: Optional[int]) -> None:
         if isnap is not None:
             istep = self._isteps.get(isnap)
             del self.sdat.steps[istep]
@@ -544,7 +551,7 @@ class _Snaps(_Steps):
                 otherwise the same snap is returned).
 
         Returns:
-            :class:`~stagpy._step.Step`: the relevant snap.
+            the relevant :class:`~stagpy._step.Step`.
         """
         # in theory, this could be a valid implementation of _Steps.at_time
         # but this isn't safe against missing data...
@@ -560,12 +567,12 @@ class _Snaps(_Steps):
             igp -= 1
         return self[igp]
 
-    def _bind(self, isnap: int, istep: int):
+    def _bind(self, isnap: int, istep: int) -> None:
         """Register the isnap / istep correspondence.
 
         Args:
-            isnap (int): snapshot index.
-            istep (int): time step index.
+            isnap: snapshot index.
+            istep: time step index.
         """
         self._isteps[isnap] = istep
         self.sdat.steps[istep]._isnap = isnap
@@ -615,10 +622,11 @@ class _StepsView:
     Args:
         steps_col: steps collection, i.e. :attr:`StagyyData.steps` or
             :attr:`StagyyData.snaps` attributes.
-        items (iterable): iterable of isteps/isnaps or slices.
+        items: iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col: Union[_Steps, _Snaps], items):
+    def __init__(self, steps_col: Union[_Steps, _Snaps],
+                 items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
         self._rprofs_averaged: Optional[_RprofsAveraged] = None
@@ -706,7 +714,9 @@ class _StepsView:
             elif self._pass(item):
                 yield self._col[item]
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, abc.Iterable):
+            return NotImplemented
         return all(s1 is s2 for s1, s2 in zip_longest(self, other))
 
 
@@ -831,7 +841,7 @@ class StagyyData:
         return self._nfields_max
 
     @nfields_max.setter
-    def nfields_max(self, nfields: Optional[int]):
+    def nfields_max(self, nfields: Optional[int]) -> None:
         """Check nfields > 5 or None."""
         if nfields is not None and nfields <= 5:
             raise error.InvalidNfieldsError(nfields)

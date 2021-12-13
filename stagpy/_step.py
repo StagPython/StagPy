@@ -19,7 +19,7 @@ from .datatypes import Field, Rprof, Varr
 
 if typing.TYPE_CHECKING:
     from typing import (Dict, Any, Mapping, List, Iterator, Tuple, Optional,
-                        Callable)
+                        Callable, NoReturn)
     from numpy import ndarray
     from pandas import DataFrame, Series
     from .datatypes import Varf
@@ -148,7 +148,7 @@ class _Geometry:
     y_walls = p_walls
     y_centers = p_centers
 
-    def _init_shape(self):
+    def _init_shape(self) -> None:
         """Determine shape of geometry."""
         shape = self._step.sdat.par['geometry']['shape'].lower()
         aspect = self._header['aspect']
@@ -280,7 +280,7 @@ class _Fields(abc.Mapping):
     def __iter__(self) -> Iterator[str]:
         return iter(self._present_fields)
 
-    def __contains__(self, item) -> bool:
+    def __contains__(self, item: Any) -> bool:
         try:
             return self[item] is not None
         except error.MissingDataError:
@@ -289,7 +289,7 @@ class _Fields(abc.Mapping):
     def __len__(self) -> int:
         return len(self._present_fields)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         return self is other
 
     def _get_raw_data(self, name: str) -> Tuple[List[str], Any]:
@@ -327,7 +327,7 @@ class _Fields(abc.Mapping):
                     break
         return list_fvar, parsed_data
 
-    def _set(self, name: str, fld: ndarray):
+    def _set(self, name: str, fld: ndarray) -> None:
         sdat = self.step.sdat
         col_fld = sdat._collected_fields
         col_fld.append((self.step.istep, name))
@@ -337,7 +337,7 @@ class _Fields(abc.Mapping):
                 del sdat.steps[istep].fields[fld_name]
         self._data[name] = Field(fld, self._vars[name])
 
-    def __delitem__(self, name):
+    def __delitem__(self, name: str) -> None:
         if name in self._data:
             del self._data[name]
 
@@ -404,7 +404,7 @@ class _Tracers:
             self._data[name] = None
         return self._data[name]
 
-    def __iter__(self):
+    def __iter__(self) -> NoReturn:
         raise TypeError('tracers collection is not iterable')
 
 

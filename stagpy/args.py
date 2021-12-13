@@ -24,7 +24,7 @@ def _sub(cmd: Any, *sections: str) -> Subcmd:
     return Subcmd(baredoc(cmd), *sections, func=cmd_func)
 
 
-def _bare_cmd():
+def _bare_cmd() -> None:
     """Print help message when no arguments are given."""
     print(doc_module)
     print('Run `stagpy -h` for usage')

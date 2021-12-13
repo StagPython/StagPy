@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
     from .datatypes import Varf, Varr, Vart
 
 
-def info_cmd():
+def info_cmd() -> None:
     """Print basic information about StagYY run.
 
     Other Parameters:
@@ -74,7 +74,8 @@ def info_cmd():
 
 
 def _pretty_print(key_val: Sequence[Tuple[str, str]], sep: str = ': ',
-                  min_col_width: int = 39, text_width: Optional[int] = None):
+                  min_col_width: int = 39,
+                  text_width: Optional[int] = None) -> None:
     """Print a iterable of key/values.
 
     Args:
@@ -117,14 +118,14 @@ def _pretty_print(key_val: Sequence[Tuple[str, str]], sep: str = ': ',
 
 
 def _layout(dict_vars: Mapping[str, Union[Varf, Varr, Vart]],
-            dict_vars_extra: Mapping[str, Callable]):
+            dict_vars_extra: Mapping[str, Callable]) -> None:
     """Print nicely [(var, description)] from phyvars."""
     desc = [(v, m.description) for v, m in dict_vars.items()]
     desc.extend((v, baredoc(m)) for v, m in dict_vars_extra.items())
     _pretty_print(desc, min_col_width=26)
 
 
-def var_cmd():
+def var_cmd() -> None:
     """Print a list of available variables.
 
     See :mod:`stagpy.phyvars` where the lists of variables organized by command
@@ -153,7 +154,7 @@ def var_cmd():
         print()
 
 
-def version_cmd():
+def version_cmd() -> None:
     """Print StagPy version.
 
     Use :data:`stagpy.__version__` to obtain the version in a script.
@@ -162,7 +163,7 @@ def version_cmd():
 
 
 def report_parsing_problems(
-        parsing_out: Tuple[Any, Sequence[Path], Sequence[Path]]):
+        parsing_out: Tuple[Any, Sequence[Path], Sequence[Path]]) -> None:
     """Output message about potential parsing problems."""
     _, empty, faulty = parsing_out
     if CONFIG_FILE in empty or CONFIG_FILE in faulty:
@@ -177,7 +178,7 @@ def report_parsing_problems(
               sep='\n', end='\n\n', file=sys.stderr)
 
 
-def config_pp(subs: Iterable[str]):
+def config_pp(subs: Iterable[str]) -> None:
     """Pretty print of configuration options.
 
     Args:
@@ -198,7 +199,7 @@ def config_pp(subs: Iterable[str]):
             print()
 
 
-def config_cmd():
+def config_cmd() -> None:
     """Configuration handling.
 
     Other Parameters:
