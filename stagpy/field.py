@@ -259,7 +259,8 @@ def plot_scalar(step: Step, var: str, field: Optional[ndarray] = None,
     return fig, axis, surf, cbar
 
 
-def plot_iso(axis: Axes, step: Step, var: str, **extra: Any) -> None:
+def plot_iso(axis: Axes, step: Step, var: str, 
+        field: Optional[ndarray] = None, **extra: Any) -> None:
     """Plot isocontours of scalar field.
 
     Args:
@@ -271,6 +272,10 @@ def plot_iso(axis: Axes, step: Step, var: str, **extra: Any) -> None:
             :func:`matplotlib.axes.Axes.contour`.
     """
     xmesh, ymesh, fld, _ = get_meshes_fld(step, var)
+
+    if field is not None:
+        fld = field
+
     if conf.field.shift:
         fld = np.roll(fld, conf.field.shift, axis=0)
     extra_opts: Dict[str, Any] = dict(linewidths=1)
