@@ -16,13 +16,13 @@ from .datatypes import Field
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Iterable, Tuple, TextIO, Union
+    from typing import Sequence, Tuple, TextIO, Union
     from matplotlib.axes import Axes
     from numpy import ndarray
     from ._step import Step, _Geometry
 
 
-def _vzcheck(iphis: Iterable[int], snap: Step, vz_thres: float) -> ndarray:
+def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> ndarray:
     """Remove positions where vz is below threshold."""
     # verifying vertical velocity
     vzabs = np.abs(snap.fields['v3'].values[0, ..., 0])
