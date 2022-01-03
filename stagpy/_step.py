@@ -359,8 +359,7 @@ class _Fields(abc.Mapping):
         """Geometry information.
 
         :class:`_Geometry` instance holding geometry information. It is
-        issued from binary files holding field information. It is set to
-        None if not available for this time step.
+        issued from binary files holding field information.
         """
         if self._header is None:
             raise error.NoGeomError(self.step)
