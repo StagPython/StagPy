@@ -259,8 +259,8 @@ def plot_scalar(step: Step, var: str, field: Optional[ndarray] = None,
     return fig, axis, surf, cbar
 
 
-def plot_iso(axis: Axes, step: Step, var: str, 
-        field: Optional[ndarray] = None, **extra: Any) -> None:
+def plot_iso(axis: Axes, step: Step, var: str,
+             field: Optional[ndarray] = None, **extra: Any) -> None:
     """Plot isocontours of scalar field.
 
     Args:
@@ -268,6 +268,10 @@ def plot_iso(axis: Axes, step: Step, var: str,
             figure where the isocontours should be plotted.
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
         var: the scalar field name.
+        field: if not None, it is plotted instead of step.fields[var].  This is
+            useful to plot a masked or rescaled array.  Note that if
+            conf.scaling.dimensional is True, this field will be scaled
+            accordingly.
         extra: options that will be passed on to
             :func:`matplotlib.axes.Axes.contour`.
     """
