@@ -1,25 +1,48 @@
 Contributing
 ============
 
-If you want to contribute to development of StagPy, create an account on
-GitHub_ and fork the `StagPy repository`__.
-
-.. _GitHub: https://github.com/
-.. __: https://github.com/StagPython/StagPy
-
 The development of StagPy is made using the Git version control system. The
 first three chapters of the `Git book`__ should give you all the necessary
 basic knowledge to use Git for this project.
 
 .. __: https://git-scm.com/book/en/v2
 
-To get a local copy of your fork of StagPy, clone it (you can use `the SSH
-protocol`__ if you prefer)::
+If you want to contribute to development of StagPy, create an account on
+GitHub_ and fork the `StagPy repository`__.
 
-    % git clone https://github.com/YOUR_USER_NAME/StagPy.git
+.. _GitHub: https://github.com/
+.. __: https://github.com/StagPython/StagPy
+
+To get a local copy of your fork of StagPy, clone it (here using `the SSH
+protocol`__)::
+
+    % git clone git@github.com:YOUR_USER_NAME/StagPy.git
     % cd StagPy
 
 .. __: https://help.github.com/articles/connecting-to-github-with-ssh/
+
+Then add a remote (here called ``upstream``) pointing to the main StagPy
+repository::
+
+    % git remote add upstream git@github.com:StagPython/StagPy.git
+
+To sync your fork with the main repository, you can run the following::
+
+    % git switch master
+    % git pull upstream master
+    % git push origin
+
+To add your own modifications, create a new branch from the tip of master::
+
+    % git switch -c branch-name master
+
+where ``branch-name`` is the desired branch name.  Modify the code as desired,
+commit it, and push it on your fork::
+
+    % git push -u origin branch-name
+
+You can then create a PR from your fork on GitHub to have your changes
+incorporated in the main repository and made available to other users.
 
 Testing
 -------
