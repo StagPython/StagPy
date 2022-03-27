@@ -6,42 +6,15 @@ interface.
 
 from __future__ import annotations
 import pathlib
-import typing
 
 from loam.manager import ConfOpt as Conf
 from loam import tools
 from loam.tools import switch_opt, command_flag
-
-if typing.TYPE_CHECKING:
-    from typing import Union, Callable, TypeVar, Tuple
-    T = TypeVar('T')
+import loam.types
 
 
-def _slice_or_int(arg: str) -> Union[slice, int]:
-    """Parse a string into an integer or slice."""
-    if ':' in arg:
-        idxs = arg.split(':')
-        if len(idxs) > 3:
-            raise ValueError(f'{arg} is an invalid slice')
-        slice_parts = [int(idxs[0]) if idxs[0] else None,
-                       int(idxs[1]) if idxs[1] else None]
-        if len(idxs) == 3:
-            slice_parts.append(int(idxs[2]) if idxs[2] else None)
-        else:
-            slice_parts.append(1)
-        return slice(*slice_parts)
-    return int(arg)
-
-
-def _list_of(from_str: Callable[[str], T]) -> Callable[[str], Tuple[T, ...]]:
-    """Return fn parsing a str as a comma-separated list of given type."""
-    def parser(arg: str) -> Tuple[T, ...]:
-        return tuple(from_str(v) for v in map(str.strip, arg.split(',')) if v)
-    return parser
-
-
-_index_collection = _list_of(_slice_or_int)
-_float_list = _list_of(float)
+_index_collection = loam.types.list_of(loam.types.slice_or_int_parser)
+_float_list = loam.types.list_of(float)
 
 HOME_DIR = pathlib.Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
