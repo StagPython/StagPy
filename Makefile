@@ -14,7 +14,7 @@ VERSION=$(shell git describe --exact-match HEAD 2>/dev/null)
 
 all: $(STAGPY) info
 
-$(STAGPY): setup.py pyproject.toml
+$(STAGPY): setup.cfg pyproject.toml
 	$(PY) -m venv $(VENV_DIR)
 	$(VPIP) install -U pip
 	$(VPIP) install -e .
