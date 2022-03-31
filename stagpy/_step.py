@@ -42,8 +42,8 @@ class _Geometry:
         self._init_shape()
 
     def _scale_radius_mo(self, radius: ndarray) -> ndarray:
-        """Rescale radius for MO runs."""
-        if self._step.sdat.par['magma_oceans_in']['magma_oceans_mode']:
+        """Rescale radius for evolving MO runs."""
+        if self._step.sdat.par['magma_oceans_in']['evolving_magma_oceans']:
             return self._header['mo_thick_sol'] * (
                 radius + self._header['mo_lambda'])
         return radius
