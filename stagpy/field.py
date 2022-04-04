@@ -215,14 +215,14 @@ def plot_scalar(step: Step, var: str, field: Optional[ndarray] = None,
     else:
         fig = axis.get_figure()
 
-    if step.sdat.par['magma_oceans_in']['magma_oceans_mode']:
+    if step.sdat.par['magma_oceans_in']['evolving_magma_oceans']:
         rcmb = step.sdat.par['geometry']['r_cmb']
         xmax = rcmb + 1
         ymax = xmax
         xmin = -xmax
         ymin = -ymax
         rsurf = xmax if step.timeinfo['thick_tmo'] > 0 \
-            else step.geom.r_walls[0, 0, -3]
+            else step.geom.r_walls[-3]
         cmb = mpat.Circle((0, 0), rcmb, color='dimgray', zorder=0)
         psurf = mpat.Circle((0, 0), rsurf, color='indianred', zorder=0)
         axis.add_patch(psurf)
