@@ -3,6 +3,7 @@ requires = ["setuptools>=51", "setuptools_scm>=6.3.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+write_to = "stagpy/_version.py"
 
 [tool.mypy]
 disallow_untyped_defs = true

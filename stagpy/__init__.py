@@ -24,7 +24,6 @@ import signal
 import sys
 import typing
 
-from pkg_resources import get_distribution, DistributionNotFound
 from setuptools_scm import get_version
 from loam.manager import ConfigurationManager
 
@@ -105,9 +104,10 @@ else:
 try:
     __version__ = get_version(root='..', relative_to=__file__)
 except LookupError:
-    __version__ = get_distribution('stagpy').version
-except (DistributionNotFound, ValueError):
-    __version__ = 'unknown'
+    try:
+        from ._version import version as __version__
+    except ImportError:
+        __version__ = "unknown"
 
 _CONF_FILES = ([config.CONFIG_FILE, config.CONFIG_LOCAL]
                if not ISOLATED else [])

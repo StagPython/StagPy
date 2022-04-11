@@ -4,6 +4,7 @@ __pycache__/
 .coverage
 .tox
 stagpy.egg-info/
+/stagpy/_version.py
 /stagpy_git/
 docs/_build/
 docs/_static/
