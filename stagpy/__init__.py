@@ -72,7 +72,7 @@ def _check_config() -> None:
 
 def load_mplstyle() -> None:
     """Try to load conf.plot.mplstyle matplotlib style."""
-    import matplotlib.pyplot as plt
+    import matplotlib.style as mpls
     if conf.plot.mplstyle:
         for style in conf.plot.mplstyle.split():
             found = False
@@ -87,11 +87,12 @@ def load_mplstyle() -> None:
                 if stfile.is_file():
                     style = str(stfile)
             try:
-                plt.style.use(style)
+                mpls.use(style)
             except OSError:
                 print(f'Cannot import style {style}.', file=sys.stderr)
                 conf.plot.mplstyle = ''
     if conf.plot.xkcd:
+        import matplotlib.pyplot as plt
         plt.xkcd()
 
 
