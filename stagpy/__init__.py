@@ -17,8 +17,8 @@ and uppercase versions of those.
 """
 
 from __future__ import annotations
+import importlib.resources as imlr
 import os
-import pathlib
 import shutil
 import signal
 import sys
@@ -27,10 +27,10 @@ import typing
 from setuptools_scm import get_version
 from loam.manager import ConfigurationManager
 
-from . import config
+from . import config, _styles
 
 if typing.TYPE_CHECKING:
-    from typing import NoReturn, Any
+    from typing import NoReturn, Any, Iterator
 
 
 def _env(var: str) -> bool:
@@ -53,6 +53,12 @@ def sigint_handler(*_: Any) -> NoReturn:
     sys.exit()
 
 
+def _iter_styles() -> Iterator[str]:
+    for resource in imlr.contents(_styles):
+        if resource.endswith(".mplstyle"):
+            yield resource
+
+
 def _check_config() -> None:
     """Create config files as necessary."""
     config.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -62,12 +68,11 @@ def _check_config() -> None:
         verfile.write_text(__version__)
     if not (uptodate and config.CONFIG_FILE.is_file()):
         conf.create_config_(update=True)
-    for stfile in ('stagpy-paper.mplstyle',
-                   'stagpy-slides.mplstyle'):
+    for stfile in _iter_styles():
         stfile_conf = config.CONFIG_DIR / stfile
         if not (uptodate and stfile_conf.is_file()):
-            stfile_local = pathlib.Path(__file__).parent / stfile
-            shutil.copy(str(stfile_local), str(stfile_conf))
+            with imlr.path(_styles, stfile) as stfile_local:
+                shutil.copy(str(stfile_local), str(stfile_conf))
 
 
 def load_mplstyle() -> None:
@@ -76,16 +81,18 @@ def load_mplstyle() -> None:
     if conf.plot.mplstyle:
         for style in conf.plot.mplstyle.split():
             found = False
+            style_fname = style + ".mplstyle"
             if not ISOLATED:
-                stfile = config.CONFIG_DIR / (style + '.mplstyle')
+                stfile = config.CONFIG_DIR / style_fname
                 if stfile.is_file():
                     found = True
                     style = str(stfile)
             if not found:
                 # try local version
-                stfile = pathlib.Path(__file__).parent / (style + '.mplstyle')
-                if stfile.is_file():
-                    style = str(stfile)
+                if imlr.is_resource(_styles, style_fname):
+                    with imlr.path(_styles, style_fname) as stfile:
+                        mpls.use(str(stfile))
+                        continue
             try:
                 mpls.use(style)
             except OSError:
