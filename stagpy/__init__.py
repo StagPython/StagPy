@@ -80,24 +80,18 @@ def load_mplstyle() -> None:
     import matplotlib.style as mpls
     if conf.plot.mplstyle:
         for style in conf.plot.mplstyle.split():
-            found = False
             style_fname = style + ".mplstyle"
             if not ISOLATED:
                 stfile = config.CONFIG_DIR / style_fname
                 if stfile.is_file():
-                    found = True
-                    style = str(stfile)
-            if not found:
-                # try local version
-                if imlr.is_resource(_styles, style_fname):
-                    with imlr.path(_styles, style_fname) as stfile:
-                        mpls.use(str(stfile))
-                        continue
-            try:
-                mpls.use(style)
-            except OSError:
-                print(f'Cannot import style {style}.', file=sys.stderr)
-                conf.plot.mplstyle = ''
+                    mpls.use(str(stfile))
+                    continue
+            # try packaged version
+            if imlr.is_resource(_styles, style_fname):
+                with imlr.path(_styles, style_fname) as stfile:
+                    mpls.use(str(stfile))
+                    continue
+            mpls.use(style)
     if conf.plot.xkcd:
         import matplotlib.pyplot as plt
         plt.xkcd()
