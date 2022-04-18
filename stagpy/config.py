@@ -56,8 +56,8 @@ CONF_DEF['plot'] = dict(
                   False, 'arbitrary isoline value, comma separated'),
     mplstyle=Conf('stagpy-paper', True, None,
                   {'nargs': '?', 'const': '', 'type': str},
-                  True, 'matplotlib style'),
-    xkcd=Conf(False, False, None, {}, True, 'use the xkcd style'),
+                  False, 'matplotlib style'),
+    xkcd=command_flag(None, 'use the xkcd style'),
 )
 
 CONF_DEF['scaling'] = dict(

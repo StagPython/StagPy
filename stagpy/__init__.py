@@ -75,28 +75,6 @@ def _check_config() -> None:
                 shutil.copy(str(stfile_local), str(stfile_conf))
 
 
-def load_mplstyle() -> None:
-    """Try to load conf.plot.mplstyle matplotlib style."""
-    import matplotlib.style as mpls
-    if conf.plot.mplstyle:
-        for style in conf.plot.mplstyle.split():
-            style_fname = style + ".mplstyle"
-            if not ISOLATED:
-                stfile = config.CONFIG_DIR / style_fname
-                if stfile.is_file():
-                    mpls.use(str(stfile))
-                    continue
-            # try packaged version
-            if imlr.is_resource(_styles, style_fname):
-                with imlr.path(_styles, style_fname) as stfile:
-                    mpls.use(str(stfile))
-                    continue
-            mpls.use(style)
-    if conf.plot.xkcd:
-        import matplotlib.pyplot as plt
-        plt.xkcd()
-
-
 if DEBUG:
     print('StagPy runs in DEBUG mode because the environment variable',
           'STAGPY_DEBUG is set to "True"', sep='\n', end='\n\n')
@@ -118,8 +96,6 @@ conf.set_config_files_(*_CONF_FILES)
 if not ISOLATED:
     _check_config()
 PARSING_OUT = conf.read_configs_()
-
-load_mplstyle()
 
 if not DEBUG:
     signal.signal(signal.SIGINT, _PREV_INT)
