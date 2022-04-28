@@ -25,7 +25,6 @@ import sys
 import typing
 
 from setuptools_scm import get_version
-from loam.manager import ConfigurationManager
 
 from . import config, _styles
 
@@ -67,7 +66,7 @@ def _check_config() -> None:
     if not uptodate:
         verfile.write_text(__version__)
     if not (uptodate and config.CONFIG_FILE.is_file()):
-        conf.create_config_(update=True)
+        conf.to_file_(config.CONFIG_FILE)
     for stfile in _iter_styles():
         stfile_conf = config.CONFIG_DIR / stfile
         if not (uptodate and stfile_conf.is_file()):
@@ -89,13 +88,12 @@ except LookupError:
     except ImportError:
         __version__ = "unknown"
 
-_CONF_FILES = ([config.CONFIG_FILE, config.CONFIG_LOCAL]
-               if not ISOLATED else [])
-conf = ConfigurationManager.from_dict_(config.CONF_DEF)
-conf.set_config_files_(*_CONF_FILES)
+conf = config.Config.default_()
 if not ISOLATED:
     _check_config()
-PARSING_OUT = conf.read_configs_()
+    conf.update_from_file_(config.CONFIG_FILE)
+    if config.CONFIG_LOCAL.is_file():
+        conf.update_from_file_(config.CONFIG_LOCAL)
 
 if not DEBUG:
     signal.signal(signal.SIGINT, _PREV_INT)

@@ -6,13 +6,13 @@ from types import MappingProxyType
 import importlib.resources as imlr
 import typing
 
-from loam.tools import set_conf_str, create_complete_files
+from loam.tools import create_complete_files
 from loam.cli import Subcmd, CLIManager
 import matplotlib.pyplot as plt
 import matplotlib.style as mpls
 
 from . import __doc__ as doc_module
-from . import conf, PARSING_OUT, ISOLATED
+from . import conf, ISOLATED
 from . import (
     commands, config, field, rprof, time_series, refstate, plates, _styles,
 )
@@ -90,12 +90,6 @@ def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
 
     if sub_cmd is None:
         return cmd_args.func
-
-    if sub_cmd != 'config':
-        commands.report_parsing_problems(PARSING_OUT)
-
-    if conf.common.set:
-        set_conf_str(conf, conf.common.set)
 
     if conf.common.config:
         commands.config_pp(climan.sections_list(sub_cmd))

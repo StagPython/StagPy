@@ -5,160 +5,245 @@ interface.
 """
 
 from __future__ import annotations
-import pathlib
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Sequence, Union, Optional, Dict
 
-from loam.manager import ConfOpt as Conf
+from loam.base import entry, Section, ConfigBase
 from loam import tools
-from loam.tools import switch_opt, command_flag
-import loam.types
+from loam.tools import switch_opt, command_flag, path_entry
+import loam.parsers
 
 
-_index_collection = loam.types.list_of(loam.types.slice_or_int_parser)
-_float_list = loam.types.list_of(float)
+_index_collection = loam.parsers.tuple_of(loam.parsers.slice_or_int_parser)
+_float_list = loam.parsers.tuple_of(float)
 
-HOME_DIR = pathlib.Path.home()
+HOME_DIR = Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
 CONFIG_FILE = CONFIG_DIR / 'config.toml'
-CONFIG_LOCAL = pathlib.Path('.stagpy.toml')
+CONFIG_LOCAL = Path('.stagpy.toml')
 
-CONF_DEF = {}
 
-CONF_DEF['common'] = dict(
-    config=command_flag(None, 'print config options'),
-    set=tools.set_conf_opt(),
-)
+@dataclass
+class Common(Section):
+    """Options used by all commands."""
 
-CONF_DEF['core'] = dict(
-    path=Conf('./', True, 'p', {},
-              True, 'path of StagYY run directory or par file', '_files'),
-    outname=Conf('stagpy', True, 'n', {}, True, 'output file name prefix'),
-    shortname=switch_opt(False, None, 'output file name is only prefix'),
-    timesteps=Conf(None, True, 't',
-                   {'nargs': '?', 'const': '', 'type': _index_collection},
-                   False, 'timesteps slice'),
-    snapshots=Conf(None, True, 's',
-                   {'nargs': '?', 'const': '', 'type': _index_collection},
-                   False, 'snapshots slice'),
-)
+    config: bool = command_flag("print config options")
 
-CONF_DEF['plot'] = dict(
-    ratio=Conf(None, True, None, {'nargs': '?', 'const': 0.6, 'type': float},
-               False, 'force aspect ratio of field plot'),
-    raster=switch_opt(True, None, 'rasterize field plots'),
-    format=Conf('pdf', True, None, {},
-                True, 'figure format (pdf, eps, svg, png)'),
-    vmin=Conf(None, True, None, {'type': float},
-              False, 'minimal value on plot'),
-    vmax=Conf(None, True, None, {'type': float},
-              False, 'maximal value on plot'),
-    cminmax=switch_opt(False, 'C', 'constant min max across plots'),
-    isolines=Conf(None, True, None, {'type': _float_list},
-                  False, 'arbitrary isoline value, comma separated'),
-    mplstyle=Conf('stagpy-paper', True, None,
-                  {'nargs': '?', 'const': '', 'type': str},
-                  False, 'matplotlib style'),
-    xkcd=command_flag(None, 'use the xkcd style'),
-)
 
-CONF_DEF['scaling'] = dict(
-    yearins=Conf(3.154e7, False, None, {}, True, 'year in seconds'),
-    ttransit=Conf(1.78e15, False, None, {}, True, 'transit time in My'),
-    dimensional=switch_opt(False, None, 'use dimensional units'),
-    time_in_y=switch_opt(True, None, 'dimensional time is in year'),
-    vel_in_cmpy=switch_opt(True, None, 'dimensional velocity is in cm/year'),
-    factors=Conf({'s': 'M', 'm': 'k', 'Pa': 'G'},
-                 False, None, {}, True, 'custom factors'),
-)
+@dataclass
+class Core(Section):
+    """Options used by most commands."""
 
-CONF_DEF['field'] = dict(
-    plot=Conf('T,stream', True, 'o', {'nargs': '?', 'const': '', 'type': str},
-              True, 'variables to plot (see stagpy var)'),
-    perturbation=switch_opt(False, None,
-                            'plot departure from average profile'),
-    shift=Conf(None, True, None, {'type': int},
-               False, 'shift plot horizontally'),
-    timelabel=switch_opt(False, None, 'add label with time'),
-    interpolate=switch_opt(False, None, 'apply Gouraud shading'),
-    colorbar=switch_opt(True, None, 'add color bar to plot'),
-    ix=Conf(None, True, None, {'type': int},
-            False, 'x-index of slice for 3D fields'),
-    iy=Conf(None, True, None, {'type': int},
-            False, 'y-index of slice for 3D fields'),
-    iz=Conf(None, True, None, {'type': int},
-            False, 'z-index of slice for 3D fields'),
-    isocolors=Conf('', True, None, {}, True,
-                   'comma-separated list of colors for isolines'),
-    cmap=Conf({'T': 'RdBu_r',
-               'eta': 'viridis_r',
-               'rho': 'RdBu',
-               'sII': 'plasma_r',
-               'edot': 'Reds'},
-              False, None, {}, True, 'custom colormaps'),
-)
+    path: Path = path_entry(path=".", cli_short='p',
+                            doc="path of StagYY run directory or par file")
+    outname: str = entry(val="stagpy", cli_short='n',
+                         doc='output file name prefix')
+    shortname: bool = switch_opt(
+        False, None, "output file name is only prefix")
+    timesteps: Optional[Sequence[Union[int, slice]]] = entry(
+        val_factory=lambda: None, cli_short='t', in_file=False,
+        doc="timesteps slice",
+        cli_kwargs={'nargs': '?', 'const': ''}, from_str=_index_collection)
+    snapshots: Optional[Sequence[Union[int, slice]]] = entry(
+        val_factory=lambda: None, cli_short='s', in_file=False,
+        doc="snapshots slice",
+        cli_kwargs={'nargs': '?', 'const': ''}, from_str=_index_collection)
 
-CONF_DEF['rprof'] = dict(
-    plot=Conf('Tmean', True, 'o', {'nargs': '?', 'const': ''},
-              True, 'variables to plot (see stagpy var)'),
-    style=Conf('-', True, None, {}, True, 'matplotlib line style'),
-    average=switch_opt(False, 'a', 'plot temporal average'),
-    grid=switch_opt(False, 'g', 'plot grid'),
-    depth=switch_opt(False, 'd', 'depth as vertical axis'),
-)
 
-CONF_DEF['time'] = dict(
-    plot=Conf('Nutop,ebalance,Nubot.Tmean', True, 'o',
-              {'nargs': '?', 'const': ''},
-              True, 'variables to plot (see stagpy var)'),
-    style=Conf('-', True, None, {}, True, 'matplotlib line style'),
-    compstat=Conf('', True, None, {'nargs': '?', 'const': ''},
-                  False, 'compute mean and rms of listed variables'),
-    tstart=Conf(None, True, None, {'type': float}, False, 'beginning time'),
-    tend=Conf(None, True, None, {'type': float}, False, 'end time'),
-    fraction=Conf(None, True, None, {'type': float},
-                  False, 'ending fraction of series to process'),
-    marktimes=Conf('', True, 'M', {'type': _float_list},
-                   False, 'list of times where to put a mark'),
-    marksteps=Conf('', True, 'T', {'type': _index_collection},
-                   False, 'list of steps where to put a mark'),
-    marksnaps=Conf('', True, 'S', {'type': _index_collection},
-                   False, 'list of snaps where to put a mark'),
-)
+@dataclass
+class Plot(Section):
+    """Options to tweak plots."""
 
-CONF_DEF['refstate'] = dict(
-    plot=Conf('T', True, 'o', {'nargs': '?', 'const': ''},
-              True, 'variables to plot (see stagpy var)'),
-    style=Conf('-', True, None, {}, True, 'matplotlib line style'),
-)
+    ratio: Optional[float] = entry(
+        val_factory=lambda: None, in_file=False, from_str=float,
+        doc="force aspect ratio of field plot",
+        cli_kwargs={'nargs': '?', 'const': 0.6})
+    raster: bool = switch_opt(True, None, "rasterize field plots")
+    format: str = entry(val="pdf", doc="figure format (pdf, eps, svg, png)")
+    vmin: Optional[float] = entry(
+        val_factory=lambda: None, in_file=False, from_str=float,
+        doc="minimal value on plot")
+    vmax: Optional[float] = entry(
+        val_factory=lambda: None, in_file=False, from_str=float,
+        doc="maximal value on plot")
+    cminmax: bool = switch_opt(False, 'C', 'constant min max across plots')
+    isolines: Optional[Sequence[float]] = entry(
+        val_factory=lambda: None, in_file=False, from_str=_float_list,
+        doc="arbitrary isoline value, comma separated")
+    mplstyle: str = entry(
+        val="stagpy-paper", in_file=False,
+        cli_kwargs={'nargs': '?', 'const': ''},
+        doc="matplotlib style")
+    xkcd: bool = command_flag("use the xkcd style")
 
-CONF_DEF['plates'] = dict(
-    plot=Conf('c.T.v2-v2.dv2-v2.topo_top', True, 'o',
-              {'nargs': '?', 'const': ''}, True,
-              'variables to plot, can be a surface field, field, or dv2'),
-    field=Conf('eta', True, None, {},
-               True, 'field variable to plot with plates info'),
-    stress=switch_opt(
+
+@dataclass
+class Scaling(Section):
+    """Options regarding dimensionalization."""
+
+    yearins: float = entry(val=3.154e7, in_cli=False, doc='year in seconds')
+    ttransit: float = entry(val=1.78e15, in_cli=False,
+                            doc="transit time in My")
+    dimensional: bool = switch_opt(False, None, 'use dimensional units')
+    time_in_y: bool = switch_opt(True, None, 'dimensional time is in year')
+    vel_in_cmpy: bool = switch_opt(True, None,
+                                   "dimensional velocity is in cm/year")
+    factors: Dict[str, str] = entry(
+        val_factory=lambda: {'s': 'M', 'm': 'k', 'Pa': 'G'},
+        in_cli=False, doc="custom factors")
+
+
+@dataclass
+class Field(Section):
+    """Options of the field command."""
+
+    plot: str = entry(
+        val='T,stream', cli_short='o',
+        cli_kwargs={'nargs': '?', 'const': '', 'type': str},
+        doc="variables to plot (see stagpy var)")
+    perturbation: bool = switch_opt(
+        False, None, "plot departure from average profile")
+    shift: Optional[int] = entry(
+        val_factory=lambda: None, in_file=False, from_str=int,
+        doc="shift plot horizontally")
+    timelabel: bool = switch_opt(False, None, "add label with time")
+    interpolate: bool = switch_opt(False, None, "apply Gouraud shading")
+    colorbar: bool = switch_opt(True, None, "add color bar to plot")
+    ix: Optional[int] = entry(
+        val_factory=lambda: None, in_file=False, from_str=int,
+        doc="x-index of slice for 3D fields")
+    iy: Optional[int] = entry(
+        val_factory=lambda: None, in_file=False, from_str=int,
+        doc="y-index of slice for 3D fields")
+    iz: Optional[int] = entry(
+        val_factory=lambda: None, in_file=False, from_str=int,
+        doc="z-index of slice for 3D fields")
+    isocolors: str = entry(
+        val="", doc="comma-separated list of colors for isolines")
+    cmap: Dict[str, str] = entry(
+        val_factory=lambda: {
+            'T': 'RdBu_r',
+            'eta': 'viridis_r',
+            'rho': 'RdBu',
+            'sII': 'plasma_r',
+            'edot': 'Reds'},
+        in_cli=False, doc="custom colormaps")
+
+
+@dataclass
+class Rprof(Section):
+    """Options of the rprof command."""
+
+    plot: str = entry(
+        val="Tmean", cli_short='o',
+        cli_kwargs={'nargs': '?', 'const': ''},
+        doc="variables to plot (see stagpy var)")
+    style: str = entry(val='-', doc="matplotlib line style")
+    average: bool = switch_opt(False, 'a', 'plot temporal average')
+    grid: bool = switch_opt(False, 'g', 'plot grid')
+    depth: bool = switch_opt(False, 'd', 'depth as vertical axis')
+
+
+@dataclass
+class Time(Section):
+    """Options of the time command."""
+
+    plot: str = entry(
+        val="Nutop,ebalance,Nubot.Tmean", cli_short='o',
+        cli_kwargs={'nargs': '?', 'const': ''},
+        doc="variables to plot (see stagpy var)")
+    style: str = entry(val='-', doc="matplotlib line style")
+    compstat: str = entry(
+        val='', in_file=False,
+        cli_kwargs={'nargs': '?', 'const': ''},
+        doc="compute mean and rms of listed variables")
+    tstart: Optional[float] = entry(
+        val_factory=lambda: None, in_file=False, from_str=float,
+        doc="beginning time")
+    tend: Optional[float] = entry(
+        val_factory=lambda: None, in_file=False, from_str=float,
+        doc="end time")
+    fraction: Optional[float] = entry(
+        val_factory=lambda: None, in_file=False, from_str=float,
+        doc="ending fraction of series to process")
+    marktimes: Sequence[float] = entry(
+        val_str="", in_file=False, cli_short='M', from_str=_float_list,
+        doc="list of times where to put a mark")
+    marksteps: Sequence[Union[int, slice]] = entry(
+        val_str="", cli_short='T', in_file=False, from_str=_index_collection,
+        doc="list of steps where to put a mark")
+    marksnaps: Sequence[Union[int, slice]] = entry(
+        val_str="", cli_short='S', in_file=False, from_str=_index_collection,
+        doc="list of snaps where to put a mark")
+
+
+@dataclass
+class Refstate(Section):
+    """Options of the refstate command."""
+
+    plot: str = entry(
+        val='T', cli_short='o', cli_kwargs={'nargs': '?', 'const': ''},
+        doc="variables to plot (see stagpy var)")
+    style: str = entry(val='-', doc="matplotlib line style")
+
+
+@dataclass
+class Plates(Section):
+    """Options of the plates command."""
+
+    plot: str = entry(
+        val='c.T.v2-v2.dv2-v2.topo_top', cli_short='o',
+        cli_kwargs={'nargs': '?', 'const': ''},
+        doc="variables to plot, can be a surface field, field, or dv2")
+    field: str = entry(val='eta', doc="field to plot with plates info")
+    stress: bool = switch_opt(
         False, None,
-        'Plot deviatoric stress instead of velocity on field plots'),
-    continents=switch_opt(True, None, 'Whether to shade continents on plots'),
-    vzratio=Conf(0., True, None, {}, True,
-                 'Ratio of mean vzabs used as threshold for plates limits'),
-    nbplates=switch_opt(False, None,
-                        'Plot number of plates as function of time'),
-    distribution=switch_opt(False, None, 'Plot plate size distribution'),
-    zoom=Conf(None, True, None, {'type': float}, False, 'zoom around surface'),
-)
+        "plot deviatoric stress instead of velocity on field plots")
+    continents: bool = switch_opt(True, None, "whether to shade continents")
+    vzratio: float = entry(
+        val=0., doc="Ratio of mean vzabs used as threshold for plates limits")
+    nbplates: bool = switch_opt(
+        False, None, "plot number of plates as function of time")
+    distribution: bool = switch_opt(
+        False, None, "plot plate size distribution")
+    zoom: Optional[float] = entry(
+        val_factory=lambda: None, in_file=False, from_str=float,
+        doc="zoom around surface")
 
-CONF_DEF['info'] = dict(
-    output=Conf('t,Tmean,vrms,Nutop,Nubot', True, 'o', {},
-                True, 'time series to print'),
-)
 
-CONF_DEF['var'] = dict(
-    field=command_flag(None, 'print field variables'),
-    sfield=command_flag(None, 'print surface field variables'),
-    rprof=command_flag(None, 'print rprof variables'),
-    time=command_flag(None, 'print time variables'),
-    refstate=command_flag(None, 'print refstate variables'),
-)
+@dataclass
+class Info(Section):
+    """Options of the info command."""
 
-CONF_DEF['config'] = tools.config_conf_section()
+    output: str = entry(val='t,Tmean,vrms,Nutop,Nubot', cli_short='o',
+                        doc="time series to print")
+
+
+@dataclass
+class Var(Section):
+    """Options of the var command."""
+
+    field: bool = command_flag("print field variables")
+    sfield: bool = command_flag("print surface field variables")
+    rprof: bool = command_flag("print rprof variables")
+    time: bool = command_flag("print time variables")
+    refstate: bool = command_flag("print refstate variables")
+
+
+@dataclass
+class Config(ConfigBase):
+    """StagPy configuration."""
+
+    common: Common
+    core: Core
+    plot: Plot
+    scaling: Scaling
+    field: Field
+    rprof: Rprof
+    time: Time
+    refstate: Refstate
+    plates: Plates
+    info: Info
+    var: Var
+    config: tools.ConfigSection

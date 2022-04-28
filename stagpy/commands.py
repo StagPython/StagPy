@@ -1,11 +1,11 @@
 """Definition of non-processing subcommands."""
 
 from __future__ import annotations
+from dataclasses import fields
 from itertools import zip_longest
 from math import ceil
 from shutil import get_terminal_size
 from textwrap import indent, TextWrapper
-import sys
 import typing
 
 import loam.tools
@@ -13,13 +13,13 @@ import pandas
 
 from . import conf, phyvars, __version__
 from . import stagyydata
-from .config import CONFIG_FILE, CONFIG_LOCAL
+from .config import CONFIG_FILE
 from ._helpers import baredoc
 
 if typing.TYPE_CHECKING:
     from typing import (Sequence, Tuple, Optional, Mapping, Callable, Union,
-                        Iterable, Any)
-    from pathlib import Path
+                        Iterable)
+    from loam.base import Section
     from .datatypes import Varf, Varr, Vart
 
 
@@ -131,7 +131,8 @@ def var_cmd() -> None:
     See :mod:`stagpy.phyvars` where the lists of variables organized by command
     are defined.
     """
-    print_all = not any(val for _, val in conf.var.opt_vals_())
+    print_all = not any(getattr(conf.var, fld.name)
+                        for fld in fields(conf.var))
     if print_all or conf.var.field:
         print('field:')
         _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
@@ -162,22 +163,6 @@ def version_cmd() -> None:
     print(f'stagpy version: {__version__}')
 
 
-def report_parsing_problems(
-        parsing_out: Tuple[Any, Sequence[Path], Sequence[Path]]) -> None:
-    """Output message about potential parsing problems."""
-    _, empty, faulty = parsing_out
-    if CONFIG_FILE in empty or CONFIG_FILE in faulty:
-        print('Unable to read global config file', CONFIG_FILE,
-              file=sys.stderr)
-        print('Please run stagpy config --create',
-              sep='\n', end='\n\n', file=sys.stderr)
-    if CONFIG_LOCAL in faulty:
-        print('Unable to read local config file', CONFIG_LOCAL,
-              file=sys.stderr)
-        print('Please run stagpy config --create_local',
-              sep='\n', end='\n\n', file=sys.stderr)
-
-
 def config_pp(subs: Iterable[str]) -> None:
     """Pretty print of configuration options.
 
@@ -187,11 +172,14 @@ def config_pp(subs: Iterable[str]) -> None:
     print('(c|f): available only as CLI argument/in the config file',
           end='\n\n')
     for sub in subs:
+        section: Section = getattr(conf, sub)
         hlp_lst = []
-        for opt, meta in conf[sub].defaults_():
-            if meta.cmd_arg ^ meta.conf_arg:
-                opt += ' (c)' if meta.cmd_arg else ' (f)'
-            hlp_lst.append((opt, meta.help))
+        for fld in fields(section):
+            opt = fld.name
+            entry = section.meta_(opt).entry
+            if entry.in_cli ^ entry.in_file:
+                opt += ' (c)' if entry.in_cli else ' (f)'
+            hlp_lst.append((opt, entry.doc))
         if hlp_lst:
             print(f'{sub}:')
             _pretty_print(hlp_lst, sep=' -- ',
@@ -206,7 +194,6 @@ def config_cmd() -> None:
         conf.config
     """
     if not (conf.common.config or conf.config.create or
-            conf.config.create_local or conf.config.update or
-            conf.config.edit):
-        config_pp(conf.sections_())
-    loam.tools.config_cmd_handler(conf)
+            conf.config.update or conf.config.edit):
+        config_pp(sec.name for sec in fields(conf))
+    loam.tools.config_cmd_handler(conf, conf.config, CONFIG_FILE)

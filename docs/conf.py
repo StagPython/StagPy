@@ -12,6 +12,7 @@
 
 import sys
 import os
+from dataclasses import fields
 from pathlib import Path
 from textwrap import dedent
 from pkg_resources import get_distribution
@@ -120,7 +121,8 @@ with dfile.open('w') as fid:
 
         These tables list configuration options.
         """))
-    for section in stagpy.conf.sections_():
+    for sec_fld in fields(stagpy.conf):
+        sec_name = sec_fld.name
         fid.write(dedent(
             """
             .. list-table:: {}
@@ -129,14 +131,17 @@ with dfile.open('w') as fid:
                * - Name
                  - Description
                  - CLI, config file?
-            """.format(section)))
-        for opt, meta in stagpy.conf[section].defaults_():
-            if meta.cmd_arg and meta.conf_arg:
+            """.format(sec_name)))
+        section = getattr(stagpy.conf, sec_name)
+        for fld in fields(section):
+            opt = fld.name
+            entry = section.meta_(opt).entry
+            if entry.in_cli and entry.in_file:
                 c_f = 'both'
-            elif meta.cmd_arg:
+            elif entry.in_cli:
                 c_f = 'CLI'
             else:
                 c_f = 'config file'
             fid.write('   * - {}\n'.format(opt))
-            fid.write('     - {}\n'.format(meta.help))
+            fid.write('     - {}\n'.format(entry.doc))
             fid.write('     - {}\n'.format(c_f))

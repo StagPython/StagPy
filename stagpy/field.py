@@ -15,7 +15,7 @@ from .error import NotAvailableError
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Tuple, Optional, Any, Iterable, Dict
+    from typing import Tuple, Optional, Any, Iterable, Dict, Union
     from numpy import ndarray
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
@@ -35,9 +35,9 @@ def _threed_extract(
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
     hwalls = is_vector or walls
-    i_x = conf.field.ix
-    i_y = conf.field.iy
-    i_z = conf.field.iz
+    i_x: Optional[Union[int, slice]] = conf.field.ix
+    i_y: Optional[Union[int, slice]] = conf.field.iy
+    i_z: Optional[Union[int, slice]] = conf.field.iz
     if i_x is not None or i_y is not None:
         i_z = None
     if i_x is not None or i_z is not None:
@@ -59,6 +59,7 @@ def _threed_extract(
         ycoord = step.geom.y_walls if hwalls else step.geom.y_centers
         i_x = i_y = slice(None)
         varx, vary = var + '1', var + '2'
+    data: Any
     if is_vector:
         data = (step.fields[varx].values[i_x, i_y, i_z, 0],
                 step.fields[vary].values[i_x, i_y, i_z, 0])

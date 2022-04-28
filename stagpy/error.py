@@ -170,7 +170,7 @@ class InvalidZoomError(StagpyError):
         zoom: the invalid zoom level.
     """
 
-    def __init__(self, zoom: int):
+    def __init__(self, zoom: float):
         self.zoom = zoom
         super().__init__(f'Zoom angle should be in [0,360] (received {zoom})')
 
