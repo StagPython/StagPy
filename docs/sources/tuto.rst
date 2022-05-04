@@ -120,5 +120,5 @@ with ``plot.mplstyle``, available in the command line interface with the
 several styles.  For example, if you want a dark-background figure with a
 font size adapted for slides, you can use the following command::
 
-   % stagpy field --mplstyle='dark_backgroud stagpy-slides'
+   % stagpy field --mplstyle='dark_background stagpy-slides'
 
