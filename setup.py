@@ -6,7 +6,7 @@ with open('README.rst') as rdm:
     README = rdm.read()
 
 DEPENDENCIES = [
-    'loam>=0.3.1',
+    'loam=0.3.1',
     'f90nml>=1.2',
     'setuptools_scm>=4.1',
 ]
