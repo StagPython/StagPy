@@ -823,11 +823,9 @@ class StagyyData:
             conf.core.snapshots: the slice of snapshots.
             conf.core.timesteps: the slice of timesteps.
         """
-        if conf.core.snapshots:
-            return self.snaps[conf.core.snapshots]
-        elif conf.core.timesteps:
+        if conf.core.timesteps:
             return self.steps[conf.core.timesteps]
-        return self.snaps[-1, ]
+        return self.snaps[conf.core.snapshots]
 
     @property
     def nfields_max(self) -> Optional[int]:

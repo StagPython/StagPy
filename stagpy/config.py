@@ -10,13 +10,13 @@ from pathlib import Path
 from typing import Sequence, Union, Optional, Dict
 
 from loam.base import entry, Section, ConfigBase
+from loam.collections import TupleEntry, MaybeEntry
 from loam import tools
 from loam.tools import switch_opt, command_flag, path_entry
-import loam.parsers
+import loam.parsers as lprs
 
 
-_index_collection = loam.parsers.tuple_of(loam.parsers.slice_or_int_parser)
-_float_list = loam.parsers.tuple_of(float)
+_indices = TupleEntry(inner_from_toml=lprs.slice_or_int_parser)
 
 HOME_DIR = Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
@@ -41,40 +41,29 @@ class Core(Section):
                          doc='output file name prefix')
     shortname: bool = switch_opt(
         False, None, "output file name is only prefix")
-    timesteps: Optional[Sequence[Union[int, slice]]] = entry(
-        val_factory=lambda: None, cli_short='t', in_file=False,
-        doc="timesteps slice",
-        cli_kwargs={'nargs': '?', 'const': ''}, from_str=_index_collection)
-    snapshots: Optional[Sequence[Union[int, slice]]] = entry(
-        val_factory=lambda: None, cli_short='s', in_file=False,
-        doc="snapshots slice",
-        cli_kwargs={'nargs': '?', 'const': ''}, from_str=_index_collection)
+    timesteps: Sequence[Union[int, slice]] = _indices.entry(
+        doc="timesteps slice", in_file=False, cli_short="t")
+    snapshots: Sequence[Union[int, slice]] = _indices.entry(
+        default=[-1], doc="snapshots slice", in_file=False, cli_short='s')
 
 
 @dataclass
 class Plot(Section):
     """Options to tweak plots."""
 
-    ratio: Optional[float] = entry(
-        val_factory=lambda: None, in_file=False, from_str=float,
-        doc="force aspect ratio of field plot",
-        cli_kwargs={'nargs': '?', 'const': 0.6})
+    ratio: Optional[float] = MaybeEntry(float).entry(
+        doc="force aspect ratio of field plot", in_file=False)
     raster: bool = switch_opt(True, None, "rasterize field plots")
     format: str = entry(val="pdf", doc="figure format (pdf, eps, svg, png)")
-    vmin: Optional[float] = entry(
-        val_factory=lambda: None, in_file=False, from_str=float,
-        doc="minimal value on plot")
-    vmax: Optional[float] = entry(
-        val_factory=lambda: None, in_file=False, from_str=float,
-        doc="maximal value on plot")
+    vmin: Optional[float] = MaybeEntry(float).entry(
+        doc="minimal value on plot", in_file=False)
+    vmax: Optional[float] = MaybeEntry(float).entry(
+        doc="maximal value on plot", in_file=False)
     cminmax: bool = switch_opt(False, 'C', 'constant min max across plots')
-    isolines: Optional[Sequence[float]] = entry(
-        val_factory=lambda: None, in_file=False, from_str=_float_list,
-        doc="arbitrary isoline value, comma separated")
-    mplstyle: str = entry(
-        val="stagpy-paper", in_file=False,
-        cli_kwargs={'nargs': '?', 'const': ''},
-        doc="matplotlib style")
+    isolines: Sequence[float] = TupleEntry(float).entry(
+        doc="list of isoline values", in_file=False)
+    mplstyle: Sequence[str] = TupleEntry(str).entry(
+        default="stagpy-paper", doc="list of matplotlib styles", in_file=False)
     xkcd: bool = command_flag("use the xkcd style")
 
 
@@ -104,23 +93,19 @@ class Field(Section):
         doc="variables to plot (see stagpy var)")
     perturbation: bool = switch_opt(
         False, None, "plot departure from average profile")
-    shift: Optional[int] = entry(
-        val_factory=lambda: None, in_file=False, from_str=int,
-        doc="shift plot horizontally")
+    shift: Optional[int] = MaybeEntry(int).entry(
+        doc="shift plot horizontally", in_file=False)
     timelabel: bool = switch_opt(False, None, "add label with time")
     interpolate: bool = switch_opt(False, None, "apply Gouraud shading")
     colorbar: bool = switch_opt(True, None, "add color bar to plot")
-    ix: Optional[int] = entry(
-        val_factory=lambda: None, in_file=False, from_str=int,
-        doc="x-index of slice for 3D fields")
-    iy: Optional[int] = entry(
-        val_factory=lambda: None, in_file=False, from_str=int,
-        doc="y-index of slice for 3D fields")
-    iz: Optional[int] = entry(
-        val_factory=lambda: None, in_file=False, from_str=int,
-        doc="z-index of slice for 3D fields")
-    isocolors: str = entry(
-        val="", doc="comma-separated list of colors for isolines")
+    ix: Optional[int] = MaybeEntry(int).entry(
+        doc="x-index of slice for 3D fields", in_file=False)
+    iy: Optional[int] = MaybeEntry(int).entry(
+        doc="y-index of slice for 3D fields", in_file=False)
+    iz: Optional[int] = MaybeEntry(int).entry(
+        doc="z-index of slice for 3D fields", in_file=False)
+    isocolors: Sequence[str] = TupleEntry(str).entry(
+        doc="list of colors for isolines")
     cmap: Dict[str, str] = entry(
         val_factory=lambda: {
             'T': 'RdBu_r',
@@ -154,28 +139,20 @@ class Time(Section):
         cli_kwargs={'nargs': '?', 'const': ''},
         doc="variables to plot (see stagpy var)")
     style: str = entry(val='-', doc="matplotlib line style")
-    compstat: str = entry(
-        val='', in_file=False,
-        cli_kwargs={'nargs': '?', 'const': ''},
-        doc="compute mean and rms of listed variables")
-    tstart: Optional[float] = entry(
-        val_factory=lambda: None, in_file=False, from_str=float,
-        doc="beginning time")
-    tend: Optional[float] = entry(
-        val_factory=lambda: None, in_file=False, from_str=float,
-        doc="end time")
-    fraction: Optional[float] = entry(
-        val_factory=lambda: None, in_file=False, from_str=float,
-        doc="ending fraction of series to process")
-    marktimes: Sequence[float] = entry(
-        val_str="", in_file=False, cli_short='M', from_str=_float_list,
-        doc="list of times where to put a mark")
-    marksteps: Sequence[Union[int, slice]] = entry(
-        val_str="", cli_short='T', in_file=False, from_str=_index_collection,
-        doc="list of steps where to put a mark")
-    marksnaps: Sequence[Union[int, slice]] = entry(
-        val_str="", cli_short='S', in_file=False, from_str=_index_collection,
-        doc="list of snaps where to put a mark")
+    compstat: Sequence[str] = TupleEntry(str).entry(
+        doc="compute mean and rms of listed variables", in_file=False)
+    tstart: Optional[float] = MaybeEntry(float).entry(
+        doc="beginning time", in_file=False)
+    tend: Optional[float] = MaybeEntry(float).entry(
+        doc="end time", in_file=False)
+    fraction: Optional[float] = MaybeEntry(float).entry(
+        doc="ending fraction of series to process", in_file=False)
+    marktimes: Sequence[float] = TupleEntry(float).entry(
+        doc="list of times where to put a mark", in_file=False, cli_short='M')
+    marksteps: Sequence[Union[int, slice]] = _indices.entry(
+        doc="list of steps where to put a mark", in_file=False, cli_short='T')
+    marksnaps: Sequence[Union[int, slice]] = _indices.entry(
+        doc="list of snaps where to put a mark", in_file=False, cli_short='S')
 
 
 @dataclass
@@ -207,9 +184,8 @@ class Plates(Section):
         False, None, "plot number of plates as function of time")
     distribution: bool = switch_opt(
         False, None, "plot plate size distribution")
-    zoom: Optional[float] = entry(
-        val_factory=lambda: None, in_file=False, from_str=float,
-        doc="zoom around surface")
+    zoom: Optional[float] = MaybeEntry(float).entry(
+        doc="zoom around surface", in_file=False)
 
 
 @dataclass

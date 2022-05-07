@@ -136,7 +136,6 @@ def cmd() -> None:
     plot_time_series(sdat, conf.time.plot)
 
     if conf.time.compstat:
-        names = conf.time.compstat.replace(',', ' ').split()
-        stats = compstat(sdat, *names, tstart=conf.time.tstart,
+        stats = compstat(sdat, *conf.time.compstat, tstart=conf.time.tstart,
                          tend=conf.time.tend)
         stats.to_csv('statistics.dat')

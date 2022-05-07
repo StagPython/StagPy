@@ -285,7 +285,7 @@ def plot_iso(axis: Axes, step: Step, var: str,
         fld = np.roll(fld, conf.field.shift, axis=0)
     extra_opts: Dict[str, Any] = dict(linewidths=1)
     if 'cmap' not in extra and conf.field.isocolors:
-        extra_opts['colors'] = conf.field.isocolors.split(',')
+        extra_opts['colors'] = conf.field.isocolors
     elif 'colors' not in extra:
         extra_opts['cmap'] = conf.field.cmap.get(var)
     if conf.plot.isolines:
