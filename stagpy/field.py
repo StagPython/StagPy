@@ -344,9 +344,8 @@ def cmd() -> None:
         conf.core
     """
     sdat = StagyyData()
-    lovs = _helpers.list_of_vars(conf.field.plot)
     # no more than two fields in a subplot
-    lovs = [[slov[:2] for slov in plov] for plov in lovs]
+    lovs = [[slov[:2] for slov in plov] for plov in conf.field.plot]
     minmax = {}
     if conf.plot.cminmax:
         conf.plot.vmin = None

@@ -44,8 +44,5 @@ def cmd() -> None:
     """
     sdat = StagyyData()
 
-    lov = conf.refstate.plot.split(',')
-    if not lov:
-        return
-    for var in lov:
+    for var in conf.refstate.plot:
         plot_ref(sdat, var)

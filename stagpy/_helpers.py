@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from . import conf
 
 if TYPE_CHECKING:
-    from typing import Optional, Any, List, Callable, NoReturn
+    from typing import Optional, Any, Callable, NoReturn
     from matplotlib.figure import Figure
     from numpy import ndarray
 
@@ -87,26 +87,6 @@ def baredoc(obj: object) -> str:
         return ''
     doc = doc.splitlines()[0]
     return doc.rstrip(' .').lstrip()
-
-
-def list_of_vars(arg_plot: str) -> List[List[List[str]]]:
-    """Construct list of variables per plot.
-
-    Args:
-        arg_plot: variable names separated with ``-`` (figures),
-            ``.`` (subplots) and ``,`` (same subplot).
-    Returns:
-        three nested lists of str
-
-        - variables on the same subplot;
-        - subplots on the same figure;
-        - figures.
-    """
-    lovs = [[[var for var in svars.split(',') if var]
-             for svars in pvars.split('.') if svars]
-            for pvars in arg_plot.split('-') if pvars]
-    lovs = [[slov for slov in lov if slov] for lov in lovs if lov]
-    return [lov for lov in lovs if lov]
 
 
 def find_in_sorted_arr(value: Any, array: ndarray, after: bool = False) -> int:

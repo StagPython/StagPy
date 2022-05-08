@@ -9,22 +9,24 @@ from . import conf, _helpers
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
+    from typing import Sequence
     from ._step import Step, _Rprofs
 
 
-def plot_rprofs(rprofs: _Rprofs, names: str) -> None:
+def plot_rprofs(
+    rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]
+) -> None:
     """Plot requested radial profiles.
 
     Args:
         rprofs: a radial profile collection, such as :attr:`Step.rprofs` or
             :attr:`_StepsView.rprofs_averaged`.
-        names: profile names separated by ``-`` (figures), ``.`` (subplots) and
-            ``,`` (same subplot).
+        names: profile names organized by figures, plots and subplots.
     """
     stepstr = rprofs.stepstr
     sdat = rprofs.step.sdat
 
-    for vfig in _helpers.list_of_vars(names):
+    for vfig in names:
         fig, axes = plt.subplots(ncols=len(vfig), sharey=True,
                                  figsize=(4 * len(vfig), 6))
         axes = [axes] if len(vfig) == 1 else axes

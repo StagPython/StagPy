@@ -12,7 +12,7 @@ from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, List
+    from typing import Optional, List, Sequence
     from pandas import DataFrame
 
 
@@ -26,20 +26,21 @@ def _collect_marks(sdat: StagyyData) -> List[float]:
     return times
 
 
-def plot_time_series(sdat: StagyyData, names: str) -> None:
+def plot_time_series(
+    sdat: StagyyData, names: Sequence[Sequence[Sequence[str]]]
+) -> None:
     """Plot requested time series.
 
     Args:
         sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
-        names: time series names separated by ``-`` (figures), ``.`` (subplots)
-            and ``,`` (same subplot).
+        names: time series names organized by figures, plots and subplots.
 
     Other Parameters:
         conf.time.tstart: the starting time.
         conf.time.tend: the ending time.
     """
     time_marks = _collect_marks(sdat)
-    for vfig in _helpers.list_of_vars(names):
+    for vfig in names:
         tstart = conf.time.tstart
         tend = conf.time.tend
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,

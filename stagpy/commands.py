@@ -29,7 +29,6 @@ def info_cmd() -> None:
     Other Parameters:
         conf.info
     """
-    varlist = [var for var in conf.info.output.replace(',', ' ').split()]
     sdat = stagyydata.StagyyData()
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
@@ -53,7 +52,7 @@ def info_cmd() -> None:
             print(f', snapshot {step.isnap}/{lsnap.isnap}')
         else:
             print()
-        series = step.timeinfo.loc[varlist]
+        series = step.timeinfo.loc[list(conf.info.output)]
         if conf.scaling.dimensional:
             series = series.copy()
             dimensions = []

@@ -194,17 +194,18 @@ def _continents_location(snap: Step, at_surface: bool = True) -> ndarray:
     return csurf >= 2
 
 
-def plot_at_surface(snap: Step, names: str) -> None:
+def plot_at_surface(
+    snap: Step, names: Sequence[Sequence[Sequence[str]]]
+) -> None:
     """Plot surface diagnostics.
 
     Args:
         snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
-        names: names of requested surface diagnotics. They are separated by
-            ``-`` (figures), ``.`` (subplots) and ``,`` (same subplot).
-            Surface diagnotics can be valid surface field names, field names,
-            or `"dv2"` which is d(vphi)/dphi.
+        names: names of requested surface diagnotics. They are organized by
+            figures, plots and subplots.  Surface diagnotics can be valid
+            surface field names, field names, or `"dv2"` which is d(vphi)/dphi.
     """
-    for vfig in _helpers.list_of_vars(names):
+    for vfig in names:
         fig, axes = plt.subplots(nrows=len(vfig), sharex=True,
                                  figsize=(12, 2 * len(vfig)))
         axes = [axes] if len(vfig) == 1 else axes

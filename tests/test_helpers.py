@@ -23,8 +23,3 @@ def test_baredoc():
     """
     expected = 'Badly formatted docstring'
     assert stagpy._helpers.baredoc(test_baredoc) == expected
-
-
-def test_list_of_vars():
-    expected = [[['a', 'b'], ['c', 'd', 'e']], [['f', 'g'], ['h']]]
-    assert stagpy._helpers.list_of_vars('a,b..c,d,,,e-f,g.h-,..,-') == expected

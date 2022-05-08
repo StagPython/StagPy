@@ -17,6 +17,8 @@ import loam.parsers as lprs
 
 
 _indices = TupleEntry(inner_from_toml=lprs.slice_or_int_parser)
+_plots = TupleEntry.wrapping(
+    TupleEntry.wrapping(TupleEntry(str), str_sep="."), str_sep="-")
 
 HOME_DIR = Path.home()
 CONFIG_DIR = HOME_DIR / '.config' / 'stagpy'
@@ -87,9 +89,8 @@ class Scaling(Section):
 class Field(Section):
     """Options of the field command."""
 
-    plot: str = entry(
-        val='T,stream', cli_short='o',
-        cli_kwargs={'nargs': '?', 'const': '', 'type': str},
+    plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
+        default='T,stream', cli_short='o',
         doc="variables to plot (see stagpy var)")
     perturbation: bool = switch_opt(
         False, None, "plot departure from average profile")
@@ -120,9 +121,8 @@ class Field(Section):
 class Rprof(Section):
     """Options of the rprof command."""
 
-    plot: str = entry(
-        val="Tmean", cli_short='o',
-        cli_kwargs={'nargs': '?', 'const': ''},
+    plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
+        default="Tmean", cli_short='o',
         doc="variables to plot (see stagpy var)")
     style: str = entry(val='-', doc="matplotlib line style")
     average: bool = switch_opt(False, 'a', 'plot temporal average')
@@ -134,9 +134,8 @@ class Rprof(Section):
 class Time(Section):
     """Options of the time command."""
 
-    plot: str = entry(
-        val="Nutop,ebalance,Nubot.Tmean", cli_short='o',
-        cli_kwargs={'nargs': '?', 'const': ''},
+    plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
+        default="Nutop,ebalance,Nubot.Tmean", cli_short='o',
         doc="variables to plot (see stagpy var)")
     style: str = entry(val='-', doc="matplotlib line style")
     compstat: Sequence[str] = TupleEntry(str).entry(
@@ -159,9 +158,8 @@ class Time(Section):
 class Refstate(Section):
     """Options of the refstate command."""
 
-    plot: str = entry(
-        val='T', cli_short='o', cli_kwargs={'nargs': '?', 'const': ''},
-        doc="variables to plot (see stagpy var)")
+    plot: Sequence[str] = TupleEntry(str).entry(
+        default='T', cli_short='o', doc="variables to plot (see stagpy var)")
     style: str = entry(val='-', doc="matplotlib line style")
 
 
@@ -169,9 +167,8 @@ class Refstate(Section):
 class Plates(Section):
     """Options of the plates command."""
 
-    plot: str = entry(
-        val='c.T.v2-v2.dv2-v2.topo_top', cli_short='o',
-        cli_kwargs={'nargs': '?', 'const': ''},
+    plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
+        default='c.T.v2-v2.dv2-v2.topo_top', cli_short='o',
         doc="variables to plot, can be a surface field, field, or dv2")
     field: str = entry(val='eta', doc="field to plot with plates info")
     stress: bool = switch_opt(
@@ -192,8 +189,9 @@ class Plates(Section):
 class Info(Section):
     """Options of the info command."""
 
-    output: str = entry(val='t,Tmean,vrms,Nutop,Nubot', cli_short='o',
-                        doc="time series to print")
+    output: Sequence[str] = TupleEntry(str).entry(
+        default='t,Tmean,vrms,Nutop,Nubot', cli_short='o',
+        doc="time series to print")
 
 
 @dataclass
