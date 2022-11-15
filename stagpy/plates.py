@@ -34,7 +34,7 @@ def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> ndarray:
     return np.delete(iphis, argdel)
 
 
-@lru_cache()
+@lru_cache
 def detect_plates(snap: Step,
                   vz_thres_ratio: float = 0) -> Tuple[ndarray, ndarray]:
     """Detect plate limits using derivative of horizontal velocity.
