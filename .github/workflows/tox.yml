@@ -28,6 +28,6 @@ jobs:
       - name: Update pip
         run: python -m pip install -U pip
       - name: Install tox-gh
-        run: python3 -m pip install tox-gh==0.0.4 tox==4.0.0b1
+        run: python3 -m pip install tox-gh==0.0.4 tox==4.0.0b2
       - name: Run tox
-        run: tox4 run
+        run: tox run
