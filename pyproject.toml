@@ -22,12 +22,11 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "loam>=0.7.0,<0.8.0",
     "f90nml>=1.3.1",
