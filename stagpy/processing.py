@@ -15,6 +15,8 @@ from .error import NotAvailableError
 from .datatypes import Field, Varf, Rprof, Varr, Tseries, Vart
 
 if typing.TYPE_CHECKING:
+    from typing import Optional
+
     from numpy import ndarray
     from .stagyydata import StagyyData
     from ._step import Step
@@ -110,7 +112,9 @@ def delta_r(step: Step) -> Rprof:
     return Rprof((edges[1:] - edges[:-1]), step.rprofs.centers, meta)
 
 
-def _scale_prof(step: Step, rprof: ndarray, rad: ndarray = None) -> ndarray:
+def _scale_prof(
+    step: Step, rprof: ndarray, rad: Optional[ndarray] = None
+) -> ndarray:
     """Scale profile to take sphericity into account."""
     rbot, rtop = step.rprofs.bounds
     if rbot == 0:  # not spherical

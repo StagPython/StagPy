@@ -30,7 +30,7 @@ if typing.TYPE_CHECKING:
 
 
 def _tidy_names(names: List[str], nnames: int,
-                extra_names: List[str] = None) -> None:
+                extra_names: Optional[List[str]] = None) -> None:
     """Truncate or extend names so that its len is nnames.
 
     The list is modified in-place.
