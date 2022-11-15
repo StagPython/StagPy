@@ -8,8 +8,10 @@ Note:
 """
 
 from __future__ import annotations
+
 from collections import abc
 from dataclasses import dataclass, field
+from functools import cached_property
 from itertools import zip_longest
 from pathlib import Path
 import re
@@ -18,7 +20,6 @@ import typing
 import numpy as np
 
 from . import conf, error, parfile, phyvars, stagyyparsers, _helpers, _step
-from ._helpers import CachedReadOnlyProperty as crop
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
 
@@ -71,7 +72,7 @@ class _Scales:
     def __init__(self, sdat: StagyyData):
         self._sdat = sdat
 
-    @crop
+    @cached_property
     def length(self) -> float:
         """Length in m."""
         thick = self._sdat.par['geometry']['d_dimensional']
@@ -159,7 +160,7 @@ class _Refstate:
     def __init__(self, sdat: StagyyData):
         self._sdat = sdat
 
-    @crop
+    @cached_property
     def _data(self) -> Tuple[List[List[DataFrame]], List[DataFrame]]:
         """Read reference state profile."""
         reffile = self._sdat.filename('refstat.dat')
@@ -225,7 +226,7 @@ class _Tseries:
         self.sdat = sdat
         self._cached_extra: Dict[str, Tseries] = {}
 
-    @crop
+    @cached_property
     def _data(self) -> Optional[DataFrame]:
         timefile = self.sdat.filename('TimeSeries.h5')
         data = stagyyparsers.time_series_h5(
@@ -639,7 +640,7 @@ class _StepsView:
             self._rprofs_averaged = _RprofsAveraged(self)
         return self._rprofs_averaged
 
-    @crop
+    @cached_property
     def stepstr(self) -> str:
         """String representation of the requested set of steps."""
         items = []
@@ -772,7 +773,7 @@ class StagyyData:
         """Path of par file."""
         return self._parpath
 
-    @crop
+    @cached_property
     def hdf5(self) -> Optional[Path]:
         """Path of output hdf5 folder if relevant, None otherwise."""
         h5_folder = self.path / self.par['ioin']['hdf5_output_folder']
@@ -787,7 +788,7 @@ class StagyyData:
         """
         return self._par
 
-    @crop
+    @cached_property
     def _rprof_and_times(
         self
     ) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
@@ -806,7 +807,7 @@ class StagyyData:
         """Radial profiles times."""
         return self._rprof_and_times[1]
 
-    @crop
+    @cached_property
     def _files(self) -> Set[Path]:
         """Set of found binary files output by StagYY."""
         out_stem = Path(self.par['ioin']['output_file_stem'] + '_')

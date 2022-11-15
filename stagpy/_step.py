@@ -8,13 +8,13 @@ Note:
 
 from __future__ import annotations
 from collections import abc
+from functools import cached_property
 from itertools import chain
 import typing
 
 import numpy as np
 
 from . import error, phyvars, stagyyparsers
-from ._helpers import CachedReadOnlyProperty as crop
 from .datatypes import Field, Rprof, Varr
 
 if typing.TYPE_CHECKING:
@@ -48,31 +48,42 @@ class _Geometry:
                 radius + self._header['mo_lambda'])
         return radius
 
-    @crop
+    @cached_property
     def nttot(self) -> int:
         """Number of grid point along the x/theta direction."""
         return self._shape['ntot'][0]
 
-    @crop
+    @cached_property
     def nptot(self) -> int:
         """Number of grid point along the y/phi direction."""
         return self._shape['ntot'][1]
 
-    @crop
+    @cached_property
     def nrtot(self) -> int:
         """Number of grid point along the z/r direction."""
         return self._shape['ntot'][2]
 
-    @crop
+    @cached_property
     def nbtot(self) -> int:
         """Number of blocks."""
         return self._shape['ntot'][3]
 
-    nxtot = nttot
-    nytot = nptot
-    nztot = nrtot
+    @property
+    def nxtot(self) -> int:
+        """Same as nttot."""
+        return self.nttot
 
-    @crop
+    @property
+    def nytot(self) -> int:
+        """Same as nptot."""
+        return self.nptot
+
+    @property
+    def nztot(self) -> int:
+        """Same as nrtot."""
+        return self.nrtot
+
+    @cached_property
     def r_walls(self) -> ndarray:
         """Position of FV walls along the z/r direction."""
         rgeom = self._header.get("rgeom")
@@ -83,7 +94,7 @@ class _Geometry:
             walls = np.append(walls, self._step.rprofs.bounds[1])
         return self._scale_radius_mo(walls)
 
-    @crop
+    @cached_property
     def r_centers(self) -> ndarray:
         """Position of FV centers along the z/r direction."""
         rgeom = self._header.get("rgeom")
@@ -93,7 +104,7 @@ class _Geometry:
             walls = self._step.rprofs.centers
         return self._scale_radius_mo(walls)
 
-    @crop
+    @cached_property
     def t_walls(self) -> ndarray:
         """Position of FV walls along x/theta."""
         if self.threed or self.twod_xz:
@@ -113,12 +124,12 @@ class _Geometry:
         d_t = (self.p_walls[1] - self.p_walls[0]) / 2
         return np.array([center - d_t, center + d_t])
 
-    @crop
+    @cached_property
     def t_centers(self) -> ndarray:
         """Position of FV centers along x/theta."""
         return (self.t_walls[:-1] + self.t_walls[1:]) / 2
 
-    @crop
+    @cached_property
     def p_walls(self) -> ndarray:
         """Position of FV walls along y/phi."""
         if self.threed or self.twod_yz:
@@ -136,17 +147,40 @@ class _Geometry:
         d_p = (self.t_walls[1] - self.t_walls[0]) / 2
         return np.array([-d_p, d_p])
 
-    @crop
+    @cached_property
     def p_centers(self) -> ndarray:
         """Position of FV centers along y/phi."""
         return (self.p_walls[:-1] + self.p_walls[1:]) / 2
 
-    z_walls = r_walls
-    z_centers = r_centers
-    x_walls = t_walls
-    x_centers = t_centers
-    y_walls = p_walls
-    y_centers = p_centers
+    @property
+    def z_walls(self) -> ndarray:
+        """Same as r_walls."""
+        return self.r_walls
+
+    @property
+    def z_centers(self) -> ndarray:
+        """Same as r_centers."""
+        return self.r_centers
+
+    @property
+    def x_walls(self) -> ndarray:
+        """Same as t_walls."""
+        return self.t_walls
+
+    @property
+    def x_centers(self) -> ndarray:
+        """Same as t_centers."""
+        return self.t_centers
+
+    @property
+    def y_walls(self) -> ndarray:
+        """Same as p_walls."""
+        return self.p_walls
+
+    @property
+    def y_centers(self) -> ndarray:
+        """Same as p_centers."""
+        return self.p_centers
 
     def _init_shape(self) -> None:
         """Determine shape of geometry."""
@@ -160,7 +194,7 @@ class _Geometry:
         self._shape['axi'] = self.cartesian and self.twod_xz and \
             shape == 'axisymmetric'
 
-    @crop
+    @cached_property
     def rcmb(self) -> float:
         """Radius of CMB, 0 in cartesian geometry."""
         return max(self._header["rcmb"], 0)
@@ -272,7 +306,7 @@ class _Fields(abc.Mapping):
             self._set(fld_name, fld)
         return self._data[name]
 
-    @crop
+    @cached_property
     def _present_fields(self) -> List[str]:
         return [fld for fld in chain(self._vars, self._extra)
                 if fld in self]
@@ -341,7 +375,7 @@ class _Fields(abc.Mapping):
         if name in self._data:
             del self._data[name]
 
-    @crop
+    @cached_property
     def _header(self) -> Optional[Dict[str, Any]]:
         if self.step.isnap is None:
             return None
@@ -354,7 +388,7 @@ class _Fields(abc.Mapping):
             header = stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]
         return header if header else None
 
-    @crop
+    @cached_property
     def geom(self) -> _Geometry:
         """Geometry information.
 
@@ -425,7 +459,7 @@ class _Rprofs:
         self.step = step
         self._cached_extra: Dict[str, Rprof] = {}
 
-    @crop
+    @cached_property
     def _data(self) -> Optional[DataFrame]:
         step = self.step
         return step.sdat._rprof_and_times[0].get(step.istep)
@@ -464,12 +498,12 @@ class _Rprofs:
         """String representation of the parent :class:`Step`."""
         return str(self.step.istep)
 
-    @crop
+    @cached_property
     def centers(self) -> ndarray:
         """Radial position of cell centers."""
         return self._rprofs['r'].values + self.bounds[0]
 
-    @crop
+    @cached_property
     def walls(self) -> ndarray:
         """Radial position of cell walls."""
         rbot, rtop = self.bounds
@@ -484,7 +518,7 @@ class _Rprofs:
             walls = np.append(walls, rtop)
         return walls
 
-    @crop
+    @cached_property
     def bounds(self) -> Tuple[float, float]:
         """Radial or vertical position of boundaries.
 

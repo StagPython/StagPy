@@ -1,15 +1,16 @@
 """Various helper functions and classes."""
 
 from __future__ import annotations
+
+import typing
 from inspect import getdoc
-from typing import TYPE_CHECKING, Generic, TypeVar
 
 import matplotlib.pyplot as plt
 
 from . import conf
 
-if TYPE_CHECKING:
-    from typing import Optional, Any, Callable, NoReturn
+if typing.TYPE_CHECKING:
+    from typing import Optional, Any
     from matplotlib.figure import Figure
     from numpy import ndarray
 
@@ -103,42 +104,3 @@ def find_in_sorted_arr(value: Any, array: ndarray, after: bool = False) -> int:
     if not after and array[ielt] != value and ielt > 0:
         ielt -= 1
     return ielt
-
-
-T = TypeVar('T')
-V = TypeVar('V')
-
-
-class CachedReadOnlyProperty(Generic[T, V]):
-    """Descriptor implementation of read-only cached properties.
-
-    Properties are cached as ``_cropped_{name}`` instance attribute.
-
-    This is preferable to using a combination of ``@property`` and
-    ``@functools.lru_cache`` since the cache is bound to instances and
-    therefore get GCd with the instance when the latter is no longer in use
-    instead of staying in the cache which would use the instance itself as its
-    key.
-
-    This also has an advantage over ``@cached_property`` (Python>3.8): the
-    property is read-only instead of being writeable.
-    """
-
-    def __init__(self, thunk: Callable[[T], V]):
-        self._thunk = thunk
-        self._name = thunk.__name__
-        self._cache_name = f'_cropped_{self._name}'
-        self.__doc__ = thunk.__doc__
-
-    def __get__(self, instance: T, _: Any) -> V:
-        try:
-            return getattr(instance, self._cache_name)
-        except AttributeError:
-            pass
-        cached_value = self._thunk(instance)
-        setattr(instance, self._cache_name, cached_value)
-        return cached_value
-
-    def __set__(self, instance: T, _: Any) -> NoReturn:
-        raise AttributeError(
-            f'Cannot set {self._name} property of {instance!r}')
