@@ -50,6 +50,16 @@ FIELD: Mapping[str, Varf] = MappingProxyType({
     'rs3': Varf('z Momentum residue', '1'),
     'rsc': Varf('Continuity residue', '1'),
     'prim': Varf('Primordial layer', '1'),
+    "meltfrac": Varf("Melt fraction", "1"),
+    "meltcompo": Varf("Melt composition", "1"),
+    "meltrate": Varf("Melting rate", "1"),
+    "meltvel": Varf("Melt velocity", "1"),
+    "nmelt": Varf("N melt", "1"),
+    "fSiO2": Varf("fSiO2", "1"),
+    "fMgO": Varf("fMgO", "1"),
+    "fFeO": Varf("fFeO", "1"),
+    "fXO": Varf("fXO", "1"),
+    "fFeR": Varf("fFeR", "1"),
 })
 
 FIELD_EXTRA: Mapping[str, Callable[[Step], Field]] = MappingProxyType({
@@ -72,6 +82,16 @@ FIELD_FILES: Mapping[str, List[str]] = MappingProxyType({
     'ed': ['edot'],
     'tcond': ['Tcond1', 'Tcond2', 'Tcond3'],
     'prm': ['prim'],
+    "f": ["meltfrac"],
+    "fc": ["meltcompo"],
+    "df": ["meltrate"],
+    "vm": ["meltvel"],
+    "nm": ["nmelt"],
+    "fSiO2": ["fSiO2"],
+    "fMgO": ["fMgO"],
+    "fFeO": ["fFeO"],
+    "fXO": ["fXO"],
+    "fFeR": ["fFeR"],
 })
 
 FIELD_FILES_H5: Mapping[str, List[str]] = MappingProxyType({
@@ -98,6 +118,16 @@ FIELD_FILES_H5: Mapping[str, List[str]] = MappingProxyType({
     'PrincipalStressAxis': ['sx1', 'sx2', 'sx3'],
     'StrainRate': ['edot'],
     'Primordial': ['prim'],
+    "MeltFrac": ["meltfrac"],
+    "MeltComposition": ["meltcompo"],
+    "MeltingRate": ["meltrate"],
+    "MeltVelocity": ["meltvel"],
+    "nmelt": ["nmelt"],
+    "fSiO2": ["fSiO2"],
+    "fMgO": ["fMgO"],
+    "fFeO": ["fFeO"],
+    "fXO": ["fXO"],
+    "fFeR": ["fFeR"],
 })
 
 SFIELD: Mapping[str, Varf] = MappingProxyType({
