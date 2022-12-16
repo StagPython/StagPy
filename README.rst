@@ -1,7 +1,3 @@
-.. image:: https://img.shields.io/lgtm/grade/python/g/StagPython/StagPy.svg?logo=lgtm&logoWidth=18
-   :target: https://lgtm.com/projects/g/StagPython/StagPy
-   :alt: Language grade: Python
-
 .. image:: https://readthedocs.org/projects/stagpy/badge/?version=latest
    :target: https://stagpy.readthedocs.org/en/latest/?badge=latest
    :alt: Documentation Status
