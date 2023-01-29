@@ -1,12 +1,14 @@
 """Exceptions raised by StagPy."""
 
 from __future__ import annotations
+
 import typing
 
 if typing.TYPE_CHECKING:
     from os import PathLike
-    from .stagyydata import StagyyData
+
     from ._step import Step
+    from .stagyydata import StagyyData
 
 
 class StagpyError(Exception):
@@ -31,7 +33,7 @@ class NoSnapshotError(StagpyError):
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        super().__init__(f'no snapshot found for {sdat}')
+        super().__init__(f"no snapshot found for {sdat}")
 
 
 class NoGeomError(StagpyError):
@@ -82,7 +84,7 @@ class NoParFileError(StagpyError):
 
     def __init__(self, parfile: PathLike):
         self.parfile = parfile
-        super().__init__(f'{parfile} file not found')
+        super().__init__(f"{parfile} file not found")
 
 
 class NotAvailableError(StagpyError):
@@ -148,7 +150,7 @@ class InvalidTimeFractionError(StagpyError):
 
     def __init__(self, fraction: float):
         self.fraction = fraction
-        super().__init__(f'Fraction should be in (0,1] (received {fraction})')
+        super().__init__(f"Fraction should be in (0,1] (received {fraction})")
 
 
 class InvalidNfieldsError(StagpyError):
@@ -160,7 +162,7 @@ class InvalidNfieldsError(StagpyError):
 
     def __init__(self, nfields: int):
         self.nfields = nfields
-        super().__init__(f'nfields_max should be >5 (received {nfields})')
+        super().__init__(f"nfields_max should be >5 (received {nfields})")
 
 
 class InvalidZoomError(StagpyError):
@@ -172,7 +174,7 @@ class InvalidZoomError(StagpyError):
 
     def __init__(self, zoom: float):
         self.zoom = zoom
-        super().__init__(f'Zoom angle should be in [0,360] (received {zoom})')
+        super().__init__(f"Zoom angle should be in [0,360] (received {zoom})")
 
 
 class MissingDataError(StagpyError, KeyError):

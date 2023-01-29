@@ -1,14 +1,14 @@
-from stagpy import processing, phyvars
+from stagpy import phyvars, processing
 
 
 def tseries_checks(tseries, expected_size):
     assert tseries.values.shape == tseries.time.shape == (expected_size,)
-    assert tseries.meta.dim == '1' or tseries.meta.dim in phyvars.SCALES
+    assert tseries.meta.dim == "1" or tseries.meta.dim in phyvars.SCALES
 
 
 def rprof_checks(rprof, expected_size):
     assert rprof.values.shape == rprof.rad.shape == (expected_size,)
-    assert rprof.meta.dim == '1' or rprof.meta.dim in phyvars.SCALES
+    assert rprof.meta.dim == "1" or rprof.meta.dim in phyvars.SCALES
 
 
 def test_dt_dt(sdat):
@@ -53,5 +53,5 @@ def test_energy_prof(step):
 
 def test_stream_function(step):
     psi = processing.stream_function(step)
-    assert psi.values.shape[1:3] == step.fields['v3'].values.shape[1:3]
+    assert psi.values.shape[1:3] == step.fields["v3"].values.shape[1:3]
     assert psi.meta.dim in phyvars.SCALES

@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from . import conf
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Any
+    from typing import Any, Optional
+
     from matplotlib.figure import Figure
     from numpy import ndarray
 
@@ -31,8 +32,8 @@ def out_name(stem: str, timestep: Optional[int] = None) -> str:
     if conf.core.shortname:
         return conf.core.outname
     if timestep is not None:
-        stem = f'{stem}{timestep:05d}'
-    return conf.core.outname + '_' + stem
+        stem = f"{stem}{timestep:05d}"
+    return conf.core.outname + "_" + stem
 
 
 def scilabel(value: float, precision: int = 2) -> str:
@@ -47,13 +48,14 @@ def scilabel(value: float, precision: int = 2) -> str:
     Returns:
         the scientific notation of the specified value.
     """
-    man, exps = f'{value:.{precision}e}'.split('e')
+    man, exps = f"{value:.{precision}e}".split("e")
     exp = int(exps)
-    return fr'{man}\times 10^{{{exp}}}'
+    return rf"{man}\times 10^{{{exp}}}"
 
 
-def saveplot(fig: Figure, *name_args: Any, close: bool = True,
-             **name_kwargs: Any) -> None:
+def saveplot(
+    fig: Figure, *name_args: Any, close: bool = True, **name_kwargs: Any
+) -> None:
     """Save matplotlib figure.
 
     You need to provide :data:`stem` as a positional or keyword argument (see
@@ -66,8 +68,9 @@ def saveplot(fig: Figure, *name_args: Any, close: bool = True,
         name_kwargs: keyword arguments passed on to :func:`out_name`.
     """
     oname = out_name(*name_args, **name_kwargs)
-    fig.savefig(f'{oname}.{conf.plot.format}',
-                format=conf.plot.format, bbox_inches='tight')
+    fig.savefig(
+        f"{oname}.{conf.plot.format}", format=conf.plot.format, bbox_inches="tight"
+    )
     if close:
         plt.close(fig)
 
@@ -85,9 +88,9 @@ def baredoc(obj: object) -> str:
     """
     doc = getdoc(obj)
     if not doc:
-        return ''
+        return ""
     doc = doc.splitlines()[0]
-    return doc.rstrip(' .').lstrip()
+    return doc.rstrip(" .").lstrip()
 
 
 def find_in_sorted_arr(value: Any, array: ndarray, after: bool = False) -> int:

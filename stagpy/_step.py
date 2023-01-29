@@ -7,10 +7,11 @@ Note:
 """
 
 from __future__ import annotations
+
+import typing
 from collections import abc
 from functools import cached_property
 from itertools import chain
-import typing
 
 import numpy as np
 
@@ -18,10 +19,21 @@ from . import error, phyvars, stagyyparsers
 from .datatypes import Field, Rprof, Varr
 
 if typing.TYPE_CHECKING:
-    from typing import (Dict, Any, Mapping, List, Iterator, Tuple, Optional,
-                        Callable, NoReturn)
+    from typing import (
+        Any,
+        Callable,
+        Dict,
+        Iterator,
+        List,
+        Mapping,
+        NoReturn,
+        Optional,
+        Tuple,
+    )
+
     from numpy import ndarray
     from pandas import DataFrame, Series
+
     from .datatypes import Varf
     from .stagyydata import StagyyData
 
@@ -37,36 +49,38 @@ class _Geometry:
         self._header = header
         self._step = step
         self._shape: Dict[str, Any] = {
-            'sph': False, 'cyl': False, 'axi': False,
-            'ntot': list(header['nts']) + [header['ntb']]}
+            "sph": False,
+            "cyl": False,
+            "axi": False,
+            "ntot": list(header["nts"]) + [header["ntb"]],
+        }
         self._init_shape()
 
     def _scale_radius_mo(self, radius: ndarray) -> ndarray:
         """Rescale radius for evolving MO runs."""
-        if self._step.sdat.par['magma_oceans_in']['evolving_magma_oceans']:
-            return self._header['mo_thick_sol'] * (
-                radius + self._header['mo_lambda'])
+        if self._step.sdat.par["magma_oceans_in"]["evolving_magma_oceans"]:
+            return self._header["mo_thick_sol"] * (radius + self._header["mo_lambda"])
         return radius
 
     @cached_property
     def nttot(self) -> int:
         """Number of grid point along the x/theta direction."""
-        return self._shape['ntot'][0]
+        return self._shape["ntot"][0]
 
     @cached_property
     def nptot(self) -> int:
         """Number of grid point along the y/phi direction."""
-        return self._shape['ntot'][1]
+        return self._shape["ntot"][1]
 
     @cached_property
     def nrtot(self) -> int:
         """Number of grid point along the z/r direction."""
-        return self._shape['ntot'][2]
+        return self._shape["ntot"][2]
 
     @cached_property
     def nbtot(self) -> int:
         """Number of blocks."""
-        return self._shape['ntot'][3]
+        return self._shape["ntot"][3]
 
     @property
     def nxtot(self) -> int:
@@ -113,11 +127,10 @@ class _Geometry:
             elif self.curvilinear:
                 # should take theta_position/theta_center into account
                 tmin = 0
-                tmax = min(np.pi,
-                           self._step.sdat.par['geometry']['aspect_ratio'][0])
+                tmax = min(np.pi, self._step.sdat.par["geometry"]["aspect_ratio"][0])
             else:
                 tmin = 0
-                tmax = self._step.sdat.par['geometry']['aspect_ratio'][0]
+                tmax = self._step.sdat.par["geometry"]["aspect_ratio"][0]
             return np.linspace(tmin, tmax, self.nttot + 1)
         # twoD YZ
         center = np.pi / 2 if self.curvilinear else 0
@@ -137,11 +150,12 @@ class _Geometry:
                 pmin, pmax = -3 * np.pi / 4, 3 * np.pi / 4
             elif self.curvilinear:
                 pmin = 0
-                pmax = min(2 * np.pi,
-                           self._step.sdat.par['geometry']['aspect_ratio'][1])
+                pmax = min(
+                    2 * np.pi, self._step.sdat.par["geometry"]["aspect_ratio"][1]
+                )
             else:
                 pmin = 0
-                pmax = self._step.sdat.par['geometry']['aspect_ratio'][1]
+                pmax = self._step.sdat.par["geometry"]["aspect_ratio"][1]
             return np.linspace(pmin, pmax, self.nptot + 1)
         # twoD YZ
         d_p = (self.t_walls[1] - self.t_walls[0]) / 2
@@ -184,15 +198,15 @@ class _Geometry:
 
     def _init_shape(self) -> None:
         """Determine shape of geometry."""
-        shape = self._step.sdat.par['geometry']['shape'].lower()
-        aspect = self._header['aspect']
-        if self._header['rcmb'] >= 0:
+        shape = self._step.sdat.par["geometry"]["shape"].lower()
+        aspect = self._header["aspect"]
+        if self._header["rcmb"] >= 0:
             # curvilinear
-            self._shape['cyl'] = self.twod_xz and (shape == 'cylindrical' or
-                                                   aspect[0] >= np.pi)
-            self._shape['sph'] = not self._shape['cyl']
-        self._shape['axi'] = self.cartesian and self.twod_xz and \
-            shape == 'axisymmetric'
+            self._shape["cyl"] = self.twod_xz and (
+                shape == "cylindrical" or aspect[0] >= np.pi
+            )
+            self._shape["sph"] = not self._shape["cyl"]
+        self._shape["axi"] = self.cartesian and self.twod_xz and shape == "axisymmetric"
 
     @cached_property
     def rcmb(self) -> float:
@@ -212,12 +226,12 @@ class _Geometry:
     @property
     def cylindrical(self) -> bool:
         """Whether the grid is in cylindrical geometry (2D spherical)."""
-        return self._shape['cyl']
+        return self._shape["cyl"]
 
     @property
     def spherical(self) -> bool:
         """Whether the grid is in spherical geometry."""
-        return self._shape['sph']
+        return self._shape["sph"]
 
     @property
     def yinyang(self) -> bool:
@@ -275,10 +289,14 @@ class _Fields(abc.Mapping):
         step: the step object owning the :class:`_Fields` instance.
     """
 
-    def __init__(self, step: Step, variables: Mapping[str, Varf],
-                 extravars: Mapping[str, Callable[[Step], Field]],
-                 files: Mapping[str, List[str]],
-                 filesh5: Mapping[str, List[str]]):
+    def __init__(
+        self,
+        step: Step,
+        variables: Mapping[str, Varf],
+        extravars: Mapping[str, Callable[[Step], Field]],
+        files: Mapping[str, List[str]],
+        filesh5: Mapping[str, List[str]],
+    ):
         self.step = step
         self._vars = variables
         self._extra = extravars
@@ -299,7 +317,8 @@ class _Fields(abc.Mapping):
             raise error.UnknownFieldVarError(name)
         if parsed_data is None:
             raise error.MissingDataError(
-                f'Missing field {name} in step {self.step.istep}')
+                f"Missing field {name} in step {self.step.istep}"
+            )
         header, fields = parsed_data
         self._cropped__header = header
         for fld_name, fld in zip(fld_names, fields):
@@ -308,8 +327,7 @@ class _Fields(abc.Mapping):
 
     @cached_property
     def _present_fields(self) -> List[str]:
-        return [fld for fld in chain(self._vars, self._extra)
-                if fld in self]
+        return [fld for fld in chain(self._vars, self._extra) if fld in self]
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._present_fields)
@@ -329,34 +347,37 @@ class _Fields(abc.Mapping):
     def _get_raw_data(self, name: str) -> Tuple[List[str], Any]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
-        filestem = ''
+        filestem = ""
         for filestem, list_fvar in self._files.items():
             if name in list_fvar:
                 break
         parsed_data = None
         if self.step.isnap is None:
             return list_fvar, None
-        fieldfile = self.step.sdat.filename(filestem, self.step.isnap,
-                                            force_legacy=True)
+        fieldfile = self.step.sdat.filename(
+            filestem, self.step.isnap, force_legacy=True
+        )
         if not fieldfile.is_file():
             fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
         if fieldfile.is_file():
             parsed_data = stagyyparsers.fields(fieldfile)
         elif self.step.sdat.hdf5 and self._filesh5:
             # files in which the requested data can be found
-            files = [(stem, fvars) for stem, fvars in self._filesh5.items()
-                     if name in fvars]
+            files = [
+                (stem, fvars) for stem, fvars in self._filesh5.items() if name in fvars
+            ]
             for filestem, list_fvar in files:
                 if filestem in phyvars.SFIELD_FILES_H5:
-                    xmff = 'Data{}.xmf'.format(
-                        'Bottom' if name.endswith('bot') else 'Surface')
+                    xmff = "Data{}.xmf".format(
+                        "Bottom" if name.endswith("bot") else "Surface"
+                    )
                     header = self._header
                 else:
-                    xmff = 'Data.xmf'
+                    xmff = "Data.xmf"
                     header = None
                 parsed_data = stagyyparsers.read_field_h5(
-                    self.step.sdat.hdf5 / xmff, filestem,
-                    self.step.isnap, header)
+                    self.step.sdat.hdf5 / xmff, filestem, self.step.isnap, header
+                )
                 if parsed_data is not None:
                     break
         return list_fvar, parsed_data
@@ -384,7 +405,7 @@ class _Fields(abc.Mapping):
         if binfiles:
             header = stagyyparsers.field_header(binfiles.pop())
         elif self.step.sdat.hdf5:
-            xmf = self.step.sdat.hdf5 / 'Data.xmf'
+            xmf = self.step.sdat.hdf5 / "Data.xmf"
             header = stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]
         return header if header else None
 
@@ -423,14 +444,18 @@ class _Tracers:
         if self.step.isnap is None:
             return None
         data = stagyyparsers.tracers(
-            self.step.sdat.filename('tra', timestep=self.step.isnap,
-                                    force_legacy=True))
+            self.step.sdat.filename("tra", timestep=self.step.isnap, force_legacy=True)
+        )
         if data is None and self.step.sdat.hdf5:
-            position = any(axis not in self._data for axis in 'xyz')
+            position = any(axis not in self._data for axis in "xyz")
             self._data.update(
                 stagyyparsers.read_tracers_h5(
-                    self.step.sdat.hdf5 / 'DataTracers.xmf', name,
-                    self.step.isnap, position))
+                    self.step.sdat.hdf5 / "DataTracers.xmf",
+                    name,
+                    self.step.isnap,
+                    position,
+                )
+            )
         elif data is not None:
             self._data.update(data)
         if name not in self._data:
@@ -438,7 +463,7 @@ class _Tracers:
         return self._data[name]
 
     def __iter__(self) -> NoReturn:
-        raise TypeError('tracers collection is not iterable')
+        raise TypeError("tracers collection is not iterable")
 
 
 class _Rprofs:
@@ -469,7 +494,8 @@ class _Rprofs:
         if self._data is None:
             step = self.step
             raise error.MissingDataError(
-                f'No rprof data in step {step.istep} of {step.sdat}')
+                f"No rprof data in step {step.istep} of {step.sdat}"
+            )
         return self._data
 
     def __getitem__(self, name: str) -> Rprof:
@@ -480,7 +506,7 @@ class _Rprofs:
             if name in phyvars.RPROF:
                 meta = phyvars.RPROF[name]
             else:
-                meta = Varr(name, '', '1')
+                meta = Varr(name, "", "1")
         elif name in self._cached_extra:
             rprof, rad, meta = self._cached_extra[name]
         elif name in phyvars.RPROF_EXTRA:
@@ -489,7 +515,7 @@ class _Rprofs:
         else:
             raise error.UnknownRprofVarError(name)
         rprof, _ = step.sdat.scale(rprof, meta.dim)
-        rad, _ = step.sdat.scale(rad, 'm')
+        rad, _ = step.sdat.scale(rad, "m")
 
         return Rprof(rprof, rad, meta)
 
@@ -501,7 +527,7 @@ class _Rprofs:
     @cached_property
     def centers(self) -> ndarray:
         """Radial position of cell centers."""
-        return self._rprofs['r'].values + self.bounds[0]
+        return self._rprofs["r"].values + self.bounds[0]
 
     @cached_property
     def walls(self) -> ndarray:
@@ -528,12 +554,15 @@ class _Rprofs:
         try:
             rcmb = step.geom.rcmb
         except error.NoGeomError:
-            rcmb = step.sdat.par['geometry']['r_cmb']
-            if step.sdat.par['geometry']['shape'].lower() == 'cartesian':
+            rcmb = step.sdat.par["geometry"]["r_cmb"]
+            if step.sdat.par["geometry"]["shape"].lower() == "cartesian":
                 rcmb = 0
         rbot = max(rcmb, 0)
-        thickness = (step.sdat.scales.length
-                     if step.sdat.par['switches']['dimensional_units'] else 1)
+        thickness = (
+            step.sdat.scales.length
+            if step.sdat.par["switches"]["dimensional_units"]
+            else 1
+        )
         return rbot, rbot + thickness
 
 
@@ -576,19 +605,25 @@ class Step:
     def __init__(self, istep: int, sdat: StagyyData):
         self.istep = istep
         self.sdat = sdat
-        self.fields = _Fields(self, phyvars.FIELD, phyvars.FIELD_EXTRA,
-                              phyvars.FIELD_FILES, phyvars.FIELD_FILES_H5)
-        self.sfields = _Fields(self, phyvars.SFIELD, {},
-                               phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5)
+        self.fields = _Fields(
+            self,
+            phyvars.FIELD,
+            phyvars.FIELD_EXTRA,
+            phyvars.FIELD_FILES,
+            phyvars.FIELD_FILES_H5,
+        )
+        self.sfields = _Fields(
+            self, phyvars.SFIELD, {}, phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5
+        )
         self.tracers = _Tracers(self)
         self.rprofs = _Rprofs(self)
         self._isnap: Optional[int] = -1
 
     def __repr__(self) -> str:
         if self.isnap is not None:
-            return f'{self.sdat!r}.snaps[{self.isnap}]'
+            return f"{self.sdat!r}.snaps[{self.isnap}]"
         else:
-            return f'{self.sdat!r}.steps[{self.istep}]'
+            return f"{self.sdat!r}.steps[{self.istep}]"
 
     @property
     def geom(self) -> _Geometry:
@@ -606,7 +641,7 @@ class Step:
         try:
             info = self.sdat.tseries.at_step(self.istep)
         except KeyError:
-            raise error.MissingDataError(f'No time series for {self!r}')
+            raise error.MissingDataError(f"No time series for {self!r}")
         return info
 
     @property
@@ -614,10 +649,10 @@ class Step:
         """Time of this time step."""
         steptime = None
         try:
-            steptime = self.timeinfo['t']
+            steptime = self.timeinfo["t"]
         except error.MissingDataError:
             if self.isnap is not None:
-                steptime = self.geom._header.get('ti_ad')
+                steptime = self.geom._header.get("ti_ad")
         if steptime is None:
             raise error.NoTimeError(self)
         return steptime

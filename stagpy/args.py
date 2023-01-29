@@ -1,25 +1,34 @@
 """Parse command line arguments and update :attr:`stagpy.conf`."""
 
 from __future__ import annotations
-from inspect import isfunction
-from types import MappingProxyType
+
 import importlib.resources as imlr
 import typing
+from inspect import isfunction
+from types import MappingProxyType
 
-from loam.cli import Subcmd, CLIManager
 import matplotlib.pyplot as plt
 import matplotlib.style as mpls
+from loam.cli import CLIManager, Subcmd
 
+from . import ISOLATED
 from . import __doc__ as doc_module
-from . import conf, ISOLATED
 from . import (
-    commands, config, field, rprof, time_series, refstate, plates, _styles,
+    _styles,
+    commands,
+    conf,
+    config,
+    field,
+    plates,
+    refstate,
+    rprof,
+    time_series,
 )
 from ._helpers import baredoc
 from .config import CONFIG_DIR
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Optional, List, Callable
+    from typing import Any, Callable, List, Optional
 
 
 def _sub(cmd: Any, *sections: str) -> Subcmd:
@@ -31,7 +40,7 @@ def _sub(cmd: Any, *sections: str) -> Subcmd:
 def _bare_cmd() -> None:
     """Print help message when no arguments are given."""
     print(doc_module)
-    print('Run `stagpy -h` for usage')
+    print("Run `stagpy -h` for usage")
 
 
 def _load_mplstyle() -> None:
@@ -53,18 +62,20 @@ def _load_mplstyle() -> None:
         plt.xkcd()
 
 
-SUB_CMDS = MappingProxyType({
-    'common_': Subcmd(doc_module, 'common', func=_bare_cmd),
-    'field': _sub(field, 'core', 'plot', 'scaling'),
-    'rprof': _sub(rprof, 'core', 'plot', 'scaling'),
-    'time': _sub(time_series, 'core', 'plot', 'scaling'),
-    'refstate': _sub(refstate, 'core', 'plot'),
-    'plates': _sub(plates, 'core', 'plot', 'scaling'),
-    'info': _sub(commands.info_cmd, 'core', 'scaling'),
-    'var': _sub(commands.var_cmd),
-    'version': _sub(commands.version_cmd),
-    'config': _sub(commands.config_cmd),
-})
+SUB_CMDS = MappingProxyType(
+    {
+        "common_": Subcmd(doc_module, "common", func=_bare_cmd),
+        "field": _sub(field, "core", "plot", "scaling"),
+        "rprof": _sub(rprof, "core", "plot", "scaling"),
+        "time": _sub(time_series, "core", "plot", "scaling"),
+        "refstate": _sub(refstate, "core", "plot"),
+        "plates": _sub(plates, "core", "plot", "scaling"),
+        "info": _sub(commands.info_cmd, "core", "scaling"),
+        "var": _sub(commands.var_cmd),
+        "version": _sub(commands.version_cmd),
+        "config": _sub(commands.config_cmd),
+    }
+)
 
 
 def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:

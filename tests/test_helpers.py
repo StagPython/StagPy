@@ -3,15 +3,15 @@ import stagpy._helpers
 
 
 def test_out_name_conf():
-    oname = 'something_fancy'
+    oname = "something_fancy"
     stagpy.conf.core.outname = oname
-    stem = 'teapot'
-    assert stagpy._helpers.out_name(stem) == oname + '_' + stem
+    stem = "teapot"
+    assert stagpy._helpers.out_name(stem) == oname + "_" + stem
     del stagpy.conf.core.outname
 
 
 def test_out_name_number():
-    assert stagpy._helpers.out_name('T', 123) == 'stagpy_T00123'
+    assert stagpy._helpers.out_name("T", 123) == "stagpy_T00123"
 
 
 def test_baredoc():
@@ -21,5 +21,5 @@ def test_baredoc():
     With some content.
 
     """
-    expected = 'Badly formatted docstring'
+    expected = "Badly formatted docstring"
     assert stagpy._helpers.baredoc(test_baredoc) == expected
