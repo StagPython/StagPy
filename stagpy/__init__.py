@@ -17,6 +17,7 @@ and uppercase versions of those.
 """
 
 from __future__ import annotations
+
 import importlib.resources as imlr
 import os
 import shutil
@@ -26,20 +27,20 @@ import typing
 
 from setuptools_scm import get_version
 
-from . import config, _styles
+from . import _styles, config
 
 if typing.TYPE_CHECKING:
-    from typing import NoReturn, Any, Iterator
+    from typing import Any, Iterator, NoReturn
 
 
 def _env(var: str) -> bool:
     """Return whether var is set to True."""
-    val = os.getenv(var, default='').lower()
-    return val in ('true', 't', 'yes', 'y', 'on', '1')
+    val = os.getenv(var, default="").lower()
+    return val in ("true", "t", "yes", "y", "on", "1")
 
 
-DEBUG = _env('STAGPY_DEBUG')
-ISOLATED = _env('STAGPY_ISOLATED')
+DEBUG = _env("STAGPY_DEBUG")
+ISOLATED = _env("STAGPY_ISOLATED")
 
 
 def sigint_handler(*_: Any) -> NoReturn:
@@ -48,7 +49,7 @@ def sigint_handler(*_: Any) -> NoReturn:
     It is set when you use StagPy as a command line tool to handle gracefully
     keyboard interruption.
     """
-    print('\nSo long, and thanks for all the fish.')
+    print("\nSo long, and thanks for all the fish.")
     sys.exit()
 
 
@@ -61,7 +62,7 @@ def _iter_styles() -> Iterator[str]:
 def _check_config() -> None:
     """Create config files as necessary."""
     config.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    verfile = config.CONFIG_DIR / '.version'
+    verfile = config.CONFIG_DIR / ".version"
     uptodate = verfile.is_file() and verfile.read_text() == __version__
     if not uptodate:
         verfile.write_text(__version__)
@@ -75,13 +76,17 @@ def _check_config() -> None:
 
 
 if DEBUG:
-    print('StagPy runs in DEBUG mode because the environment variable',
-          'STAGPY_DEBUG is set to "True"', sep='\n', end='\n\n')
+    print(
+        "StagPy runs in DEBUG mode because the environment variable",
+        'STAGPY_DEBUG is set to "True"',
+        sep="\n",
+        end="\n\n",
+    )
 else:
     _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
-    __version__ = get_version(root='..', relative_to=__file__)
+    __version__ = get_version(root="..", relative_to=__file__)
 except LookupError:
     try:
         from ._version import version as __version__

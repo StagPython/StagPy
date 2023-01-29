@@ -9,27 +9,40 @@ Note:
 
 from __future__ import annotations
 
+import re
+import typing
 from collections import abc
 from dataclasses import dataclass, field
 from functools import cached_property
 from itertools import zip_longest
 from pathlib import Path
-import re
-import typing
 
 import numpy as np
 
-from . import conf, error, parfile, phyvars, stagyyparsers, _helpers, _step
+from . import _helpers, _step, conf, error, parfile, phyvars, stagyyparsers
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
 
 if typing.TYPE_CHECKING:
-    from typing import (Tuple, List, Dict, Optional, Union, Sequence, Iterator,
-                        Set, Callable, Iterable, Any)
     from os import PathLike
+    from typing import (
+        Any,
+        Callable,
+        Dict,
+        Iterable,
+        Iterator,
+        List,
+        Optional,
+        Sequence,
+        Set,
+        Tuple,
+        Union,
+    )
+
     from f90nml.namelist import Namelist
     from numpy import ndarray
     from pandas import DataFrame, Series
+
     StepIndex = Union[int, slice]
 
 
@@ -75,35 +88,35 @@ class _Scales:
     @cached_property
     def length(self) -> float:
         """Length in m."""
-        thick = self._sdat.par['geometry']['d_dimensional']
-        if self._sdat.par['boundaries']['air_layer']:
-            thick += self._sdat.par['boundaries']['air_thickness']
+        thick = self._sdat.par["geometry"]["d_dimensional"]
+        if self._sdat.par["boundaries"]["air_layer"]:
+            thick += self._sdat.par["boundaries"]["air_thickness"]
         return thick
 
     @property
     def temperature(self) -> float:
         """Temperature in K."""
-        return self._sdat.par['refstate']['deltaT_dimensional']
+        return self._sdat.par["refstate"]["deltaT_dimensional"]
 
     @property
     def density(self) -> float:
         """Density in kg/m3."""
-        return self._sdat.par['refstate']['dens_dimensional']
+        return self._sdat.par["refstate"]["dens_dimensional"]
 
     @property
     def th_cond(self) -> float:
         """Thermal conductivity in W/(m.K)."""
-        return self._sdat.par['refstate']['tcond_dimensional']
+        return self._sdat.par["refstate"]["tcond_dimensional"]
 
     @property
     def sp_heat(self) -> float:
         """Specific heat capacity in J/(kg.K)."""
-        return self._sdat.par['refstate']['Cp_dimensional']
+        return self._sdat.par["refstate"]["Cp_dimensional"]
 
     @property
     def dyn_visc(self) -> float:
         """Dynamic viscosity in Pa.s."""
-        return self._sdat.par['viscosity']['eta0']
+        return self._sdat.par["viscosity"]["eta0"]
 
     @property
     def th_diff(self) -> float:
@@ -163,10 +176,10 @@ class _Refstate:
     @cached_property
     def _data(self) -> Tuple[List[List[DataFrame]], List[DataFrame]]:
         """Read reference state profile."""
-        reffile = self._sdat.filename('refstat.dat')
+        reffile = self._sdat.filename("refstat.dat")
         if self._sdat.hdf5 and not reffile.is_file():
             # check legacy folder as well
-            reffile = self._sdat.filename('refstat.dat', force_legacy=True)
+            reffile = self._sdat.filename("refstat.dat", force_legacy=True)
         data = stagyyparsers.refstate(reffile)
         if data is None:
             raise error.NoRefstateError(self._sdat)
@@ -228,22 +241,21 @@ class _Tseries:
 
     @cached_property
     def _data(self) -> Optional[DataFrame]:
-        timefile = self.sdat.filename('TimeSeries.h5')
-        data = stagyyparsers.time_series_h5(
-            timefile, list(phyvars.TIME.keys()))
+        timefile = self.sdat.filename("TimeSeries.h5")
+        data = stagyyparsers.time_series_h5(timefile, list(phyvars.TIME.keys()))
         if data is not None:
             return data
-        timefile = self.sdat.filename('time.dat')
+        timefile = self.sdat.filename("time.dat")
         if self.sdat.hdf5 and not timefile.is_file():
             # check legacy folder as well
-            timefile = self.sdat.filename('time.dat', force_legacy=True)
+            timefile = self.sdat.filename("time.dat", force_legacy=True)
         data = stagyyparsers.time_series(timefile, list(phyvars.TIME.keys()))
         return data
 
     @property
     def _tseries(self) -> DataFrame:
         if self._data is None:
-            raise error.MissingDataError(f'No tseries data in {self.sdat}')
+            raise error.MissingDataError(f"No tseries data in {self.sdat}")
         return self._data
 
     def __getitem__(self, name: str) -> Tseries:
@@ -253,7 +265,7 @@ class _Tseries:
             if name in phyvars.TIME:
                 meta = phyvars.TIME[name]
             else:
-                meta = Vart(name, '', '1')
+                meta = Vart(name, "", "1")
         elif name in self._cached_extra:
             series, time, meta = self._cached_extra[name]
         elif name in phyvars.TIME_EXTRA:
@@ -262,11 +274,12 @@ class _Tseries:
         else:
             raise error.UnknownTimeVarError(name)
         series, _ = self.sdat.scale(series, meta.dim)
-        time, _ = self.sdat.scale(time, 's')
+        time, _ = self.sdat.scale(time, "s")
         return Tseries(series, time, meta)
 
-    def tslice(self, name: str, tstart: Optional[float] = None,
-               tend: Optional[float] = None) -> Tseries:
+    def tslice(
+        self, name: str, tstart: Optional[float] = None, tend: Optional[float] = None
+    ) -> Tseries:
         """Return a Tseries between specified times.
 
         Args:
@@ -288,7 +301,7 @@ class _Tseries:
     @property
     def time(self) -> ndarray:
         """Time vector."""
-        return self._tseries['t'].values
+        return self._tseries["t"].values
 
     @property
     def isteps(self) -> ndarray:
@@ -380,15 +393,14 @@ class _Steps:
         self._len: Optional[int] = None
 
     def __repr__(self) -> str:
-        return f'{self.sdat!r}.steps'
+        return f"{self.sdat!r}.steps"
 
     @typing.overload
     def __getitem__(self, istep: int) -> Step:
         ...
 
     @typing.overload
-    def __getitem__(self,
-                    istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
         ...
 
     def __getitem__(
@@ -401,15 +413,15 @@ class _Steps:
             istep = int(istep)  # type: ignore
         except ValueError:
             raise error.InvalidTimestepError(
-                self.sdat, istep,  # type: ignore
-                'Time step should be an integer value')
+                self.sdat, istep, "Time step should be an integer value"  # type: ignore
+            )
         if istep < 0:
             istep += len(self)
             if istep < 0:
                 istep -= len(self)
                 raise error.InvalidTimestepError(
-                    self.sdat, istep,
-                    f'Last istep is {len(self) - 1}')
+                    self.sdat, istep, f"Last istep is {len(self) - 1}"
+                )
         if istep not in self._data:
             self._data[istep] = Step(istep, self.sdat)
         return self._data[istep]
@@ -417,7 +429,8 @@ class _Steps:
     def __delitem__(self, istep: Optional[int]) -> None:
         if istep is not None and istep in self._data:
             self.sdat._collected_fields = [
-                (i, f) for i, f in self.sdat._collected_fields if i != istep]
+                (i, f) for i, f in self.sdat._collected_fields if i != istep
+            ]
             del self._data[istep]
 
     def __len__(self) -> int:
@@ -441,13 +454,16 @@ class _Steps:
         Returns:
             the relevant step.
         """
-        itime = _helpers.find_in_sorted_arr(time, self.sdat.tseries.time,
-                                            after)
+        itime = _helpers.find_in_sorted_arr(time, self.sdat.tseries.time, after)
         return self[self.sdat.tseries.isteps[itime]]
 
-    def filter(self, snap: bool = False, rprofs: bool = False,
-               fields: Optional[Iterable[str]] = None,
-               func: Optional[Callable[[Step], bool]] = None) -> _StepsView:
+    def filter(
+        self,
+        snap: bool = False,
+        rprofs: bool = False,
+        fields: Optional[Iterable[str]] = None,
+        func: Optional[Callable[[Step], bool]] = None,
+    ) -> _StepsView:
         """Build a _StepsView with requested filters."""
         return self[:].filter(snap, rprofs, fields, func)
 
@@ -475,15 +491,14 @@ class _Snaps(_Steps):
         super().__init__(sdat)
 
     def __repr__(self) -> str:
-        return f'{self.sdat!r}.snaps'
+        return f"{self.sdat!r}.snaps"
 
     @typing.overload
     def __getitem__(self, istep: int) -> Step:
         ...
 
     @typing.overload
-    def __getitem__(self,
-                    istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
         ...
 
     def __getitem__(self, isnap: Any) -> Union[Step, _StepsView]:
@@ -495,8 +510,7 @@ class _Snaps(_Steps):
         if isnap < 0 or isnap >= len(self):
             istep = None
         else:
-            istep = self._isteps.get(
-                isnap, None if self._all_isteps_known else -1)
+            istep = self._isteps.get(isnap, None if self._all_isteps_known else -1)
         if istep == -1:
             # isnap not in _isteps but not all isteps known, keep looking
             binfiles = self.sdat._binfiles_set(isnap)
@@ -509,8 +523,7 @@ class _Snaps(_Steps):
             else:
                 self._isteps[isnap] = None
         if istep is None:
-            raise error.InvalidSnapshotError(
-                self.sdat, isnap, 'Invalid snapshot index')
+            raise error.InvalidSnapshotError(self.sdat, isnap, "Invalid snapshot index")
         return self.sdat.steps[istep]
 
     def __delitem__(self, isnap: Optional[int]) -> None:
@@ -528,9 +541,10 @@ class _Snaps(_Steps):
                 length = isnap
                 self._all_isteps_known = True
             if length < 0:
-                out_stem = re.escape(Path(
-                    self.sdat.par['ioin']['output_file_stem'] + '_').name[:-1])
-                rgx = re.compile(f'^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$')
+                out_stem = re.escape(
+                    Path(self.sdat.par["ioin"]["output_file_stem"] + "_").name[:-1]
+                )
+                rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
                 fstems = set(fstem for fstem in phyvars.FIELD_FILES)
                 for fname in self.sdat._files:
                     match = rgx.match(fname.name)
@@ -604,14 +618,14 @@ class _Filters:
     def __repr__(self) -> str:
         flts = []
         if self.snap:
-            flts.append('snap=True')
+            flts.append("snap=True")
         if self.rprofs:
-            flts.append('rprofs=True')
+            flts.append("rprofs=True")
         if self.fields:
             flts.append(f"fields={self.fields!r}")
         if self.funcs:
             flts.append(f"func={self.funcs!r}")
-        return ', '.join(flts)
+        return ", ".join(flts)
 
 
 class _StepsView:
@@ -626,8 +640,7 @@ class _StepsView:
         items: iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col: Union[_Steps, _Snaps],
-                 items: Sequence[StepIndex]):
+    def __init__(self, steps_col: Union[_Steps, _Snaps], items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
         self._rprofs_averaged: Optional[_RprofsAveraged] = None
@@ -647,21 +660,21 @@ class _StepsView:
         no_slice = True
         for item in self._items:
             if isinstance(item, slice):
-                items.append('{}:{}:{}'.format(*item.indices(len(self._col))))
+                items.append("{}:{}:{}".format(*item.indices(len(self._col))))
                 no_slice = False
             else:
                 items.append(repr(item))
-        item_str = ','.join(items)
+        item_str = ",".join(items)
         if no_slice and len(items) == 1:
-            item_str += ','
-        colstr = repr(self._col).rsplit('.', maxsplit=1)[-1]
-        return f'{colstr}[{item_str}]'
+            item_str += ","
+        colstr = repr(self._col).rsplit(".", maxsplit=1)[-1]
+        return f"{colstr}[{item_str}]"
 
     def __repr__(self) -> str:
-        rep = f'{self._col.sdat!r}.{self.stepstr}'
+        rep = f"{self._col.sdat!r}.{self.stepstr}"
         flts = repr(self._flt)
         if flts:
-            rep += f'.filter({flts})'
+            rep += f".filter({flts})"
         return rep
 
     def _pass(self, item: int) -> bool:
@@ -672,9 +685,13 @@ class _StepsView:
             return False
         return self._flt.passes(step)
 
-    def filter(self, snap: bool = False, rprofs: bool = False,
-               fields: Optional[Iterable[str]] = None,
-               func: Optional[Callable[[Step], bool]] = None) -> _StepsView:
+    def filter(
+        self,
+        snap: bool = False,
+        rprofs: bool = False,
+        fields: Optional[Iterable[str]] = None,
+        func: Optional[Callable[[Step], bool]] = None,
+    ) -> _StepsView:
         """Add filters to the view.
 
         Note that filters are only resolved when the view is iterated.
@@ -710,8 +727,7 @@ class _StepsView:
         for item in self._items:
             if isinstance(item, slice):
                 idx = item.indices(len(self._col))
-                yield from (self._col[i] for i in range(*idx)
-                            if self._pass(i))
+                yield from (self._col[i] for i in range(*idx) if self._pass(i))
             elif self._pass(item):
                 yield self._col[item]
 
@@ -746,7 +762,7 @@ class StagyyData:
             path = conf.core.path
         self._parpath = Path(path)
         if not self._parpath.is_file():
-            self._parpath /= 'par'
+            self._parpath /= "par"
         self._par = parfile.readpar(self.parpath, self.path)
         self.scales = _Scales(self)
         self.refstate = _Refstate(self)
@@ -758,10 +774,10 @@ class StagyyData:
         self._collected_fields: List[Tuple[int, str]] = []
 
     def __repr__(self) -> str:
-        return f'StagyyData({self.path!r})'
+        return f"StagyyData({self.path!r})"
 
     def __str__(self) -> str:
-        return f'StagyyData in {self.path}'
+        return f"StagyyData in {self.path}"
 
     @property
     def path(self) -> Path:
@@ -776,8 +792,8 @@ class StagyyData:
     @cached_property
     def hdf5(self) -> Optional[Path]:
         """Path of output hdf5 folder if relevant, None otherwise."""
-        h5_folder = self.path / self.par['ioin']['hdf5_output_folder']
-        return h5_folder if (h5_folder / 'Data.xmf').is_file() else None
+        h5_folder = self.path / self.par["ioin"]["hdf5_output_folder"]
+        return h5_folder if (h5_folder / "Data.xmf").is_file() else None
 
     @property
     def par(self) -> Namelist:
@@ -789,17 +805,15 @@ class StagyyData:
         return self._par
 
     @cached_property
-    def _rprof_and_times(
-        self
-    ) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
-        rproffile = self.filename('rprof.h5')
+    def _rprof_and_times(self) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
+        rproffile = self.filename("rprof.h5")
         data = stagyyparsers.rprof_h5(rproffile, list(phyvars.RPROF.keys()))
         if data[1] is not None:
             return data
-        rproffile = self.filename('rprof.dat')
+        rproffile = self.filename("rprof.dat")
         if self.hdf5 and not rproffile.is_file():
             # check legacy folder as well
-            rproffile = self.filename('rprof.dat', force_legacy=True)
+            rproffile = self.filename("rprof.dat", force_legacy=True)
         return stagyyparsers.rprof(rproffile, list(phyvars.RPROF.keys()))
 
     @property
@@ -810,7 +824,7 @@ class StagyyData:
     @cached_property
     def _files(self) -> Set[Path]:
         """Set of found binary files output by StagYY."""
-        out_stem = Path(self.par['ioin']['output_file_stem'] + '_')
+        out_stem = Path(self.par["ioin"]["output_file_stem"] + "_")
         out_dir = self.path / out_stem.parent
         if out_dir.is_dir():
             return set(out_dir.iterdir())
@@ -856,8 +870,9 @@ class StagyyData:
         """Scale a float."""
         ...
 
-    def scale(self, data: Union[ndarray, float],
-              unit: str) -> Tuple[Union[ndarray, float], str]:
+    def scale(
+        self, data: Union[ndarray, float], unit: str
+    ) -> Tuple[Union[ndarray, float], str]:
         """Scales quantity to obtain dimensionful quantity.
 
         Args:
@@ -869,25 +884,32 @@ class StagyyData:
             conf.scaling.dimensional: if set to False (default), the factor is
                 always 1.
         """
-        if self.par['switches']['dimensional_units'] or \
-           not conf.scaling.dimensional or \
-           unit == '1':
-            return data, ''
+        if (
+            self.par["switches"]["dimensional_units"]
+            or not conf.scaling.dimensional
+            or unit == "1"
+        ):
+            return data, ""
         scaling = phyvars.SCALES[unit](self.scales)
-        factor = conf.scaling.factors.get(unit, ' ')
-        if conf.scaling.time_in_y and unit == 's':
+        factor = conf.scaling.factors.get(unit, " ")
+        if conf.scaling.time_in_y and unit == "s":
             scaling /= conf.scaling.yearins
-            unit = 'yr'
-        elif conf.scaling.vel_in_cmpy and unit == 'm/s':
+            unit = "yr"
+        elif conf.scaling.vel_in_cmpy and unit == "m/s":
             scaling *= 100 * conf.scaling.yearins
-            unit = 'cm/y'
+            unit = "cm/y"
         if factor in phyvars.PREFIXES:
-            scaling *= 10**(-3 * (phyvars.PREFIXES.index(factor) + 1))
+            scaling *= 10 ** (-3 * (phyvars.PREFIXES.index(factor) + 1))
             unit = factor + unit
         return data * scaling, unit
 
-    def filename(self, fname: str, timestep: Optional[int] = None,
-                 suffix: str = '', force_legacy: bool = False) -> Path:
+    def filename(
+        self,
+        fname: str,
+        timestep: Optional[int] = None,
+        suffix: str = "",
+        force_legacy: bool = False,
+    ) -> Path:
         """Return name of StagYY output file.
 
         Args:
@@ -899,12 +921,12 @@ class StagyyData:
             the path of the output file constructed with the provided segments.
         """
         if timestep is not None:
-            fname += f'{timestep:05d}'
+            fname += f"{timestep:05d}"
         fname += suffix
         if not force_legacy and self.hdf5:
             fpath = self.hdf5 / fname
         else:
-            fpath = self.par['ioin']['output_file_stem'] + '_' + fname
+            fpath = self.par["ioin"]["output_file_stem"] + "_" + fname
             fpath = self.path / fpath
         return fpath
 
@@ -916,6 +938,8 @@ class StagyyData:
         Returns:
             the set of output files available for this snapshot number.
         """
-        possible_files = set(self.filename(fstem, isnap, force_legacy=True)
-                             for fstem in phyvars.FIELD_FILES)
+        possible_files = set(
+            self.filename(fstem, isnap, force_legacy=True)
+            for fstem in phyvars.FIELD_FILES
+        )
         return possible_files & self._files

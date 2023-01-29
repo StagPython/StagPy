@@ -1,9 +1,10 @@
-import pytest
 import f90nml
 import pandas
-import stagpy.stagyydata
+import pytest
+
 import stagpy._step
 import stagpy.error
+import stagpy.stagyydata
 
 
 def test_sdat_path(example_dir, sdat):
@@ -35,7 +36,7 @@ def test_sdat_par(sdat):
 
 
 def test_sdat_tseries(sdat):
-    assert sdat.tseries['Tmean'].time is sdat.tseries.time
+    assert sdat.tseries["Tmean"].time is sdat.tseries.time
 
 
 def test_sdat_rtimes(sdat):
