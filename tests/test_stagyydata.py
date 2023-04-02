@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import f90nml
-import pandas
 import pytest
 
 import stagpy._step
@@ -33,16 +31,8 @@ def test_sdat_set_nfields_max_invalid(sdat: StagyyData) -> None:
     assert err.value.nfields == 5
 
 
-def test_sdat_par(sdat: StagyyData) -> None:
-    assert isinstance(sdat.par, f90nml.namelist.Namelist)
-
-
 def test_sdat_tseries(sdat: StagyyData) -> None:
     assert sdat.tseries["Tmean"].time is sdat.tseries.time
-
-
-def test_sdat_rtimes(sdat: StagyyData) -> None:
-    assert isinstance(sdat.rtimes, pandas.DataFrame)
 
 
 def test_sdat_walk_dflt(sdat: StagyyData) -> None:

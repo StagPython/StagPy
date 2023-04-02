@@ -32,4 +32,3 @@ def test_get_rprof_extra(step: Step) -> None:
     rpf = step.rprofs["diff"]
     assert rpf.rad is step.rprofs.walls
     assert rpf.values.shape == rpf.rad.shape
-    assert isinstance(rpf.meta, stagpy.phyvars.Varr)

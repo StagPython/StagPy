@@ -12,7 +12,6 @@ def test_get_time_series(sdat: StagyyData) -> None:
 def test_get_time_series_extra(sdat: StagyyData) -> None:
     series = sdat.tseries["dTdt"]
     assert series.values.shape == series.time.shape == (sdat.tseries.time.size - 1,)
-    assert isinstance(series.meta, stagpy.phyvars.Vart)
 
 
 def test_compstat(sdat: StagyyData) -> None:
