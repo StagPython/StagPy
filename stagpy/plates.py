@@ -166,8 +166,8 @@ def _surf_diag(snap: Step, name: str) -> Field:
         return snap.sfields[name]
     isurf = _isurf(snap)
     with suppress(error.UnknownVarError):
-        field, meta = snap.fields[name]
-        return Field(field[0, :, isurf, 0], meta)
+        field = snap.fields[name]
+        return Field(field.values[0, :, isurf, 0], field.meta)
     if name == "dv2":
         vphi = snap.fields["v2"].values[0, :, isurf, 0]
         if snap.geom.cartesian:
@@ -229,14 +229,14 @@ def plot_at_surface(snap: Step, names: Sequence[Sequence[Sequence[str]]]) -> Non
             fname += "_".join(vplt) + "_"
             label = ""
             for name in vplt:
-                data, meta = _surf_diag(snap, name)
-                label = meta.description
+                field = _surf_diag(snap, name)
+                label = field.meta.description
                 phi = (
                     snap.geom.p_centers
-                    if data.size == snap.geom.nptot
+                    if field.values.size == snap.geom.nptot
                     else snap.geom.p_walls
                 )
-                axis.plot(phi, data, label=label)
+                axis.plot(phi, field.values, label=label)
                 axis.set_ylim([conf.plot.vmin, conf.plot.vmax])
             if conf.plates.continents:
                 continents = _continents_location(snap)

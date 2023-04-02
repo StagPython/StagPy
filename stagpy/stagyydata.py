@@ -267,10 +267,16 @@ class _Tseries:
             else:
                 meta = Vart(name, "", "1")
         elif name in self._cached_extra:
-            series, time, meta = self._cached_extra[name]
+            tseries = self._cached_extra[name]
+            series = tseries.values
+            time = tseries.time
+            meta = tseries.meta
         elif name in phyvars.TIME_EXTRA:
             self._cached_extra[name] = phyvars.TIME_EXTRA[name](self.sdat)
-            series, time, meta = self._cached_extra[name]
+            tseries = self._cached_extra[name]
+            series = tseries.values
+            time = tseries.time
+            meta = tseries.meta
         else:
             raise error.UnknownTimeVarError(name)
         series, _ = self.sdat.scale(series, meta.dim)
@@ -289,14 +295,18 @@ class _Tseries:
             tend: ending time. Set to None to stop at the end of available
                 data.
         """
-        data, time, meta = self[name]
+        series = self[name]
         istart = 0
-        iend = len(time)
+        iend = len(series.time)
         if tstart is not None:
-            istart = _helpers.find_in_sorted_arr(tstart, time)
+            istart = _helpers.find_in_sorted_arr(tstart, series.time)
         if tend is not None:
-            iend = _helpers.find_in_sorted_arr(tend, time, True) + 1
-        return Tseries(data[istart:iend], time[istart:iend], meta)
+            iend = _helpers.find_in_sorted_arr(tend, series.time, True) + 1
+        return Tseries(
+            series.values[istart:iend],
+            series.time[istart:iend],
+            series.meta,
+        )
 
     @property
     def time(self) -> ndarray:
@@ -342,14 +352,14 @@ class _RprofsAveraged(_step._Rprofs):
         if name in self._cached_data:
             return self._cached_data[name]
         steps_iter = iter(self.steps)
-        rprof, rad, meta = next(steps_iter).rprofs[name]
-        rprof = np.copy(rprof)
+        rpf = next(steps_iter).rprofs[name]
+        rprof = np.copy(rpf.values)
         nprofs = 1
         for step in steps_iter:
             nprofs += 1
             rprof += step.rprofs[name].values
         rprof /= nprofs
-        self._cached_data[name] = Rprof(rprof, rad, meta)
+        self._cached_data[name] = Rprof(rprof, rpf.rad, rpf.meta)
         return self._cached_data[name]
 
     @property

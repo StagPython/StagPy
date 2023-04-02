@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple
+import typing
+from dataclasses import dataclass
 
-if TYPE_CHECKING:
-    from numpy import ndarray
+if typing.TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
-class Varf(NamedTuple):
+@dataclass(frozen=True)
+class Varf:
     """Metadata of scalar field.
 
     Attributes:
@@ -21,7 +23,8 @@ class Varf(NamedTuple):
     dim: str
 
 
-class Field(NamedTuple):
+@dataclass(frozen=True)
+class Field:
     """Scalar field and associated metadata.
 
     Attributes:
@@ -29,11 +32,12 @@ class Field(NamedTuple):
         meta: the metadata of the field.
     """
 
-    values: ndarray
+    values: NDArray
     meta: Varf
 
 
-class Varr(NamedTuple):
+@dataclass(frozen=True)
+class Varr:
     """Metadata of radial profiles.
 
     Attributes:
@@ -46,12 +50,12 @@ class Varr(NamedTuple):
     """
 
     description: str
-    # Callable[[Step], Tuple[ndarray, ndarray]]]
     kind: str
     dim: str
 
 
-class Rprof(NamedTuple):
+@dataclass(frozen=True)
+class Rprof:
     """Radial profile with associated radius and metadata.
 
     Attributes:
@@ -60,12 +64,13 @@ class Rprof(NamedTuple):
         meta: the metadata of the profile.
     """
 
-    values: ndarray
-    rad: ndarray
+    values: NDArray
+    rad: NDArray
     meta: Varr
 
 
-class Vart(NamedTuple):
+@dataclass(frozen=True)
+class Vart:
     """Metadata of time series.
 
     Attributes:
@@ -82,7 +87,8 @@ class Vart(NamedTuple):
     dim: str
 
 
-class Tseries(NamedTuple):
+@dataclass(frozen=True)
+class Tseries:
     """A time series with associated time and metadata.
 
     Attributes:
@@ -91,6 +97,6 @@ class Tseries(NamedTuple):
         meta: the metadata of the series.
     """
 
-    values: ndarray
-    time: ndarray
+    values: NDArray
+    time: NDArray
     meta: Vart

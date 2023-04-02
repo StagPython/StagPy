@@ -36,7 +36,10 @@ def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> No
             xlabel = None
             profs_on_plt = (rprofs[rvar] for rvar in vplt)
             fname += "_".join(vplt) + "_"
-            for ivar, (rprof, rad, meta) in enumerate(profs_on_plt):
+            for ivar, rpf in enumerate(profs_on_plt):
+                rprof = rpf.values
+                rad = rpf.rad
+                meta = rpf.meta
                 if conf.rprof.depth:
                     rad = sdat.scale(rprofs.bounds[1], "m")[0] - rad
                 axes[iplt].plot(rprof, rad, conf.rprof.style, label=meta.description)
@@ -73,16 +76,16 @@ def plot_grid(step: Step) -> None:
         step (:class:`~stagpy._step.Step`): a step of a StagyyData
             instance.
     """
-    drad, rad, _ = step.rprofs["dr"]
+    drprof = step.rprofs["dr"]
     _, unit = step.sdat.scale(1, "m")
     if unit:
         unit = f" ({unit})"
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
-    ax1.plot(rad, "-ko")
+    ax1.plot(drprof.rad, "-ko")
     ax1.set_ylabel("$r$" + unit)
-    ax2.plot(drad, "-ko")
+    ax2.plot(drprof.values, "-ko")
     ax2.set_ylabel("$dr$" + unit)
-    ax2.set_xlim([-0.5, len(rad) - 0.5])
+    ax2.set_xlim([-0.5, len(drprof.rad) - 0.5])
     ax2.set_xlabel("Cell number")
     _helpers.saveplot(fig, "grid", step.istep)
 

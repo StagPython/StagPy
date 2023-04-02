@@ -508,10 +508,16 @@ class _Rprofs:
             else:
                 meta = Varr(name, "", "1")
         elif name in self._cached_extra:
-            rprof, rad, meta = self._cached_extra[name]
+            rpf = self._cached_extra[name]
+            rprof = rpf.values
+            rad = rpf.rad
+            meta = rpf.meta
         elif name in phyvars.RPROF_EXTRA:
             self._cached_extra[name] = phyvars.RPROF_EXTRA[name](step)
-            rprof, rad, meta = self._cached_extra[name]
+            rpf = self._cached_extra[name]
+            rprof = rpf.values
+            rad = rpf.rad
+            meta = rpf.meta
         else:
             raise error.UnknownRprofVarError(name)
         rprof, _ = step.sdat.scale(rprof, meta.dim)

@@ -54,22 +54,27 @@ def plot_time_series(
                 sdat.tseries.tslice(tvar, conf.time.tstart, conf.time.tend)
                 for tvar in vplt
             ]
-            ptstart = min(time[0] for _, time, _ in series_on_plt)
-            ptend = max(time[-1] for _, time, _ in series_on_plt)
+            ptstart = min(series.time[0] for series in series_on_plt)
+            ptend = max(series.time[-1] for series in series_on_plt)
             tstart = ptstart if tstart is None else min(ptstart, tstart)
             tend = ptend if tend is None else max(ptend, tend)
             fname.extend(vplt)
-            for ivar, (series, time, meta) in enumerate(series_on_plt):
-                axes[iplt].plot(time, series, conf.time.style, label=meta.description)
-                lbl = meta.kind
+            for ivar, tseries in enumerate(series_on_plt):
+                axes[iplt].plot(
+                    tseries.time,
+                    tseries.values,
+                    conf.time.style,
+                    label=tseries.meta.description,
+                )
+                lbl = tseries.meta.kind
                 if ylabel is None:
                     ylabel = lbl
                 elif ylabel != lbl:
                     ylabel = ""
             if ivar == 0:
-                ylabel = meta.description
+                ylabel = tseries.meta.description
             if ylabel:
-                _, unit = sdat.scale(1, meta.dim)
+                _, unit = sdat.scale(1, tseries.meta.dim)
                 if unit:
                     ylabel += f" ({unit})"
                 axes[iplt].set_ylabel(ylabel)
@@ -110,12 +115,12 @@ def compstat(
     """
     stats = pd.DataFrame(columns=names, index=["mean", "rms"])
     for name in names:
-        data, time, _ = sdat.tseries.tslice(name, tstart, tend)
-        delta_time = time[-1] - time[0]
-        mean = np.trapz(data, x=time) / delta_time
+        series = sdat.tseries.tslice(name, tstart, tend)
+        delta_time = series.time[-1] - series.time[0]
+        mean = np.trapz(series.values, x=series.time) / delta_time
         stats.loc["mean", name] = mean
         stats.loc["rms", name] = np.sqrt(
-            np.trapz((data - mean) ** 2, x=time) / delta_time
+            np.trapz((series.values - mean) ** 2, x=series.time) / delta_time
         )
     return stats
 

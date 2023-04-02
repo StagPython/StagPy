@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import typing
+from dataclasses import dataclass
 from functools import partial
 from itertools import product
 from operator import itemgetter
@@ -368,14 +369,15 @@ def _readbin(
     return elts
 
 
-class _HeaderInfo(typing.NamedTuple):
+@dataclass(frozen=True)
+class _HeaderInfo:
     """Header information."""
 
     magic: int
     nval: int
     sfield: bool
     readbin: Callable
-    header: Dict[str, Any]
+    header: dict[str, Any]
 
 
 def _legacy_header(

@@ -50,7 +50,9 @@ def dt_dt(sdat: StagyyData) -> Tseries:
     Returns:
         derivative of temperature and time arrays.
     """
-    temp, time, _ = sdat.tseries["Tmean"]
+    series = sdat.tseries["Tmean"]
+    temp = series.values
+    time = series.time
     dtdt = (temp[1:] - temp[:-1]) / (time[1:] - time[:-1])
     return Tseries(dtdt, time[:-1], Vart("Derivative of temperature", r"dT/dt", "K/s"))
 
@@ -73,12 +75,12 @@ def ebalance(sdat: StagyyData) -> Tseries:
     else:
         coefsurf = 1.0
         volume = 1.0
-    dtdt, time, _ = dt_dt(sdat)
+    dtdt = dt_dt(sdat)
     ftop = sdat.tseries["ftop"].values * coefsurf
     fbot = sdat.tseries["fbot"].values
     radio = sdat.tseries["H_int"].values
-    ebal = ftop[1:] - fbot[1:] + volume * (dtdt - radio[1:])
-    return Tseries(ebal, time, Vart("Energy balance", r"$\mathrm{Nu}$", "1"))
+    ebal = ftop[1:] - fbot[1:] + volume * (dtdt.values - radio[1:])
+    return Tseries(ebal, dtdt.time, Vart("Energy balance", r"$\mathrm{Nu}$", "1"))
 
 
 def mobility(sdat: StagyyData) -> Tseries:
@@ -154,9 +156,9 @@ def diffs_prof(step: Step) -> Rprof:
     Returns:
         the diffusion and radius.
     """
-    diff, rad, _ = diff_prof(step)
+    rpf = diff_prof(step)
     meta = Varr("Scaled diffusion", "Heat flux", "W/m2")
-    return Rprof(_scale_prof(step, diff, rad), rad, meta)
+    return Rprof(_scale_prof(step, rpf.values, rpf.rad), rpf.rad, meta)
 
 
 def advts_prof(step: Step) -> Rprof:
@@ -220,10 +222,12 @@ def energy_prof(step: Step) -> Rprof:
     Returns:
         the energy flux and radius.
     """
-    diff, rad, _ = diffs_prof(step)
-    adv, _, _ = advts_prof(step)
+    diff_p = diffs_prof(step)
+    adv_p = advts_prof(step)
     return Rprof(
-        diff + np.append(adv, 0), rad, Varr("Total heat flux", "Heat flux", "W/m2")
+        diff_p.values + np.append(adv_p.values, 0),
+        diff_p.rad,
+        Varr("Total heat flux", "Heat flux", "W/m2"),
     )
 
 

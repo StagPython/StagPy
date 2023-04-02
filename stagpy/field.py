@@ -34,7 +34,7 @@ if typing.TYPE_CHECKING:
 
 def _threed_extract(
     step: Step, var: str, walls: bool = False
-) -> Tuple[Tuple[ndarray, ndarray], Any]:
+) -> Tuple[Tuple[ndarray, ndarray], ndarray]:
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
     hwalls = is_vector or walls
@@ -101,24 +101,28 @@ def get_meshes_fld(
         x position, y position, the values and the metadata of the requested
         field.
     """
-    fld, meta = step.fields[var]
-    hwalls = walls or fld.shape[0] != step.geom.nxtot or fld.shape[1] != step.geom.nytot
+    fld = step.fields[var]
+    hwalls = (
+        walls
+        or fld.values.shape[0] != step.geom.nxtot
+        or fld.values.shape[1] != step.geom.nytot
+    )
     if step.geom.threed and step.geom.cartesian:
-        (xcoord, ycoord), fld = _threed_extract(step, var, walls)
+        (xcoord, ycoord), vals = _threed_extract(step, var, walls)
     elif step.geom.twod_xz:
         xcoord = step.geom.x_walls if hwalls else step.geom.x_centers
         ycoord = step.geom.z_walls if walls else step.geom.z_centers
-        fld = fld[:, 0, :, 0]
+        vals = fld.values[:, 0, :, 0]
     else:  # twod_yz
         xcoord = step.geom.y_walls if hwalls else step.geom.y_centers
         ycoord = step.geom.z_walls if walls else step.geom.z_centers
         if step.geom.curvilinear:
             pmesh, rmesh = np.meshgrid(xcoord, ycoord, indexing="ij")
             xmesh, ymesh = rmesh * np.cos(pmesh), rmesh * np.sin(pmesh)
-        fld = fld[0, :, :, 0]
+        vals = fld.values[0, :, :, 0]
     if step.geom.cartesian:
         xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing="ij")
-    return xmesh, ymesh, fld, meta
+    return xmesh, ymesh, vals, fld.meta
 
 
 def get_meshes_vec(step: Step, var: str) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
@@ -336,15 +340,15 @@ def _findminmax(
     for step in sdat.walk.filter(snap=True):
         for var in sovs:
             if var in step.fields:
-                field, meta = step.fields[var]
-                field, _ = sdat.scale(field, meta.dim)
+                field = step.fields[var]
+                vals, _ = sdat.scale(field.values, field.meta.dim)
                 if var in minmax:
                     minmax[var] = (
-                        min(minmax[var][0], np.nanmin(field)),
-                        max(minmax[var][1], np.nanmax(field)),
+                        min(minmax[var][0], np.nanmin(vals)),
+                        max(minmax[var][1], np.nanmax(vals)),
                     )
                 else:
-                    minmax[var] = np.nanmin(field), np.nanmax(field)
+                    minmax[var] = np.nanmin(vals), np.nanmax(vals)
     return minmax
 
 
