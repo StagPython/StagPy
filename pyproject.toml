@@ -63,6 +63,7 @@ module = [
     "matplotlib.*",
     "mpl_toolkits.*",
     "pandas.*",
+    "pytest.*",
     "scipy.*",
 ]
 ignore_missing_imports = true

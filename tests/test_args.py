@@ -1,11 +1,12 @@
 import re
 
 import pytest
+from pytest import CaptureFixture
 
 import stagpy.args
 
 
-def test_no_args(capsys):
+def test_no_args(capsys: CaptureFixture) -> None:
     stagpy.args.parse_args([])()
     output = capsys.readouterr()
     expected = re.compile(
@@ -14,7 +15,7 @@ def test_no_args(capsys):
     assert expected.fullmatch(output.out)
 
 
-def test_help(capsys):
+def test_help(capsys: CaptureFixture) -> None:
     with pytest.raises(SystemExit):
         stagpy.args.parse_args(["-h"])
     output = capsys.readouterr()
@@ -27,7 +28,7 @@ def test_help(capsys):
     assert expected.fullmatch(output.out)
 
 
-def test_invalid_argument(capsys):
+def test_invalid_argument(capsys: CaptureFixture) -> None:
     with pytest.raises(SystemExit):
         stagpy.args.parse_args(["-dummyinvalidarg"])
     output = capsys.readouterr()
@@ -37,7 +38,7 @@ def test_invalid_argument(capsys):
     assert expected.fullmatch(output.err)
 
 
-def test_invalid_subcmd(capsys):
+def test_invalid_subcmd(capsys: CaptureFixture) -> None:
     with pytest.raises(SystemExit):
         stagpy.args.parse_args(["dummyinvalidcmd"])
     output = capsys.readouterr()
@@ -45,41 +46,41 @@ def test_invalid_subcmd(capsys):
     assert expected.fullmatch(output.err)
 
 
-def test_field_subcmd():
+def test_field_subcmd() -> None:
     func = stagpy.args.parse_args(["field"])
     assert func is stagpy.field.cmd
 
 
-def test_rprof_subcmd():
+def test_rprof_subcmd() -> None:
     func = stagpy.args.parse_args(["rprof"])
     assert func is stagpy.rprof.cmd
 
 
-def test_time_cmd():
+def test_time_cmd() -> None:
     func = stagpy.args.parse_args(["time"])
     assert func is stagpy.time_series.cmd
 
 
-def test_plates_subcmd():
+def test_plates_subcmd() -> None:
     func = stagpy.args.parse_args(["plates"])
     assert func is stagpy.plates.cmd
 
 
-def test_info_subcmd():
+def test_info_subcmd() -> None:
     func = stagpy.args.parse_args(["info"])
     assert func is stagpy.commands.info_cmd
 
 
-def test_var_subcmd():
+def test_var_subcmd() -> None:
     func = stagpy.args.parse_args(["var"])
     assert func is stagpy.commands.var_cmd
 
 
-def test_version_subcmd():
+def test_version_subcmd() -> None:
     func = stagpy.args.parse_args(["version"])
     assert func is stagpy.commands.version_cmd
 
 
-def test_config_subcmd():
+def test_config_subcmd() -> None:
     func = stagpy.args.parse_args(["config"])
     assert func is stagpy.commands.config_cmd
