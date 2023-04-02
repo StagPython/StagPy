@@ -29,14 +29,14 @@ CONFIG_LOCAL = Path(".stagpy.toml")
 
 @dataclass
 class Common(Section):
-    """Options used by all commands."""
+    """General options."""
 
     config: bool = command_flag("print config options")
 
 
 @dataclass
 class Core(Section):
-    """Options used by most commands."""
+    """Core control."""
 
     path: Path = path_entry(
         path=".", cli_short="p", doc="path of StagYY run directory or par file"
@@ -53,7 +53,7 @@ class Core(Section):
 
 @dataclass
 class Plot(Section):
-    """Options to tweak plots."""
+    """Plotting."""
 
     ratio: Optional[float] = MaybeEntry(float).entry(
         doc="force aspect ratio of field plot", in_file=False
@@ -78,7 +78,7 @@ class Plot(Section):
 
 @dataclass
 class Scaling(Section):
-    """Options regarding dimensionalization."""
+    """Dimensionalization."""
 
     yearins: float = entry(val=3.154e7, in_cli=False, doc="year in seconds")
     ttransit: float = entry(val=1.78e15, in_cli=False, doc="transit time in My")
@@ -94,7 +94,7 @@ class Scaling(Section):
 
 @dataclass
 class Field(Section):
-    """Options of the field command."""
+    """Field command."""
 
     plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
         default="T,stream", cli_short="o", doc="variables to plot (see stagpy var)"
@@ -131,7 +131,7 @@ class Field(Section):
 
 @dataclass
 class Rprof(Section):
-    """Options of the rprof command."""
+    """Rprof command."""
 
     plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
         default="Tmean", cli_short="o", doc="variables to plot (see stagpy var)"
@@ -144,7 +144,7 @@ class Rprof(Section):
 
 @dataclass
 class Time(Section):
-    """Options of the time command."""
+    """Time command."""
 
     plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
         default="Nutop,ebalance,Nubot.Tmean",
@@ -175,7 +175,7 @@ class Time(Section):
 
 @dataclass
 class Refstate(Section):
-    """Options of the refstate command."""
+    """Refstate command."""
 
     plot: Sequence[str] = TupleEntry(str).entry(
         default="T", cli_short="o", doc="variables to plot (see stagpy var)"
@@ -185,7 +185,7 @@ class Refstate(Section):
 
 @dataclass
 class Plates(Section):
-    """Options of the plates command."""
+    """Plates command."""
 
     plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
         default="c.T.v2-v2.dv2-v2.topo_top",
@@ -211,7 +211,7 @@ class Plates(Section):
 
 @dataclass
 class Info(Section):
-    """Options of the info command."""
+    """Info command."""
 
     output: Sequence[str] = TupleEntry(str).entry(
         default="t,Tmean,vrms,Nutop,Nubot", cli_short="o", doc="time series to print"
@@ -220,7 +220,7 @@ class Info(Section):
 
 @dataclass
 class Var(Section):
-    """Options of the var command."""
+    """Var command."""
 
     field: bool = command_flag("print field variables")
     sfield: bool = command_flag("print surface field variables")
