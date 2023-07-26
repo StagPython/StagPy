@@ -104,7 +104,6 @@ class Field(Section):
         doc="shift plot horizontally", in_file=False
     )
     timelabel: bool = switch_opt(False, None, "add label with time")
-    interpolate: bool = switch_opt(False, None, "apply Gouraud shading")
     colorbar: bool = switch_opt(True, None, "add color bar to plot")
     ix: Optional[int] = MaybeEntry(int).entry(
         doc="x-index of slice for 3D fields", in_file=False

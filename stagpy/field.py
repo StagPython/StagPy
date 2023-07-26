@@ -194,20 +194,12 @@ def plot_scalar(
     if step.geom.threed and step.geom.spherical:
         raise NotAvailableError("plot_scalar not implemented for 3D spherical geometry")
 
-    xmesh, ymesh, fld, meta = get_meshes_fld(
-        step, var, walls=not conf.field.interpolate
-    )
+    xmesh, ymesh, fld, meta = get_meshes_fld(step, var, walls=True)
     # interpolate at cell centers, this should be abstracted by field objects
     # via an "at_cell_centers" method or similar
     if fld.shape[0] > max(step.geom.nxtot, step.geom.nytot):
         fld = (fld[:-1] + fld[1:]) / 2
 
-    if conf.field.interpolate and step.geom.spherical and step.geom.twod_yz:
-        # add one point to close spherical annulus
-        xmesh = np.concatenate((xmesh, xmesh[:1]), axis=0)
-        ymesh = np.concatenate((ymesh, ymesh[:1]), axis=0)
-        newline = (fld[:1] + fld[-1:]) / 2
-        fld = np.concatenate((fld, newline), axis=0)
     xmin, xmax = xmesh.min(), xmesh.max()
     ymin, ymax = ymesh.min(), ymesh.max()
 
@@ -243,7 +235,7 @@ def plot_scalar(
         vmax=conf.plot.vmax,
         norm=mpl.colors.LogNorm() if var == "eta" else None,
         rasterized=conf.plot.raster,
-        shading="gouraud" if conf.field.interpolate else "flat",
+        shading="flat",
     )
     extra_opts.update(extra)
     surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
