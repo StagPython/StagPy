@@ -25,8 +25,6 @@ import signal
 import sys
 import typing
 
-from setuptools_scm import get_version
-
 from . import _styles, config
 
 if typing.TYPE_CHECKING:
@@ -86,12 +84,9 @@ else:
     _PREV_INT = signal.signal(signal.SIGINT, sigint_handler)
 
 try:
-    __version__ = get_version(root="..", relative_to=__file__)
-except LookupError:
-    try:
-        from ._version import version as __version__
-    except ImportError:
-        __version__ = "unknown"
+    from ._version import version as __version__
+except ImportError:
+    __version__ = "unknown"
 
 conf = config.Config.default_()
 if not ISOLATED:
