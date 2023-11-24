@@ -169,7 +169,7 @@ def plot_scalar(
     field: Optional[ndarray] = None,
     axis: Optional[Axes] = None,
     **extra: Any,
-) -> Tuple[Figure, Axes, QuadMesh, Colorbar]:
+) -> Tuple[Figure, Axes, QuadMesh, Optional[Colorbar]]:
     """Plot scalar field.
 
     Args:
@@ -215,7 +215,7 @@ def plot_scalar(
     if axis is None:
         fig, axis = plt.subplots(ncols=1)
     else:
-        fig = axis.get_figure()
+        fig = axis.get_figure()  # type: ignore
 
     if step.sdat.par["magma_oceans_in"]["evolving_magma_oceans"]:
         rcmb = step.sdat.par["geometry"]["r_cmb"]
@@ -238,7 +238,7 @@ def plot_scalar(
         shading="flat",
     )
     extra_opts.update(extra)
-    surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)
+    surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)  # type: ignore
 
     cbar = None
     if conf.field.colorbar:
