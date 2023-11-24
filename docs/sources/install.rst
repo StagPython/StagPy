@@ -16,14 +16,14 @@ Installation using ``pip``
 If you don't have ``pip`` for Python3 on your system, use the ``ensurepip``
 module to install it (it is bootstrapped within the Python interpreter)::
 
-    % python3 -m ensurepip --user
+    % python3 -m ensurepip
 
 In case this doesn't work, download the official script
 <https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
 
 Then, update ``pip`` to the latest version::
 
-    % python3 -m pip install -U --user pip
+    % python3 -m pip install -U pip
 
 You can then install and/or update StagPy with the following command::
 
