@@ -4,42 +4,30 @@ Installation
 You will need Python 3.8 or higher to use StagPy. StagPy is available on
 the Python Package Index, via ``pip``.
 
-If you don't have sufficient permissions to install or update Python, you might
-be interested in Miniconda_ or Anaconda_.
-
-.. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
-.. _Anaconda: https://www.anaconda.com/products/individual
+If you don't have sufficient permissions to install or update Python, you can
+use `pyenv to manage Python <https://github.com/pyenv/pyenv>`_.
 
 Installation using ``pip``
 --------------------------
 
-If you don't have ``pip`` for Python3 on your system, use the ``ensurepip``
-module to install it (it is bootstrapped within the Python interpreter)::
+In most cases, installing StagPy with ``pip`` should be as simple as::
 
-    % python3 -m ensurepip
+    % python3 -m pip install stagpy
 
-In case this doesn't work, download the official script
-<https://bootstrap.pypa.io/get-pip.py> and run it with ``python3``.
+It might be preferable or even necessary to install StagPy in a virtual
+environment to isolate it from other packages that could conflict with it::
 
-Then, update ``pip`` to the latest version::
+    % python3 -m venv stagpyenv
+    % source stagpyenv/bin/activate
+    % python3 -m pip install stagpy
 
-    % python3 -m pip install -U pip
-
-You can then install and/or update StagPy with the following command::
+You can then update StagPy with the following command::
 
     % python3 -m pip install -U stagpy
 
-Make sure that the directory where ``pip`` install package entry-points
-(usually ``~/.local/bin``) is in your ``PATH`` environment variable.
-You can run ``python3 -m pip show stagpy`` to obtain some hint about this
-location (this command will show you were the compiled sources are installed,
-e.g. ``~/.local/lib/python3.8/site-packages``, from which you can deduce the
-entry-point location, e.g. ``~/.local/bin``).
-
-See the `Some setup`_ subsection to enable autocompletion and create your
-config file.
-
-.. _somesetup:
+See the
+`official documentation <https://packaging.python.org/en/latest/tutorials/installing-packages/>`_
+for more information about installing Python packages.
 
 Some setup
 ----------
