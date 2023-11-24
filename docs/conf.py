@@ -50,7 +50,7 @@ templates_path = ['_templates']
 
 # -- Project information -----------------------------------------------------
 project = 'StagPy'
-copyright = '2015 - 2022, Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
+copyright = '2015 - 2023, Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
 author = 'Adrien Morison, Martina Ulvrova, Stéphane Labrosse'
 
 # The full version, including alpha/beta/rc tags.
