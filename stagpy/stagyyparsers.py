@@ -402,8 +402,8 @@ def _legacy_header(
         sfield = True
 
     magic %= 100
-    if magic < 9:
-        raise ParsingError(filepath, "magic < 9 not supported")
+    if magic < 9 or magic > 11:
+        raise ParsingError(filepath, f"{magic=} not supported")
 
     header_info = _HeaderInfo(magic, nval, sfield, readbin, {})
     header = header_info.header
