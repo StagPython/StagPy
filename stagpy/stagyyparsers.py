@@ -441,6 +441,7 @@ def _legacy_header(
     header["erupta_total"] = readbin("f")  # magic >= 5
     header["bot_temp"] = readbin("f")  # magic >= 6
     header["core_temp"] = readbin("f") if magic >= 10 else 1
+    header["ocean_mass"] = readbin("f") if magic >= 11 else 0.0
 
     # magic >= 4
     header["e1_coord"] = readbin("f", header["nts"][0])
