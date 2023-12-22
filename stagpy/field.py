@@ -351,7 +351,7 @@ def cmd() -> None:
         conf.field
         conf.core
     """
-    sdat = StagyyData()
+    sdat = StagyyData(conf.core.path)
     # no more than two fields in a subplot
     lovs = [[slov[:2] for slov in plov] for plov in conf.field.plot]
     minmax = {}

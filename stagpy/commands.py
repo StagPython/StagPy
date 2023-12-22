@@ -30,7 +30,7 @@ def info_cmd() -> None:
     Other Parameters:
         conf.info
     """
-    sdat = stagyydata.StagyyData()
+    sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
     print(f"StagYY run in {sdat.path}")

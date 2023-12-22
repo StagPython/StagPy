@@ -97,7 +97,7 @@ def cmd() -> None:
         conf.rprof
         conf.core
     """
-    sdat = StagyyData()
+    sdat = StagyyData(conf.core.path)
 
     if conf.rprof.grid:
         for step in sdat.walk.filter(rprofs=True):

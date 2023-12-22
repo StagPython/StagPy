@@ -756,11 +756,7 @@ class StagyyData:
         path: path of the StagYY run. It can either be the path of the
             directory containing the par file, or the path of the par file. If
             the path given is a directory, the path of the par file is assumed
-            to be path/par.  If no path is given (or None) it is set to
-            ``conf.core.path``.
-
-    Other Parameters:
-        conf.core.path: the default path.
+            to be path/par.
 
     Attributes:
         steps (:class:`_Steps`): collection of time steps.
@@ -769,9 +765,7 @@ class StagyyData:
         refstate (:class:`_Refstate`): reference state profiles.
     """
 
-    def __init__(self, path: Optional[PathLike] = None):
-        if path is None:
-            path = conf.core.path
+    def __init__(self, path: PathLike):
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"

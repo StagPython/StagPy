@@ -385,7 +385,7 @@ def cmd() -> None:
         conf.plot
         conf.core
     """
-    sdat = StagyyData()
+    sdat = StagyyData(conf.core.path)
 
     isurf = _isurf(next(iter(sdat.walk)))
     vrms_surf = sdat.walk.filter(rprofs=True).rprofs_averaged["vhrms"].values[isurf]

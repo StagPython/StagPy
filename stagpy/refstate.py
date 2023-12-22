@@ -44,7 +44,7 @@ def cmd() -> None:
         conf.core
         conf.plot
     """
-    sdat = StagyyData()
+    sdat = StagyyData(conf.core.path)
 
     for var in conf.refstate.plot:
         plot_ref(sdat, var)
