@@ -62,7 +62,7 @@ def _as_view_item(obj: int) -> None:
 
 
 def _as_view_item(
-    obj: Union[Sequence[StepIndex], slice, int]
+    obj: Union[Sequence[StepIndex], slice, int],
 ) -> Union[Sequence[StepIndex], Sequence[slice], None]:
     """Return None or a suitable iterable to build a _StepsView."""
     try:
@@ -423,7 +423,9 @@ class _Steps:
             istep = int(istep)  # type: ignore
         except ValueError:
             raise error.InvalidTimestepError(
-                self.sdat, istep, "Time step should be an integer value"  # type: ignore
+                self.sdat,
+                istep,  # type: ignore
+                "Time step should be an integer value",
             )
         if istep < 0:
             istep += len(self)

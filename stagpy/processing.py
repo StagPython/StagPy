@@ -277,9 +277,7 @@ def init_c_overturn(step: Step) -> Rprof:
     def initprof(rpos: float) -> float:
         """Theoretical initial profile."""
         if rpos < rsup:
-            return xi0s * ((rtop**3 - rbot**3) / (rtop**3 - rpos**3)) ** (
-                1 - k_fe
-            )
+            return xi0s * ((rtop**3 - rbot**3) / (rtop**3 - rpos**3)) ** (1 - k_fe)
         return xieut
 
     rad = np.linspace(rbot, rtop, 500)

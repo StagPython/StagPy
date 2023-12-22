@@ -11,9 +11,8 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mpls
 from loam.cli import CLIManager, Subcmd
 
-from . import ISOLATED
-from . import __doc__ as doc_module
 from . import (
+    ISOLATED,
     _styles,
     commands,
     conf,
@@ -24,6 +23,7 @@ from . import (
     rprof,
     time_series,
 )
+from . import __doc__ as doc_module
 from ._helpers import baredoc
 from .config import CONFIG_DIR
 
