@@ -371,12 +371,10 @@ class _Fields(abc.Mapping):
                     xmff = "Data{}.xmf".format(
                         "Bottom" if name.endswith("bot") else "Surface"
                     )
-                    header = self._header
                 else:
                     xmff = "Data.xmf"
-                    header = None
                 parsed_data = stagyyparsers.read_field_h5(
-                    self.step.sdat.hdf5 / xmff, filestem, self.step.isnap, header
+                    self.step.sdat.hdf5 / xmff, filestem, self.step.isnap, self._header
                 )
                 if parsed_data is not None:
                     break
