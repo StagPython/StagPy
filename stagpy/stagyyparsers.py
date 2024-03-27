@@ -5,6 +5,7 @@ Note:
     you know what you are doing. To access StagYY output data, use an instance
     of :class:`~stagpy.stagyydata.StagyyData`.
 """
+
 from __future__ import annotations
 
 import re

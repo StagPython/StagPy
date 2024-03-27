@@ -47,18 +47,15 @@ if typing.TYPE_CHECKING:
 
 
 @typing.overload
-def _as_view_item(obj: Sequence[StepIndex]) -> Sequence[StepIndex]:
-    ...
+def _as_view_item(obj: Sequence[StepIndex]) -> Sequence[StepIndex]: ...
 
 
 @typing.overload
-def _as_view_item(obj: slice) -> Sequence[slice]:
-    ...
+def _as_view_item(obj: slice) -> Sequence[slice]: ...
 
 
 @typing.overload
-def _as_view_item(obj: int) -> None:
-    ...
+def _as_view_item(obj: int) -> None: ...
 
 
 def _as_view_item(
@@ -406,12 +403,10 @@ class _Steps:
         return f"{self.sdat!r}.steps"
 
     @typing.overload
-    def __getitem__(self, istep: int) -> Step:
-        ...
+    def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
-        ...
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView: ...
 
     def __getitem__(
         self, istep: Union[int, slice, Sequence[StepIndex]]
@@ -506,12 +501,10 @@ class _Snaps(_Steps):
         return f"{self.sdat!r}.snaps"
 
     @typing.overload
-    def __getitem__(self, istep: int) -> Step:
-        ...
+    def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView:
-        ...
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView: ...
 
     def __getitem__(self, isnap: Any) -> Union[Step, _StepsView]:
         keys = _as_view_item(isnap)
