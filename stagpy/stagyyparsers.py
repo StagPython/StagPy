@@ -71,7 +71,7 @@ def time_series(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
         return None
     data = pd.read_csv(
         timefile,
-        delim_whitespace=True,
+        sep="\s+",
         dtype=str,
         header=None,
         skiprows=1,
@@ -189,7 +189,7 @@ def rprof(
         return {}, None
     data = pd.read_csv(
         rproffile,
-        delim_whitespace=True,
+        sep="\s+",
         dtype=str,
         header=None,
         comment="*",
@@ -289,7 +289,7 @@ def refstate(
         return None
     data = pd.read_csv(
         reffile,
-        delim_whitespace=True,
+        sep="\s+",
         dtype=str,
         header=None,
         names=range(ncols),
