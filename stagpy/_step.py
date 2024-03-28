@@ -501,7 +501,7 @@ class _Rprofs:
     def __getitem__(self, name: str) -> Rprof:
         step = self.step
         if name in self._rprofs.columns:
-            rprof = self._rprofs[name].values
+            rprof = self._rprofs[name].to_numpy()
             rad = self.centers
             if name in phyvars.RPROF:
                 meta = phyvars.RPROF[name]
@@ -533,7 +533,7 @@ class _Rprofs:
     @cached_property
     def centers(self) -> ndarray:
         """Radial position of cell centers."""
-        return self._rprofs["r"].values + self.bounds[0]
+        return self._rprofs["r"].to_numpy() + self.bounds[0]
 
     @cached_property
     def walls(self) -> ndarray:

@@ -71,7 +71,7 @@ def info_cmd() -> None:
                     pandas.Series(data=dimensions, index=series.index, name="dim"),
                 ],
                 axis=1,
-            )
+            )  # type: ignore
         print(indent(series.to_string(header=False), "  "))
         print()
 

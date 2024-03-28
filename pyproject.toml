@@ -61,7 +61,6 @@ module = [
     "h5py.*",
     "matplotlib.*",
     "mpl_toolkits.*",
-    "pandas.*",
     "pytest.*",
     "scipy.*",
 ]

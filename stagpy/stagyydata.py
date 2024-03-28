@@ -257,7 +257,7 @@ class _Tseries:
 
     def __getitem__(self, name: str) -> Tseries:
         if name in self._tseries.columns:
-            series = self._tseries[name].values
+            series = self._tseries[name].to_numpy()
             time = self.time
             if name in phyvars.TIME:
                 meta = phyvars.TIME[name]
@@ -308,7 +308,7 @@ class _Tseries:
     @property
     def time(self) -> ndarray:
         """Time vector."""
-        return self._tseries["t"].values
+        return self._tseries["t"].to_numpy()
 
     @property
     def isteps(self) -> ndarray:
@@ -320,7 +320,7 @@ class _Tseries:
 
     def at_step(self, istep: int) -> Series:
         """Time series output for a given step."""
-        return self._tseries.loc[istep]
+        return self._tseries.loc[istep]  # type: ignore
 
 
 class _RprofsAveraged(_step._Rprofs):
@@ -816,7 +816,7 @@ class StagyyData:
         return stagyyparsers.rprof(rproffile, list(phyvars.RPROF.keys()))
 
     @property
-    def rtimes(self) -> DataFrame:
+    def rtimes(self) -> Optional[DataFrame]:
         """Radial profiles times."""
         return self._rprof_and_times[1]
 

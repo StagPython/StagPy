@@ -80,7 +80,7 @@ def time_series(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
         memory_map=True,
         on_bad_lines="skip",
     )
-    data = data.apply(pd.to_numeric, raw=True, errors="coerce")
+    data = data.apply(pd.to_numeric, raw=True, errors="coerce")  # type: ignore
 
     # detect useless lines produced when run is restarted
     rows_to_del = []
@@ -97,7 +97,7 @@ def time_series(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
 
     ncols = data.shape[1]
     _tidy_names(colnames, ncols)
-    data.columns = colnames
+    data.columns = pd.Index(colnames)
 
     return data
 
@@ -126,7 +126,7 @@ def time_series_h5(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
         h5names = h5f["names"].asstr()[len(colnames) + 1 :]
         _tidy_names(colnames, ncols, h5names)
         data = dset[()]
-    pdf = pd.DataFrame(data[:, 1:], index=np.int_(data[:, 0]), columns=colnames)
+    pdf = pd.DataFrame(data[:, 1:], index=data[:, 0].astype(np.int64), columns=colnames)
     # remove duplicated lines in case of restart
     return pdf.loc[~pdf.index.duplicated(keep="last")]
 
@@ -198,22 +198,22 @@ def rprof(
         memory_map=True,
         on_bad_lines="skip",
     )
-    data = data.apply(pd.to_numeric, raw=True, errors="coerce")
+    data = data.apply(pd.to_numeric, raw=True, errors="coerce")  # type: ignore
 
     isteps = _extract_rsnap_isteps(rproffile, data)
 
-    data = {}
+    all_data = {}
     for istep, _, step_df in isteps:
-        step_df.index = range(step_df.shape[0])  # check whether necessary
+        step_df.index = pd.RangeIndex(step_df.shape[0])  # check whether necessary
         step_cols = list(colnames)
         _tidy_names(step_cols, step_df.shape[1])
-        step_df.columns = step_cols
-        data[istep] = step_df
+        step_df.columns = pd.Index(step_cols)
+        all_data[istep] = step_df
 
     df_times = pd.DataFrame(
-        list(map(itemgetter(1), isteps)), index=map(itemgetter(0), isteps)
+        list(map(itemgetter(1), isteps)), index=pd.Index(map(itemgetter(0), isteps))
     )
-    return data, df_times
+    return all_data, df_times
 
 
 def rprof_h5(
@@ -250,7 +250,7 @@ def rprof_h5(
             isteps.append((istep, dset.attrs["time"]))
 
     df_times = pd.DataFrame(
-        list(map(itemgetter(1), isteps)), index=map(itemgetter(0), isteps)
+        list(map(itemgetter(1), isteps)), index=pd.Index(map(itemgetter(0), isteps))
     )
     return data, df_times
 
@@ -297,7 +297,7 @@ def refstate(
         memory_map=True,
         on_bad_lines="skip",
     )
-    data = data.apply(pd.to_numeric, raw=True, errors="coerce")
+    data = data.apply(pd.to_numeric, raw=True, errors="coerce")  # type: ignore
     # drop lines corresponding to metadata
     data.dropna(subset=[0], inplace=True)
     isystem = -1
