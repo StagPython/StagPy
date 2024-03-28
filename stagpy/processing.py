@@ -10,7 +10,7 @@ from __future__ import annotations
 import typing
 
 import numpy as np
-from scipy import integrate
+from scipy.integrate import cumulative_trapezoid
 
 from .datatypes import Field, Rprof, Tseries, Varf, Varr, Vart
 from .error import NotAvailableError
@@ -341,22 +341,22 @@ def stream_function(step: Step) -> Field:
         vz0 = ((r_nw[1] - r_nc[0]) * v_z[:, 0] + (r_nc[0] - r_nw[0]) * v_z[:, 1]) / (
             r_nw[1] - r_nw[0]
         )
-        psi[1:, 0] = -integrate.cumtrapz(r_pc[0] ** 2 * vz0, x=x_coord)
+        psi[1:, 0] = -cumulative_trapezoid(r_pc[0] ** 2 * vz0, x=x_coord)
         # vx at center
         vxc = (v_x + np.roll(v_x, -1, axis=0)) / 2
         for i_x in range(len(x_coord)):
-            psi[i_x, 1:] = psi[i_x, 0] + integrate.cumtrapz(r_pc * vxc[i_x], x=r_nc)
+            psi[i_x, 1:] = psi[i_x, 0] + cumulative_trapezoid(r_pc * vxc[i_x], x=r_nc)
     else:  # assume cartesian geometry
         z_nc = step.geom.r_centers
         z_nw = step.rprofs.walls[:2]
         vz0 = ((z_nw[1] - z_nc[0]) * v_z[:, 0] + (z_nc[0] - z_nw[0]) * v_z[:, 1]) / (
             z_nw[1] - z_nw[0]
         )
-        psi[1:, 0] = -integrate.cumtrapz(vz0, x=x_coord)
+        psi[1:, 0] = -cumulative_trapezoid(vz0, x=x_coord)
         # vx at center
         vxc = (v_x + np.roll(v_x, -1, axis=0)) / 2
         for i_x in range(len(x_coord)):
-            psi[i_x, 1:] = psi[i_x, 0] + integrate.cumtrapz(vxc[i_x], x=z_nc)
+            psi[i_x, 1:] = psi[i_x, 0] + cumulative_trapezoid(vxc[i_x], x=z_nc)
     if step.geom.twod_xz:
         psi = -psi
     psi = np.reshape(psi, shape)
