@@ -863,6 +863,14 @@ class FieldXmf:
     def root(self) -> Element:
         return xmlET.parse(str(self.path)).getroot()
 
+    def get_snap(self, isnap: int) -> Element:
+        # Domain, Temporal Collection, Snapshot
+        # should check that this is indeed the required snapshot
+        elt_snap = self.root[0][0][isnap]
+        if elt_snap is None:
+            raise ParsingError(self.path, f"Snapshot {isnap} not present")
+        return elt_snap
+
 
 def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     """Extract geometry information from hdf5 files.
@@ -874,13 +882,8 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
         geometry information.
     """
     header: Dict[str, Any] = {}
-    xdmf_root = xdmf.root
 
-    # Domain, Temporal Collection, Snapshot
-    # should check that this is indeed the required snapshot
-    elt_snap = xdmf_root[0][0][snapshot]
-    if elt_snap is None:
-        raise ParsingError(xdmf.path, f"Snapshot {snapshot} not present")
+    elt_snap = xdmf.get_snap(snapshot)
     header["ti_ad"] = _maybe_get(elt_snap, "Time", "Value", float)
     header["mo_lambda"] = _maybe_get(elt_snap, "mo_lambda", "Value", float)
     header["mo_thick_sol"] = _maybe_get(elt_snap, "mo_thick_sol", "Value", float)
@@ -977,13 +980,12 @@ def read_field_h5(
     """
     if header is None:
         header = read_geom_h5(xdmf, snapshot)
-    xdmf_root = xdmf.root
 
     npc = header["nts"] // header["ncs"]  # number of grid point per node
     flds = np.zeros(_flds_shape(fieldname, header))
     data_found = False
 
-    for elt_subdomain in xdmf_root[0][0][snapshot].findall("Grid"):
+    for elt_subdomain in xdmf.get_snap(snapshot).findall("Grid"):
         elt_name = _try_get(xdmf.path, elt_subdomain, "Name")
         ibk = int(elt_name.startswith("meshYang"))
         for data_attr in elt_subdomain.findall("Attribute"):
