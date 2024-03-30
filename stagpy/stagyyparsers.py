@@ -875,8 +875,6 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     """
     header: Dict[str, Any] = {}
     xdmf_root = xdmf.root
-    if snapshot is None:
-        return {}
 
     # Domain, Temporal Collection, Snapshot
     # should check that this is indeed the required snapshot
