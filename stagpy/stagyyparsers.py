@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 import typing
 from dataclasses import dataclass
-from functools import partial
+from functools import cached_property, partial
 from itertools import product
 from operator import itemgetter
 from xml.etree import ElementTree as xmlET
@@ -855,7 +855,16 @@ def _maybe_get(
     return maybe_info
 
 
-def read_geom_h5(xdmf_file: Path, snapshot: int) -> Tuple[Dict[str, Any], Element]:
+@dataclass(frozen=True)
+class FieldXmf:
+    path: Path
+
+    @cached_property
+    def root(self) -> Element:
+        return xmlET.parse(str(self.path)).getroot()
+
+
+def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> Tuple[Dict[str, Any], Element]:
     """Extract geometry information from hdf5 files.
 
     Args:
@@ -865,7 +874,7 @@ def read_geom_h5(xdmf_file: Path, snapshot: int) -> Tuple[Dict[str, Any], Elemen
         geometry information and root of xdmf document.
     """
     header: Dict[str, Any] = {}
-    xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
+    xdmf_root = xdmf.root
     if snapshot is None:
         return {}, xdmf_root
 
@@ -873,7 +882,7 @@ def read_geom_h5(xdmf_file: Path, snapshot: int) -> Tuple[Dict[str, Any], Elemen
     # should check that this is indeed the required snapshot
     elt_snap = xdmf_root[0][0][snapshot]
     if elt_snap is None:
-        raise ParsingError(xdmf_file, f"Snapshot {snapshot} not present")
+        raise ParsingError(xdmf.path, f"Snapshot {snapshot} not present")
     header["ti_ad"] = _maybe_get(elt_snap, "Time", "Value", float)
     header["mo_lambda"] = _maybe_get(elt_snap, "mo_lambda", "Value", float)
     header["mo_thick_sol"] = _maybe_get(elt_snap, "mo_thick_sol", "Value", float)
@@ -882,21 +891,21 @@ def read_geom_h5(xdmf_file: Path, snapshot: int) -> Tuple[Dict[str, Any], Elemen
     coord_shape = []  # shape of meshes
     twod = None
     for elt_subdomain in elt_snap.findall("Grid"):
-        elt_name = _try_get(xdmf_file, elt_subdomain, "Name")
+        elt_name = _try_get(xdmf.path, elt_subdomain, "Name")
         if elt_name.startswith("meshYang"):
             header["ntb"] = 2
             break  # iterate only through meshYin
-        elt_geom = _try_find(xdmf_file, elt_subdomain, "Geometry")
+        elt_geom = _try_find(xdmf.path, elt_subdomain, "Geometry")
         if elt_geom.get("Type") == "X_Y" and twod is None:
             twod = ""
             for data_item in elt_geom.findall("DataItem"):
-                coord = _try_text(xdmf_file, data_item).strip()[-1]
+                coord = _try_text(xdmf.path, data_item).strip()[-1]
                 if coord in "XYZ":
                     twod += coord
-        data_item = _try_find(xdmf_file, elt_geom, "DataItem")
-        data_text = _try_text(xdmf_file, data_item)
-        coord_shape.append(_get_dim(xdmf_file, data_item))
-        coord_h5.append(xdmf_file.parent / data_text.strip().split(":/", 1)[0])
+        data_item = _try_find(xdmf.path, elt_geom, "DataItem")
+        data_text = _try_text(xdmf.path, data_item)
+        coord_shape.append(_get_dim(xdmf.path, data_item))
+        coord_h5.append(xdmf.path.parent / data_text.strip().split(":/", 1)[0])
     _read_coord_h5(coord_h5, coord_shape, header, twod)
     return header, xdmf_root
 
@@ -952,7 +961,7 @@ def _post_read_flds(flds: ndarray, header: Dict[str, Any]) -> ndarray:
 
 
 def read_field_h5(
-    xdmf_file: Path,
+    xdmf: FieldXmf,
     fieldname: str,
     snapshot: int,
     header: Optional[Dict[str, Any]] = None,
@@ -969,22 +978,22 @@ def read_field_h5(
         unavailable.
     """
     if header is None:
-        header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
+        header, xdmf_root = read_geom_h5(xdmf, snapshot)
     else:
-        xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
+        xdmf_root = xdmf.root
 
     npc = header["nts"] // header["ncs"]  # number of grid point per node
     flds = np.zeros(_flds_shape(fieldname, header))
     data_found = False
 
     for elt_subdomain in xdmf_root[0][0][snapshot].findall("Grid"):
-        elt_name = _try_get(xdmf_file, elt_subdomain, "Name")
+        elt_name = _try_get(xdmf.path, elt_subdomain, "Name")
         ibk = int(elt_name.startswith("meshYang"))
         for data_attr in elt_subdomain.findall("Attribute"):
             if data_attr.get("Name") != fieldname:
                 continue
             icore, fld = _get_field(
-                xdmf_file, _try_find(xdmf_file, data_attr, "DataItem")
+                xdmf.path, _try_find(xdmf.path, data_attr, "DataItem")
             )
             # for some reason, the field is transposed
             fld = fld.T

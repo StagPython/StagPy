@@ -367,16 +367,15 @@ class _Fields(abc.Mapping):
                 (stem, fvars) for stem, fvars in self._filesh5.items() if name in fvars
             ]
             for filestem, list_fvar in files:
+                sdat = self.step.sdat
                 if filestem in phyvars.SFIELD_FILES_H5:
-                    xmff = "Data{}.xmf".format(
-                        "Bottom" if name.endswith("bot") else "Surface"
-                    )
+                    xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
                     header = self._header
                 else:
-                    xmff = "Data.xmf"
+                    xmff = sdat._dataxmf
                     header = None
                 parsed_data = stagyyparsers.read_field_h5(
-                    self.step.sdat.hdf5 / xmff, filestem, self.step.isnap, header
+                    xmff, filestem, self.step.isnap, header
                 )
                 if parsed_data is not None:
                     break
@@ -405,8 +404,9 @@ class _Fields(abc.Mapping):
         if binfiles:
             header = stagyyparsers.field_header(binfiles.pop())
         elif self.step.sdat.hdf5:
-            xmf = self.step.sdat.hdf5 / "Data.xmf"
-            header = stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]
+            header = stagyyparsers.read_geom_h5(
+                self.step.sdat._dataxmf, self.step.isnap
+            )[0]
         return header if header else None
 
     @cached_property
