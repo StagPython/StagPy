@@ -860,13 +860,13 @@ class FieldXmf:
     path: Path
 
     @cached_property
-    def root(self) -> Element:
+    def _root(self) -> Element:
         return xmlET.parse(str(self.path)).getroot()
 
     def get_snap(self, isnap: int) -> Element:
         # Domain, Temporal Collection, Snapshot
         # should check that this is indeed the required snapshot
-        elt_snap = self.root[0][0][isnap]
+        elt_snap = self._root[0][0][isnap]
         if elt_snap is None:
             raise ParsingError(self.path, f"Snapshot {isnap} not present")
         return elt_snap
