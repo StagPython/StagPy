@@ -406,7 +406,7 @@ class _Fields(abc.Mapping):
         elif self.step.sdat.hdf5:
             header = stagyyparsers.read_geom_h5(
                 self.step.sdat._dataxmf, self.step.isnap
-            )[0]
+            )
         return header if header else None
 
     @cached_property

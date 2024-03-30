@@ -864,19 +864,19 @@ class FieldXmf:
         return xmlET.parse(str(self.path)).getroot()
 
 
-def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> Tuple[Dict[str, Any], Element]:
+def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     """Extract geometry information from hdf5 files.
 
     Args:
         xdmf_file: path of the xdmf file.
         snapshot: snapshot number.
     Returns:
-        geometry information and root of xdmf document.
+        geometry information.
     """
     header: Dict[str, Any] = {}
     xdmf_root = xdmf.root
     if snapshot is None:
-        return {}, xdmf_root
+        return {}
 
     # Domain, Temporal Collection, Snapshot
     # should check that this is indeed the required snapshot
@@ -907,7 +907,7 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> Tuple[Dict[str, Any], Element
         coord_shape.append(_get_dim(xdmf.path, data_item))
         coord_h5.append(xdmf.path.parent / data_text.strip().split(":/", 1)[0])
     _read_coord_h5(coord_h5, coord_shape, header, twod)
-    return header, xdmf_root
+    return header
 
 
 def _to_spherical(flds: ndarray, header: Dict[str, Any]) -> ndarray:
@@ -978,9 +978,8 @@ def read_field_h5(
         unavailable.
     """
     if header is None:
-        header, xdmf_root = read_geom_h5(xdmf, snapshot)
-    else:
-        xdmf_root = xdmf.root
+        header = read_geom_h5(xdmf, snapshot)
+    xdmf_root = xdmf.root
 
     npc = header["nts"] // header["ncs"]  # number of grid point per node
     flds = np.zeros(_flds_shape(fieldname, header))
