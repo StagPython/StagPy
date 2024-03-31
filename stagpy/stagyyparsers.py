@@ -932,14 +932,6 @@ class FieldXmf:
         except KeyError:
             raise ParsingError(self.path, f"no data for snapshot {isnap}")
 
-    def get_snap(self, isnap: int) -> Element:
-        # Domain, Temporal Collection, Snapshot
-        # should check that this is indeed the required snapshot
-        elt_snap = self._root[0][0][isnap]
-        if elt_snap is None:
-            raise ParsingError(self.path, f"Snapshot {isnap} not present")
-        return elt_snap
-
 
 def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     """Extract geometry information from hdf5 files.
