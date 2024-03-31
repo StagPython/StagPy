@@ -857,6 +857,10 @@ class XmfEntry:
     time: Optional[float]
     mo_lambda: Optional[float]
     mo_thick_sol: Optional[float]
+    yin_yang: bool
+    twod: Optional[str]
+    coord_h5: list[Path]
+    coord_shape: list[tuple[int, ...]]
 
 
 @dataclass(frozen=True)
@@ -892,10 +896,35 @@ class FieldXmf:
             mo_lambda = self._maybe_get(snap, "mo_lambda", "Value", float)
             mo_thick_sol = self._maybe_get(snap, "mo_thick_sol", "Value", float)
 
+            yin_yang = False
+            coord_h5 = []  # all the coordinate files
+            coord_shape = []  # shape of meshes
+            twod = None
+            for elt_subdomain in snap.findall("Grid"):
+                elt_name = _try_get(self.path, elt_subdomain, "Name")
+                if elt_name.startswith("meshYang"):
+                    yin_yang = True
+                    break  # iterate only through meshYin
+                elt_geom = _try_find(self.path, elt_subdomain, "Geometry")
+                if elt_geom.get("Type") == "X_Y" and twod is None:
+                    twod = ""
+                    for data_item in elt_geom.findall("DataItem"):
+                        coord = _try_text(self.path, data_item).strip()[-1]
+                        if coord in "XYZ":
+                            twod += coord
+                data_item = _try_find(self.path, elt_geom, "DataItem")
+                data_text = _try_text(self.path, data_item)
+                coord_shape.append(_get_dim(self.path, data_item))
+                coord_h5.append(self.path.parent / data_text.strip().split(":/", 1)[0])
+
             data[isnap] = XmfEntry(
                 time=time,
                 mo_lambda=mo_lambda,
                 mo_thick_sol=mo_thick_sol,
+                yin_yang=yin_yang,
+                coord_h5=coord_h5,
+                coord_shape=coord_shape,
+                twod=twod,
             )
         return data
 
@@ -925,32 +954,12 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     """
     header: Dict[str, Any] = {}
 
-    elt_snap = xdmf.get_snap(snapshot)
     entry = xdmf[snapshot]
     header["ti_ad"] = entry.time
     header["mo_lambda"] = entry.mo_lambda
     header["mo_thick_sol"] = entry.mo_thick_sol
-    header["ntb"] = 1
-    coord_h5 = []  # all the coordinate files
-    coord_shape = []  # shape of meshes
-    twod = None
-    for elt_subdomain in elt_snap.findall("Grid"):
-        elt_name = _try_get(xdmf.path, elt_subdomain, "Name")
-        if elt_name.startswith("meshYang"):
-            header["ntb"] = 2
-            break  # iterate only through meshYin
-        elt_geom = _try_find(xdmf.path, elt_subdomain, "Geometry")
-        if elt_geom.get("Type") == "X_Y" and twod is None:
-            twod = ""
-            for data_item in elt_geom.findall("DataItem"):
-                coord = _try_text(xdmf.path, data_item).strip()[-1]
-                if coord in "XYZ":
-                    twod += coord
-        data_item = _try_find(xdmf.path, elt_geom, "DataItem")
-        data_text = _try_text(xdmf.path, data_item)
-        coord_shape.append(_get_dim(xdmf.path, data_item))
-        coord_h5.append(xdmf.path.parent / data_text.strip().split(":/", 1)[0])
-    _read_coord_h5(coord_h5, coord_shape, header, twod)
+    header["ntb"] = 2 if entry.yin_yang else 1
+    _read_coord_h5(entry.coord_h5, entry.coord_shape, header, entry.twod)
     return header
 
 
