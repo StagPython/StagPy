@@ -40,6 +40,7 @@ if typing.TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
     from numpy import ndarray
+    from numpy.typing import NDArray
     from pandas import DataFrame
 
     T = TypeVar("T")
@@ -718,75 +719,6 @@ def _conglomerate_meshes(
     return meshout
 
 
-def _read_coord_h5(
-    files: List[Path],
-    shapes: List[Tuple[int, ...]],
-    header: Dict[str, Any],
-    twod: Optional[str],
-) -> None:
-    """Read all coord hdf5 files of a snapshot.
-
-    Args:
-        files: list of NodeCoordinates files of a snapshot.
-        shapes: shape of mesh grids.
-        header: geometry info.
-        twod: 'XZ', 'YZ' or None depending on what is relevant.
-    """
-    all_meshes: List[Dict[str, ndarray]] = []
-    for h5file, shape in zip(files, shapes):
-        all_meshes.append({})
-        with h5py.File(h5file, "r") as h5f:
-            for coord, mesh in h5f.items():
-                # for some reason, the array is transposed!
-                all_meshes[-1][coord] = mesh[()].reshape(shape).T
-                all_meshes[-1][coord] = _make_3d(all_meshes[-1][coord], twod)
-
-    header["ncs"] = _ncores(all_meshes, twod)
-    header["nts"] = list(
-        (all_meshes[0]["X"].shape[i] - 1) * header["ncs"][i] for i in range(3)
-    )
-    header["nts"] = np.array([max(1, val) for val in header["nts"]])
-    meshes = _conglomerate_meshes(all_meshes, header)
-    if np.any(meshes["Z"][:, :, 0] != 0):
-        # spherical
-        if twod is not None:  # annulus geometry...
-            header["x_mesh"] = np.copy(meshes["Y"])
-            header["y_mesh"] = np.copy(meshes["Z"])
-            header["z_mesh"] = np.copy(meshes["X"])
-        else:  # YinYang, here only yin
-            header["x_mesh"] = np.copy(meshes["X"])
-            header["y_mesh"] = np.copy(meshes["Y"])
-            header["z_mesh"] = np.copy(meshes["Z"])
-        header["r_mesh"] = np.sqrt(
-            header["x_mesh"] ** 2 + header["y_mesh"] ** 2 + header["z_mesh"] ** 2
-        )
-        header["t_mesh"] = np.arccos(header["z_mesh"] / header["r_mesh"])
-        header["p_mesh"] = np.roll(
-            np.arctan2(header["y_mesh"], -header["x_mesh"]) + np.pi, -1, 1
-        )
-        header["e1_coord"] = header["t_mesh"][:, 0, 0]
-        header["e2_coord"] = header["p_mesh"][0, :, 0]
-        header["e3_coord"] = header["r_mesh"][0, 0, :]
-    else:
-        header["e1_coord"] = meshes["X"][:, 0, 0]
-        header["e2_coord"] = meshes["Y"][0, :, 0]
-        header["e3_coord"] = meshes["Z"][0, 0, :]
-    header["aspect"] = (
-        header["e1_coord"][-1] - header["e2_coord"][0],
-        header["e1_coord"][-1] - header["e2_coord"][0],
-    )
-    header["rcmb"] = header["e3_coord"][0]
-    if header["rcmb"] == 0:
-        header["rcmb"] = -1
-    else:
-        header["e3_coord"] = header["e3_coord"] - header["rcmb"]
-    if twod is None or "X" in twod:
-        header["e1_coord"] = header["e1_coord"][:-1]
-    if twod is None or "Y" in twod:
-        header["e2_coord"] = header["e2_coord"][:-1]
-    header["e3_coord"] = header["e3_coord"][:-1]
-
-
 def _try_get(file: Path, elt: Element, key: str) -> str:
     """Try getting an attribute or raise a ParsingError."""
     att = elt.get(key)
@@ -959,7 +891,61 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     header["mo_lambda"] = entry.mo_lambda
     header["mo_thick_sol"] = entry.mo_thick_sol
     header["ntb"] = 2 if entry.yin_yang else 1
-    _read_coord_h5(entry.coord_h5, entry.coord_shape, header, entry.twod)
+
+    all_meshes: list[dict[str, NDArray]] = []
+    for h5file, shape in zip(entry.coord_h5, entry.coord_shape):
+        all_meshes.append({})
+        with h5py.File(h5file, "r") as h5f:
+            for coord, mesh in h5f.items():
+                # for some reason, the array is transposed!
+                all_meshes[-1][coord] = mesh[()].reshape(shape).T
+                all_meshes[-1][coord] = _make_3d(all_meshes[-1][coord], entry.twod)
+
+    header["ncs"] = _ncores(all_meshes, entry.twod)
+    header["nts"] = list(
+        (all_meshes[0]["X"].shape[i] - 1) * header["ncs"][i] for i in range(3)
+    )
+    header["nts"] = np.array([max(1, val) for val in header["nts"]])
+    meshes = _conglomerate_meshes(all_meshes, header)
+    if np.any(meshes["Z"][:, :, 0] != 0):
+        # spherical
+        if entry.twod is not None:  # annulus geometry...
+            header["x_mesh"] = np.copy(meshes["Y"])
+            header["y_mesh"] = np.copy(meshes["Z"])
+            header["z_mesh"] = np.copy(meshes["X"])
+        else:  # YinYang, here only yin
+            header["x_mesh"] = np.copy(meshes["X"])
+            header["y_mesh"] = np.copy(meshes["Y"])
+            header["z_mesh"] = np.copy(meshes["Z"])
+        header["r_mesh"] = np.sqrt(
+            header["x_mesh"] ** 2 + header["y_mesh"] ** 2 + header["z_mesh"] ** 2
+        )
+        header["t_mesh"] = np.arccos(header["z_mesh"] / header["r_mesh"])
+        header["p_mesh"] = np.roll(
+            np.arctan2(header["y_mesh"], -header["x_mesh"]) + np.pi, -1, 1
+        )
+        header["e1_coord"] = header["t_mesh"][:, 0, 0]
+        header["e2_coord"] = header["p_mesh"][0, :, 0]
+        header["e3_coord"] = header["r_mesh"][0, 0, :]
+    else:
+        header["e1_coord"] = meshes["X"][:, 0, 0]
+        header["e2_coord"] = meshes["Y"][0, :, 0]
+        header["e3_coord"] = meshes["Z"][0, 0, :]
+    header["aspect"] = (
+        header["e1_coord"][-1] - header["e2_coord"][0],
+        header["e1_coord"][-1] - header["e2_coord"][0],
+    )
+    header["rcmb"] = header["e3_coord"][0]
+    if header["rcmb"] == 0:
+        header["rcmb"] = -1
+    else:
+        header["e3_coord"] = header["e3_coord"] - header["rcmb"]
+    if entry.twod is None or "X" in entry.twod:
+        header["e1_coord"] = header["e1_coord"][:-1]
+    if entry.twod is None or "Y" in entry.twod:
+        header["e2_coord"] = header["e2_coord"][:-1]
+    header["e3_coord"] = header["e3_coord"][:-1]
+
     return header
 
 
