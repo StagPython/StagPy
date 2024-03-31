@@ -785,7 +785,17 @@ def _get_field(xdmf_file: Path, data_item: Element) -> Tuple[int, ndarray]:
 
 
 @dataclass(frozen=True)
+class FieldSub:
+    file: Path
+    dataset: str
+    icore: int
+    iblock: int
+    shape: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class XmfEntry:
+    isnap: int
     time: Optional[float]
     mo_lambda: Optional[float]
     mo_thick_sol: Optional[float]
@@ -796,10 +806,38 @@ class XmfEntry:
     ncores: int
     fields: Mapping[str, tuple[int, tuple[int, ...]]]
 
+    def _last_core_yin(self) -> int:
+        return self.ncores // (2 if self.yin_yang else 1)
+
+    def _range_core_yin(self) -> range:
+        return range(self._last_core_yin())
+
+    def _range_core_yang(self) -> range:
+        return range(self._last_core_yin() + 1, self.ncores)
+
     def coord_files_yin(self, path_root: Path) -> Iterator[Path]:
-        ncores = self.ncores // (2 if self.yin_yang else 1)
-        for icore in range(ncores):
+        for icore in self._range_core_yin():
             yield path_root / self.coord_filepattern.format(icore=icore + 1)
+
+    def _fsub(self, path_root: Path, name: str, icore: int, yang: bool) -> FieldSub:
+        ifile, shape = self.fields[name]
+        yy_tag = "2" if yang else "_"
+        ic = icore + 1
+        return FieldSub(
+            file=path_root / f"{name}_{ifile:05d}_{ic:05d}.h5",
+            dataset=f"{name}{yy_tag}{ic:05d}_{self.isnap:05d}",
+            icore=icore,
+            iblock=int(yang),
+            shape=shape,
+        )
+
+    def field_subdomains(self, path_root: Path, name: str) -> Iterator[FieldSub]:
+        if name not in self.fields:
+            return
+        for icore in self._range_core_yin():
+            yield self._fsub(path_root, name, icore, False)
+        for icore in self._range_core_yang():
+            yield self._fsub(path_root, name, icore, True)
 
 
 @dataclass(frozen=True)
@@ -874,6 +912,7 @@ class FieldXmf:
                 ncores += 1
 
             data[isnap] = XmfEntry(
+                isnap=isnap,
                 time=time,
                 mo_lambda=mo_lambda,
                 mo_thick_sol=mo_thick_sol,
