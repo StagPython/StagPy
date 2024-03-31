@@ -1089,47 +1089,41 @@ def read_field_h5(
     flds = np.zeros(_flds_shape(fieldname, header))
     data_found = False
 
-    for elt_subdomain in xdmf.get_snap(snapshot).findall("Grid"):
-        elt_name = _try_get(xdmf.path, elt_subdomain, "Name")
-        ibk = int(elt_name.startswith("meshYang"))
-        for data_attr in elt_subdomain.findall("Attribute"):
-            if data_attr.get("Name") != fieldname:
-                continue
-            icore, fld = _get_field(
-                xdmf.path, _try_find(xdmf.path, data_attr, "DataItem")
-            )
-            # for some reason, the field is transposed
-            fld = fld.T
-            shp = fld.shape
-            if shp[-1] == 1 and header["nts"][0] == 1:  # YZ
-                fld = fld.reshape((shp[0], 1, shp[1], shp[2]))
-                if header["rcmb"] < 0:
-                    fld = fld[(2, 0, 1), ...]
-            elif shp[-1] == 1:  # XZ
-                fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
-                if header["rcmb"] < 0:
-                    fld = fld[(1, 2, 0), ...]
-            elif fieldname in SFIELD_FILES_H5:
-                fld = fld.reshape((1, npc[0], npc[1], 1))
-            elif header["nts"][1] == 1:  # cart XZ
-                fld = fld.reshape((1, shp[0], 1, shp[1]))
-            ifs = [
-                icore // np.prod(header["ncs"][:i]) % header["ncs"][i] * npc[i]
-                for i in range(3)
-            ]
-            if fieldname in SFIELD_FILES_H5:
-                ifs[2] = 0
-                npc[2] = 1
-            if header["zp"]:  # remove top row
-                fld = fld[:, :, :, :-1]
-            flds[
-                :,
-                ifs[0] : ifs[0] + npc[0] + header["xp"],
-                ifs[1] : ifs[1] + npc[1] + header["yp"],
-                ifs[2] : ifs[2] + npc[2],
-                ibk,
-            ] = fld
-            data_found = True
+    for fsub in xdmf[snapshot].field_subdomains(xdmf.path.parent, fieldname):
+        fld = _read_group_h5(fsub.file, fsub.dataset).reshape(fsub.shape)
+        # for some reason, the field is transposed
+        fld = fld.T
+        shp = fld.shape
+
+        if shp[-1] == 1 and header["nts"][0] == 1:  # YZ
+            fld = fld.reshape((shp[0], 1, shp[1], shp[2]))
+            if header["rcmb"] < 0:
+                fld = fld[(2, 0, 1), ...]
+        elif shp[-1] == 1:  # XZ
+            fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
+            if header["rcmb"] < 0:
+                fld = fld[(1, 2, 0), ...]
+        elif fieldname in SFIELD_FILES_H5:
+            fld = fld.reshape((1, npc[0], npc[1], 1))
+        elif header["nts"][1] == 1:  # cart XZ
+            fld = fld.reshape((1, shp[0], 1, shp[1]))
+        ifs = [
+            fsub.icore // np.prod(header["ncs"][:i]) % header["ncs"][i] * npc[i]
+            for i in range(3)
+        ]
+        if fieldname in SFIELD_FILES_H5:
+            ifs[2] = 0
+            npc[2] = 1
+        if header["zp"]:  # remove top row
+            fld = fld[:, :, :, :-1]
+        flds[
+            :,
+            ifs[0] : ifs[0] + npc[0] + header["xp"],
+            ifs[1] : ifs[1] + npc[1] + header["yp"],
+            ifs[2] : ifs[2] + npc[2],
+            fsub.iblock,
+        ] = fld
+        data_found = True
 
     if flds.shape[0] == 3 and flds.shape[-1] == 2:  # YinYang vector
         # Yang grid is rotated compared to Yin grid
