@@ -675,7 +675,7 @@ def _ncores(meshes: List[Dict[str, ndarray]], twod: Optional[str]) -> ndarray:
         ):
             nns[0] += 1
             nnpb -= 1
-    cpu = lambda icy: icy * nns[0]
+    cpu = lambda icy: icy * nns[0]  # noqa: E731
     if twod is None or "Y" in twod:
         while (
             nnpb > 1
@@ -684,7 +684,7 @@ def _ncores(meshes: List[Dict[str, ndarray]], twod: Optional[str]) -> ndarray:
         ):
             nns[1] += 1
             nnpb -= nns[0]
-    cpu = lambda icz: icz * nns[0] * nns[1]
+    cpu = lambda icz: icz * nns[0] * nns[1]  # noqa: E731
     while (
         nnpb > 1
         and meshes[cpu(nns[2])]["Z"][0, 0, 0] == meshes[cpu(nns[2] - 1)]["Z"][0, 0, -1]
