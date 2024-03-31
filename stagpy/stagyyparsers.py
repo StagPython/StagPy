@@ -836,10 +836,6 @@ class XmfEntry:
 class FieldXmf:
     path: Path
 
-    @cached_property
-    def _root(self) -> Element:
-        return xmlET.parse(str(self.path)).getroot()
-
     def _maybe_get(
         self,
         elt: Element,
@@ -859,7 +855,8 @@ class FieldXmf:
     def _data(self) -> Mapping[int, XmfEntry]:
         # Geometry stuff from surface field is not useful
         data = {}
-        for snap in self._root[0][0]:
+        root = xmlET.parse(str(self.path)).getroot()
+        for snap in root[0][0]:
             time = self._maybe_get(snap, "Time", "Value", float)
             mo_lambda = self._maybe_get(snap, "mo_lambda", "Value", float)
             mo_thick_sol = self._maybe_get(snap, "mo_thick_sol", "Value", float)
