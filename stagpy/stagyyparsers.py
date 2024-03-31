@@ -25,7 +25,17 @@ from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
+    from typing import (
+        Any,
+        BinaryIO,
+        Callable,
+        Dict,
+        Iterator,
+        List,
+        Mapping,
+        Optional,
+        Tuple,
+    )
     from xml.etree.ElementTree import Element
 
     from numpy import ndarray
@@ -856,12 +866,42 @@ def _maybe_get(
 
 
 @dataclass(frozen=True)
+class XmfEntry:
+    time: Optional[float]
+    mo_lambda: Optional[float]
+    mo_thick_sol: Optional[float]
+
+
+@dataclass(frozen=True)
 class FieldXmf:
     path: Path
 
     @cached_property
     def _root(self) -> Element:
         return xmlET.parse(str(self.path)).getroot()
+
+    @cached_property
+    def _data(self) -> Mapping[int, XmfEntry]:
+        # Geometry stuff from surface field is not useful
+        data = {}
+        # FIXME: get isnap from a field name
+        for isnap, snap in enumerate(self._root[0][0]):
+            time = _maybe_get(snap, "Time", "Value", float)
+            mo_lambda = _maybe_get(snap, "mo_lambda", "Value", float)
+            mo_thick_sol = _maybe_get(snap, "mo_thick_sol", "Value", float)
+
+            data[isnap] = XmfEntry(
+                time=time,
+                mo_lambda=mo_lambda,
+                mo_thick_sol=mo_thick_sol,
+            )
+        return data
+
+    def __getitem__(self, isnap: int) -> XmfEntry:
+        try:
+            return self._data[isnap]
+        except KeyError:
+            raise ParsingError(self.path, f"no data for snapshot {isnap}")
 
     def get_snap(self, isnap: int) -> Element:
         # Domain, Temporal Collection, Snapshot
@@ -884,9 +924,10 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     header: Dict[str, Any] = {}
 
     elt_snap = xdmf.get_snap(snapshot)
-    header["ti_ad"] = _maybe_get(elt_snap, "Time", "Value", float)
-    header["mo_lambda"] = _maybe_get(elt_snap, "mo_lambda", "Value", float)
-    header["mo_thick_sol"] = _maybe_get(elt_snap, "mo_thick_sol", "Value", float)
+    entry = xdmf[snapshot]
+    header["ti_ad"] = entry.time
+    header["mo_lambda"] = entry.mo_lambda
+    header["mo_thick_sol"] = entry.mo_thick_sol
     header["ntb"] = 1
     coord_h5 = []  # all the coordinate files
     coord_shape = []  # shape of meshes
