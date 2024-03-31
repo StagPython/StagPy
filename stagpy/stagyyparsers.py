@@ -791,8 +791,14 @@ class XmfEntry:
     mo_thick_sol: Optional[float]
     yin_yang: bool
     twod: Optional[str]
-    coord_h5: list[Path]
-    coord_shape: list[tuple[int, ...]]
+    coord_filepattern: str
+    coord_shape: tuple[int, ...]
+    ncores: int
+
+    def coord_files_yin(self, path_root: Path) -> Iterator[Path]:
+        ncores = self.ncores // (2 if self.yin_yang else 1)
+        for icore in range(ncores):
+            yield path_root / self.coord_filepattern.format(icore=icore + 1)
 
 
 @dataclass(frozen=True)
@@ -829,34 +835,42 @@ class FieldXmf:
             mo_thick_sol = self._maybe_get(snap, "mo_thick_sol", "Value", float)
 
             yin_yang = False
-            coord_h5 = []  # all the coordinate files
-            coord_shape = []  # shape of meshes
             twod = None
+
+            elt_subdomain = _try_find(self.path, snap, "Grid")
+            elt_geom = _try_find(self.path, elt_subdomain, "Geometry")
+            if elt_geom.get("Type") == "X_Y":
+                twod = ""
+                for data_item in elt_geom.findall("DataItem"):
+                    coord = _try_text(self.path, data_item).strip()[-1]
+                    if coord in "XYZ":
+                        twod += coord
+            data_item = _try_find(self.path, elt_geom, "DataItem")
+            data_text = _try_text(self.path, data_item)
+            coord_shape = _get_dim(self.path, data_item)
+            coord_filepattern = data_text.strip().split(":/", 1)[0]
+            coord_file_chunks = coord_filepattern.split("_")
+            coord_file_chunks[-2] = "{icore:05d}"
+            coord_filepattern = "_".join(coord_file_chunks)
+
+            ncores = 0
             for elt_subdomain in snap.findall("Grid"):
                 elt_name = _try_get(self.path, elt_subdomain, "Name")
                 if elt_name.startswith("meshYang"):
                     yin_yang = True
-                    break  # iterate only through meshYin
-                elt_geom = _try_find(self.path, elt_subdomain, "Geometry")
-                if elt_geom.get("Type") == "X_Y" and twod is None:
-                    twod = ""
-                    for data_item in elt_geom.findall("DataItem"):
-                        coord = _try_text(self.path, data_item).strip()[-1]
-                        if coord in "XYZ":
-                            twod += coord
-                data_item = _try_find(self.path, elt_geom, "DataItem")
-                data_text = _try_text(self.path, data_item)
-                coord_shape.append(_get_dim(self.path, data_item))
-                coord_h5.append(self.path.parent / data_text.strip().split(":/", 1)[0])
+                    ncores *= 2
+                    break
+                ncores += 1
 
             data[isnap] = XmfEntry(
                 time=time,
                 mo_lambda=mo_lambda,
                 mo_thick_sol=mo_thick_sol,
                 yin_yang=yin_yang,
-                coord_h5=coord_h5,
-                coord_shape=coord_shape,
                 twod=twod,
+                coord_filepattern=coord_filepattern,
+                coord_shape=coord_shape,
+                ncores=ncores,
             )
         return data
 
@@ -893,12 +907,12 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     header["ntb"] = 2 if entry.yin_yang else 1
 
     all_meshes: list[dict[str, NDArray]] = []
-    for h5file, shape in zip(entry.coord_h5, entry.coord_shape):
+    for h5file in entry.coord_files_yin(xdmf.path.parent):
         all_meshes.append({})
         with h5py.File(h5file, "r") as h5f:
             for coord, mesh in h5f.items():
                 # for some reason, the array is transposed!
-                all_meshes[-1][coord] = mesh[()].reshape(shape).T
+                all_meshes[-1][coord] = mesh[()].reshape(entry.coord_shape).T
                 all_meshes[-1][coord] = _make_3d(all_meshes[-1][coord], entry.twod)
 
     header["ncs"] = _ncores(all_meshes, entry.twod)
