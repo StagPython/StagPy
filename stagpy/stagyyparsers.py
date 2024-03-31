@@ -803,20 +803,12 @@ class XmfEntry:
     twod: Optional[str]
     coord_filepattern: str
     coord_shape: tuple[int, ...]
-    ncores: int
+    range_yin: range
+    range_yang: range
     fields: Mapping[str, tuple[int, tuple[int, ...]]]
 
-    def _last_core_yin(self) -> int:
-        return self.ncores // (2 if self.yin_yang else 1)
-
-    def _range_core_yin(self) -> range:
-        return range(self._last_core_yin())
-
-    def _range_core_yang(self) -> range:
-        return range(self._last_core_yin() + 1, self.ncores)
-
     def coord_files_yin(self, path_root: Path) -> Iterator[Path]:
-        for icore in self._range_core_yin():
+        for icore in self.range_yin:
             yield path_root / self.coord_filepattern.format(icore=icore + 1)
 
     def _fsub(self, path_root: Path, name: str, icore: int, yang: bool) -> FieldSub:
@@ -834,9 +826,9 @@ class XmfEntry:
     def field_subdomains(self, path_root: Path, name: str) -> Iterator[FieldSub]:
         if name not in self.fields:
             return
-        for icore in self._range_core_yin():
+        for icore in self.range_yin:
             yield self._fsub(path_root, name, icore, False)
-        for icore in self._range_core_yang():
+        for icore in self.range_yang:
             yield self._fsub(path_root, name, icore, True)
 
 
@@ -899,17 +891,25 @@ class FieldXmf:
                 data_text = _try_text(self.path, elt_data)
                 h5file, group = data_text.strip().split(":/", 1)
                 isnap = int(group[-5:])
+                i0_yin = int(group[-11:-6]) - 1
                 ifile = int(h5file[-14:-9])
                 fields_info[name] = (ifile, shape)
 
-            ncores = 0
+            i1_yin = i0_yin
+            i0_yang = 0
+            i1_yang = 0
             for elt_subdomain in snap.findall("Grid"):
                 elt_name = _try_get(self.path, elt_subdomain, "Name")
                 if elt_name.startswith("meshYang"):
                     yin_yang = True
-                    ncores *= 2
+                    elt_fvar = _try_find(self.path, elt_subdomain, "Attribute")
+                    elt_data = _try_find(self.path, elt_fvar, "DataItem")
+                    data_text = _try_text(self.path, elt_data)
+                    _, group = data_text.strip().split(":/", 1)
+                    i0_yang = int(group[-11:-6]) - 1
+                    i1_yang = i0_yang + (i1_yin - i0_yin)
                     break
-                ncores += 1
+                i1_yin += 1
 
             data[isnap] = XmfEntry(
                 isnap=isnap,
@@ -920,7 +920,8 @@ class FieldXmf:
                 twod=twod,
                 coord_filepattern=coord_filepattern,
                 coord_shape=coord_shape,
-                ncores=ncores,
+                range_yin=range(i0_yin, i1_yin),
+                range_yang=range(i0_yang, i1_yang),
                 fields=fields_info,
             )
         return data
