@@ -35,11 +35,14 @@ if typing.TYPE_CHECKING:
         Mapping,
         Optional,
         Tuple,
+        TypeVar,
     )
     from xml.etree.ElementTree import Element
 
     from numpy import ndarray
     from pandas import DataFrame
+
+    T = TypeVar("T")
 
 
 def _tidy_names(
@@ -849,22 +852,6 @@ def _get_field(xdmf_file: Path, data_item: Element) -> Tuple[int, ndarray]:
     return icore, fld
 
 
-def _maybe_get(
-    elt: Element,
-    item: str,
-    info: str,
-    conversion: Optional[Callable[[str], Any]] = None,
-) -> Any:
-    """Extract and convert info if item is present."""
-    maybe_item = elt.find(item)
-    maybe_info = None
-    if maybe_item is not None:
-        maybe_info = maybe_item.get(info)
-        if maybe_info is not None and conversion is not None:
-            maybe_info = conversion(maybe_info)
-    return maybe_info
-
-
 @dataclass(frozen=True)
 class XmfEntry:
     time: Optional[float]
@@ -880,15 +867,30 @@ class FieldXmf:
     def _root(self) -> Element:
         return xmlET.parse(str(self.path)).getroot()
 
+    def _maybe_get(
+        self,
+        elt: Element,
+        item: str,
+        info: str,
+        conversion: Callable[[str], T],
+    ) -> Optional[T]:
+        """Extract and convert info if item is present."""
+        maybe_item = elt.find(item)
+        if maybe_item is not None:
+            maybe_info = maybe_item.get(info)
+            if maybe_info is not None:
+                return conversion(maybe_info)
+        return None
+
     @cached_property
     def _data(self) -> Mapping[int, XmfEntry]:
         # Geometry stuff from surface field is not useful
         data = {}
         # FIXME: get isnap from a field name
         for isnap, snap in enumerate(self._root[0][0]):
-            time = _maybe_get(snap, "Time", "Value", float)
-            mo_lambda = _maybe_get(snap, "mo_lambda", "Value", float)
-            mo_thick_sol = _maybe_get(snap, "mo_thick_sol", "Value", float)
+            time = self._maybe_get(snap, "Time", "Value", float)
+            mo_lambda = self._maybe_get(snap, "mo_lambda", "Value", float)
+            mo_thick_sol = self._maybe_get(snap, "mo_thick_sol", "Value", float)
 
             data[isnap] = XmfEntry(
                 time=time,
