@@ -794,6 +794,7 @@ class XmfEntry:
     coord_filepattern: str
     coord_shape: tuple[int, ...]
     ncores: int
+    fields: Mapping[str, tuple[int, tuple[int, ...]]]
 
     def coord_files_yin(self, path_root: Path) -> Iterator[Path]:
         ncores = self.ncores // (2 if self.yin_yang else 1)
@@ -828,8 +829,7 @@ class FieldXmf:
     def _data(self) -> Mapping[int, XmfEntry]:
         # Geometry stuff from surface field is not useful
         data = {}
-        # FIXME: get isnap from a field name
-        for isnap, snap in enumerate(self._root[0][0]):
+        for snap in self._root[0][0]:
             time = self._maybe_get(snap, "Time", "Value", float)
             mo_lambda = self._maybe_get(snap, "mo_lambda", "Value", float)
             mo_thick_sol = self._maybe_get(snap, "mo_thick_sol", "Value", float)
@@ -853,6 +853,17 @@ class FieldXmf:
             coord_file_chunks[-2] = "{icore:05d}"
             coord_filepattern = "_".join(coord_file_chunks)
 
+            fields_info = {}
+            for elt_fvar in elt_subdomain.findall("Attribute"):
+                name = _try_get(self.path, elt_fvar, "Name")
+                elt_data = _try_find(self.path, elt_fvar, "DataItem")
+                shape = _get_dim(self.path, elt_data)
+                data_text = _try_text(self.path, elt_data)
+                h5file, group = data_text.strip().split(":/", 1)
+                isnap = int(group[-5:])
+                ifile = int(h5file[-14:-9])
+                fields_info[name] = (ifile, shape)
+
             ncores = 0
             for elt_subdomain in snap.findall("Grid"):
                 elt_name = _try_get(self.path, elt_subdomain, "Name")
@@ -871,6 +882,7 @@ class FieldXmf:
                 coord_filepattern=coord_filepattern,
                 coord_shape=coord_shape,
                 ncores=ncores,
+                fields=fields_info,
             )
         return data
 
