@@ -847,7 +847,9 @@ class FieldXmf:
                 extra[xs.current.tag] = float(xs.current.attrib["Value"])
                 xs.advance()
 
-            yin_yang = False
+            mesh_name = xs.current.attrib["Name"]
+            yin_yang = mesh_name.startswith("meshYin")
+            i0_yin = int(mesh_name[-5:]) - 1
             twod = None
 
             xs.skip_to_tag("Geometry")
@@ -875,7 +877,6 @@ class FieldXmf:
                     data_text = _try_text(xs.filepath, elt_data)
                     h5file, group = data_text.strip().split(":/", 1)
                     isnap = int(group[-5:])
-                    i0_yin = int(group[-11:-6]) - 1
                     ifile = int(h5file[-14:-9])
                     fields_info[name] = (ifile, shape)
 
@@ -887,7 +888,6 @@ class FieldXmf:
                     break
                 if (name := xs.current.attrib["Name"]).startswith("meshYang"):
                     if i1_yang == 0:
-                        yin_yang = True
                         i0_yang = int(name[-5:]) - 1
                         i1_yang = i0_yang + (i1_yin - i0_yin)
                 else:
