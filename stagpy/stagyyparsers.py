@@ -724,14 +724,6 @@ def _try_get(file: Path, elt: Element, key: str) -> str:
     return att
 
 
-def _try_find(file: Path, elt: Element, key: str) -> Element:
-    """Try finding a sub-element or raise a ParsingError."""
-    subelt = elt.find(key)
-    if subelt is None:
-        raise ParsingError(file, f"Element {elt} has no sub-element {key!r}")
-    return subelt
-
-
 def _try_text(file: Path, elt: Element) -> str:
     """Try getting text of element or raise a ParsingError."""
     text = elt.text
@@ -744,41 +736,6 @@ def _get_dim(xdmf_file: Path, data_item: Element) -> Tuple[int, ...]:
     """Extract shape of data item."""
     dims = _try_get(xdmf_file, data_item, "Dimensions")
     return tuple(map(int, dims.split()))
-
-
-def _get_field(xdmf_file: Path, data_item: Element) -> Tuple[int, ndarray]:
-    """Extract field from data item."""
-    shp = _get_dim(xdmf_file, data_item)
-    data_text = _try_text(xdmf_file, data_item)
-    h5file, group = data_text.strip().split(":/", 1)
-    # Field on yin is named <var>_XXXXX_YYYYY, on yang is <var>2XXXXX_YYYYY.
-    numeral_part = group[-11:]
-    icore = int(numeral_part.split("_")[-2]) - 1
-    fld = None
-    try:
-        fld = _read_group_h5(xdmf_file.parent / h5file, group).reshape(shp)
-    except KeyError:
-        # test previous/following snapshot files as their numbers can get
-        # slightly out of sync between cores
-        h5file_parts = h5file.split("_")
-        fnum = int(h5file_parts[-2])
-        if fnum > 0:
-            h5file_parts[-2] = f"{fnum - 1:05d}"
-            h5f = xdmf_file.parent / "_".join(h5file_parts)
-            try:
-                fld = _read_group_h5(h5f, group).reshape(shp)
-            except (OSError, KeyError):
-                pass
-        if fld is None:
-            h5file_parts[-2] = f"{fnum + 1:05d}"
-            h5f = xdmf_file.parent / "_".join(h5file_parts)
-            try:
-                fld = _read_group_h5(h5f, group).reshape(shp)
-            except (OSError, KeyError):
-                pass
-        if fld is None:
-            raise
-    return icore, fld
 
 
 @dataclass(frozen=True)
