@@ -22,6 +22,7 @@ import pandas as pd
 
 from .error import ParsingError
 from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
+from .xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
@@ -853,66 +854,69 @@ class FieldXmf:
 
     @cached_property
     def _data(self) -> Mapping[int, XmfEntry]:
-        # Geometry stuff from surface field is not useful
+        xs = XmlStream(filepath=self.path)
         data = {}
-        root = xmlET.parse(str(self.path)).getroot()
-        for snap in root[0][0]:
-            time = self._maybe_get(snap, "Time", "Value", float)
-            mo_lambda = self._maybe_get(snap, "mo_lambda", "Value", float)
-            mo_thick_sol = self._maybe_get(snap, "mo_thick_sol", "Value", float)
+        for _ in xs.iter_tag("Time"):
+            time = float(xs.current.attrib["Value"])
+            xs.advance()
+            extra: dict[str, float] = {}
+            while xs.current.tag != "Grid":
+                # mo_lambda, mo_thick_sol
+                extra[xs.current.tag] = float(xs.current.attrib["Value"])
+                xs.advance()
 
             yin_yang = False
             twod = None
 
-            elt_subdomain = _try_find(self.path, snap, "Grid")
-            elt_geom = _try_find(self.path, elt_subdomain, "Geometry")
-            if elt_geom.get("Type") == "X_Y":
-                twod = ""
-                for data_item in elt_geom.findall("DataItem"):
-                    coord = _try_text(self.path, data_item).strip()[-1]
-                    if coord in "XYZ":
-                        twod += coord
-            data_item = _try_find(self.path, elt_geom, "DataItem")
-            data_text = _try_text(self.path, data_item)
-            coord_shape = _get_dim(self.path, data_item)
-            coord_filepattern = data_text.strip().split(":/", 1)[0]
-            coord_file_chunks = coord_filepattern.split("_")
-            coord_file_chunks[-2] = "{icore:05d}"
-            coord_filepattern = "_".join(coord_file_chunks)
+            xs.skip_to_tag("Geometry")
+            with xs.load() as elt_geom:
+                if elt_geom.get("Type") == "X_Y":
+                    twod = ""
+                    for data_item in elt_geom:
+                        coord = _try_text(xs.filepath, data_item).strip()[-1]
+                        if coord in "XYZ":
+                            twod += coord
+                data_item = elt_geom[0]
+                data_text = _try_text(xs.filepath, data_item)
+                coord_shape = _get_dim(xs.filepath, data_item)
+                coord_filepattern = data_text.strip().split(":/", 1)[0]
+                coord_file_chunks = coord_filepattern.split("_")
+                coord_file_chunks[-2] = "{icore:05d}"
+                coord_filepattern = "_".join(coord_file_chunks)
 
             fields_info = {}
-            for elt_fvar in elt_subdomain.findall("Attribute"):
-                name = _try_get(self.path, elt_fvar, "Name")
-                elt_data = _try_find(self.path, elt_fvar, "DataItem")
-                shape = _get_dim(self.path, elt_data)
-                data_text = _try_text(self.path, elt_data)
-                h5file, group = data_text.strip().split(":/", 1)
-                isnap = int(group[-5:])
-                i0_yin = int(group[-11:-6]) - 1
-                ifile = int(h5file[-14:-9])
-                fields_info[name] = (ifile, shape)
+            while xs.current.tag == "Attribute":
+                with xs.load() as elt_fvar:
+                    name = elt_fvar.attrib["Name"]
+                    elt_data = elt_fvar[0]
+                    shape = _get_dim(xs.filepath, elt_data)
+                    data_text = _try_text(xs.filepath, elt_data)
+                    h5file, group = data_text.strip().split(":/", 1)
+                    isnap = int(group[-5:])
+                    i0_yin = int(group[-11:-6]) - 1
+                    ifile = int(h5file[-14:-9])
+                    fields_info[name] = (ifile, shape)
 
-            i1_yin = i0_yin
+            i1_yin = i0_yin + 1
             i0_yang = 0
             i1_yang = 0
-            for elt_subdomain in snap.findall("Grid"):
-                elt_name = _try_get(self.path, elt_subdomain, "Name")
-                if elt_name.startswith("meshYang"):
-                    yin_yang = True
-                    elt_fvar = _try_find(self.path, elt_subdomain, "Attribute")
-                    elt_data = _try_find(self.path, elt_fvar, "DataItem")
-                    data_text = _try_text(self.path, elt_data)
-                    _, group = data_text.strip().split(":/", 1)
-                    i0_yang = int(group[-11:-6]) - 1
-                    i1_yang = i0_yang + (i1_yin - i0_yin)
+            for _ in xs.iter_tag("Grid"):
+                if xs.current.attrib["GridType"] == "Collection":
                     break
-                i1_yin += 1
+                if (name := xs.current.attrib["Name"]).startswith("meshYang"):
+                    if i1_yang == 0:
+                        yin_yang = True
+                        i0_yang = int(name[-5:]) - 1
+                        i1_yang = i0_yang + (i1_yin - i0_yin)
+                else:
+                    i1_yin += 1
+                xs.drop()
 
             data[isnap] = XmfEntry(
                 isnap=isnap,
                 time=time,
-                mo_lambda=mo_lambda,
-                mo_thick_sol=mo_thick_sol,
+                mo_lambda=extra.get("mo_lambda"),
+                mo_thick_sol=extra.get("mo_thick_sol"),
                 yin_yang=yin_yang,
                 twod=twod,
                 coord_filepattern=coord_filepattern,
