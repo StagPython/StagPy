@@ -36,15 +36,12 @@ if typing.TYPE_CHECKING:
         Mapping,
         Optional,
         Tuple,
-        TypeVar,
     )
     from xml.etree.ElementTree import Element
 
     from numpy import ndarray
     from numpy.typing import NDArray
     from pandas import DataFrame
-
-    T = TypeVar("T")
 
 
 def _tidy_names(
@@ -836,21 +833,6 @@ class XmfEntry:
 @dataclass(frozen=True)
 class FieldXmf:
     path: Path
-
-    def _maybe_get(
-        self,
-        elt: Element,
-        item: str,
-        info: str,
-        conversion: Callable[[str], T],
-    ) -> Optional[T]:
-        """Extract and convert info if item is present."""
-        maybe_item = elt.find(item)
-        if maybe_item is not None:
-            maybe_info = maybe_item.get(info)
-            if maybe_info is not None:
-                return conversion(maybe_info)
-        return None
 
     @cached_property
     def _data(self) -> Mapping[int, XmfEntry]:
