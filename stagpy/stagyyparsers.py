@@ -14,7 +14,6 @@ from dataclasses import dataclass
 from functools import cached_property, partial
 from itertools import product
 from operator import itemgetter
-from xml.etree import ElementTree as xmlET
 
 import h5py
 import numpy as np
@@ -1114,48 +1113,138 @@ def read_field_h5(
     return (header, flds) if data_found else None
 
 
-def read_tracers_h5(
-    xdmf_file: Path, infoname: str, snapshot: int, position: bool
-) -> Dict[str, List[ndarray]]:
+@dataclass(frozen=True)
+class TracerSub:
+    file: Path
+    dataset: str
+    icore: int
+    iblock: int
+
+
+@dataclass(frozen=True)
+class XmfTracersEntry:
+    isnap: int
+    time: Optional[float]
+    mo_lambda: Optional[float]
+    mo_thick_sol: Optional[float]
+    yin_yang: bool
+    range_yin: range
+    range_yang: range
+    fields: Mapping[str, int]
+
+    def _fsub(self, path_root: Path, name: str, icore: int, yang: bool) -> TracerSub:
+        ifile = self.fields[name]
+        yy_tag = "2" if yang else "_"
+        ic = icore + 1
+        return TracerSub(
+            file=path_root / f"Tracers_{name}_{ifile:05d}_{ic:05d}.h5",
+            dataset=f"{name}{yy_tag}{ic:05d}_{self.isnap:05d}",
+            icore=icore,
+            iblock=int(yang),
+        )
+
+    def tra_subdomains(self, path_root: Path, name: str) -> Iterator[TracerSub]:
+        if name not in self.fields:
+            return
+        for icore in self.range_yin:
+            yield self._fsub(path_root, name, icore, False)
+        for icore in self.range_yang:
+            yield self._fsub(path_root, name, icore, True)
+
+
+@dataclass(frozen=True)
+class TracersXmf:
+    path: Path
+
+    @cached_property
+    def _data(self) -> Mapping[int, XmfTracersEntry]:
+        xs = XmlStream(filepath=self.path)
+        data = {}
+        for _ in xs.iter_tag("Time"):
+            time = float(xs.current.attrib["Value"])
+            xs.advance()
+            extra: dict[str, float] = {}
+            while xs.current.tag != "Grid":
+                # mo_lambda, mo_thick_sol
+                extra[xs.current.tag] = float(xs.current.attrib["Value"])
+                xs.advance()
+
+            mesh_name = xs.current.attrib["Name"]
+            yin_yang = mesh_name.startswith("meshYin")
+            i0_yin = int(mesh_name[-5:]) - 1
+
+            fields_info = {}
+
+            xs.skip_to_tag("Geometry")
+            with xs.load() as elt_geom:
+                for name, data_item in zip("zyx", elt_geom):
+                    data_text = _try_text(xs.filepath, data_item)
+                    h5file, group = data_text.strip().split(":/", 1)
+                    isnap = int(group[-5:])
+                    ifile = int(h5file[-14:-9])
+                    fields_info[name] = ifile
+
+            while xs.current.tag == "Attribute":
+                with xs.load() as elt_fvar:
+                    name = elt_fvar.attrib["Name"]
+                    elt_data = elt_fvar[0]
+                    data_text = _try_text(xs.filepath, elt_data)
+                    h5file, group = data_text.strip().split(":/", 1)
+                    isnap = int(group[-5:])
+                    ifile = int(h5file[-14:-9])
+                    fields_info[name] = ifile
+
+            i1_yin = i0_yin + 1
+            i0_yang = 0
+            i1_yang = 0
+            for _ in xs.iter_tag("Grid"):
+                if xs.current.attrib["GridType"] == "Collection":
+                    break
+                if (name := xs.current.attrib["Name"]).startswith("meshYang"):
+                    if i1_yang == 0:
+                        i0_yang = int(name[-5:]) - 1
+                        i1_yang = i0_yang + (i1_yin - i0_yin)
+                else:
+                    i1_yin += 1
+                xs.drop()
+
+            data[isnap] = XmfTracersEntry(
+                isnap=isnap,
+                time=time,
+                mo_lambda=extra.get("mo_lambda"),
+                mo_thick_sol=extra.get("mo_thick_sol"),
+                yin_yang=yin_yang,
+                range_yin=range(i0_yin, i1_yin),
+                range_yang=range(i0_yang, i1_yang),
+                fields=fields_info,
+            )
+        return data
+
+    def __getitem__(self, isnap: int) -> XmfTracersEntry:
+        try:
+            return self._data[isnap]
+        except KeyError:
+            raise ParsingError(self.path, f"no data for snapshot {isnap}")
+
+
+def read_tracers_h5(xdmf: TracersXmf, infoname: str, snapshot: int) -> list[NDArray]:
     """Extract tracers data from hdf5 files.
 
     Args:
         xdmf_file: path of the xdmf file.
         infoname: name of information to extract.
         snapshot: snapshot number.
-        position: whether to extract position of tracers.
     Returns:
         Tracers data organized by attribute and block.
     """
-    xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
-    tra: Dict[str, List[Dict[int, ndarray]]] = {}
-    tra[infoname] = [{}, {}]  # two blocks, ordered by cores
-    if position:
-        for axis in "xyz":
-            tra[axis] = [{}, {}]
-    for elt_subdomain in xdmf_root[0][0][snapshot].findall("Grid"):
-        elt_name = _try_get(xdmf_file, elt_subdomain, "Name")
-        ibk = int(elt_name.startswith("meshYang"))
-        if position:
-            for data_attr in elt_subdomain.findall("Geometry"):
-                for data_item, axis in zip(data_attr.findall("DataItem"), "xyz"):
-                    icore, data = _get_field(xdmf_file, data_item)
-                    tra[axis][ibk][icore] = data
-        for data_attr in elt_subdomain.findall("Attribute"):
-            if data_attr.get("Name") != infoname:
-                continue
-            icore, data = _get_field(
-                xdmf_file, _try_find(xdmf_file, data_attr, "DataItem")
-            )
-            tra[infoname][ibk][icore] = data
-    tra_concat: Dict[str, List[ndarray]] = {}
-    for info in tra:
-        tra[info] = [trab for trab in tra[info] if trab]  # remove empty blocks
-        tra_concat[info] = []
-        for trab in tra[info]:
-            tra_concat[info].append(
-                np.concatenate([trab[icore] for icore in range(len(trab))])
-            )
+    tra: list[list[NDArray]] = [[], []]  # [block][core]
+    for tsub in xdmf[snapshot].tra_subdomains(xdmf.path.parent, infoname):
+        tra[tsub.iblock].append(_read_group_h5(tsub.file, tsub.dataset))
+
+    tra_concat: list[NDArray] = []
+    for trab in tra:
+        if trab:
+            tra_concat.append(np.concatenate(trab))
     return tra_concat
 
 

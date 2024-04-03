@@ -22,7 +22,7 @@ import numpy as np
 from . import _helpers, _step, conf, error, parfile, phyvars, stagyyparsers
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
-from .stagyyparsers import FieldXmf
+from .stagyyparsers import FieldXmf, TracersXmf
 
 if typing.TYPE_CHECKING:
     from os import PathLike
@@ -814,6 +814,13 @@ class StagyyData:
         assert self.hdf5 is not None
         return FieldXmf(
             path=self.hdf5 / "DataBottom.xmf",
+        )
+
+    @cached_property
+    def _traxmf(self) -> TracersXmf:
+        assert self.hdf5 is not None
+        return TracersXmf(
+            path=self.hdf5 / "DataTracers.xmf",
         )
 
     @property
