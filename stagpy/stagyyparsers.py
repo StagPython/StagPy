@@ -25,26 +25,15 @@ from .xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
-    from typing import (
-        Any,
-        BinaryIO,
-        Callable,
-        Dict,
-        Iterator,
-        List,
-        Mapping,
-        Optional,
-        Tuple,
-    )
+    from typing import Any, BinaryIO, Callable, Iterator, Mapping, Optional
     from xml.etree.ElementTree import Element
 
-    from numpy import ndarray
     from numpy.typing import NDArray
     from pandas import DataFrame
 
 
 def _tidy_names(
-    names: List[str], nnames: int, extra_names: Optional[List[str]] = None
+    names: list[str], nnames: int, extra_names: Optional[list[str]] = None
 ) -> None:
     """Truncate or extend names so that its len is nnames.
 
@@ -62,7 +51,7 @@ def _tidy_names(
     del names[nnames:]
 
 
-def time_series(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
+def time_series(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
     """Read temporal series text file.
 
     If :data:`colnames` is too long, it will be truncated. If it is too short,
@@ -113,7 +102,7 @@ def time_series(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
     return data
 
 
-def time_series_h5(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
+def time_series_h5(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
     """Read temporal series HDF5 file.
 
     If :data:`colnames` is too long, it will be truncated. If it is too short,
@@ -144,7 +133,7 @@ def time_series_h5(timefile: Path, colnames: List[str]) -> Optional[DataFrame]:
 
 def _extract_rsnap_isteps(
     rproffile: Path, data: DataFrame
-) -> List[Tuple[int, float, DataFrame]]:
+) -> list[tuple[int, float, DataFrame]]:
     """Extract istep, time and build separate rprof df."""
     step_regex = re.compile(r"^\*+step:\s*(\d+) ; time =\s*(\S+)")
     isteps = []  # list of (istep, time, df)
@@ -179,8 +168,8 @@ def _extract_rsnap_isteps(
 
 
 def rprof(
-    rproffile: Path, colnames: List[str]
-) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
+    rproffile: Path, colnames: list[str]
+) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
     """Extract radial profiles data.
 
     If :data:`colnames` is too long, it will be truncated. If it is too short,
@@ -228,8 +217,8 @@ def rprof(
 
 
 def rprof_h5(
-    rproffile: Path, colnames: List[str]
-) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
+    rproffile: Path, colnames: list[str]
+) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
     """Extract radial profiles data.
 
     If :data:`colnames` is too long, it will be truncated. If it is too short,
@@ -266,7 +255,7 @@ def rprof_h5(
     return data, df_times
 
 
-def _clean_names_refstate(names: List[str]) -> List[str]:
+def _clean_names_refstate(names: list[str]) -> list[str]:
     """Uniformization of refstate profile names."""
     to_clean = {
         "Tref": "T",
@@ -278,7 +267,7 @@ def _clean_names_refstate(names: List[str]) -> List[str]:
 
 def refstate(
     reffile: Path, ncols: int = 8
-) -> Optional[Tuple[List[List[DataFrame]], List[DataFrame]]]:
+) -> Optional[tuple[list[list[DataFrame]], list[DataFrame]]]:
     """Extract reference state profiles.
 
     Args:
@@ -286,7 +275,7 @@ def refstate(
         ncols: number of columns.
 
     Returns:
-        Tuple (syst, adia).
+        tuple (syst, adia).
 
         :data:`syst` is a list of list of
         :class:`pandas.DataFrame` containing the reference state profiles for
@@ -312,8 +301,8 @@ def refstate(
     # drop lines corresponding to metadata
     data.dropna(subset=[0], inplace=True)
     isystem = -1
-    systems: List[List[List[str]]] = [[]]
-    adiabats: List[List[str]] = []
+    systems: list[list[list[str]]] = [[]]
+    adiabats: list[list[str]] = []
     with reffile.open() as rsf:
         for line in rsf:
             line = line.lstrip()
@@ -329,8 +318,8 @@ def refstate(
     nprofs = sum(map(len, systems)) + len(adiabats)
     nzprof = len(data) // nprofs
     iprof = 0
-    syst: List[List[DataFrame]] = []
-    adia: List[DataFrame] = []
+    syst: list[list[DataFrame]] = []
+    adia: list[DataFrame] = []
     for isys, layers in enumerate(systems):
         syst.append([])
         for layer in layers:
@@ -479,7 +468,7 @@ def field_istep(fieldfile: Path) -> Optional[int]:
     return hdr.header["ti_step"]
 
 
-def field_header(fieldfile: Path) -> Optional[Dict[str, Any]]:
+def field_header(fieldfile: Path) -> Optional[dict[str, Any]]:
     """Read header info from binary field file.
 
     Args:
@@ -495,7 +484,7 @@ def field_header(fieldfile: Path) -> Optional[Dict[str, Any]]:
     return hdr.header
 
 
-def fields(fieldfile: Path) -> Optional[Tuple[Dict[str, Any], ndarray]]:
+def fields(fieldfile: Path) -> Optional[tuple[dict[str, Any], NDArray]]:
     """Extract fields data.
 
     Args:
@@ -577,7 +566,7 @@ def fields(fieldfile: Path) -> Optional[Tuple[Dict[str, Any], ndarray]]:
     return header, flds
 
 
-def tracers(tracersfile: Path) -> Optional[Dict[str, List[ndarray]]]:
+def tracers(tracersfile: Path) -> Optional[dict[str, list[NDArray]]]:
     """Extract tracers data.
 
     Args:
@@ -588,7 +577,7 @@ def tracers(tracersfile: Path) -> Optional[Dict[str, List[ndarray]]]:
     """
     if not tracersfile.is_file():
         return None
-    tra: Dict[str, List[ndarray]] = {}
+    tra: dict[str, list[NDArray]] = {}
     with tracersfile.open("rb") as fid:
         readbin = partial(_readbin, fid)
         magic = readbin()
@@ -625,7 +614,7 @@ def tracers(tracersfile: Path) -> Optional[Dict[str, List[ndarray]]]:
     return tra
 
 
-def _read_group_h5(filename: Path, groupname: str) -> ndarray:
+def _read_group_h5(filename: Path, groupname: str) -> NDArray:
     """Return group content.
 
     Args:
@@ -644,7 +633,7 @@ def _read_group_h5(filename: Path, groupname: str) -> ndarray:
     return data  # need to be reshaped
 
 
-def _make_3d(field: ndarray, twod: Optional[str]) -> ndarray:
+def _make_3d(field: NDArray, twod: Optional[str]) -> NDArray:
     """Add a dimension to field if necessary.
 
     Args:
@@ -661,7 +650,7 @@ def _make_3d(field: ndarray, twod: Optional[str]) -> ndarray:
     return field.reshape(shp)
 
 
-def _ncores(meshes: List[Dict[str, ndarray]], twod: Optional[str]) -> ndarray:
+def _ncores(meshes: list[dict[str, NDArray]], twod: Optional[str]) -> NDArray:
     """Compute number of nodes in each direction."""
     nnpb = len(meshes)  # number of nodes per block
     nns = [1, 1, 1]  # number of nodes in x, y, z directions
@@ -692,8 +681,8 @@ def _ncores(meshes: List[Dict[str, ndarray]], twod: Optional[str]) -> ndarray:
 
 
 def _conglomerate_meshes(
-    meshin: List[Dict[str, ndarray]], header: Dict[str, Any]
-) -> Dict[str, ndarray]:
+    meshin: list[dict[str, NDArray]], header: dict[str, Any]
+) -> dict[str, NDArray]:
     """Conglomerate meshes from several cores into one."""
     meshout = {}
     npc = header["nts"] // header["ncs"]
@@ -882,7 +871,7 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     Returns:
         geometry information.
     """
-    header: Dict[str, Any] = {}
+    header: dict[str, Any] = {}
 
     entry = xdmf[snapshot]
     header["ti_ad"] = entry.time
@@ -947,7 +936,7 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     return header
 
 
-def _to_spherical(flds: ndarray, header: Dict[str, Any]) -> ndarray:
+def _to_spherical(flds: NDArray, header: dict[str, Any]) -> NDArray:
     """Convert vector field to spherical."""
     cth = np.cos(header["t_mesh"][:, :, :-1])
     sth = np.sin(header["t_mesh"][:, :, :-1])
@@ -960,7 +949,7 @@ def _to_spherical(flds: ndarray, header: Dict[str, Any]) -> ndarray:
     return fout
 
 
-def _flds_shape(fieldname: str, header: Dict[str, Any]) -> List[int]:
+def _flds_shape(fieldname: str, header: dict[str, Any]) -> list[int]:
     """Compute shape of flds variable."""
     shp = list(header["nts"])
     shp.append(header["ntb"])
@@ -982,7 +971,7 @@ def _flds_shape(fieldname: str, header: Dict[str, Any]) -> List[int]:
     return shp
 
 
-def _post_read_flds(flds: ndarray, header: Dict[str, Any]) -> ndarray:
+def _post_read_flds(flds: NDArray, header: dict[str, Any]) -> NDArray:
     """Process flds to handle sphericity."""
     if flds.shape[0] >= 3 and header["rcmb"] > 0:
         # spherical vector
@@ -1001,8 +990,8 @@ def read_field_h5(
     xdmf: FieldXmf,
     fieldname: str,
     snapshot: int,
-    header: Optional[Dict[str, Any]] = None,
-) -> Optional[Tuple[Dict[str, Any], ndarray]]:
+    header: Optional[dict[str, Any]] = None,
+) -> Optional[tuple[dict[str, Any], NDArray]]:
     """Extract field data from hdf5 files.
 
     Args:
@@ -1187,7 +1176,7 @@ def read_tracers_h5(xdmf: TracersXmf, infoname: str, snapshot: int) -> list[NDAr
     return tra_concat
 
 
-def read_time_h5(h5folder: Path) -> Iterator[Tuple[int, int]]:
+def read_time_h5(h5folder: Path) -> Iterator[tuple[int, int]]:
     """Iterate through (isnap, istep) recorded in h5folder/'time_botT.h5'.
 
     Args:
