@@ -724,6 +724,23 @@ def _try_text(file: Path, elt: Element) -> str:
     return text
 
 
+def _count_subdomains(xs: XmlStream, i0_yin: int) -> tuple[range, range]:
+    i1_yin = i0_yin + 1
+    i0_yang = 0
+    i1_yang = 0
+    for _ in xs.iter_tag("Grid"):
+        if xs.current.attrib["GridType"] == "Collection":
+            break
+        if (name := xs.current.attrib["Name"]).startswith("meshYang"):
+            if i1_yang == 0:
+                i0_yang = int(name[-5:]) - 1
+                i1_yang = i0_yang + (i1_yin - i0_yin)
+        else:
+            i1_yin += 1
+        xs.drop()
+    return range(i0_yin, i1_yin), range(i0_yang, i1_yang)
+
+
 @dataclass(frozen=True)
 class FieldSub:
     file: Path
@@ -826,19 +843,7 @@ class FieldXmf:
                     ifile = int(h5file[-14:-9])
                     fields_info[name] = (ifile, shape)
 
-            i1_yin = i0_yin + 1
-            i0_yang = 0
-            i1_yang = 0
-            for _ in xs.iter_tag("Grid"):
-                if xs.current.attrib["GridType"] == "Collection":
-                    break
-                if (name := xs.current.attrib["Name"]).startswith("meshYang"):
-                    if i1_yang == 0:
-                        i0_yang = int(name[-5:]) - 1
-                        i1_yang = i0_yang + (i1_yin - i0_yin)
-                else:
-                    i1_yin += 1
-                xs.drop()
+            r_yin, r_yang = _count_subdomains(xs, i0_yin)
 
             data[isnap] = XmfEntry(
                 isnap=isnap,
@@ -849,8 +854,8 @@ class FieldXmf:
                 twod=twod,
                 coord_filepattern=coord_filepattern,
                 coord_shape=coord_shape,
-                range_yin=range(i0_yin, i1_yin),
-                range_yang=range(i0_yang, i1_yang),
+                range_yin=r_yin,
+                range_yang=r_yang,
                 fields=fields_info,
             )
         return data
@@ -1141,19 +1146,7 @@ class TracersXmf:
                     ifile = int(h5file[-14:-9])
                     fields_info[name] = ifile
 
-            i1_yin = i0_yin + 1
-            i0_yang = 0
-            i1_yang = 0
-            for _ in xs.iter_tag("Grid"):
-                if xs.current.attrib["GridType"] == "Collection":
-                    break
-                if (name := xs.current.attrib["Name"]).startswith("meshYang"):
-                    if i1_yang == 0:
-                        i0_yang = int(name[-5:]) - 1
-                        i1_yang = i0_yang + (i1_yin - i0_yin)
-                else:
-                    i1_yin += 1
-                xs.drop()
+            r_yin, r_yang = _count_subdomains(xs, i0_yin)
 
             data[isnap] = XmfTracersEntry(
                 isnap=isnap,
@@ -1161,8 +1154,8 @@ class TracersXmf:
                 mo_lambda=extra.get("mo_lambda"),
                 mo_thick_sol=extra.get("mo_thick_sol"),
                 yin_yang=yin_yang,
-                range_yin=range(i0_yin, i1_yin),
-                range_yang=range(i0_yang, i1_yang),
+                range_yin=r_yin,
+                range_yang=r_yang,
                 fields=fields_info,
             )
         return data
