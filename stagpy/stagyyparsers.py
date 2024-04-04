@@ -716,26 +716,12 @@ def _conglomerate_meshes(
     return meshout
 
 
-def _try_get(file: Path, elt: Element, key: str) -> str:
-    """Try getting an attribute or raise a ParsingError."""
-    att = elt.get(key)
-    if att is None:
-        raise ParsingError(file, f"Element {elt} has no attribute {key!r}")
-    return att
-
-
 def _try_text(file: Path, elt: Element) -> str:
     """Try getting text of element or raise a ParsingError."""
     text = elt.text
     if text is None:
         raise ParsingError(file, f"Element {elt} has no 'text'")
     return text
-
-
-def _get_dim(xdmf_file: Path, data_item: Element) -> Tuple[int, ...]:
-    """Extract shape of data item."""
-    dims = _try_get(xdmf_file, data_item, "Dimensions")
-    return tuple(map(int, dims.split()))
 
 
 @dataclass(frozen=True)
@@ -790,6 +776,10 @@ class XmfEntry:
 class FieldXmf:
     path: Path
 
+    def _get_dims(self, elt: Element) -> tuple[int, ...]:
+        dims = elt.attrib["Dimensions"].split()
+        return tuple(map(int, dims))
+
     @cached_property
     def _data(self) -> Mapping[int, XmfEntry]:
         xs = XmlStream(filepath=self.path)
@@ -818,7 +808,7 @@ class FieldXmf:
                             twod += coord
                 data_item = elt_geom[0]
                 data_text = _try_text(xs.filepath, data_item)
-                coord_shape = _get_dim(xs.filepath, data_item)
+                coord_shape = self._get_dims(data_item)
                 coord_filepattern = data_text.strip().split(":/", 1)[0]
                 coord_file_chunks = coord_filepattern.split("_")
                 coord_file_chunks[-2] = "{icore:05d}"
@@ -829,7 +819,7 @@ class FieldXmf:
                 with xs.load() as elt_fvar:
                     name = elt_fvar.attrib["Name"]
                     elt_data = elt_fvar[0]
-                    shape = _get_dim(xs.filepath, elt_data)
+                    shape = self._get_dims(elt_data)
                     data_text = _try_text(xs.filepath, elt_data)
                     h5file, group = data_text.strip().split(":/", 1)
                     isnap = int(group[-5:])
