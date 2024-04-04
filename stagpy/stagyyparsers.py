@@ -724,6 +724,15 @@ def _try_text(file: Path, elt: Element) -> str:
     return text
 
 
+def _ifile_isnap(file: Path, elt: Element) -> tuple[int, int]:
+    """Extract ifile and isnap from H5 file name/dataset."""
+    data_text = _try_text(file, elt)
+    h5file, group = data_text.strip().split(":/", 1)
+    isnap = int(group[-5:])
+    ifile = int(h5file[-14:-9])
+    return ifile, isnap
+
+
 def _count_subdomains(xs: XmlStream, i0_yin: int) -> tuple[range, range]:
     i1_yin = i0_yin + 1
     i0_yang = 0
@@ -837,10 +846,7 @@ class FieldXmf:
                     name = elt_fvar.attrib["Name"]
                     elt_data = elt_fvar[0]
                     shape = self._get_dims(elt_data)
-                    data_text = _try_text(xs.filepath, elt_data)
-                    h5file, group = data_text.strip().split(":/", 1)
-                    isnap = int(group[-5:])
-                    ifile = int(h5file[-14:-9])
+                    ifile, isnap = _ifile_isnap(xs.filepath, elt_data)
                     fields_info[name] = (ifile, shape)
 
             r_yin, r_yang = _count_subdomains(xs, i0_yin)
@@ -1130,20 +1136,13 @@ class TracersXmf:
             xs.skip_to_tag("Geometry")
             with xs.load() as elt_geom:
                 for name, data_item in zip("zyx", elt_geom):
-                    data_text = _try_text(xs.filepath, data_item)
-                    h5file, group = data_text.strip().split(":/", 1)
-                    isnap = int(group[-5:])
-                    ifile = int(h5file[-14:-9])
+                    ifile, isnap = _ifile_isnap(xs.filepath, data_item)
                     fields_info[name] = ifile
 
             while xs.current.tag == "Attribute":
                 with xs.load() as elt_fvar:
                     name = elt_fvar.attrib["Name"]
-                    elt_data = elt_fvar[0]
-                    data_text = _try_text(xs.filepath, elt_data)
-                    h5file, group = data_text.strip().split(":/", 1)
-                    isnap = int(group[-5:])
-                    ifile = int(h5file[-14:-9])
+                    ifile, _ = _ifile_isnap(xs.filepath, elt_fvar[0])
                     fields_info[name] = ifile
 
             r_yin, r_yang = _count_subdomains(xs, i0_yin)
