@@ -22,6 +22,7 @@ import numpy as np
 from . import _helpers, _step, conf, error, parfile, phyvars, stagyyparsers
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
+from .stagyyparsers import FieldXmf, TracersXmf
 
 if typing.TYPE_CHECKING:
     from os import PathLike
@@ -793,6 +794,34 @@ class StagyyData:
         """Path of output hdf5 folder if relevant, None otherwise."""
         h5_folder = self.path / self.par["ioin"]["hdf5_output_folder"]
         return h5_folder if (h5_folder / "Data.xmf").is_file() else None
+
+    @cached_property
+    def _dataxmf(self) -> FieldXmf:
+        assert self.hdf5 is not None
+        return FieldXmf(
+            path=self.hdf5 / "Data.xmf",
+        )
+
+    @cached_property
+    def _topxmf(self) -> FieldXmf:
+        assert self.hdf5 is not None
+        return FieldXmf(
+            path=self.hdf5 / "DataSurface.xmf",
+        )
+
+    @cached_property
+    def _botxmf(self) -> FieldXmf:
+        assert self.hdf5 is not None
+        return FieldXmf(
+            path=self.hdf5 / "DataBottom.xmf",
+        )
+
+    @cached_property
+    def _traxmf(self) -> TracersXmf:
+        assert self.hdf5 is not None
+        return TracersXmf(
+            path=self.hdf5 / "DataTracers.xmf",
+        )
 
     @property
     def par(self) -> Namelist:

@@ -367,16 +367,15 @@ class _Fields(abc.Mapping):
                 (stem, fvars) for stem, fvars in self._filesh5.items() if name in fvars
             ]
             for filestem, list_fvar in files:
+                sdat = self.step.sdat
                 if filestem in phyvars.SFIELD_FILES_H5:
-                    xmff = "Data{}.xmf".format(
-                        "Bottom" if name.endswith("bot") else "Surface"
-                    )
+                    xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
                     header = self._header
                 else:
-                    xmff = "Data.xmf"
+                    xmff = sdat._dataxmf
                     header = None
                 parsed_data = stagyyparsers.read_field_h5(
-                    self.step.sdat.hdf5 / xmff, filestem, self.step.isnap, header
+                    xmff, filestem, self.step.isnap, header
                 )
                 if parsed_data is not None:
                     break
@@ -405,8 +404,9 @@ class _Fields(abc.Mapping):
         if binfiles:
             header = stagyyparsers.field_header(binfiles.pop())
         elif self.step.sdat.hdf5:
-            xmf = self.step.sdat.hdf5 / "Data.xmf"
-            header = stagyyparsers.read_geom_h5(xmf, self.step.isnap)[0]
+            header = stagyyparsers.read_geom_h5(
+                self.step.sdat._dataxmf, self.step.isnap
+            )
         return header if header else None
 
     @cached_property
@@ -447,14 +447,10 @@ class _Tracers:
             self.step.sdat.filename("tra", timestep=self.step.isnap, force_legacy=True)
         )
         if data is None and self.step.sdat.hdf5:
-            position = any(axis not in self._data for axis in "xyz")
-            self._data.update(
-                stagyyparsers.read_tracers_h5(
-                    self.step.sdat.hdf5 / "DataTracers.xmf",
-                    name,
-                    self.step.isnap,
-                    position,
-                )
+            self._data[name] = stagyyparsers.read_tracers_h5(
+                self.step.sdat._traxmf,
+                name,
+                self.step.isnap,
             )
         elif data is not None:
             self._data.update(data)

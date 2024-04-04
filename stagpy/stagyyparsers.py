@@ -11,10 +11,9 @@ from __future__ import annotations
 import re
 import typing
 from dataclasses import dataclass
-from functools import partial
+from functools import cached_property, partial
 from itertools import product
 from operator import itemgetter
-from xml.etree import ElementTree as xmlET
 
 import h5py
 import numpy as np
@@ -22,13 +21,25 @@ import pandas as pd
 
 from .error import ParsingError
 from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
+from .xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
+    from typing import (
+        Any,
+        BinaryIO,
+        Callable,
+        Dict,
+        Iterator,
+        List,
+        Mapping,
+        Optional,
+        Tuple,
+    )
     from xml.etree.ElementTree import Element
 
     from numpy import ndarray
+    from numpy.typing import NDArray
     from pandas import DataFrame
 
 
@@ -661,7 +672,7 @@ def _ncores(meshes: List[Dict[str, ndarray]], twod: Optional[str]) -> ndarray:
         ):
             nns[0] += 1
             nnpb -= 1
-    cpu = lambda icy: icy * nns[0]
+    cpu = lambda icy: icy * nns[0]  # noqa: E731
     if twod is None or "Y" in twod:
         while (
             nnpb > 1
@@ -670,7 +681,7 @@ def _ncores(meshes: List[Dict[str, ndarray]], twod: Optional[str]) -> ndarray:
         ):
             nns[1] += 1
             nnpb -= nns[0]
-    cpu = lambda icz: icz * nns[0] * nns[1]
+    cpu = lambda icz: icz * nns[0] * nns[1]  # noqa: E731
     while (
         nnpb > 1
         and meshes[cpu(nns[2])]["Z"][0, 0, 0] == meshes[cpu(nns[2] - 1)]["Z"][0, 0, -1]
@@ -705,30 +716,189 @@ def _conglomerate_meshes(
     return meshout
 
 
-def _read_coord_h5(
-    files: List[Path],
-    shapes: List[Tuple[int, ...]],
-    header: Dict[str, Any],
-    twod: Optional[str],
-) -> None:
-    """Read all coord hdf5 files of a snapshot.
+def _try_get(file: Path, elt: Element, key: str) -> str:
+    """Try getting an attribute or raise a ParsingError."""
+    att = elt.get(key)
+    if att is None:
+        raise ParsingError(file, f"Element {elt} has no attribute {key!r}")
+    return att
+
+
+def _try_text(file: Path, elt: Element) -> str:
+    """Try getting text of element or raise a ParsingError."""
+    text = elt.text
+    if text is None:
+        raise ParsingError(file, f"Element {elt} has no 'text'")
+    return text
+
+
+def _get_dim(xdmf_file: Path, data_item: Element) -> Tuple[int, ...]:
+    """Extract shape of data item."""
+    dims = _try_get(xdmf_file, data_item, "Dimensions")
+    return tuple(map(int, dims.split()))
+
+
+@dataclass(frozen=True)
+class FieldSub:
+    file: Path
+    dataset: str
+    icore: int
+    iblock: int
+    shape: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class XmfEntry:
+    isnap: int
+    time: Optional[float]
+    mo_lambda: Optional[float]
+    mo_thick_sol: Optional[float]
+    yin_yang: bool
+    twod: Optional[str]
+    coord_filepattern: str
+    coord_shape: tuple[int, ...]
+    range_yin: range
+    range_yang: range
+    fields: Mapping[str, tuple[int, tuple[int, ...]]]
+
+    def coord_files_yin(self, path_root: Path) -> Iterator[Path]:
+        for icore in self.range_yin:
+            yield path_root / self.coord_filepattern.format(icore=icore + 1)
+
+    def _fsub(self, path_root: Path, name: str, icore: int, yang: bool) -> FieldSub:
+        ifile, shape = self.fields[name]
+        yy_tag = "2" if yang else "_"
+        ic = icore + 1
+        return FieldSub(
+            file=path_root / f"{name}_{ifile:05d}_{ic:05d}.h5",
+            dataset=f"{name}{yy_tag}{ic:05d}_{self.isnap:05d}",
+            icore=icore,
+            iblock=int(yang),
+            shape=shape,
+        )
+
+    def field_subdomains(self, path_root: Path, name: str) -> Iterator[FieldSub]:
+        if name not in self.fields:
+            return
+        for icore in self.range_yin:
+            yield self._fsub(path_root, name, icore, False)
+        for icore in self.range_yang:
+            yield self._fsub(path_root, name, icore, True)
+
+
+@dataclass(frozen=True)
+class FieldXmf:
+    path: Path
+
+    @cached_property
+    def _data(self) -> Mapping[int, XmfEntry]:
+        xs = XmlStream(filepath=self.path)
+        data = {}
+        for _ in xs.iter_tag("Time"):
+            time = float(xs.current.attrib["Value"])
+            xs.advance()
+            extra: dict[str, float] = {}
+            while xs.current.tag != "Grid":
+                # mo_lambda, mo_thick_sol
+                extra[xs.current.tag] = float(xs.current.attrib["Value"])
+                xs.advance()
+
+            mesh_name = xs.current.attrib["Name"]
+            yin_yang = mesh_name.startswith("meshYin")
+            i0_yin = int(mesh_name[-5:]) - 1
+            twod = None
+
+            xs.skip_to_tag("Geometry")
+            with xs.load() as elt_geom:
+                if elt_geom.get("Type") == "X_Y":
+                    twod = ""
+                    for data_item in elt_geom:
+                        coord = _try_text(xs.filepath, data_item).strip()[-1]
+                        if coord in "XYZ":
+                            twod += coord
+                data_item = elt_geom[0]
+                data_text = _try_text(xs.filepath, data_item)
+                coord_shape = _get_dim(xs.filepath, data_item)
+                coord_filepattern = data_text.strip().split(":/", 1)[0]
+                coord_file_chunks = coord_filepattern.split("_")
+                coord_file_chunks[-2] = "{icore:05d}"
+                coord_filepattern = "_".join(coord_file_chunks)
+
+            fields_info = {}
+            while xs.current.tag == "Attribute":
+                with xs.load() as elt_fvar:
+                    name = elt_fvar.attrib["Name"]
+                    elt_data = elt_fvar[0]
+                    shape = _get_dim(xs.filepath, elt_data)
+                    data_text = _try_text(xs.filepath, elt_data)
+                    h5file, group = data_text.strip().split(":/", 1)
+                    isnap = int(group[-5:])
+                    ifile = int(h5file[-14:-9])
+                    fields_info[name] = (ifile, shape)
+
+            i1_yin = i0_yin + 1
+            i0_yang = 0
+            i1_yang = 0
+            for _ in xs.iter_tag("Grid"):
+                if xs.current.attrib["GridType"] == "Collection":
+                    break
+                if (name := xs.current.attrib["Name"]).startswith("meshYang"):
+                    if i1_yang == 0:
+                        i0_yang = int(name[-5:]) - 1
+                        i1_yang = i0_yang + (i1_yin - i0_yin)
+                else:
+                    i1_yin += 1
+                xs.drop()
+
+            data[isnap] = XmfEntry(
+                isnap=isnap,
+                time=time,
+                mo_lambda=extra.get("mo_lambda"),
+                mo_thick_sol=extra.get("mo_thick_sol"),
+                yin_yang=yin_yang,
+                twod=twod,
+                coord_filepattern=coord_filepattern,
+                coord_shape=coord_shape,
+                range_yin=range(i0_yin, i1_yin),
+                range_yang=range(i0_yang, i1_yang),
+                fields=fields_info,
+            )
+        return data
+
+    def __getitem__(self, isnap: int) -> XmfEntry:
+        try:
+            return self._data[isnap]
+        except KeyError:
+            raise ParsingError(self.path, f"no data for snapshot {isnap}")
+
+
+def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
+    """Extract geometry information from hdf5 files.
 
     Args:
-        files: list of NodeCoordinates files of a snapshot.
-        shapes: shape of mesh grids.
-        header: geometry info.
-        twod: 'XZ', 'YZ' or None depending on what is relevant.
+        xdmf_file: path of the xdmf file.
+        snapshot: snapshot number.
+    Returns:
+        geometry information.
     """
-    all_meshes: List[Dict[str, ndarray]] = []
-    for h5file, shape in zip(files, shapes):
+    header: Dict[str, Any] = {}
+
+    entry = xdmf[snapshot]
+    header["ti_ad"] = entry.time
+    header["mo_lambda"] = entry.mo_lambda
+    header["mo_thick_sol"] = entry.mo_thick_sol
+    header["ntb"] = 2 if entry.yin_yang else 1
+
+    all_meshes: list[dict[str, NDArray]] = []
+    for h5file in entry.coord_files_yin(xdmf.path.parent):
         all_meshes.append({})
         with h5py.File(h5file, "r") as h5f:
             for coord, mesh in h5f.items():
                 # for some reason, the array is transposed!
-                all_meshes[-1][coord] = mesh[()].reshape(shape).T
-                all_meshes[-1][coord] = _make_3d(all_meshes[-1][coord], twod)
+                all_meshes[-1][coord] = mesh[()].reshape(entry.coord_shape).T
+                all_meshes[-1][coord] = _make_3d(all_meshes[-1][coord], entry.twod)
 
-    header["ncs"] = _ncores(all_meshes, twod)
+    header["ncs"] = _ncores(all_meshes, entry.twod)
     header["nts"] = list(
         (all_meshes[0]["X"].shape[i] - 1) * header["ncs"][i] for i in range(3)
     )
@@ -736,7 +906,7 @@ def _read_coord_h5(
     meshes = _conglomerate_meshes(all_meshes, header)
     if np.any(meshes["Z"][:, :, 0] != 0):
         # spherical
-        if twod is not None:  # annulus geometry...
+        if entry.twod is not None:  # annulus geometry...
             header["x_mesh"] = np.copy(meshes["Y"])
             header["y_mesh"] = np.copy(meshes["Z"])
             header["z_mesh"] = np.copy(meshes["X"])
@@ -767,138 +937,13 @@ def _read_coord_h5(
         header["rcmb"] = -1
     else:
         header["e3_coord"] = header["e3_coord"] - header["rcmb"]
-    if twod is None or "X" in twod:
+    if entry.twod is None or "X" in entry.twod:
         header["e1_coord"] = header["e1_coord"][:-1]
-    if twod is None or "Y" in twod:
+    if entry.twod is None or "Y" in entry.twod:
         header["e2_coord"] = header["e2_coord"][:-1]
     header["e3_coord"] = header["e3_coord"][:-1]
 
-
-def _try_get(file: Path, elt: Element, key: str) -> str:
-    """Try getting an attribute or raise a ParsingError."""
-    att = elt.get(key)
-    if att is None:
-        raise ParsingError(file, f"Element {elt} has no attribute {key!r}")
-    return att
-
-
-def _try_find(file: Path, elt: Element, key: str) -> Element:
-    """Try finding a sub-element or raise a ParsingError."""
-    subelt = elt.find(key)
-    if subelt is None:
-        raise ParsingError(file, f"Element {elt} has no sub-element {key!r}")
-    return subelt
-
-
-def _try_text(file: Path, elt: Element) -> str:
-    """Try getting text of element or raise a ParsingError."""
-    text = elt.text
-    if text is None:
-        raise ParsingError(file, f"Element {elt} has no 'text'")
-    return text
-
-
-def _get_dim(xdmf_file: Path, data_item: Element) -> Tuple[int, ...]:
-    """Extract shape of data item."""
-    dims = _try_get(xdmf_file, data_item, "Dimensions")
-    return tuple(map(int, dims.split()))
-
-
-def _get_field(xdmf_file: Path, data_item: Element) -> Tuple[int, ndarray]:
-    """Extract field from data item."""
-    shp = _get_dim(xdmf_file, data_item)
-    data_text = _try_text(xdmf_file, data_item)
-    h5file, group = data_text.strip().split(":/", 1)
-    # Field on yin is named <var>_XXXXX_YYYYY, on yang is <var>2XXXXX_YYYYY.
-    numeral_part = group[-11:]
-    icore = int(numeral_part.split("_")[-2]) - 1
-    fld = None
-    try:
-        fld = _read_group_h5(xdmf_file.parent / h5file, group).reshape(shp)
-    except KeyError:
-        # test previous/following snapshot files as their numbers can get
-        # slightly out of sync between cores
-        h5file_parts = h5file.split("_")
-        fnum = int(h5file_parts[-2])
-        if fnum > 0:
-            h5file_parts[-2] = f"{fnum - 1:05d}"
-            h5f = xdmf_file.parent / "_".join(h5file_parts)
-            try:
-                fld = _read_group_h5(h5f, group).reshape(shp)
-            except (OSError, KeyError):
-                pass
-        if fld is None:
-            h5file_parts[-2] = f"{fnum + 1:05d}"
-            h5f = xdmf_file.parent / "_".join(h5file_parts)
-            try:
-                fld = _read_group_h5(h5f, group).reshape(shp)
-            except (OSError, KeyError):
-                pass
-        if fld is None:
-            raise
-    return icore, fld
-
-
-def _maybe_get(
-    elt: Element,
-    item: str,
-    info: str,
-    conversion: Optional[Callable[[str], Any]] = None,
-) -> Any:
-    """Extract and convert info if item is present."""
-    maybe_item = elt.find(item)
-    maybe_info = None
-    if maybe_item is not None:
-        maybe_info = maybe_item.get(info)
-        if maybe_info is not None and conversion is not None:
-            maybe_info = conversion(maybe_info)
-    return maybe_info
-
-
-def read_geom_h5(xdmf_file: Path, snapshot: int) -> Tuple[Dict[str, Any], Element]:
-    """Extract geometry information from hdf5 files.
-
-    Args:
-        xdmf_file: path of the xdmf file.
-        snapshot: snapshot number.
-    Returns:
-        geometry information and root of xdmf document.
-    """
-    header: Dict[str, Any] = {}
-    xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
-    if snapshot is None:
-        return {}, xdmf_root
-
-    # Domain, Temporal Collection, Snapshot
-    # should check that this is indeed the required snapshot
-    elt_snap = xdmf_root[0][0][snapshot]
-    if elt_snap is None:
-        raise ParsingError(xdmf_file, f"Snapshot {snapshot} not present")
-    header["ti_ad"] = _maybe_get(elt_snap, "Time", "Value", float)
-    header["mo_lambda"] = _maybe_get(elt_snap, "mo_lambda", "Value", float)
-    header["mo_thick_sol"] = _maybe_get(elt_snap, "mo_thick_sol", "Value", float)
-    header["ntb"] = 1
-    coord_h5 = []  # all the coordinate files
-    coord_shape = []  # shape of meshes
-    twod = None
-    for elt_subdomain in elt_snap.findall("Grid"):
-        elt_name = _try_get(xdmf_file, elt_subdomain, "Name")
-        if elt_name.startswith("meshYang"):
-            header["ntb"] = 2
-            break  # iterate only through meshYin
-        elt_geom = _try_find(xdmf_file, elt_subdomain, "Geometry")
-        if elt_geom.get("Type") == "X_Y" and twod is None:
-            twod = ""
-            for data_item in elt_geom.findall("DataItem"):
-                coord = _try_text(xdmf_file, data_item).strip()[-1]
-                if coord in "XYZ":
-                    twod += coord
-        data_item = _try_find(xdmf_file, elt_geom, "DataItem")
-        data_text = _try_text(xdmf_file, data_item)
-        coord_shape.append(_get_dim(xdmf_file, data_item))
-        coord_h5.append(xdmf_file.parent / data_text.strip().split(":/", 1)[0])
-    _read_coord_h5(coord_h5, coord_shape, header, twod)
-    return header, xdmf_root
+    return header
 
 
 def _to_spherical(flds: ndarray, header: Dict[str, Any]) -> ndarray:
@@ -952,7 +997,7 @@ def _post_read_flds(flds: ndarray, header: Dict[str, Any]) -> ndarray:
 
 
 def read_field_h5(
-    xdmf_file: Path,
+    xdmf: FieldXmf,
     fieldname: str,
     snapshot: int,
     header: Optional[Dict[str, Any]] = None,
@@ -969,55 +1014,47 @@ def read_field_h5(
         unavailable.
     """
     if header is None:
-        header, xdmf_root = read_geom_h5(xdmf_file, snapshot)
-    else:
-        xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
+        header = read_geom_h5(xdmf, snapshot)
 
     npc = header["nts"] // header["ncs"]  # number of grid point per node
     flds = np.zeros(_flds_shape(fieldname, header))
     data_found = False
 
-    for elt_subdomain in xdmf_root[0][0][snapshot].findall("Grid"):
-        elt_name = _try_get(xdmf_file, elt_subdomain, "Name")
-        ibk = int(elt_name.startswith("meshYang"))
-        for data_attr in elt_subdomain.findall("Attribute"):
-            if data_attr.get("Name") != fieldname:
-                continue
-            icore, fld = _get_field(
-                xdmf_file, _try_find(xdmf_file, data_attr, "DataItem")
-            )
-            # for some reason, the field is transposed
-            fld = fld.T
-            shp = fld.shape
-            if shp[-1] == 1 and header["nts"][0] == 1:  # YZ
-                fld = fld.reshape((shp[0], 1, shp[1], shp[2]))
-                if header["rcmb"] < 0:
-                    fld = fld[(2, 0, 1), ...]
-            elif shp[-1] == 1:  # XZ
-                fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
-                if header["rcmb"] < 0:
-                    fld = fld[(1, 2, 0), ...]
-            elif fieldname in SFIELD_FILES_H5:
-                fld = fld.reshape((1, npc[0], npc[1], 1))
-            elif header["nts"][1] == 1:  # cart XZ
-                fld = fld.reshape((1, shp[0], 1, shp[1]))
-            ifs = [
-                icore // np.prod(header["ncs"][:i]) % header["ncs"][i] * npc[i]
-                for i in range(3)
-            ]
-            if fieldname in SFIELD_FILES_H5:
-                ifs[2] = 0
-                npc[2] = 1
-            if header["zp"]:  # remove top row
-                fld = fld[:, :, :, :-1]
-            flds[
-                :,
-                ifs[0] : ifs[0] + npc[0] + header["xp"],
-                ifs[1] : ifs[1] + npc[1] + header["yp"],
-                ifs[2] : ifs[2] + npc[2],
-                ibk,
-            ] = fld
-            data_found = True
+    for fsub in xdmf[snapshot].field_subdomains(xdmf.path.parent, fieldname):
+        fld = _read_group_h5(fsub.file, fsub.dataset).reshape(fsub.shape)
+        # for some reason, the field is transposed
+        fld = fld.T
+        shp = fld.shape
+
+        if shp[-1] == 1 and header["nts"][0] == 1:  # YZ
+            fld = fld.reshape((shp[0], 1, shp[1], shp[2]))
+            if header["rcmb"] < 0:
+                fld = fld[(2, 0, 1), ...]
+        elif shp[-1] == 1:  # XZ
+            fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
+            if header["rcmb"] < 0:
+                fld = fld[(1, 2, 0), ...]
+        elif fieldname in SFIELD_FILES_H5:
+            fld = fld.reshape((1, npc[0], npc[1], 1))
+        elif header["nts"][1] == 1:  # cart XZ
+            fld = fld.reshape((1, shp[0], 1, shp[1]))
+        ifs = [
+            fsub.icore // np.prod(header["ncs"][:i]) % header["ncs"][i] * npc[i]
+            for i in range(3)
+        ]
+        if fieldname in SFIELD_FILES_H5:
+            ifs[2] = 0
+            npc[2] = 1
+        if header["zp"]:  # remove top row
+            fld = fld[:, :, :, :-1]
+        flds[
+            :,
+            ifs[0] : ifs[0] + npc[0] + header["xp"],
+            ifs[1] : ifs[1] + npc[1] + header["yp"],
+            ifs[2] : ifs[2] + npc[2],
+            fsub.iblock,
+        ] = fld
+        data_found = True
 
     if flds.shape[0] == 3 and flds.shape[-1] == 2:  # YinYang vector
         # Yang grid is rotated compared to Yin grid
@@ -1033,48 +1070,138 @@ def read_field_h5(
     return (header, flds) if data_found else None
 
 
-def read_tracers_h5(
-    xdmf_file: Path, infoname: str, snapshot: int, position: bool
-) -> Dict[str, List[ndarray]]:
+@dataclass(frozen=True)
+class TracerSub:
+    file: Path
+    dataset: str
+    icore: int
+    iblock: int
+
+
+@dataclass(frozen=True)
+class XmfTracersEntry:
+    isnap: int
+    time: Optional[float]
+    mo_lambda: Optional[float]
+    mo_thick_sol: Optional[float]
+    yin_yang: bool
+    range_yin: range
+    range_yang: range
+    fields: Mapping[str, int]
+
+    def _fsub(self, path_root: Path, name: str, icore: int, yang: bool) -> TracerSub:
+        ifile = self.fields[name]
+        yy_tag = "2" if yang else "_"
+        ic = icore + 1
+        return TracerSub(
+            file=path_root / f"Tracers_{name}_{ifile:05d}_{ic:05d}.h5",
+            dataset=f"{name}{yy_tag}{ic:05d}_{self.isnap:05d}",
+            icore=icore,
+            iblock=int(yang),
+        )
+
+    def tra_subdomains(self, path_root: Path, name: str) -> Iterator[TracerSub]:
+        if name not in self.fields:
+            return
+        for icore in self.range_yin:
+            yield self._fsub(path_root, name, icore, False)
+        for icore in self.range_yang:
+            yield self._fsub(path_root, name, icore, True)
+
+
+@dataclass(frozen=True)
+class TracersXmf:
+    path: Path
+
+    @cached_property
+    def _data(self) -> Mapping[int, XmfTracersEntry]:
+        xs = XmlStream(filepath=self.path)
+        data = {}
+        for _ in xs.iter_tag("Time"):
+            time = float(xs.current.attrib["Value"])
+            xs.advance()
+            extra: dict[str, float] = {}
+            while xs.current.tag != "Grid":
+                # mo_lambda, mo_thick_sol
+                extra[xs.current.tag] = float(xs.current.attrib["Value"])
+                xs.advance()
+
+            mesh_name = xs.current.attrib["Name"]
+            yin_yang = mesh_name.startswith("meshYin")
+            i0_yin = int(mesh_name[-5:]) - 1
+
+            fields_info = {}
+
+            xs.skip_to_tag("Geometry")
+            with xs.load() as elt_geom:
+                for name, data_item in zip("zyx", elt_geom):
+                    data_text = _try_text(xs.filepath, data_item)
+                    h5file, group = data_text.strip().split(":/", 1)
+                    isnap = int(group[-5:])
+                    ifile = int(h5file[-14:-9])
+                    fields_info[name] = ifile
+
+            while xs.current.tag == "Attribute":
+                with xs.load() as elt_fvar:
+                    name = elt_fvar.attrib["Name"]
+                    elt_data = elt_fvar[0]
+                    data_text = _try_text(xs.filepath, elt_data)
+                    h5file, group = data_text.strip().split(":/", 1)
+                    isnap = int(group[-5:])
+                    ifile = int(h5file[-14:-9])
+                    fields_info[name] = ifile
+
+            i1_yin = i0_yin + 1
+            i0_yang = 0
+            i1_yang = 0
+            for _ in xs.iter_tag("Grid"):
+                if xs.current.attrib["GridType"] == "Collection":
+                    break
+                if (name := xs.current.attrib["Name"]).startswith("meshYang"):
+                    if i1_yang == 0:
+                        i0_yang = int(name[-5:]) - 1
+                        i1_yang = i0_yang + (i1_yin - i0_yin)
+                else:
+                    i1_yin += 1
+                xs.drop()
+
+            data[isnap] = XmfTracersEntry(
+                isnap=isnap,
+                time=time,
+                mo_lambda=extra.get("mo_lambda"),
+                mo_thick_sol=extra.get("mo_thick_sol"),
+                yin_yang=yin_yang,
+                range_yin=range(i0_yin, i1_yin),
+                range_yang=range(i0_yang, i1_yang),
+                fields=fields_info,
+            )
+        return data
+
+    def __getitem__(self, isnap: int) -> XmfTracersEntry:
+        try:
+            return self._data[isnap]
+        except KeyError:
+            raise ParsingError(self.path, f"no data for snapshot {isnap}")
+
+
+def read_tracers_h5(xdmf: TracersXmf, infoname: str, snapshot: int) -> list[NDArray]:
     """Extract tracers data from hdf5 files.
 
     Args:
         xdmf_file: path of the xdmf file.
         infoname: name of information to extract.
         snapshot: snapshot number.
-        position: whether to extract position of tracers.
     Returns:
         Tracers data organized by attribute and block.
     """
-    xdmf_root = xmlET.parse(str(xdmf_file)).getroot()
-    tra: Dict[str, List[Dict[int, ndarray]]] = {}
-    tra[infoname] = [{}, {}]  # two blocks, ordered by cores
-    if position:
-        for axis in "xyz":
-            tra[axis] = [{}, {}]
-    for elt_subdomain in xdmf_root[0][0][snapshot].findall("Grid"):
-        elt_name = _try_get(xdmf_file, elt_subdomain, "Name")
-        ibk = int(elt_name.startswith("meshYang"))
-        if position:
-            for data_attr in elt_subdomain.findall("Geometry"):
-                for data_item, axis in zip(data_attr.findall("DataItem"), "xyz"):
-                    icore, data = _get_field(xdmf_file, data_item)
-                    tra[axis][ibk][icore] = data
-        for data_attr in elt_subdomain.findall("Attribute"):
-            if data_attr.get("Name") != infoname:
-                continue
-            icore, data = _get_field(
-                xdmf_file, _try_find(xdmf_file, data_attr, "DataItem")
-            )
-            tra[infoname][ibk][icore] = data
-    tra_concat: Dict[str, List[ndarray]] = {}
-    for info in tra:
-        tra[info] = [trab for trab in tra[info] if trab]  # remove empty blocks
-        tra_concat[info] = []
-        for trab in tra[info]:
-            tra_concat[info].append(
-                np.concatenate([trab[icore] for icore in range(len(trab))])
-            )
+    tra: list[list[NDArray]] = [[], []]  # [block][core]
+    for tsub in xdmf[snapshot].tra_subdomains(xdmf.path.parent, infoname):
+        tra[tsub.iblock].append(_read_group_h5(tsub.file, tsub.dataset))
+
+    tra_concat: list[NDArray] = []
+    for trab in tra:
+        if trab:
+            tra_concat.append(np.concatenate(trab))
     return tra_concat
 
 
