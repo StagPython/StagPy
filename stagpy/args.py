@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.resources as imlr
 import typing
 from inspect import isfunction
+from pathlib import Path
 from types import MappingProxyType
 
 import matplotlib.pyplot as plt
@@ -83,7 +84,24 @@ def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
     Returns:
         the function implementing the sub command to be executed.
     """
-    climan = CLIManager(conf, **SUB_CMDS)
+
+    def compl_cmd() -> None:
+        if conf.completions.zsh:
+            filepath = Path("_stagpy.sh")
+            print(f"writing zsh completion file {filepath}")
+            climan.zsh_complete(filepath, "stagpy", sourceable=True)
+        elif conf.completions.bash:
+            filepath = Path("stagpy.sh")
+            print(f"writing bash completion file {filepath}")
+            climan.bash_complete(filepath, "stagpy")
+        else:
+            print("please choose a shell, `--help` for available options")
+
+    climan = CLIManager(
+        conf,
+        **SUB_CMDS,
+        completions=Subcmd("generate completion scripts", func=compl_cmd),
+    )
 
     bash_script = CONFIG_DIR / "bash" / "stagpy.sh"
     bash_script.parent.mkdir(parents=True, exist_ok=True)

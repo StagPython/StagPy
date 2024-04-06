@@ -234,6 +234,14 @@ class ConfSection(Section):
 
 
 @dataclass
+class Completions(Section):
+    """Shell completion scripts."""
+
+    bash: bool = command_flag("generate bash completion")
+    zsh: bool = command_flag("generate zsh completion")
+
+
+@dataclass
 class Config(ConfigBase):
     """StagPy configuration."""
 
@@ -249,3 +257,4 @@ class Config(ConfigBase):
     info: Info
     var: Var
     config: ConfSection
+    completions: Completions
