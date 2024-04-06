@@ -24,7 +24,6 @@ from . import (
     time_series,
 )
 from ._helpers import baredoc
-from .config import CONFIG_DIR
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable, List, Optional
@@ -102,13 +101,6 @@ def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
         **SUB_CMDS,
         completions=Subcmd("generate completion scripts", func=compl_cmd),
     )
-
-    bash_script = CONFIG_DIR / "bash" / "stagpy.sh"
-    bash_script.parent.mkdir(parents=True, exist_ok=True)
-    climan.bash_complete(bash_script, "stagpy")
-    zsh_script = CONFIG_DIR / "zsh" / "_stagpy.sh"
-    zsh_script.parent.mkdir(parents=True, exist_ok=True)
-    climan.zsh_complete(zsh_script, "stagpy", sourceable=True)
 
     cmd_args = climan.parse_args(arglist)
     sub_cmd = cmd_args.loam_sub_name
