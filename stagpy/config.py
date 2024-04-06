@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
 import loam.parsers as lprs
-from loam import tools
 from loam.base import ConfigBase, Section, entry
 from loam.collections import MaybeEntry, TupleEntry
 from loam.tools import command_flag, path_entry, switch_opt
@@ -229,6 +228,13 @@ class Var(Section):
 
 
 @dataclass
+class ConfSection(Section):
+    """Config command."""
+
+    create: bool = command_flag("create config file")
+
+
+@dataclass
 class Config(ConfigBase):
     """StagPy configuration."""
 
@@ -243,4 +249,4 @@ class Config(ConfigBase):
     plates: Plates
     info: Info
     var: Var
-    config: tools.ConfigSection
+    config: ConfSection

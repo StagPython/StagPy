@@ -9,12 +9,11 @@ from math import ceil
 from shutil import get_terminal_size
 from textwrap import TextWrapper, indent
 
-import loam.tools
 import pandas
 
 from . import __version__, conf, phyvars, stagyydata
 from ._helpers import baredoc
-from .config import CONFIG_FILE
+from .config import CONFIG_LOCAL
 
 if typing.TYPE_CHECKING:
     from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, Union
@@ -200,11 +199,7 @@ def config_cmd() -> None:
     Other Parameters:
         conf.config
     """
-    if not (
-        conf.common.config
-        or conf.config.create
-        or conf.config.update
-        or conf.config.edit
-    ):
+    if conf.config.create:
+        conf.default_().to_file_(CONFIG_LOCAL)
+    else:
         config_pp(sec.name for sec in fields(conf))
-    loam.tools.config_cmd_handler(conf, conf.config, CONFIG_FILE)
