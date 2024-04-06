@@ -7,7 +7,6 @@ from copy import deepcopy
 
 import f90nml
 
-from .config import CONFIG_DIR
 from .error import NoParFileError
 
 if typing.TYPE_CHECKING:
@@ -15,7 +14,6 @@ if typing.TYPE_CHECKING:
 
     from f90nml.namelist import Namelist
 
-PAR_DFLT_FILE = CONFIG_DIR / "par"
 PAR_DEFAULT = f90nml.namelist.Namelist(
     {
         "switches": {
@@ -629,7 +627,6 @@ def readpar(par_file: Path, root: Path) -> Namelist:
     The namelist is populated in chronological order with:
 
     - :data:`PAR_DEFAULT`, an internal dictionary defining defaults;
-    - :data:`PAR_DFLT_FILE`, the global configuration par file;
     - ``par_name_defaultparameters`` if it is defined in ``par_file``;
     - ``par_file`` itself;
     - ``parameters.dat`` if it can be found in the StagYY output directories.
@@ -643,12 +640,6 @@ def readpar(par_file: Path, root: Path) -> Namelist:
         names of variables.
     """
     par_nml = deepcopy(PAR_DEFAULT)
-
-    if PAR_DFLT_FILE.is_file():
-        _enrich_with_par(par_nml, PAR_DFLT_FILE)
-    else:
-        PAR_DFLT_FILE.parent.mkdir(exist_ok=True)
-        f90nml.write(par_nml, str(PAR_DFLT_FILE))
 
     if not par_file.is_file():
         raise NoParFileError(par_file)
