@@ -14,11 +14,6 @@ config
 
       StagPy configuration directory.
 
-   .. data:: CONFIG_FILE
-      :annotation: = CONFIG_DIR / 'config.toml'
-
-      Path of global configuration file.
-
    .. data:: CONFIG_LOCAL
       :annotation: = pathlib.Path('.stagpy.toml')
 

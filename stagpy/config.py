@@ -22,7 +22,6 @@ _plots = TupleEntry.wrapping(
 
 HOME_DIR = Path.home()
 CONFIG_DIR = HOME_DIR / ".config" / "stagpy"
-CONFIG_FILE = CONFIG_DIR / "config.toml"
 CONFIG_LOCAL = Path(".stagpy.toml")
 
 

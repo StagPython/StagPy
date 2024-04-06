@@ -64,8 +64,6 @@ def _check_config() -> None:
     uptodate = verfile.is_file() and verfile.read_text() == __version__
     if not uptodate:
         verfile.write_text(__version__)
-    if not (uptodate and config.CONFIG_FILE.is_file()):
-        conf.to_file_(config.CONFIG_FILE)
     for stfile in _iter_styles():
         stfile_conf = config.CONFIG_DIR / stfile
         if not (uptodate and stfile_conf.is_file()):
@@ -91,7 +89,6 @@ except ImportError:
 conf = config.Config.default_()
 if not ISOLATED:
     _check_config()
-    conf.update_from_file_(config.CONFIG_FILE)
     if config.CONFIG_LOCAL.is_file():
         conf.update_from_file_(config.CONFIG_LOCAL)
 
