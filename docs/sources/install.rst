@@ -32,18 +32,22 @@ for more information about installing Python packages.
 Some setup
 ----------
 
-Run the following once to create your config file (in ``~/.config/stagpy/``)::
+Run the following to create a local config file (``.stagpy.toml``)::
 
     % stagpy config --create
 
 You can enable command-line auto-completion if you use either bash or zsh.
 
-Add this to your ``~/.bashrc`` file::
+For bash::
 
-    source ~/.config/stagpy/bash/stagpy.sh
+    # adapt path as appropriate for your system
+    % mkdir -p ~/.local/share/bash-completion/completions
+    % cd !$
+    % stagpy completions --bash
 
-Or this to your ``~/.zshrc`` file::
+For zsh, with ``fpath+=~/.zfunc`` in your ``.zshrc``::
 
-    source ~/.config/stagpy/zsh/_stagpy.sh
+    % cd ~/.zfunc
+    % stagpy completions --zsh
 
 Enjoy!

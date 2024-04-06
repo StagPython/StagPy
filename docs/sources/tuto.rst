@@ -112,13 +112,13 @@ use the :class:`~stagpy.stagyydata.StagyyData` class.
 Plotting style
 --------------
 
-StagPy defines two custom plotting styles for matplotlib, ``stagpy-paper`` (the
-default) and ``stagpy-slides``.  You can edit them to your convenience, they
-are in the ``~/.config/stagpy`` directory.  You can specify which style to use
-with ``plot.mplstyle``, available in the command line interface with the
-``--mplstyle`` option.  You can specify a space-separated list to combine
-several styles.  For example, if you want a dark-background figure with a
-font size adapted for slides, you can use the following command::
+For convenience, StagPy defines two custom plotting styles for matplotlib,
+``stagpy-paper`` (the default when using the CLI) and ``stagpy-slides``. You
+can specify which style to use with ``plot.mplstyle``, available in the command
+line interface with the ``--mplstyle`` option.  You can specify a
+comma-separated list to combine several styles.  For example, if you want a
+dark-background figure with a font size adapted for slides, you can use the
+following command::
 
-   % stagpy field --mplstyle='dark_background stagpy-slides'
+   % stagpy field --mplstyle='dark_background,stagpy-slides'
 

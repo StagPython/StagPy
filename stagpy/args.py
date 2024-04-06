@@ -5,27 +5,25 @@ from __future__ import annotations
 import importlib.resources as imlr
 import typing
 from inspect import isfunction
+from pathlib import Path
 from types import MappingProxyType
 
 import matplotlib.pyplot as plt
 import matplotlib.style as mpls
 from loam.cli import CLIManager, Subcmd
 
+from . import __doc__ as doc_module
 from . import (
-    ISOLATED,
     _styles,
     commands,
     conf,
-    config,
     field,
     plates,
     refstate,
     rprof,
     time_series,
 )
-from . import __doc__ as doc_module
 from ._helpers import baredoc
-from .config import CONFIG_DIR
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable, List, Optional
@@ -47,11 +45,6 @@ def _load_mplstyle() -> None:
     """Try to load conf.plot.mplstyle matplotlib style."""
     for style in conf.plot.mplstyle:
         style_fname = style + ".mplstyle"
-        if not ISOLATED:
-            stfile = config.CONFIG_DIR / style_fname
-            if stfile.is_file():
-                mpls.use(str(stfile))
-                continue
         # try packaged version
         if imlr.is_resource(_styles, style_fname):
             with imlr.path(_styles, style_fname) as stfile:
@@ -90,14 +83,24 @@ def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
     Returns:
         the function implementing the sub command to be executed.
     """
-    climan = CLIManager(conf, **SUB_CMDS)
 
-    bash_script = CONFIG_DIR / "bash" / "stagpy.sh"
-    bash_script.parent.mkdir(parents=True, exist_ok=True)
-    climan.bash_complete(bash_script, "stagpy")
-    zsh_script = CONFIG_DIR / "zsh" / "_stagpy.sh"
-    zsh_script.parent.mkdir(parents=True, exist_ok=True)
-    climan.zsh_complete(zsh_script, "stagpy", sourceable=True)
+    def compl_cmd() -> None:
+        if conf.completions.zsh:
+            filepath = Path("_stagpy.sh")
+            print(f"writing zsh completion file {filepath}")
+            climan.zsh_complete(filepath, "stagpy", sourceable=True)
+        elif conf.completions.bash:
+            filepath = Path("stagpy.sh")
+            print(f"writing bash completion file {filepath}")
+            climan.bash_complete(filepath, "stagpy")
+        else:
+            print("please choose a shell, `--help` for available options")
+
+    climan = CLIManager(
+        conf,
+        **SUB_CMDS,
+        completions=Subcmd("generate completion scripts", func=compl_cmd),
+    )
 
     cmd_args = climan.parse_args(arglist)
     sub_cmd = cmd_args.loam_sub_name

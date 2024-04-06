@@ -81,7 +81,7 @@ Parameters set in the ``par`` file are accessible through the
 a dictionary of dictionaries.  For example, to access the Rayleigh number from
 the ``refstate`` section of the par file, one can use
 ``sdat.par['refstate']['ra0']``. Parameters that are not set in the par file
-are given a default value according to the par file ``~/.config/stagpy/par``.
+are given a default value.
 
 Radial profiles
 ---------------

@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
 import loam.parsers as lprs
-from loam import tools
 from loam.base import ConfigBase, Section, entry
 from loam.collections import MaybeEntry, TupleEntry
 from loam.tools import command_flag, path_entry, switch_opt
@@ -21,9 +20,6 @@ _plots = TupleEntry.wrapping(
     TupleEntry.wrapping(TupleEntry(str), str_sep="."), str_sep="-"
 )
 
-HOME_DIR = Path.home()
-CONFIG_DIR = HOME_DIR / ".config" / "stagpy"
-CONFIG_FILE = CONFIG_DIR / "config.toml"
 CONFIG_LOCAL = Path(".stagpy.toml")
 
 
@@ -229,6 +225,21 @@ class Var(Section):
 
 
 @dataclass
+class ConfSection(Section):
+    """Config command."""
+
+    create: bool = command_flag("create config file")
+
+
+@dataclass
+class Completions(Section):
+    """Shell completion scripts."""
+
+    bash: bool = command_flag("generate bash completion")
+    zsh: bool = command_flag("generate zsh completion")
+
+
+@dataclass
 class Config(ConfigBase):
     """StagPy configuration."""
 
@@ -243,4 +254,5 @@ class Config(ConfigBase):
     plates: Plates
     info: Info
     var: Var
-    config: tools.ConfigSection
+    config: ConfSection
+    completions: Completions

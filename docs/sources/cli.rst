@@ -53,15 +53,5 @@ is displayed.
 
 .. option:: --create
 
-   Create a new config file from scratch. This is useful if your configuration
-   file is broken or you want to reset the modifications you made to your
-   configuration.
-
-.. option:: --update
-
-   Add missing entries to your config file (or create a new one if necessary).
-
-.. option:: --edit
-
-   Open your config file in ``vim``.
+   Create a new config file from scratch.
 
