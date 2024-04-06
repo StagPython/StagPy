@@ -19,9 +19,10 @@ from pathlib import Path
 
 import numpy as np
 
-from . import _helpers, _step, conf, error, parfile, phyvars, stagyyparsers
+from . import _helpers, _step, conf, error, phyvars, stagyyparsers
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
+from .parfile import StagyyPar
 from .stagyyparsers import FieldXmf, TracersXmf
 
 if typing.TYPE_CHECKING:
@@ -40,7 +41,6 @@ if typing.TYPE_CHECKING:
         Union,
     )
 
-    from f90nml.namelist import Namelist
     from numpy import ndarray
     from pandas import DataFrame, Series
 
@@ -83,38 +83,42 @@ class _Scales:
     def __init__(self, sdat: StagyyData):
         self._sdat = sdat
 
+    @property
+    def par(self) -> StagyyPar:
+        return self._sdat.par
+
     @cached_property
     def length(self) -> float:
         """Length in m."""
-        thick = self._sdat.par["geometry"]["d_dimensional"]
-        if self._sdat.par["boundaries"]["air_layer"]:
-            thick += self._sdat.par["boundaries"]["air_thickness"]
+        thick = self.par.get("geometry", "d_dimensional", 2890e3)
+        if self.par.get("boundaries", "air_layer", False):
+            thick += self.par.nml["boundaries"]["air_thickness"]
         return thick
 
     @property
     def temperature(self) -> float:
         """Temperature in K."""
-        return self._sdat.par["refstate"]["deltaT_dimensional"]
+        return self.par.nml["refstate"]["deltaT_dimensional"]
 
     @property
     def density(self) -> float:
         """Density in kg/m3."""
-        return self._sdat.par["refstate"]["dens_dimensional"]
+        return self.par.nml["refstate"]["dens_dimensional"]
 
     @property
     def th_cond(self) -> float:
         """Thermal conductivity in W/(m.K)."""
-        return self._sdat.par["refstate"]["tcond_dimensional"]
+        return self.par.nml["refstate"]["tcond_dimensional"]
 
     @property
     def sp_heat(self) -> float:
         """Specific heat capacity in J/(kg.K)."""
-        return self._sdat.par["refstate"]["Cp_dimensional"]
+        return self.par.nml["refstate"]["Cp_dimensional"]
 
     @property
     def dyn_visc(self) -> float:
         """Dynamic viscosity in Pa.s."""
-        return self._sdat.par["viscosity"]["eta0"]
+        return self.par.nml["viscosity"]["eta0"]
 
     @property
     def th_diff(self) -> float:
@@ -547,9 +551,7 @@ class _Snaps(_Steps):
                 length = isnap
                 self._all_isteps_known = True
             if length < 0:
-                out_stem = re.escape(
-                    Path(self.sdat.par["ioin"]["output_file_stem"] + "_").name[:-1]
-                )
+                out_stem = re.escape(Path(self.sdat.par.legacy_output("_")).name[:-1])
                 rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
                 fstems = set(fstem for fstem in phyvars.FIELD_FILES)
                 for fname in self.sdat._files:
@@ -763,7 +765,6 @@ class StagyyData:
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"
-        self._par = parfile.readpar(self.parpath, self.path)
         self.scales = _Scales(self)
         self.refstate = _Refstate(self)
         self.tseries = _Tseries(self)
@@ -792,8 +793,8 @@ class StagyyData:
     @cached_property
     def hdf5(self) -> Optional[Path]:
         """Path of output hdf5 folder if relevant, None otherwise."""
-        h5_folder = self.path / self.par["ioin"]["hdf5_output_folder"]
-        return h5_folder if (h5_folder / "Data.xmf").is_file() else None
+        h5xmf = self.par.h5_output("Data.xmf")
+        return h5xmf.parent if h5xmf.is_file() else None
 
     @cached_property
     def _dataxmf(self) -> FieldXmf:
@@ -823,14 +824,10 @@ class StagyyData:
             path=self.hdf5 / "DataTracers.xmf",
         )
 
-    @property
-    def par(self) -> Namelist:
-        """Content of par file.
-
-        This is a :class:`f90nml.namelist.Namelist`, the first key being
-        namelists and the second key the parameter name.
-        """
-        return self._par
+    @cached_property
+    def par(self) -> StagyyPar:
+        """Content of par file."""
+        return StagyyPar.from_main_par(self.parpath)
 
     @cached_property
     def _rprof_and_times(self) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
@@ -852,7 +849,7 @@ class StagyyData:
     @cached_property
     def _files(self) -> Set[Path]:
         """Set of found binary files output by StagYY."""
-        out_stem = Path(self.par["ioin"]["output_file_stem"] + "_")
+        out_stem = self.par.legacy_output("_")
         out_dir = self.path / out_stem.parent
         if out_dir.is_dir():
             return set(out_dir.iterdir())
@@ -913,7 +910,7 @@ class StagyyData:
                 always 1.
         """
         if (
-            self.par["switches"]["dimensional_units"]
+            self.par.get("switches", "dimensional_units", True)
             or not conf.scaling.dimensional
             or unit == "1"
         ):
@@ -954,7 +951,7 @@ class StagyyData:
         if not force_legacy and self.hdf5:
             fpath = self.hdf5 / fname
         else:
-            fpath = self.par["ioin"]["output_file_stem"] + "_" + fname
+            fpath = self.par.legacy_output(f"_{fname}")
             fpath = self.path / fpath
         return fpath
 

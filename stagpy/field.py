@@ -217,8 +217,8 @@ def plot_scalar(
     else:
         fig = axis.get_figure()  # type: ignore
 
-    if step.sdat.par["magma_oceans_in"]["evolving_magma_oceans"]:
-        rcmb = step.sdat.par["geometry"]["r_cmb"]
+    if step.sdat.par.get("magma_oceans_in", "evolving_magma_oceans", False):
+        rcmb = step.sdat.par.nml["geometry"]["r_cmb"]
         xmax = rcmb + 1
         ymax = xmax
         xmin = -xmax

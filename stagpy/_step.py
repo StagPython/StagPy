@@ -58,9 +58,13 @@ class _Geometry:
 
     def _scale_radius_mo(self, radius: ndarray) -> ndarray:
         """Rescale radius for evolving MO runs."""
-        if self._step.sdat.par["magma_oceans_in"]["evolving_magma_oceans"]:
+        if self._step.sdat.par.get("magma_oceans_in", "evolving_magma_oceans", False):
             return self._header["mo_thick_sol"] * (radius + self._header["mo_lambda"])
         return radius
+
+    @property
+    def aspect_ratio(self) -> tuple[float, float]:
+        return self._step.sdat.par.nml["geometry"]["aspect_ratio"]
 
     @cached_property
     def nttot(self) -> int:
@@ -127,10 +131,10 @@ class _Geometry:
             elif self.curvilinear:
                 # should take theta_position/theta_center into account
                 tmin = 0
-                tmax = min(np.pi, self._step.sdat.par["geometry"]["aspect_ratio"][0])
+                tmax = min(np.pi, self.aspect_ratio[0])
             else:
                 tmin = 0
-                tmax = self._step.sdat.par["geometry"]["aspect_ratio"][0]
+                tmax = self.aspect_ratio[0]
             return np.linspace(tmin, tmax, self.nttot + 1)
         # twoD YZ
         center = np.pi / 2 if self.curvilinear else 0
@@ -150,12 +154,10 @@ class _Geometry:
                 pmin, pmax = -3 * np.pi / 4, 3 * np.pi / 4
             elif self.curvilinear:
                 pmin = 0
-                pmax = min(
-                    2 * np.pi, self._step.sdat.par["geometry"]["aspect_ratio"][1]
-                )
+                pmax = min(2 * np.pi, self.aspect_ratio[1])
             else:
                 pmin = 0
-                pmax = self._step.sdat.par["geometry"]["aspect_ratio"][1]
+                pmax = self.aspect_ratio[1]
             return np.linspace(pmin, pmax, self.nptot + 1)
         # twoD YZ
         d_p = (self.t_walls[1] - self.t_walls[0]) / 2
@@ -198,7 +200,7 @@ class _Geometry:
 
     def _init_shape(self) -> None:
         """Determine shape of geometry."""
-        shape = self._step.sdat.par["geometry"]["shape"].lower()
+        shape = self._step.sdat.par.nml["geometry"]["shape"].lower()
         aspect = self._header["aspect"]
         if self._header["rcmb"] >= 0:
             # curvilinear
@@ -556,13 +558,13 @@ class _Rprofs:
         try:
             rcmb = step.geom.rcmb
         except error.NoGeomError:
-            rcmb = step.sdat.par["geometry"]["r_cmb"]
-            if step.sdat.par["geometry"]["shape"].lower() == "cartesian":
+            rcmb = step.sdat.par.get("geometry", "r_cmb", 3480e3)
+            if step.sdat.par.nml["geometry"]["shape"].lower() == "cartesian":
                 rcmb = 0
         rbot = max(rcmb, 0)
         thickness = (
             step.sdat.scales.length
-            if step.sdat.par["switches"]["dimensional_units"]
+            if step.sdat.par.get("switches", "dimensional_units", True)
             else 1
         )
         return rbot, rbot + thickness

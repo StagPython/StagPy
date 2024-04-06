@@ -267,9 +267,10 @@ def init_c_overturn(step: Step) -> Rprof:
         the composition and radius.
     """
     rbot, rtop = step.rprofs.bounds
-    xieut = step.sdat.par["tracersin"]["fe_eut"]
-    k_fe = step.sdat.par["tracersin"]["k_fe"]
-    xi0l = step.sdat.par["tracersin"]["fe_cont"]
+    par = step.sdat.par
+    xieut = par.nml["tracersin"]["fe_eut"]
+    k_fe = par.nml["tracersin"]["k_fe"]
+    xi0l = par.nml["tracersin"]["fe_cont"]
     xi0s = k_fe * xi0l
     xired = xi0l / xieut
     rsup = (rtop**3 - xired ** (1 / (1 - k_fe)) * (rtop**3 - rbot**3)) ** (1 / 3)

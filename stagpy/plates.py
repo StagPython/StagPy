@@ -59,7 +59,7 @@ def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> Tuple[ndarray, ndarr
     dvphi_saturated = np.copy(dvphi)
     max_dvphi = np.amin(dvphi) * 0.2
     dvphi_saturated[dvphi > max_dvphi] = max_dvphi
-    trench_span = 15 if snap.sdat.par["boundaries"]["air_layer"] else 10
+    trench_span = 15 if snap.sdat.par.get("boundaries", "air_layer", False) else 10
     itrenches = argrelmin(dvphi_saturated, order=trench_span, mode="wrap")[0]
 
     # finding ridges
@@ -145,8 +145,8 @@ def _plot_plate_limits_field(axis: Axes, snap: Step) -> None:
 
 def _isurf(snap: Step) -> int:
     """Return index of surface accounting for air layer."""
-    if snap.sdat.par["boundaries"]["air_layer"]:
-        dsa = snap.sdat.par["boundaries"]["air_thickness"]
+    if snap.sdat.par.get("boundaries", "air_layer", False):
+        dsa = snap.sdat.par.nml["boundaries"]["air_thickness"]
         # Remove arbitrary margin to be below the surface.
         # Should check if in the thermal boundary layer.
         rtot = snap.geom.r_walls[-1]
@@ -188,24 +188,20 @@ def _continents_location(snap: Step, at_surface: bool = True) -> ndarray:
     """
     icont: Union[int, slice]
     if at_surface:
-        if snap.sdat.par["boundaries"]["air_layer"]:
+        if snap.sdat.par.get("boundaries", "air_layer", False):
             icont = _isurf(snap) - 6
         else:
             icont = -1
     else:
         icont = slice(None)
     csurf = snap.fields["c"].values[0, :, icont, 0]
-    if (
-        snap.sdat.par["boundaries"]["air_layer"]
-        and not snap.sdat.par["continents"]["proterozoic_belts"]
-    ):
+    air_layer = snap.sdat.par.get("boundaries", "air_layer", False)
+    prot_belts = snap.sdat.par.get("continents", "proterozoic_belts", False)
+    if air_layer and not prot_belts:
         return (csurf >= 3) & (csurf <= 4)
-    elif (
-        snap.sdat.par["boundaries"]["air_layer"]
-        and snap.sdat.par["continents"]["proterozoic_belts"]
-    ):
+    elif air_layer and prot_belts:
         return (csurf >= 3) & (csurf <= 5)
-    elif snap.sdat.par["tracersin"]["tracers_weakcrust"]:
+    elif snap.sdat.par.get("tracersin", "tracers_weakcrust", False):
         return csurf >= 3
     return csurf >= 2
 
