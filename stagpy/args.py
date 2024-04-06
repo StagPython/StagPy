@@ -11,19 +11,17 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mpls
 from loam.cli import CLIManager, Subcmd
 
+from . import __doc__ as doc_module
 from . import (
-    ISOLATED,
     _styles,
     commands,
     conf,
-    config,
     field,
     plates,
     refstate,
     rprof,
     time_series,
 )
-from . import __doc__ as doc_module
 from ._helpers import baredoc
 from .config import CONFIG_DIR
 
@@ -47,11 +45,6 @@ def _load_mplstyle() -> None:
     """Try to load conf.plot.mplstyle matplotlib style."""
     for style in conf.plot.mplstyle:
         style_fname = style + ".mplstyle"
-        if not ISOLATED:
-            stfile = config.CONFIG_DIR / style_fname
-            if stfile.is_file():
-                mpls.use(str(stfile))
-                continue
         # try packaged version
         if imlr.is_resource(_styles, style_fname):
             with imlr.path(_styles, style_fname) as stfile:
