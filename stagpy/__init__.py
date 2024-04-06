@@ -4,9 +4,6 @@ StagPy is both a CLI tool and a powerful Python library. See the
 documentation at
 https://stagpy.readthedocs.io/en/stable/
 
-If the environment variable STAGPY_ISOLATED is set to a truthy value, StagPy
-does not attempt to read any configuration file (including mplstyle).
-
 When using the CLI interface, if the environment variable STAGPY_DEBUG is set
 to a truthy value, warnings are issued normally and StagpyError are raised.
 Otherwise, warnings are ignored and only a short form of encountered
@@ -36,7 +33,6 @@ def _env(var: str) -> bool:
 
 
 DEBUG = _env("STAGPY_DEBUG")
-ISOLATED = _env("STAGPY_ISOLATED")
 
 
 def sigint_handler(*_: Any) -> NoReturn:
@@ -65,9 +61,8 @@ except ImportError:
     __version__ = "unknown"
 
 conf = config.Config.default_()
-if not ISOLATED:
-    if config.CONFIG_LOCAL.is_file():
-        conf.update_from_file_(config.CONFIG_LOCAL)
+if config.CONFIG_LOCAL.is_file():
+    conf.update_from_file_(config.CONFIG_LOCAL)
 
 if not DEBUG:
     signal.signal(signal.SIGINT, _PREV_INT)
