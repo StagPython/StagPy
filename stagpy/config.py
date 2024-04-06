@@ -20,8 +20,6 @@ _plots = TupleEntry.wrapping(
     TupleEntry.wrapping(TupleEntry(str), str_sep="."), str_sep="-"
 )
 
-HOME_DIR = Path.home()
-CONFIG_DIR = HOME_DIR / ".config" / "stagpy"
 CONFIG_LOCAL = Path(".stagpy.toml")
 
 
