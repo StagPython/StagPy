@@ -77,11 +77,10 @@ Parameters file
 
 Parameters set in the ``par`` file are accessible through the
 :attr:`~stagpy.stagyydata.StagyyData.par` attribute of a
-:class:`~stagpy.stagyydata.StagyyData` instance.  ``sdat.par`` is organized as
-a dictionary of dictionaries.  For example, to access the Rayleigh number from
+:class:`~stagpy.stagyydata.StagyyData` instance.
+For example, to access the Rayleigh number from
 the ``refstate`` section of the par file, one can use
-``sdat.par['refstate']['ra0']``. Parameters that are not set in the par file
-are given a default value.
+``sdat.par.nml['refstate']['ra0']``.
 
 Radial profiles
 ---------------
