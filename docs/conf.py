@@ -42,6 +42,10 @@ root_doc = "index"
 
 autodoc_member_order = "bysource"
 autoclass_content = "class"
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
