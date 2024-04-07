@@ -11,13 +11,14 @@ import numpy as np
 from matplotlib import colors
 from scipy.signal import argrelmax, argrelmin
 
-from . import _helpers, conf, error, field, phyvars
+from . import _helpers, error, field, phyvars
 from ._helpers import saveplot
+from .config import Config
 from .datatypes import Field
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence, TextIO, Tuple, Union
+    from typing import Optional, Sequence, TextIO, Tuple, Union
 
     from matplotlib.axes import Axes
     from numpy import ndarray
@@ -120,7 +121,7 @@ def _annot_pos(
     return p_beg, p_end
 
 
-def _plot_plate_limits_field(axis: Axes, snap: Step) -> None:
+def _plot_plate_limits_field(axis: Axes, snap: Step, conf: Config) -> None:
     """Plot arrows designating ridges and trenches in 2D field plots."""
     itrenches, iridges = detect_plates(snap, conf.plates.vzratio)
     for itrench in itrenches:
@@ -206,7 +207,11 @@ def _continents_location(snap: Step, at_surface: bool = True) -> ndarray:
     return csurf >= 2
 
 
-def plot_at_surface(snap: Step, names: Sequence[Sequence[Sequence[str]]]) -> None:
+def plot_at_surface(
+    snap: Step,
+    names: Sequence[Sequence[Sequence[str]]],
+    conf: Optional[Config],
+) -> None:
     """Plot surface diagnostics.
 
     Args:
@@ -215,6 +220,8 @@ def plot_at_surface(snap: Step, names: Sequence[Sequence[Sequence[str]]]) -> Non
             figures, plots and subplots.  Surface diagnotics can be valid
             surface field names, field names, or `"dv2"` which is d(vphi)/dphi.
     """
+    if conf is None:
+        conf = Config.default_()
     for vfig in names:
         fig, axes = plt.subplots(
             nrows=len(vfig), sharex=True, figsize=(12, 2 * len(vfig))
@@ -258,7 +265,9 @@ def plot_at_surface(snap: Step, names: Sequence[Sequence[Sequence[str]]]) -> Non
         saveplot(fig, fname, snap.isnap)
 
 
-def _write_trench_diagnostics(step: Step, vrms_surf: float, fid: TextIO) -> None:
+def _write_trench_diagnostics(
+    step: Step, vrms_surf: float, fid: TextIO, conf: Config
+) -> None:
     """Print out some trench diagnostics."""
     assert step.isnap is not None
     itrenches, _ = detect_plates(step, conf.plates.vzratio)
@@ -319,7 +328,11 @@ def _write_trench_diagnostics(step: Step, vrms_surf: float, fid: TextIO) -> None
         )
 
 
-def plot_scalar_field(snap: Step, fieldname: str) -> None:
+def plot_scalar_field(
+    snap: Step,
+    fieldname: str,
+    conf: Optional[Config] = None,
+) -> None:
     """Plot scalar field with plate information.
 
     Args:
@@ -327,6 +340,8 @@ def plot_scalar_field(snap: Step, fieldname: str) -> None:
         fieldname: name of the field that should be decorated with plate
             informations.
     """
+    if conf is None:
+        conf = Config.default_()
     fig, axis, _, _ = field.plot_scalar(snap, fieldname)
 
     if conf.plates.continents:
@@ -349,7 +364,7 @@ def plot_scalar_field(snap: Step, fieldname: str) -> None:
     field.plot_vec(axis, snap, "sx" if conf.plates.stress else "v")
 
     # Put arrow where ridges and trenches are
-    _plot_plate_limits_field(axis, snap)
+    _plot_plate_limits_field(axis, snap, conf)
 
     saveplot(fig, f"plates_{fieldname}", snap.isnap, close=conf.plates.zoom is None)
 
@@ -381,6 +396,8 @@ def cmd() -> None:
         conf.plot
         conf.core
     """
+    from . import conf
+
     sdat = StagyyData(conf.core.path)
 
     isurf = _isurf(next(iter(sdat.walk)))
@@ -398,9 +415,9 @@ def cmd() -> None:
 
         for step in sdat.walk.filter(fields=["T"]):
             # could check other fields too
-            _write_trench_diagnostics(step, vrms_surf, fid)
-            plot_at_surface(step, conf.plates.plot)
-            plot_scalar_field(step, conf.plates.field)
+            _write_trench_diagnostics(step, vrms_surf, fid, conf)
+            plot_at_surface(step, conf.plates.plot, conf)
+            plot_scalar_field(step, conf.plates.field, conf)
             if conf.plates.nbplates:
                 time.append(step.timeinfo.loc["t"])
                 itr, ird = detect_plates(step, conf.plates.vzratio)
