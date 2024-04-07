@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from . import _helpers, conf
+from . import _helpers
+from .config import Config
 from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData
 
@@ -18,7 +19,7 @@ if typing.TYPE_CHECKING:
     from pandas import DataFrame
 
 
-def _collect_marks(sdat: StagyyData) -> List[float]:
+def _collect_marks(sdat: StagyyData, conf: Config) -> List[float]:
     """Concatenate mark* config variable."""
     times = list(conf.time.marktimes)
     times.extend(step.timeinfo["t"] for step in sdat.snaps[conf.time.marksnaps])
@@ -27,7 +28,9 @@ def _collect_marks(sdat: StagyyData) -> List[float]:
 
 
 def plot_time_series(
-    sdat: StagyyData, names: Sequence[Sequence[Sequence[str]]]
+    sdat: StagyyData,
+    names: Sequence[Sequence[Sequence[str]]],
+    conf: Optional[Config] = None,
 ) -> None:
     """Plot requested time series.
 
@@ -39,7 +42,9 @@ def plot_time_series(
         conf.time.tstart: the starting time.
         conf.time.tend: the ending time.
     """
-    time_marks = _collect_marks(sdat)
+    if conf is None:
+        conf = Config.default_()
+    time_marks = _collect_marks(sdat, conf)
     for vfig in names:
         tstart = conf.time.tstart
         tend = conf.time.tend
@@ -132,6 +137,8 @@ def cmd() -> None:
         conf.time
         conf.core
     """
+    from . import conf
+
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return
@@ -144,7 +151,7 @@ def cmd() -> None:
         t_f = sdat.tseries.time[-1]
         conf.time.tstart = t_0 * conf.time.fraction + t_f * (1 - conf.time.fraction)
 
-    plot_time_series(sdat, conf.time.plot)
+    plot_time_series(sdat, conf.time.plot, conf)
 
     if conf.time.compstat:
         stats = compstat(
