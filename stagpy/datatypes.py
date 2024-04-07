@@ -13,10 +13,8 @@ if typing.TYPE_CHECKING:
 class Varf:
     """Metadata of scalar field.
 
-    Attributes:
-        description: short description of the variable.
-        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-            dimensional values.
+    `dim` is the dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+    dimensional values.
     """
 
     description: str
@@ -25,12 +23,7 @@ class Varf:
 
 @dataclass(frozen=True)
 class Field:
-    """Scalar field and associated metadata.
-
-    Attributes:
-        values: the field itself.
-        meta: the metadata of the field.
-    """
+    """Scalar field and associated metadata."""
 
     values: NDArray
     meta: Varf
@@ -40,13 +33,8 @@ class Field:
 class Varr:
     """Metadata of radial profiles.
 
-    Attributes:
-        description: short description of the variable if it is output by
-            StagYY, function to compute it otherwise.
-        kind: shorter description to group similar variables under the same
-            label.
-        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-            dimensional values.
+    `dim` is the dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+    dimensional values.
     """
 
     description: str
@@ -56,13 +44,7 @@ class Varr:
 
 @dataclass(frozen=True)
 class Rprof:
-    """Radial profile with associated radius and metadata.
-
-    Attributes:
-        values: the profile itself.
-        rad: the radial position.
-        meta: the metadata of the profile.
-    """
+    """Radial profile with associated radius and metadata."""
 
     values: NDArray
     rad: NDArray
@@ -73,13 +55,8 @@ class Rprof:
 class Vart:
     """Metadata of time series.
 
-    Attributes:
-        description: short description of the variable if it is output by
-            StagYY, function to compute it otherwise.
-        kind: shorter description to group similar variables under the same
-            label.
-        dim: dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-            dimensional values.
+    `dim` is the dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
+    dimensional values.
     """
 
     description: str
@@ -89,13 +66,7 @@ class Vart:
 
 @dataclass(frozen=True)
 class Tseries:
-    """A time series with associated time and metadata.
-
-    Attributes:
-        values: the series itself.
-        time: the time vector.
-        meta: the metadata of the series.
-    """
+    """A time series with associated time and metadata."""
 
     values: NDArray
     time: NDArray
