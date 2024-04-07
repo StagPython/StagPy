@@ -6,16 +6,21 @@ import typing
 
 import matplotlib.pyplot as plt
 
-from . import _helpers, conf
+from . import _helpers
+from .config import Config
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence
+    from typing import Optional, Sequence
 
     from ._step import Step, _Rprofs
 
 
-def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> None:
+def plot_rprofs(
+    rprofs: _Rprofs,
+    names: Sequence[Sequence[Sequence[str]]],
+    conf: Optional[Config] = None,
+) -> None:
     """Plot requested radial profiles.
 
     Args:
@@ -23,6 +28,8 @@ def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> No
             :attr:`_StepsView.rprofs_averaged`.
         names: profile names organized by figures, plots and subplots.
     """
+    if conf is None:
+        conf = Config.default_()
     stepstr = rprofs.stepstr
     sdat = rprofs.step.sdat
 
@@ -97,6 +104,8 @@ def cmd() -> None:
         conf.rprof
         conf.core
     """
+    from . import conf
+
     sdat = StagyyData(conf.core.path)
 
     if conf.rprof.grid:
@@ -104,7 +113,7 @@ def cmd() -> None:
             plot_grid(step)
 
     if conf.rprof.average:
-        plot_rprofs(sdat.walk.rprofs_averaged, conf.rprof.plot)
+        plot_rprofs(sdat.walk.rprofs_averaged, conf.rprof.plot, conf)
     else:
         for step in sdat.walk.filter(rprofs=True):
-            plot_rprofs(step.rprofs, conf.rprof.plot)
+            plot_rprofs(step.rprofs, conf.rprof.plot, conf)
