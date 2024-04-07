@@ -89,7 +89,7 @@ class Scaling(Section):
 
 
 @dataclass
-class Field(Section):
+class FieldSec(Section):
     """Field command."""
 
     plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
@@ -125,7 +125,7 @@ class Field(Section):
 
 
 @dataclass
-class Rprof(Section):
+class RprofSec(Section):
     """Rprof command."""
 
     plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
@@ -247,8 +247,8 @@ class Config(ConfigBase):
     core: Core
     plot: Plot
     scaling: Scaling
-    field: Field
-    rprof: Rprof
+    field: FieldSec
+    rprof: RprofSec
     time: Time
     refstate: Refstate
     plates: Plates
