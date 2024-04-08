@@ -78,7 +78,6 @@ class Scaling(Section):
 
     yearins: float = entry(val=3.154e7, in_cli=False, doc="year in seconds")
     ttransit: float = entry(val=1.78e15, in_cli=False, doc="transit time in My")
-    dimensional: bool = switch_opt(False, None, "use dimensional units")
     time_in_y: bool = switch_opt(True, None, "dimensional time is in year")
     vel_in_cmpy: bool = switch_opt(True, None, "dimensional velocity is in cm/year")
     factors: Dict[str, str] = entry(

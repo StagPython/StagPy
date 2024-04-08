@@ -9,8 +9,6 @@ from math import ceil
 from shutil import get_terminal_size
 from textwrap import TextWrapper, indent
 
-import pandas
-
 from . import __version__, phyvars, stagyydata
 from ._helpers import baredoc
 from .config import CONFIG_LOCAL, Config
@@ -55,24 +53,6 @@ def info_cmd() -> None:
         else:
             print()
         series = step.timeinfo.loc[list(conf.info.output)]
-        if conf.scaling.dimensional:
-            series = series.copy()
-            dimensions = []
-            for var, val in series.iteritems():
-                meta = phyvars.TIME.get(var)
-                dim = meta.dim if meta is not None else "1"
-                if dim == "1":
-                    dimensions.append("")
-                else:
-                    series[var], dim = sdat.scale(val, dim)
-                    dimensions.append(dim)
-            series = pandas.concat(
-                [
-                    series,
-                    pandas.Series(data=dimensions, index=series.index, name="dim"),
-                ],
-                axis=1,
-            )  # type: ignore
         print(indent(series.to_string(header=False), "  "))
         print()
 

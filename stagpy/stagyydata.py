@@ -142,8 +142,7 @@ class _Tseries:
 
     :class:`_Tseries` implements the getitem mechanism.  Keys are series names
     defined in :data:`stagpy.phyvars.TIME[_EXTRA]`.  Items are
-    :class:`stagpy.datatypes.Tseries` instances.  Note that series are
-    automatically scaled if conf.scaling.dimensional is True.
+    :class:`stagpy.datatypes.Tseries` instances.
 
     Attributes:
         sdat: the :class:`StagyyData` instance owning the :class:`_Tseries`
@@ -194,8 +193,6 @@ class _Tseries:
             meta = tseries.meta
         else:
             raise error.UnknownTimeVarError(name)
-        series, _ = self.sdat.scale(series, meta.dim)
-        time, _ = self.sdat.scale(time, "s")
         return Tseries(series, time, meta)
 
     def tslice(
@@ -818,15 +815,8 @@ class StagyyData:
             unit: the dimension of data as defined in phyvars.
         Return:
             scaled quantity and unit string.
-        Other Parameters:
-            conf.scaling.dimensional: if set to False (default), the factor is
-                always 1.
         """
-        if (
-            self.par.get("switches", "dimensional_units", True)
-            or not conf.scaling.dimensional
-            or unit == "1"
-        ):
+        if self.par.get("switches", "dimensional_units", True) or unit == "1":
             return data, ""
         scaling = phyvars.SCALES[unit](self.scales)
         factor = conf.scaling.factors.get(unit, " ")

@@ -471,8 +471,7 @@ class _Rprofs:
 
     :class:`_Rprofs` implements the getitem mechanism.  Keys are profile names
     defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  Items are
-    :class:`stagpy.datatypes.Rprof` instances.  Note that
-    profiles are automatically scaled if conf.scaling.dimensional is True.
+    :class:`stagpy.datatypes.Rprof` instances.
 
     Attributes:
         step: the :class:`Step` owning the :class:`_Rprofs` instance
@@ -518,8 +517,6 @@ class _Rprofs:
             meta = rpf.meta
         else:
             raise error.UnknownRprofVarError(name)
-        rprof, _ = step.sdat.scale(rprof, meta.dim)
-        rad, _ = step.sdat.scale(rad, "m")
 
         return Rprof(rprof, rad, meta)
 

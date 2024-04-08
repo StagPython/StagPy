@@ -180,9 +180,7 @@ def plot_scalar(
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
         var: the scalar field name.
         field: if not None, it is plotted instead of step.fields[var].  This is
-            useful to plot a masked or rescaled array.  Note that if
-            conf.scaling.dimensional is True, this field will be scaled
-            accordingly.
+            useful to plot a masked or rescaled array.
         axis: the :class:`matplotlib.axes.Axes` object where the field should
             be plotted.  If set to None, a new figure with one subplot is
             created.
@@ -216,8 +214,6 @@ def plot_scalar(
     if conf.field.shift:
         fld = np.roll(fld, conf.field.shift, axis=0)
 
-    fld, unit = step.sdat.scale(fld, meta.dim)
-
     if axis is None:
         fig, axis = plt.subplots(ncols=1)
     else:
@@ -250,11 +246,7 @@ def plot_scalar(
     if conf.field.colorbar:
         cax = make_axes_locatable(axis).append_axes("right", size="3%", pad=0.15)
         cbar = plt.colorbar(surf, cax=cax)
-        cbar.set_label(
-            meta.description
-            + (" pert." if conf.field.perturbation else "")
-            + (f" ({unit})" if unit else "")
-        )
+        cbar.set_label(meta.description + (" pert." if conf.field.perturbation else ""))
     if step.geom.spherical or conf.plot.ratio is None:
         axis.set_aspect("equal")
         axis.set_axis_off()
@@ -283,9 +275,7 @@ def plot_iso(
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
         var: the scalar field name.
         field: if not None, it is plotted instead of step.fields[var].  This is
-            useful to plot a masked or rescaled array.  Note that if
-            conf.scaling.dimensional is True, this field will be scaled
-            accordingly.
+            useful to plot a masked or rescaled array.
         extra: options that will be passed on to
             :func:`matplotlib.axes.Axes.contour`.
     """
@@ -352,8 +342,7 @@ def _findminmax(
     for step in sdat.walk.filter(snap=True):
         for var in sovs:
             if var in step.fields:
-                field = step.fields[var]
-                vals, _ = sdat.scale(field.values, field.meta.dim)
+                vals = step.fields[var].values
                 if var in minmax:
                     minmax[var] = (
                         min(minmax[var][0], np.nanmin(vals)),
@@ -401,10 +390,10 @@ def cmd() -> None:
                     elif valid_field_var(var[1] + "1"):
                         plot_vec(axis, step, var[1], conf=conf)
             if conf.field.timelabel:
-                time, unit = sdat.scale(step.timeinfo["t"], "s")
+                time = step.timeinfo["t"]
                 time = _helpers.scilabel(time)
                 axes[0, 0].text(
-                    0.02, 1.02, f"$t={time}$ {unit}", transform=axes[0, 0].transAxes
+                    0.02, 1.02, f"$t={time}$", transform=axes[0, 0].transAxes
                 )
             oname = "_".join(chain.from_iterable(vfig))
             plt.tight_layout(w_pad=3)

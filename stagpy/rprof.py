@@ -31,7 +31,6 @@ def plot_rprofs(
     if conf is None:
         conf = Config.default_()
     stepstr = rprofs.stepstr
-    sdat = rprofs.step.sdat
 
     for vfig in names:
         fig, axes = plt.subplots(
@@ -48,7 +47,7 @@ def plot_rprofs(
                 rad = rpf.rad
                 meta = rpf.meta
                 if conf.rprof.depth:
-                    rad = sdat.scale(rprofs.bounds[1], "m")[0] - rad
+                    rad = rprofs.bounds[1] - rad
                 axes[iplt].plot(rprof, rad, conf.rprof.style, label=meta.description)
                 if xlabel is None:
                     xlabel = meta.kind
@@ -57,8 +56,6 @@ def plot_rprofs(
             if ivar == 0:
                 xlabel = meta.description
             if xlabel:
-                _, unit = sdat.scale(1, meta.dim)
-                xlabel += f" ({unit})" if unit else ""
                 axes[iplt].set_xlabel(xlabel)
             if vplt[0][:3] == "eta":  # list of log variables
                 axes[iplt].set_xscale("log")
@@ -68,8 +65,6 @@ def plot_rprofs(
         if conf.rprof.depth:
             axes[0].invert_yaxis()
         ylabel = "Depth" if conf.rprof.depth else "Radius"
-        _, unit = sdat.scale(1, "m")
-        ylabel += f" ({unit})" if unit else ""
         axes[0].set_ylabel(ylabel)
         _helpers.saveplot(fig, fname + stepstr)
 
@@ -84,14 +79,11 @@ def plot_grid(step: Step) -> None:
             instance.
     """
     drprof = step.rprofs["dr"]
-    _, unit = step.sdat.scale(1, "m")
-    if unit:
-        unit = f" ({unit})"
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(drprof.rad, "-ko")
-    ax1.set_ylabel("$r$" + unit)
+    ax1.set_ylabel("$r$")
     ax2.plot(drprof.values, "-ko")
-    ax2.set_ylabel("$dr$" + unit)
+    ax2.set_ylabel("$dr$")
     ax2.set_xlim([-0.5, len(drprof.rad) - 0.5])
     ax2.set_xlabel("Cell number")
     _helpers.saveplot(fig, "grid", step.istep)

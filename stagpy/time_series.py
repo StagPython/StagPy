@@ -79,9 +79,6 @@ def plot_time_series(
             if ivar == 0:
                 ylabel = tseries.meta.description
             if ylabel:
-                _, unit = sdat.scale(1, tseries.meta.dim)
-                if unit:
-                    ylabel += f" ({unit})"
                 axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == "eta":  # list of log variables
                 axes[iplt].set_yscale("log")
@@ -91,10 +88,7 @@ def plot_time_series(
             axes[iplt].tick_params()
             for time_mark in time_marks:
                 axes[iplt].axvline(time_mark, color="black", linestyle="--")
-        _, unit = sdat.scale(1, "s")
-        if unit:
-            unit = f" ({unit})"
-        axes[-1].set_xlabel("Time" + unit)
+        axes[-1].set_xlabel("Time")
         axes[-1].set_xlim(tstart, tend)
         axes[-1].tick_params()
         _helpers.saveplot(fig, "_".join(fname))
