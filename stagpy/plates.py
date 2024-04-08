@@ -342,7 +342,7 @@ def plot_scalar_field(
     """
     if conf is None:
         conf = Config.default_()
-    fig, axis, _, _ = field.plot_scalar(snap, fieldname)
+    fig, axis, _, _ = field.plot_scalar(snap, fieldname, conf=conf)
 
     if conf.plates.continents:
         c_field = np.ma.masked_where(
@@ -356,12 +356,13 @@ def plot_scalar_field(
                 "c",
                 c_field,
                 axis,
+                conf=conf,
                 cmap=cmap,
                 norm=colors.BoundaryNorm([2, 3, 4, 5], cmap.N),
             )
 
     # plotting velocity vectors
-    field.plot_vec(axis, snap, "sx" if conf.plates.stress else "v")
+    field.plot_vec(axis, snap, "sx" if conf.plates.stress else "v", conf=conf)
 
     # Put arrow where ridges and trenches are
     _plot_plate_limits_field(axis, snap, conf)
