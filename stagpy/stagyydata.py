@@ -795,42 +795,6 @@ class StagyyData:
             raise error.InvalidNfieldsError(nfields)
         self._nfields_max = nfields
 
-    @typing.overload
-    def scale(self, data: ndarray, unit: str) -> Tuple[ndarray, str]:
-        """Scale a ndarray."""
-        ...
-
-    @typing.overload
-    def scale(self, data: float, unit: str) -> Tuple[float, str]:
-        """Scale a float."""
-        ...
-
-    def scale(
-        self, data: Union[ndarray, float], unit: str
-    ) -> Tuple[Union[ndarray, float], str]:
-        """Scales quantity to obtain dimensionful quantity.
-
-        Args:
-            data: the quantity that should be scaled.
-            unit: the dimension of data as defined in phyvars.
-        Return:
-            scaled quantity and unit string.
-        """
-        if self.par.get("switches", "dimensional_units", True) or unit == "1":
-            return data, ""
-        scaling = phyvars.SCALES[unit](self.scales)
-        factor = conf.scaling.factors.get(unit, " ")
-        if conf.scaling.time_in_y and unit == "s":
-            scaling /= conf.scaling.yearins
-            unit = "yr"
-        elif conf.scaling.vel_in_cmpy and unit == "m/s":
-            scaling *= 100 * conf.scaling.yearins
-            unit = "cm/y"
-        if factor in phyvars.PREFIXES:
-            scaling *= 10 ** (-3 * (phyvars.PREFIXES.index(factor) + 1))
-            unit = factor + unit
-        return data * scaling, unit
-
     def filename(
         self,
         fname: str,

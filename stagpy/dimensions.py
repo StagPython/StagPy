@@ -4,9 +4,18 @@ import typing
 from dataclasses import dataclass
 from functools import cached_property
 
+from . import phyvars
+from .config import Scaling
+
 if typing.TYPE_CHECKING:
+    from typing import TypeVar
+
+    from numpy.typing import NDArray
+
     from .parfile import StagyyPar
     from .stagyydata import StagyyData
+
+    T = TypeVar("T", float, NDArray)
 
 
 @dataclass(frozen=True)
@@ -18,6 +27,23 @@ class Scales:
     @property
     def par(self) -> StagyyPar:
         return self.sdat.par
+
+    def make_dimensional(self, data: T, unit: str, scaling: Scaling) -> tuple[T, str]:
+        """Scale quantity to obtain dimensional quantity."""
+        if self.par.get("switches", "dimensional_units", True) or unit == "1":
+            return data, ""
+        scale = phyvars.SCALES[unit](self)
+        factor = scaling.factors.get(unit, " ")
+        if scaling.time_in_y and unit == "s":
+            scale /= scaling.yearins
+            unit = "yr"
+        elif scaling.vel_in_cmpy and unit == "m/s":
+            scale *= 100 * scaling.yearins
+            unit = "cm/y"
+        if factor in phyvars.PREFIXES:
+            scale *= 10 ** (-3 * (phyvars.PREFIXES.index(factor) + 1))
+            unit = factor + unit
+        return data * scale, unit
 
     @cached_property
     def length(self) -> float:
