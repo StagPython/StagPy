@@ -91,7 +91,7 @@ def plot_time_series(
         axes[-1].set_xlabel("Time")
         axes[-1].set_xlim(tstart, tend)
         axes[-1].tick_params()
-        _helpers.saveplot(fig, "_".join(fname))
+        _helpers.saveplot(conf, fig, "_".join(fname))
 
 
 def compstat(

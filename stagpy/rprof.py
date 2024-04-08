@@ -66,10 +66,10 @@ def plot_rprofs(
             axes[0].invert_yaxis()
         ylabel = "Depth" if conf.rprof.depth else "Radius"
         axes[0].set_ylabel(ylabel)
-        _helpers.saveplot(fig, fname + stepstr)
+        _helpers.saveplot(conf, fig, fname + stepstr)
 
 
-def plot_grid(step: Step) -> None:
+def plot_grid(step: Step, conf: Optional[Config] = None) -> None:
     """Plot cell position and thickness.
 
     The figure is call grid_N.pdf where N is replace by the step index.
@@ -78,6 +78,8 @@ def plot_grid(step: Step) -> None:
         step (:class:`~stagpy._step.Step`): a step of a StagyyData
             instance.
     """
+    if conf is None:
+        conf = Config.default_()
     drprof = step.rprofs["dr"]
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(drprof.rad, "-ko")
@@ -86,7 +88,7 @@ def plot_grid(step: Step) -> None:
     ax2.set_ylabel("$dr$")
     ax2.set_xlim([-0.5, len(drprof.rad) - 0.5])
     ax2.set_xlabel("Cell number")
-    _helpers.saveplot(fig, "grid", step.istep)
+    _helpers.saveplot(conf, fig, "grid", step.istep)
 
 
 def cmd() -> None:
@@ -103,7 +105,7 @@ def cmd() -> None:
 
     if conf.rprof.grid:
         for step in view.filter(rprofs=True):
-            plot_grid(step)
+            plot_grid(step, conf)
 
     if conf.rprof.average:
         plot_rprofs(view.rprofs_averaged, conf.rprof.plot, conf)

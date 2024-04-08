@@ -1,6 +1,5 @@
 import pytest
 
-import stagpy
 from stagpy import _helpers
 from stagpy.config import Config
 from stagpy.stagyydata import StagyyData
@@ -15,15 +14,16 @@ def test_walk_dflt(sdat: StagyyData) -> None:
 
 
 def test_out_name_conf() -> None:
+    conf = Config.default_()
     oname = "something_fancy"
-    stagpy.conf.core.outname = oname
+    conf.core.outname = oname
     stem = "teapot"
-    assert _helpers.out_name(stem) == oname + "_" + stem
-    del stagpy.conf.core.outname
+    assert _helpers.out_name(conf, stem) == oname + "_" + stem
 
 
 def test_out_name_number() -> None:
-    assert _helpers.out_name("T", 123) == "stagpy_T00123"
+    conf = Config.default_()
+    assert _helpers.out_name(conf, "T", 123) == "stagpy_T00123"
 
 
 def test_baredoc() -> None:

@@ -399,4 +399,4 @@ def cmd() -> None:
                 )
             oname = "_".join(chain.from_iterable(vfig))
             plt.tight_layout(w_pad=3)
-            _helpers.saveplot(fig, oname, step.isnap)
+            _helpers.saveplot(conf, fig, oname, step.isnap)

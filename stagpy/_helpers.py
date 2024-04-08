@@ -7,8 +7,6 @@ from inspect import getdoc
 
 import matplotlib.pyplot as plt
 
-from . import conf
-
 if typing.TYPE_CHECKING:
     from typing import Any, Optional
 
@@ -31,7 +29,7 @@ def walk(sdat: StagyyData, conf: Config) -> _StepsView:
     return sdat.snaps[conf.core.snapshots]
 
 
-def out_name(stem: str, timestep: Optional[int] = None) -> str:
+def out_name(conf: Config, stem: str, timestep: Optional[int] = None) -> str:
     """Return StagPy out file name.
 
     Args:
@@ -40,9 +38,6 @@ def out_name(stem: str, timestep: Optional[int] = None) -> str:
 
     Returns:
         the output file name.
-
-    Other Parameters:
-        conf.core.outname: the generic name stem, defaults to ``'stagpy'``.
     """
     if conf.core.shortname:
         return conf.core.outname
@@ -69,6 +64,7 @@ def scilabel(value: float, precision: int = 2) -> str:
 
 
 def saveplot(
+    conf: Config,
     fig: Figure,
     stem: str,
     timestep: Optional[int] = None,
@@ -85,7 +81,7 @@ def saveplot(
         timestep: timestep if relevant.
         close: whether to close the figure.
     """
-    oname = out_name(stem, timestep)
+    oname = out_name(conf, stem, timestep)
     fig.savefig(
         f"{oname}.{conf.plot.format}", format=conf.plot.format, bbox_inches="tight"
     )

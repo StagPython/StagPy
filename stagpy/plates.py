@@ -262,7 +262,7 @@ def plot_at_surface(
                 axis.legend()
         axes[-1].set_xlabel(r"$\phi$")
         axes[-1].set_xlim(snap.geom.p_walls[[0, -1]])
-        saveplot(fig, fname, snap.isnap)
+        saveplot(conf, fig, fname, snap.isnap)
 
 
 def _write_trench_diagnostics(
@@ -367,7 +367,13 @@ def plot_scalar_field(
     # Put arrow where ridges and trenches are
     _plot_plate_limits_field(axis, snap, conf)
 
-    saveplot(fig, f"plates_{fieldname}", snap.isnap, close=conf.plates.zoom is None)
+    saveplot(
+        conf,
+        fig,
+        f"plates_{fieldname}",
+        snap.isnap,
+        close=conf.plates.zoom is None,
+    )
 
     # Zoom
     if conf.plates.zoom is not None:
@@ -385,7 +391,7 @@ def plot_scalar_field(
         yzoom = (snap.geom.rcmb + 1) * np.sin(np.radians(conf.plates.zoom))
         axis.set_xlim(xzoom - ladd, xzoom + radd)
         axis.set_ylim(yzoom - dadd, yzoom + uadd)
-        saveplot(fig, f"plates_zoom_{fieldname}", snap.isnap)
+        saveplot(conf, fig, f"plates_zoom_{fieldname}", snap.isnap)
 
 
 def cmd() -> None:
@@ -408,7 +414,7 @@ def cmd() -> None:
     time = []
     istart, iend = None, None
 
-    oname = _helpers.out_name(f"plates_trenches_{view.stepstr}")
+    oname = _helpers.out_name(conf, f"plates_trenches_{view.stepstr}")
     with open(f"{oname}.dat", "w") as fid:
         fid.write(
             "#  istep     time   time_My   phi_trench  vel_trench  "
@@ -436,11 +442,11 @@ def cmd() -> None:
                 axis.hist(plate_sizes, 10, (0, np.pi))
                 axis.set_ylabel("Number of plates")
                 axis.set_xlabel(r"$\phi$-span")
-                saveplot(fig, "plates_size_distribution", step.isnap)
+                saveplot(conf, fig, "plates_size_distribution", step.isnap)
 
         if conf.plates.nbplates:
             figt, axis = plt.subplots()
             axis.plot(time, nb_plates)
             axis.set_xlabel("Time")
             axis.set_ylabel("Number of plates")
-            saveplot(figt, f"plates_{istart}_{iend}")
+            saveplot(conf, figt, f"plates_{istart}_{iend}")

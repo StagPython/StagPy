@@ -39,7 +39,7 @@ def plot_ref(sdat: StagyyData, var: str, conf: Optional[Config] = None) -> None:
     axis.set_ylabel("z Position")
     if len(adbts) > 2:
         axis.legend()
-    _helpers.saveplot(fig, f"refstate_{var}")
+    _helpers.saveplot(conf, fig, f"refstate_{var}")
 
 
 def cmd() -> None:
