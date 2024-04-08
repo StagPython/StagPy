@@ -109,7 +109,7 @@ def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
         return cmd_args.func
 
     if conf.common.config:
-        commands.config_pp(climan.sections_list(sub_cmd))
+        commands.config_pp(climan.sections_list(sub_cmd), conf)
 
     _load_mplstyle()
 

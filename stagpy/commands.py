@@ -11,9 +11,9 @@ from textwrap import TextWrapper, indent
 
 import pandas
 
-from . import __version__, conf, phyvars, stagyydata
+from . import __version__, phyvars, stagyydata
 from ._helpers import baredoc
-from .config import CONFIG_LOCAL
+from .config import CONFIG_LOCAL, Config
 
 if typing.TYPE_CHECKING:
     from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, Union
@@ -29,6 +29,8 @@ def info_cmd() -> None:
     Other Parameters:
         conf.info
     """
+    from . import conf
+
     sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
@@ -138,6 +140,8 @@ def var_cmd() -> None:
     See :mod:`stagpy.phyvars` where the lists of variables organized by command
     are defined.
     """
+    from . import conf
+
     print_all = not any(getattr(conf.var, fld.name) for fld in fields(conf.var))
     if print_all or conf.var.field:
         print("field:")
@@ -169,7 +173,7 @@ def version_cmd() -> None:
     print(f"stagpy version: {__version__}")
 
 
-def config_pp(subs: Iterable[str]) -> None:
+def config_pp(subs: Iterable[str], conf: Config) -> None:
     """Pretty print of configuration options.
 
     Args:
@@ -199,7 +203,9 @@ def config_cmd() -> None:
     Other Parameters:
         conf.config
     """
+    from . import conf
+
     if conf.config.create:
         conf.default_().to_file_(CONFIG_LOCAL)
     else:
-        config_pp(sec.name for sec in fields(conf))
+        config_pp((sec.name for sec in fields(conf)), conf)
