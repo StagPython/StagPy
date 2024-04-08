@@ -2,20 +2,25 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import matplotlib.pyplot as plt
 
-from . import _helpers, conf
+from . import _helpers
+from .config import Config
 from .phyvars import REFSTATE
 from .stagyydata import StagyyData
 
 
-def plot_ref(sdat: StagyyData, var: str) -> None:
+def plot_ref(sdat: StagyyData, var: str, conf: Optional[Config] = None) -> None:
     """Plot one reference state.
 
     Args:
         sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
         var: refstate variable, a key of :data:`~stagpy.phyvars.REFSTATE`.
     """
+    if conf is None:
+        conf = Config.default_()
     fig, axis = plt.subplots()
     adbts = sdat.refstate.adiabats
     if len(adbts) > 2:
@@ -44,7 +49,9 @@ def cmd() -> None:
         conf.core
         conf.plot
     """
+    from . import conf
+
     sdat = StagyyData(conf.core.path)
 
     for var in conf.refstate.plot:
-        plot_ref(sdat, var)
+        plot_ref(sdat, var, conf)
