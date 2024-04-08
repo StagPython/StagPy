@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from dataclasses import dataclass
 from functools import cached_property
 
 if typing.TYPE_CHECKING:
@@ -8,19 +9,15 @@ if typing.TYPE_CHECKING:
     from .stagyydata import StagyyData
 
 
+@dataclass(frozen=True)
 class Scales:
-    """Dimensional scales.
+    """Dimensional scales."""
 
-    Args:
-        sdat: the StagyyData instance owning the :class:`_Scales` instance.
-    """
-
-    def __init__(self, sdat: StagyyData):
-        self._sdat = sdat
+    sdat: StagyyData
 
     @property
     def par(self) -> StagyyPar:
-        return self._sdat.par
+        return self.sdat.par
 
     @cached_property
     def length(self) -> float:
