@@ -19,7 +19,8 @@ if typing.TYPE_CHECKING:
 
     from ._step import Step
     from .datatypes import Field, Rprof, Tseries
-    from .stagyydata import StagyyData, _Scales
+    from .dimensions import Scales
+    from .stagyydata import StagyyData
 
 
 FIELD: Mapping[str, Varf] = MappingProxyType(
@@ -327,7 +328,7 @@ REFSTATE: Mapping[str, Varr] = MappingProxyType(
     }
 )
 
-SCALES: Mapping[str, Callable[[_Scales], float]] = MappingProxyType(
+SCALES: Mapping[str, Callable[[Scales], float]] = MappingProxyType(
     {
         "m": attrgetter("length"),
         "kg/m3": attrgetter("density"),
