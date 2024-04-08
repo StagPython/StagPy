@@ -69,7 +69,10 @@ def scilabel(value: float, precision: int = 2) -> str:
 
 
 def saveplot(
-    fig: Figure, *name_args: Any, close: bool = True, **name_kwargs: Any
+    fig: Figure,
+    stem: str,
+    timestep: Optional[int] = None,
+    close: bool = True,
 ) -> None:
     """Save matplotlib figure.
 
@@ -78,11 +81,11 @@ def saveplot(
 
     Args:
         fig: the :class:`matplotlib.figure.Figure` to save.
+        stem: short description of file content.
+        timestep: timestep if relevant.
         close: whether to close the figure.
-        name_args: positional arguments passed on to :func:`out_name`.
-        name_kwargs: keyword arguments passed on to :func:`out_name`.
     """
-    oname = out_name(*name_args, **name_kwargs)
+    oname = out_name(stem, timestep)
     fig.savefig(
         f"{oname}.{conf.plot.format}", format=conf.plot.format, bbox_inches="tight"
     )
