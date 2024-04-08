@@ -27,6 +27,7 @@ if typing.TYPE_CHECKING:
 
     from ._step import Step
     from .datatypes import Varf
+    from .stagyydata import _StepsView
 
 
 # The location is off for vertical velocities: they have an extra
@@ -335,11 +336,11 @@ def plot_vec(
 
 
 def _findminmax(
-    sdat: StagyyData, sovs: Iterable[str]
+    view: _StepsView, sovs: Iterable[str]
 ) -> Dict[str, Tuple[float, float]]:
     """Find min and max values of several fields."""
     minmax: Dict[str, Tuple[float, float]] = {}
-    for step in sdat.walk.filter(snap=True):
+    for step in view.filter(snap=True):
         for var in sovs:
             if var in step.fields:
                 vals = step.fields[var].values
@@ -363,6 +364,7 @@ def cmd() -> None:
     from . import conf
 
     sdat = StagyyData(conf.core.path)
+    view = _helpers.walk(sdat, conf)
     # no more than two fields in a subplot
     lovs = [[slov[:2] for slov in plov] for plov in conf.field.plot]
     minmax = {}
@@ -370,8 +372,8 @@ def cmd() -> None:
         conf.plot.vmin = None
         conf.plot.vmax = None
         sovs = set(slov[0] for plov in lovs for slov in plov)
-        minmax = _findminmax(sdat, sovs)
-    for step in sdat.walk.filter(snap=True):
+        minmax = _findminmax(view, sovs)
+    for step in view.filter(snap=True):
         for vfig in lovs:
             fig, axes = plt.subplots(
                 ncols=len(vfig), squeeze=False, figsize=(6 * len(vfig), 6)

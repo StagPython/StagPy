@@ -15,6 +15,21 @@ if typing.TYPE_CHECKING:
     from matplotlib.figure import Figure
     from numpy import ndarray
 
+    from .config import Config
+    from .stagyydata import StagyyData, _StepsView
+
+
+def walk(sdat: StagyyData, conf: Config) -> _StepsView:
+    """Return view on configured steps slice.
+
+    Other Parameters:
+        conf.core.snapshots: the slice of snapshots.
+        conf.core.timesteps: the slice of timesteps.
+    """
+    if conf.core.timesteps:
+        return sdat.steps[conf.core.timesteps]
+    return sdat.snaps[conf.core.snapshots]
+
 
 def out_name(stem: str, timestep: Optional[int] = None) -> str:
     """Return StagPy out file name.

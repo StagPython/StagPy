@@ -10,7 +10,7 @@ from shutil import get_terminal_size
 from textwrap import TextWrapper, indent
 
 from . import __version__, phyvars, stagyydata
-from ._helpers import baredoc
+from ._helpers import baredoc, walk
 from .config import CONFIG_LOCAL, Config
 
 if typing.TYPE_CHECKING:
@@ -46,7 +46,7 @@ def info_cmd() -> None:
     else:
         print("Spherical", dimension)
     print()
-    for step in sdat.walk:
+    for step in walk(sdat, conf):
         print(f"Step {step.istep}/{lstep.istep}", end="")
         if step.isnap is not None:
             print(f", snapshot {step.isnap}/{lsnap.isnap}")

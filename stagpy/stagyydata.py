@@ -19,7 +19,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import _helpers, _step, conf, error, phyvars, stagyyparsers
+from . import _helpers, _step, error, phyvars, stagyyparsers
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
 from .parfile import StagyyPar
@@ -761,18 +761,6 @@ class StagyyData:
         if out_dir.is_dir():
             return set(out_dir.iterdir())
         return set()
-
-    @property
-    def walk(self) -> _StepsView:
-        """Return view on configured steps slice.
-
-        Other Parameters:
-            conf.core.snapshots: the slice of snapshots.
-            conf.core.timesteps: the slice of timesteps.
-        """
-        if conf.core.timesteps:
-            return self.steps[conf.core.timesteps]
-        return self.snaps[conf.core.snapshots]
 
     @property
     def nfields_max(self) -> Optional[int]:

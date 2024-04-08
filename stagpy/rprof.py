@@ -99,13 +99,14 @@ def cmd() -> None:
     from . import conf
 
     sdat = StagyyData(conf.core.path)
+    view = _helpers.walk(sdat, conf)
 
     if conf.rprof.grid:
-        for step in sdat.walk.filter(rprofs=True):
+        for step in view.filter(rprofs=True):
             plot_grid(step)
 
     if conf.rprof.average:
-        plot_rprofs(sdat.walk.rprofs_averaged, conf.rprof.plot, conf)
+        plot_rprofs(view.rprofs_averaged, conf.rprof.plot, conf)
     else:
-        for step in sdat.walk.filter(rprofs=True):
+        for step in view.filter(rprofs=True):
             plot_rprofs(step.rprofs, conf.rprof.plot, conf)

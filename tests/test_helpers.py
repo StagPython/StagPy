@@ -1,5 +1,18 @@
+import pytest
+
 import stagpy
 import stagpy._helpers
+from stagpy import _helpers
+from stagpy.config import Config
+from stagpy.stagyydata import StagyyData
+
+
+def test_walk_dflt(sdat: StagyyData) -> None:
+    view = _helpers.walk(sdat, Config.default_())
+    wlk = iter(view)
+    assert next(wlk) is sdat.snaps[-1]
+    with pytest.raises(StopIteration):
+        next(wlk)
 
 
 def test_out_name_conf() -> None:

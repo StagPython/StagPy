@@ -35,13 +35,6 @@ def test_sdat_tseries(sdat: StagyyData) -> None:
     assert sdat.tseries["Tmean"].time is sdat.tseries.time
 
 
-def test_sdat_walk_dflt(sdat: StagyyData) -> None:
-    wlk = iter(sdat.walk)
-    assert next(wlk) is sdat.snaps[-1]
-    with pytest.raises(StopIteration):
-        next(wlk)
-
-
 def test_steps_iter(sdat: StagyyData) -> None:
     assert sdat.steps[:] == sdat.steps
 

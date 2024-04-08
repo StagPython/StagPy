@@ -400,21 +400,22 @@ def cmd() -> None:
     from . import conf
 
     sdat = StagyyData(conf.core.path)
+    view = _helpers.walk(sdat, conf)
 
-    isurf = _isurf(next(iter(sdat.walk)))
-    vrms_surf = sdat.walk.filter(rprofs=True).rprofs_averaged["vhrms"].values[isurf]
+    isurf = _isurf(next(iter(view)))
+    vrms_surf = view.filter(rprofs=True).rprofs_averaged["vhrms"].values[isurf]
     nb_plates = []
     time = []
     istart, iend = None, None
 
-    oname = _helpers.out_name(f"plates_trenches_{sdat.walk.stepstr}")
+    oname = _helpers.out_name(f"plates_trenches_{view.stepstr}")
     with open(f"{oname}.dat", "w") as fid:
         fid.write(
             "#  istep     time   time_My   phi_trench  vel_trench  "
             "distance     phi_cont  age_trench_My\n"
         )
 
-        for step in sdat.walk.filter(fields=["T"]):
+        for step in view.filter(fields=["T"]):
             # could check other fields too
             _write_trench_diagnostics(step, vrms_surf, fid, conf)
             plot_at_surface(step, conf.plates.plot, conf)
