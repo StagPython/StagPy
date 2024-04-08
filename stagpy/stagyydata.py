@@ -22,7 +22,6 @@ import numpy as np
 from . import _helpers, _step, conf, error, phyvars, stagyyparsers
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
-from .dimensions import Scales
 from .parfile import StagyyPar
 from .stagyyparsers import FieldXmf, TracersXmf
 
@@ -667,7 +666,6 @@ class StagyyData:
     Attributes:
         steps (:class:`_Steps`): collection of time steps.
         snaps (:class:`_Snaps`): collection of snapshots.
-        scales (:class:`_Scales`): dimensionful scaling factors.
         refstate (:class:`_Refstate`): reference state profiles.
     """
 
@@ -675,7 +673,6 @@ class StagyyData:
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"
-        self.scales = Scales(self)
         self.refstate = _Refstate(self)
         self.tseries = _Tseries(self)
         self.steps = _Steps(self)

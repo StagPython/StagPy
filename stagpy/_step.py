@@ -17,6 +17,7 @@ import numpy as np
 
 from . import error, phyvars, stagyyparsers
 from .datatypes import Field, Rprof, Varr
+from .dimensions import Scales
 
 if typing.TYPE_CHECKING:
     from typing import (
@@ -560,7 +561,7 @@ class _Rprofs:
                 rcmb = 0
         rbot = max(rcmb, 0)
         thickness = (
-            step.sdat.scales.length
+            Scales(step.sdat).length
             if step.sdat.par.get("switches", "dimensional_units", True)
             else 1
         )
