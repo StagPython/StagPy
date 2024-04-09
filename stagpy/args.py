@@ -16,7 +16,6 @@ from . import __doc__ as doc_module
 from . import (
     _styles,
     commands,
-    conf,
     field,
     plates,
     refstate,
@@ -24,6 +23,7 @@ from . import (
     time_series,
 )
 from ._helpers import baredoc
+from .config import Config
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable, List, Optional
@@ -35,13 +35,13 @@ def _sub(cmd: Any, *sections: str) -> Subcmd:
     return Subcmd(baredoc(cmd), *sections, func=cmd_func)
 
 
-def _bare_cmd() -> None:
+def _bare_cmd(conf: Config) -> None:
     """Print help message when no arguments are given."""
     print(doc_module)
     print("Run `stagpy -h` for usage")
 
 
-def _load_mplstyle() -> None:
+def _load_mplstyle(conf: Config) -> None:
     """Try to load conf.plot.mplstyle matplotlib style."""
     for style in conf.plot.mplstyle:
         style_fname = style + ".mplstyle"
@@ -71,10 +71,10 @@ SUB_CMDS = MappingProxyType(
 )
 
 
-def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
+def parse_args(
+    conf: Config, arglist: Optional[List[str]] = None
+) -> Callable[[Config], None]:
     """Parse cmd line arguments.
-
-    Update :attr:`stagpy.conf` accordingly.
 
     Args:
         arglist: the list of cmd line arguments. If set to None, the arguments
@@ -84,7 +84,7 @@ def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
         the function implementing the sub command to be executed.
     """
 
-    def compl_cmd() -> None:
+    def compl_cmd(conf: Config) -> None:
         if conf.completions.zsh:
             filepath = Path("_stagpy.sh")
             print(f"writing zsh completion file {filepath}")
@@ -111,6 +111,6 @@ def parse_args(arglist: Optional[List[str]] = None) -> Callable[[], None]:
     if conf.common.config:
         commands.config_pp(climan.sections_list(sub_cmd), conf)
 
-    _load_mplstyle()
+    _load_mplstyle(conf)
 
     return cmd_args.func

@@ -91,15 +91,13 @@ def plot_grid(step: Step, conf: Optional[Config] = None) -> None:
     _helpers.saveplot(conf, fig, "grid", step.istep)
 
 
-def cmd() -> None:
+def cmd(conf: Config) -> None:
     """Implementation of rprof subcommand.
 
     Other Parameters:
         conf.rprof
         conf.core
     """
-    from . import conf
-
     sdat = StagyyData(conf.core.path)
     view = _helpers.walk(sdat, conf)
 

@@ -354,15 +354,8 @@ def _findminmax(
     return minmax
 
 
-def cmd() -> None:
-    """Implementation of field subcommand.
-
-    Other Parameters:
-        conf.field
-        conf.core
-    """
-    from . import conf
-
+def cmd(conf: Config) -> None:
+    """Implementation of field subcommand."""
     sdat = StagyyData(conf.core.path)
     view = _helpers.walk(sdat, conf)
     # no more than two fields in a subplot

@@ -394,17 +394,8 @@ def plot_scalar_field(
         saveplot(conf, fig, f"plates_zoom_{fieldname}", snap.isnap)
 
 
-def cmd() -> None:
-    """Implementation of plates subcommand.
-
-    Other Parameters:
-        conf.plates
-        conf.scaling
-        conf.plot
-        conf.core
-    """
-    from . import conf
-
+def cmd(conf: Config) -> None:
+    """Implementation of plates subcommand."""
     sdat = StagyyData(conf.core.path)
     view = _helpers.walk(sdat, conf)
 

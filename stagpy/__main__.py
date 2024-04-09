@@ -12,10 +12,10 @@ def main() -> None:
     if not DEBUG:
         signal.signal(signal.SIGINT, sigint_handler)
         warnings.simplefilter("ignore")
-    from . import args, error
+    from . import args, conf, error
 
     try:
-        args.parse_args()()
+        args.parse_args(conf)(conf)
     except error.StagpyError as err:
         if DEBUG:
             raise

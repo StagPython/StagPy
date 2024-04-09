@@ -21,14 +21,12 @@ if typing.TYPE_CHECKING:
     from .datatypes import Varf, Varr, Vart
 
 
-def info_cmd() -> None:
+def info_cmd(conf: Config) -> None:
     """Print basic information about StagYY run.
 
     Other Parameters:
         conf.info
     """
-    from . import conf
-
     sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
@@ -114,14 +112,12 @@ def _layout(
     _pretty_print(desc, min_col_width=26)
 
 
-def var_cmd() -> None:
+def var_cmd(conf: Config) -> None:
     """Print a list of available variables.
 
     See :mod:`stagpy.phyvars` where the lists of variables organized by command
     are defined.
     """
-    from . import conf
-
     print_all = not any(getattr(conf.var, fld.name) for fld in fields(conf.var))
     if print_all or conf.var.field:
         print("field:")
@@ -145,7 +141,7 @@ def var_cmd() -> None:
         print()
 
 
-def version_cmd() -> None:
+def version_cmd(conf: Config) -> None:
     """Print StagPy version.
 
     Use :data:`stagpy.__version__` to obtain the version in a script.
@@ -177,14 +173,12 @@ def config_pp(subs: Iterable[str], conf: Config) -> None:
             print()
 
 
-def config_cmd() -> None:
+def config_cmd(conf: Config) -> None:
     """Configuration handling.
 
     Other Parameters:
         conf.config
     """
-    from . import conf
-
     if conf.config.create:
         conf.default_().to_file_(CONFIG_LOCAL)
     else:

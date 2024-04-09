@@ -3,11 +3,14 @@ import re
 import pytest
 from pytest import CaptureFixture
 
-import stagpy.args
+import stagpy
+from stagpy.args import parse_args
+from stagpy.config import Config
 
 
 def test_no_args(capsys: CaptureFixture) -> None:
-    stagpy.args.parse_args([])()
+    conf = Config.default_()
+    parse_args(conf, [])(conf)
     output = capsys.readouterr()
     expected = re.compile(
         r"StagPy is a tool to.*" r"Run `stagpy -h` for usage\n$", flags=re.DOTALL
@@ -16,8 +19,9 @@ def test_no_args(capsys: CaptureFixture) -> None:
 
 
 def test_help(capsys: CaptureFixture) -> None:
+    conf = Config.default_()
     with pytest.raises(SystemExit):
-        stagpy.args.parse_args(["-h"])
+        parse_args(conf, ["-h"])
     output = capsys.readouterr()
     expected = re.compile(
         r"^usage:.*\nStagPy is a tool to.*\n"
@@ -29,8 +33,9 @@ def test_help(capsys: CaptureFixture) -> None:
 
 
 def test_invalid_argument(capsys: CaptureFixture) -> None:
+    conf = Config.default_()
     with pytest.raises(SystemExit):
-        stagpy.args.parse_args(["-dummyinvalidarg"])
+        parse_args(conf, ["-dummyinvalidarg"])
     output = capsys.readouterr()
     expected = re.compile(
         r"^usage: .*error: unrecognized arguments:.*\n$", flags=re.DOTALL
@@ -39,48 +44,57 @@ def test_invalid_argument(capsys: CaptureFixture) -> None:
 
 
 def test_invalid_subcmd(capsys: CaptureFixture) -> None:
+    conf = Config.default_()
     with pytest.raises(SystemExit):
-        stagpy.args.parse_args(["dummyinvalidcmd"])
+        parse_args(conf, ["dummyinvalidcmd"])
     output = capsys.readouterr()
     expected = re.compile(r"^usage: .*error:.*invalid choice:.*\n$", flags=re.DOTALL)
     assert expected.fullmatch(output.err)
 
 
 def test_field_subcmd() -> None:
-    func = stagpy.args.parse_args(["field"])
+    conf = Config.default_()
+    func = parse_args(conf, ["field"])
     assert func is stagpy.field.cmd
 
 
 def test_rprof_subcmd() -> None:
-    func = stagpy.args.parse_args(["rprof"])
+    conf = Config.default_()
+    func = parse_args(conf, ["rprof"])
     assert func is stagpy.rprof.cmd
 
 
 def test_time_cmd() -> None:
-    func = stagpy.args.parse_args(["time"])
+    conf = Config.default_()
+    func = parse_args(conf, ["time"])
     assert func is stagpy.time_series.cmd
 
 
 def test_plates_subcmd() -> None:
-    func = stagpy.args.parse_args(["plates"])
+    conf = Config.default_()
+    func = parse_args(conf, ["plates"])
     assert func is stagpy.plates.cmd
 
 
 def test_info_subcmd() -> None:
-    func = stagpy.args.parse_args(["info"])
+    conf = Config.default_()
+    func = parse_args(conf, ["info"])
     assert func is stagpy.commands.info_cmd
 
 
 def test_var_subcmd() -> None:
-    func = stagpy.args.parse_args(["var"])
+    conf = Config.default_()
+    func = parse_args(conf, ["var"])
     assert func is stagpy.commands.var_cmd
 
 
 def test_version_subcmd() -> None:
-    func = stagpy.args.parse_args(["version"])
+    conf = Config.default_()
+    func = parse_args(conf, ["version"])
     assert func is stagpy.commands.version_cmd
 
 
 def test_config_subcmd() -> None:
-    func = stagpy.args.parse_args(["config"])
+    conf = Config.default_()
+    func = parse_args(conf, ["config"])
     assert func is stagpy.commands.config_cmd

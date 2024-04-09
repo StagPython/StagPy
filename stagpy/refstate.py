@@ -42,15 +42,8 @@ def plot_ref(sdat: StagyyData, var: str, conf: Optional[Config] = None) -> None:
     _helpers.saveplot(conf, fig, f"refstate_{var}")
 
 
-def cmd() -> None:
-    """Implementation of refstate subcommand.
-
-    Other Parameters:
-        conf.core
-        conf.plot
-    """
-    from . import conf
-
+def cmd(conf: Config) -> None:
+    """Implementation of refstate subcommand."""
     sdat = StagyyData(conf.core.path)
 
     for var in conf.refstate.plot:

@@ -124,15 +124,13 @@ def compstat(
     return stats
 
 
-def cmd() -> None:
+def cmd(conf: Config) -> None:
     """Implementation of time subcommand.
 
     Other Parameters:
         conf.time
         conf.core
     """
-    from . import conf
-
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return
