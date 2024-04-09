@@ -12,7 +12,11 @@ def main() -> None:
     if not DEBUG:
         signal.signal(signal.SIGINT, sigint_handler)
         warnings.simplefilter("ignore")
-    from . import args, conf, error
+    from . import args, config, error
+
+    conf = config.Config.default_()
+    if config.CONFIG_LOCAL.is_file():
+        conf.update_from_file_(config.CONFIG_LOCAL)
 
     try:
         args.parse_args(conf)(conf)

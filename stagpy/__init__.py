@@ -20,8 +20,6 @@ import signal
 import sys
 import typing
 
-from . import config
-
 if typing.TYPE_CHECKING:
     from typing import Any, NoReturn
 
@@ -59,10 +57,6 @@ try:
     from ._version import version as __version__
 except ImportError:
     __version__ = "unknown"
-
-conf = config.Config.default_()
-if config.CONFIG_LOCAL.is_file():
-    conf.update_from_file_(config.CONFIG_LOCAL)
 
 if not DEBUG:
     signal.signal(signal.SIGINT, _PREV_INT)

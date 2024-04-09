@@ -20,7 +20,7 @@ from pkg_resources import get_distribution
 
 sys.path.insert(0, os.path.abspath(".."))
 
-import stagpy
+from stagpy.config import Config
 
 html_theme = "sphinx_rtd_theme"
 
@@ -93,7 +93,8 @@ with dfile.open("w") as fid:
         """
         )
     )
-    for sec_fld in fields(stagpy.conf):
+    stagpy_conf = Config.default_()
+    for sec_fld in fields(stagpy_conf):
         sec_name = sec_fld.name
         fid.write(
             dedent(
@@ -107,7 +108,7 @@ with dfile.open("w") as fid:
             """.format(sec_name)
             )
         )
-        section = getattr(stagpy.conf, sec_name)
+        section = getattr(stagpy_conf, sec_name)
         for fld in fields(section):
             opt = fld.name
             entry = section.meta_(opt).entry
