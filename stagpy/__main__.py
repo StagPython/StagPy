@@ -6,10 +6,10 @@ import os
 import signal
 import sys
 import warnings
-from typing import Any, NoReturn
+from typing import NoReturn
 
 
-def sigint_handler(*_: Any) -> NoReturn:
+def sigint_handler(*_: object) -> NoReturn:
     """Handler of SIGINT signal.
 
     It is set when you use StagPy as a command line tool to handle gracefully

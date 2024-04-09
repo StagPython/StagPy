@@ -8,7 +8,7 @@ from inspect import getdoc
 import matplotlib.pyplot as plt
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Optional
+    from typing import Optional
 
     from matplotlib.figure import Figure
     from numpy.typing import NDArray
@@ -102,7 +102,7 @@ def baredoc(obj: object) -> str:
     return doc.rstrip(" .").lstrip()
 
 
-def find_in_sorted_arr(value: Any, array: NDArray, after: bool = False) -> int:
+def find_in_sorted_arr(value: float, array: NDArray, after: bool = False) -> int:
     """Return position of element in a sorted array.
 
     Returns:
@@ -115,4 +115,4 @@ def find_in_sorted_arr(value: Any, array: NDArray, after: bool = False) -> int:
         ielt -= 1
     if not after and array[ielt] != value and ielt > 0:
         ielt -= 1
-    return ielt
+    return int(ielt)
