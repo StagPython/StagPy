@@ -19,7 +19,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import _helpers, _step, conf, error, phyvars, stagyyparsers
+from . import _helpers, _step, error, phyvars, stagyyparsers
 from ._step import Step
 from .datatypes import Rprof, Tseries, Vart
 from .parfile import StagyyPar
@@ -71,94 +71,6 @@ def _as_view_item(
     if isinstance(obj, slice):
         return (obj,)
     return None
-
-
-class _Scales:
-    """Dimensional scales.
-
-    Args:
-        sdat: the StagyyData instance owning the :class:`_Scales` instance.
-    """
-
-    def __init__(self, sdat: StagyyData):
-        self._sdat = sdat
-
-    @property
-    def par(self) -> StagyyPar:
-        return self._sdat.par
-
-    @cached_property
-    def length(self) -> float:
-        """Length in m."""
-        thick = self.par.get("geometry", "d_dimensional", 2890e3)
-        if self.par.get("boundaries", "air_layer", False):
-            thick += self.par.nml["boundaries"]["air_thickness"]
-        return thick
-
-    @property
-    def temperature(self) -> float:
-        """Temperature in K."""
-        return self.par.nml["refstate"]["deltaT_dimensional"]
-
-    @property
-    def density(self) -> float:
-        """Density in kg/m3."""
-        return self.par.nml["refstate"]["dens_dimensional"]
-
-    @property
-    def th_cond(self) -> float:
-        """Thermal conductivity in W/(m.K)."""
-        return self.par.nml["refstate"]["tcond_dimensional"]
-
-    @property
-    def sp_heat(self) -> float:
-        """Specific heat capacity in J/(kg.K)."""
-        return self.par.nml["refstate"]["Cp_dimensional"]
-
-    @property
-    def dyn_visc(self) -> float:
-        """Dynamic viscosity in Pa.s."""
-        return self.par.nml["viscosity"]["eta0"]
-
-    @property
-    def th_diff(self) -> float:
-        """Thermal diffusivity in m2/s."""
-        return self.th_cond / (self.density * self.sp_heat)
-
-    @property
-    def time(self) -> float:
-        """Time in s."""
-        return self.length**2 / self.th_diff
-
-    @property
-    def velocity(self) -> float:
-        """Velocity in m/s."""
-        return self.length / self.time
-
-    @property
-    def acceleration(self) -> float:
-        """Acceleration in m/s2."""
-        return self.length / self.time**2
-
-    @property
-    def power(self) -> float:
-        """Power in W."""
-        return self.th_cond * self.temperature * self.length
-
-    @property
-    def heat_flux(self) -> float:
-        """Local heat flux in W/m2."""
-        return self.power / self.length**2
-
-    @property
-    def heat_production(self) -> float:
-        """Local heat production in W/m3."""
-        return self.power / self.length**3
-
-    @property
-    def stress(self) -> float:
-        """Stress in Pa."""
-        return self.dyn_visc / self.time
 
 
 class _Refstate:
@@ -229,8 +141,7 @@ class _Tseries:
 
     :class:`_Tseries` implements the getitem mechanism.  Keys are series names
     defined in :data:`stagpy.phyvars.TIME[_EXTRA]`.  Items are
-    :class:`stagpy.datatypes.Tseries` instances.  Note that series are
-    automatically scaled if conf.scaling.dimensional is True.
+    :class:`stagpy.datatypes.Tseries` instances.
 
     Attributes:
         sdat: the :class:`StagyyData` instance owning the :class:`_Tseries`
@@ -281,8 +192,6 @@ class _Tseries:
             meta = tseries.meta
         else:
             raise error.UnknownTimeVarError(name)
-        series, _ = self.sdat.scale(series, meta.dim)
-        time, _ = self.sdat.scale(time, "s")
         return Tseries(series, time, meta)
 
     def tslice(
@@ -757,7 +666,6 @@ class StagyyData:
     Attributes:
         steps (:class:`_Steps`): collection of time steps.
         snaps (:class:`_Snaps`): collection of snapshots.
-        scales (:class:`_Scales`): dimensionful scaling factors.
         refstate (:class:`_Refstate`): reference state profiles.
     """
 
@@ -765,7 +673,6 @@ class StagyyData:
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"
-        self.scales = _Scales(self)
         self.refstate = _Refstate(self)
         self.tseries = _Tseries(self)
         self.steps = _Steps(self)
@@ -856,18 +763,6 @@ class StagyyData:
         return set()
 
     @property
-    def walk(self) -> _StepsView:
-        """Return view on configured steps slice.
-
-        Other Parameters:
-            conf.core.snapshots: the slice of snapshots.
-            conf.core.timesteps: the slice of timesteps.
-        """
-        if conf.core.timesteps:
-            return self.steps[conf.core.timesteps]
-        return self.snaps[conf.core.snapshots]
-
-    @property
     def nfields_max(self) -> Optional[int]:
         """Maximum number of scalar fields kept in memory.
 
@@ -884,49 +779,6 @@ class StagyyData:
         if nfields is not None and nfields <= 5:
             raise error.InvalidNfieldsError(nfields)
         self._nfields_max = nfields
-
-    @typing.overload
-    def scale(self, data: ndarray, unit: str) -> Tuple[ndarray, str]:
-        """Scale a ndarray."""
-        ...
-
-    @typing.overload
-    def scale(self, data: float, unit: str) -> Tuple[float, str]:
-        """Scale a float."""
-        ...
-
-    def scale(
-        self, data: Union[ndarray, float], unit: str
-    ) -> Tuple[Union[ndarray, float], str]:
-        """Scales quantity to obtain dimensionful quantity.
-
-        Args:
-            data: the quantity that should be scaled.
-            unit: the dimension of data as defined in phyvars.
-        Return:
-            scaled quantity and unit string.
-        Other Parameters:
-            conf.scaling.dimensional: if set to False (default), the factor is
-                always 1.
-        """
-        if (
-            self.par.get("switches", "dimensional_units", True)
-            or not conf.scaling.dimensional
-            or unit == "1"
-        ):
-            return data, ""
-        scaling = phyvars.SCALES[unit](self.scales)
-        factor = conf.scaling.factors.get(unit, " ")
-        if conf.scaling.time_in_y and unit == "s":
-            scaling /= conf.scaling.yearins
-            unit = "yr"
-        elif conf.scaling.vel_in_cmpy and unit == "m/s":
-            scaling *= 100 * conf.scaling.yearins
-            unit = "cm/y"
-        if factor in phyvars.PREFIXES:
-            scaling *= 10 ** (-3 * (phyvars.PREFIXES.index(factor) + 1))
-            unit = factor + unit
-        return data * scaling, unit
 
     def filename(
         self,

@@ -6,16 +6,21 @@ import typing
 
 import matplotlib.pyplot as plt
 
-from . import _helpers, conf
+from . import _helpers
+from .config import Config
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence
+    from typing import Optional, Sequence
 
     from ._step import Step, _Rprofs
 
 
-def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> None:
+def plot_rprofs(
+    rprofs: _Rprofs,
+    names: Sequence[Sequence[Sequence[str]]],
+    conf: Optional[Config] = None,
+) -> None:
     """Plot requested radial profiles.
 
     Args:
@@ -23,8 +28,9 @@ def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> No
             :attr:`_StepsView.rprofs_averaged`.
         names: profile names organized by figures, plots and subplots.
     """
+    if conf is None:
+        conf = Config.default_()
     stepstr = rprofs.stepstr
-    sdat = rprofs.step.sdat
 
     for vfig in names:
         fig, axes = plt.subplots(
@@ -41,7 +47,7 @@ def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> No
                 rad = rpf.rad
                 meta = rpf.meta
                 if conf.rprof.depth:
-                    rad = sdat.scale(rprofs.bounds[1], "m")[0] - rad
+                    rad = rprofs.bounds[1] - rad
                 axes[iplt].plot(rprof, rad, conf.rprof.style, label=meta.description)
                 if xlabel is None:
                     xlabel = meta.kind
@@ -50,8 +56,6 @@ def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> No
             if ivar == 0:
                 xlabel = meta.description
             if xlabel:
-                _, unit = sdat.scale(1, meta.dim)
-                xlabel += f" ({unit})" if unit else ""
                 axes[iplt].set_xlabel(xlabel)
             if vplt[0][:3] == "eta":  # list of log variables
                 axes[iplt].set_xscale("log")
@@ -61,13 +65,11 @@ def plot_rprofs(rprofs: _Rprofs, names: Sequence[Sequence[Sequence[str]]]) -> No
         if conf.rprof.depth:
             axes[0].invert_yaxis()
         ylabel = "Depth" if conf.rprof.depth else "Radius"
-        _, unit = sdat.scale(1, "m")
-        ylabel += f" ({unit})" if unit else ""
         axes[0].set_ylabel(ylabel)
-        _helpers.saveplot(fig, fname + stepstr)
+        _helpers.saveplot(conf, fig, fname + stepstr)
 
 
-def plot_grid(step: Step) -> None:
+def plot_grid(step: Step, conf: Optional[Config] = None) -> None:
     """Plot cell position and thickness.
 
     The figure is call grid_N.pdf where N is replace by the step index.
@@ -76,35 +78,30 @@ def plot_grid(step: Step) -> None:
         step (:class:`~stagpy._step.Step`): a step of a StagyyData
             instance.
     """
+    if conf is None:
+        conf = Config.default_()
     drprof = step.rprofs["dr"]
-    _, unit = step.sdat.scale(1, "m")
-    if unit:
-        unit = f" ({unit})"
     fig, (ax1, ax2) = plt.subplots(2, sharex=True)
     ax1.plot(drprof.rad, "-ko")
-    ax1.set_ylabel("$r$" + unit)
+    ax1.set_ylabel("$r$")
     ax2.plot(drprof.values, "-ko")
-    ax2.set_ylabel("$dr$" + unit)
+    ax2.set_ylabel("$dr$")
     ax2.set_xlim([-0.5, len(drprof.rad) - 0.5])
     ax2.set_xlabel("Cell number")
-    _helpers.saveplot(fig, "grid", step.istep)
+    _helpers.saveplot(conf, fig, "grid", step.istep)
 
 
-def cmd() -> None:
-    """Implementation of rprof subcommand.
-
-    Other Parameters:
-        conf.rprof
-        conf.core
-    """
+def cmd(conf: Config) -> None:
+    """Implementation of rprof subcommand."""
     sdat = StagyyData(conf.core.path)
+    view = _helpers.walk(sdat, conf)
 
     if conf.rprof.grid:
-        for step in sdat.walk.filter(rprofs=True):
-            plot_grid(step)
+        for step in view.filter(rprofs=True):
+            plot_grid(step, conf)
 
     if conf.rprof.average:
-        plot_rprofs(sdat.walk.rprofs_averaged, conf.rprof.plot)
+        plot_rprofs(view.rprofs_averaged, conf.rprof.plot, conf)
     else:
-        for step in sdat.walk.filter(rprofs=True):
-            plot_rprofs(step.rprofs, conf.rprof.plot)
+        for step in view.filter(rprofs=True):
+            plot_rprofs(step.rprofs, conf.rprof.plot, conf)

@@ -9,11 +9,9 @@ from math import ceil
 from shutil import get_terminal_size
 from textwrap import TextWrapper, indent
 
-import pandas
-
-from . import __version__, conf, phyvars, stagyydata
-from ._helpers import baredoc
-from .config import CONFIG_LOCAL
+from . import __version__, phyvars, stagyydata
+from ._helpers import baredoc, walk
+from .config import CONFIG_LOCAL, Config
 
 if typing.TYPE_CHECKING:
     from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, Union
@@ -23,12 +21,8 @@ if typing.TYPE_CHECKING:
     from .datatypes import Varf, Varr, Vart
 
 
-def info_cmd() -> None:
-    """Print basic information about StagYY run.
-
-    Other Parameters:
-        conf.info
-    """
+def info_cmd(conf: Config) -> None:
+    """Print basic information about StagYY run."""
     sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
@@ -46,31 +40,13 @@ def info_cmd() -> None:
     else:
         print("Spherical", dimension)
     print()
-    for step in sdat.walk:
+    for step in walk(sdat, conf):
         print(f"Step {step.istep}/{lstep.istep}", end="")
         if step.isnap is not None:
             print(f", snapshot {step.isnap}/{lsnap.isnap}")
         else:
             print()
         series = step.timeinfo.loc[list(conf.info.output)]
-        if conf.scaling.dimensional:
-            series = series.copy()
-            dimensions = []
-            for var, val in series.iteritems():
-                meta = phyvars.TIME.get(var)
-                dim = meta.dim if meta is not None else "1"
-                if dim == "1":
-                    dimensions.append("")
-                else:
-                    series[var], dim = sdat.scale(val, dim)
-                    dimensions.append(dim)
-            series = pandas.concat(
-                [
-                    series,
-                    pandas.Series(data=dimensions, index=series.index, name="dim"),
-                ],
-                axis=1,
-            )  # type: ignore
         print(indent(series.to_string(header=False), "  "))
         print()
 
@@ -132,7 +108,7 @@ def _layout(
     _pretty_print(desc, min_col_width=26)
 
 
-def var_cmd() -> None:
+def var_cmd(conf: Config) -> None:
     """Print a list of available variables.
 
     See :mod:`stagpy.phyvars` where the lists of variables organized by command
@@ -161,7 +137,7 @@ def var_cmd() -> None:
         print()
 
 
-def version_cmd() -> None:
+def version_cmd(conf: Config) -> None:
     """Print StagPy version.
 
     Use :data:`stagpy.__version__` to obtain the version in a script.
@@ -169,7 +145,7 @@ def version_cmd() -> None:
     print(f"stagpy version: {__version__}")
 
 
-def config_pp(subs: Iterable[str]) -> None:
+def config_pp(subs: Iterable[str], conf: Config) -> None:
     """Pretty print of configuration options.
 
     Args:
@@ -193,13 +169,9 @@ def config_pp(subs: Iterable[str]) -> None:
             print()
 
 
-def config_cmd() -> None:
-    """Configuration handling.
-
-    Other Parameters:
-        conf.config
-    """
+def config_cmd(conf: Config) -> None:
+    """Configuration handling."""
     if conf.config.create:
         conf.default_().to_file_(CONFIG_LOCAL)
     else:
-        config_pp(sec.name for sec in fields(conf))
+        config_pp((sec.name for sec in fields(conf)), conf)

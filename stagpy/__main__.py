@@ -1,23 +1,46 @@
 """The stagpy module is callable."""
 
+from __future__ import annotations
+
+import os
 import signal
 import sys
 import warnings
+from typing import Any, NoReturn
 
-from . import DEBUG, sigint_handler
+
+def sigint_handler(*_: Any) -> NoReturn:
+    """Handler of SIGINT signal.
+
+    It is set when you use StagPy as a command line tool to handle gracefully
+    keyboard interruption.
+    """
+    print("\nSo long, and thanks for all the fish.")
+    sys.exit()
 
 
 def main() -> None:
     """Implement StagPy entry point."""
-    if not DEBUG:
+    debug = os.getenv("STAGPY_DEBUG") is not None
+    if debug:
+        print(
+            "env variable 'STAGPY_DEBUG' is set: StagPy runs in DEBUG mode",
+            end="\n\n",
+        )
+    else:
         signal.signal(signal.SIGINT, sigint_handler)
         warnings.simplefilter("ignore")
-    from . import args, error
+
+    from . import args, config, error
+
+    conf = config.Config.default_()
+    if config.CONFIG_LOCAL.is_file():
+        conf.update_from_file_(config.CONFIG_LOCAL)
 
     try:
-        args.parse_args()()
+        args.parse_args(conf)(conf)
     except error.StagpyError as err:
-        if DEBUG:
+        if debug:
             raise
         errtype = type(err).__name__
         print(

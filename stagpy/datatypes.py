@@ -13,8 +13,7 @@ if typing.TYPE_CHECKING:
 class Varf:
     """Metadata of scalar field.
 
-    `dim` is the dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-    dimensional values.
+    `dim` is the dimension used to scale to dimensional values.
     """
 
     description: str
@@ -33,8 +32,7 @@ class Field:
 class Varr:
     """Metadata of radial profiles.
 
-    `dim` is the dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-    dimensional values.
+    `dim` is the dimension used to scale to dimensional values.
     """
 
     description: str
@@ -55,8 +53,7 @@ class Rprof:
 class Vart:
     """Metadata of time series.
 
-    `dim` is the dimension used to :func:`~stagpy.stagyydata.StagyyData.scale` to
-    dimensional values.
+    `dim` is the dimension used to scale to dimensional values.
     """
 
     description: str

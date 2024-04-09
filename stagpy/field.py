@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from . import _helpers, conf, phyvars
+from . import _helpers, phyvars
+from .config import Config
 from .error import NotAvailableError
 from .stagyydata import StagyyData
 
@@ -26,6 +27,7 @@ if typing.TYPE_CHECKING:
 
     from ._step import Step
     from .datatypes import Varf
+    from .stagyydata import _StepsView
 
 
 # The location is off for vertical velocities: they have an extra
@@ -33,7 +35,7 @@ if typing.TYPE_CHECKING:
 
 
 def _threed_extract(
-    step: Step, var: str, walls: bool = False
+    conf: Config, step: Step, var: str, walls: bool = False
 ) -> Tuple[Tuple[ndarray, ndarray], ndarray]:
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
@@ -86,7 +88,7 @@ def valid_field_var(var: str) -> bool:
 
 
 def get_meshes_fld(
-    step: Step, var: str, walls: bool = False
+    conf: Config, step: Step, var: str, walls: bool = False
 ) -> Tuple[ndarray, ndarray, ndarray, Varf]:
     """Return scalar field along with coordinates meshes.
 
@@ -108,7 +110,7 @@ def get_meshes_fld(
         or fld.values.shape[1] != step.geom.nytot
     )
     if step.geom.threed and step.geom.cartesian:
-        (xcoord, ycoord), vals = _threed_extract(step, var, walls)
+        (xcoord, ycoord), vals = _threed_extract(conf, step, var, walls)
     elif step.geom.twod_xz:
         xcoord = step.geom.x_walls if hwalls else step.geom.x_centers
         ycoord = step.geom.z_walls if walls else step.geom.z_centers
@@ -125,7 +127,9 @@ def get_meshes_fld(
     return xmesh, ymesh, vals, fld.meta
 
 
-def get_meshes_vec(step: Step, var: str) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
+def get_meshes_vec(
+    conf: Config, step: Step, var: str
+) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
     """Return vector field components along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
@@ -139,7 +143,7 @@ def get_meshes_vec(step: Step, var: str) -> Tuple[ndarray, ndarray, ndarray, nda
         requested vector field.
     """
     if step.geom.threed and step.geom.cartesian:
-        (xcoord, ycoord), (vec1, vec2) = _threed_extract(step, var)
+        (xcoord, ycoord), (vec1, vec2) = _threed_extract(conf, step, var)
     elif step.geom.twod_xz:
         xcoord, ycoord = step.geom.x_walls, step.geom.z_centers
         vec1 = step.fields[var + "1"].values[:, 0, :, 0]
@@ -168,6 +172,7 @@ def plot_scalar(
     var: str,
     field: Optional[ndarray] = None,
     axis: Optional[Axes] = None,
+    conf: Optional[Config] = None,
     **extra: Any,
 ) -> Tuple[Figure, Axes, QuadMesh, Optional[Colorbar]]:
     """Plot scalar field.
@@ -176,9 +181,7 @@ def plot_scalar(
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
         var: the scalar field name.
         field: if not None, it is plotted instead of step.fields[var].  This is
-            useful to plot a masked or rescaled array.  Note that if
-            conf.scaling.dimensional is True, this field will be scaled
-            accordingly.
+            useful to plot a masked or rescaled array.
         axis: the :class:`matplotlib.axes.Axes` object where the field should
             be plotted.  If set to None, a new figure with one subplot is
             created.
@@ -191,10 +194,12 @@ def plot_scalar(
             :func:`~matplotlib.axes.Axes.pcolormesh`, and the colorbar returned
             by :func:`matplotlib.pyplot.colorbar`.
     """
+    if conf is None:
+        conf = Config.default_()
     if step.geom.threed and step.geom.spherical:
         raise NotAvailableError("plot_scalar not implemented for 3D spherical geometry")
 
-    xmesh, ymesh, fld, meta = get_meshes_fld(step, var, walls=True)
+    xmesh, ymesh, fld, meta = get_meshes_fld(conf, step, var, walls=True)
     # interpolate at cell centers, this should be abstracted by field objects
     # via an "at_cell_centers" method or similar
     if fld.shape[0] > max(step.geom.nxtot, step.geom.nytot):
@@ -209,8 +214,6 @@ def plot_scalar(
         fld = fld - np.mean(fld, axis=0)
     if conf.field.shift:
         fld = np.roll(fld, conf.field.shift, axis=0)
-
-    fld, unit = step.sdat.scale(fld, meta.dim)
 
     if axis is None:
         fig, axis = plt.subplots(ncols=1)
@@ -244,11 +247,7 @@ def plot_scalar(
     if conf.field.colorbar:
         cax = make_axes_locatable(axis).append_axes("right", size="3%", pad=0.15)
         cbar = plt.colorbar(surf, cax=cax)
-        cbar.set_label(
-            meta.description
-            + (" pert." if conf.field.perturbation else "")
-            + (f" ({unit})" if unit else "")
-        )
+        cbar.set_label(meta.description + (" pert." if conf.field.perturbation else ""))
     if step.geom.spherical or conf.plot.ratio is None:
         axis.set_aspect("equal")
         axis.set_axis_off()
@@ -262,7 +261,12 @@ def plot_scalar(
 
 
 def plot_iso(
-    axis: Axes, step: Step, var: str, field: Optional[ndarray] = None, **extra: Any
+    axis: Axes,
+    step: Step,
+    var: str,
+    field: Optional[ndarray] = None,
+    conf: Optional[Config] = None,
+    **extra: Any,
 ) -> None:
     """Plot isocontours of scalar field.
 
@@ -272,13 +276,13 @@ def plot_iso(
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
         var: the scalar field name.
         field: if not None, it is plotted instead of step.fields[var].  This is
-            useful to plot a masked or rescaled array.  Note that if
-            conf.scaling.dimensional is True, this field will be scaled
-            accordingly.
+            useful to plot a masked or rescaled array.
         extra: options that will be passed on to
             :func:`matplotlib.axes.Axes.contour`.
     """
-    xmesh, ymesh, fld, _ = get_meshes_fld(step, var)
+    if conf is None:
+        conf = Config.default_()
+    xmesh, ymesh, fld, _ = get_meshes_fld(conf, step, var)
 
     if field is not None:
         fld = field
@@ -296,7 +300,12 @@ def plot_iso(
     axis.contour(xmesh, ymesh, fld, **extra_opts)
 
 
-def plot_vec(axis: Axes, step: Step, var: str) -> None:
+def plot_vec(
+    axis: Axes,
+    step: Step,
+    var: str,
+    conf: Optional[Config] = None,
+) -> None:
     """Plot vector field.
 
     Args:
@@ -305,7 +314,9 @@ def plot_vec(axis: Axes, step: Step, var: str) -> None:
         step: a :class:`~stagpy._step.Step` of a StagyyData instance.
         var: the vector field name.
     """
-    xmesh, ymesh, vec1, vec2 = get_meshes_vec(step, var)
+    if conf is None:
+        conf = Config.default_()
+    xmesh, ymesh, vec1, vec2 = get_meshes_vec(conf, step, var)
     dipz = step.geom.nztot // 10
     if conf.field.shift:
         vec1 = np.roll(vec1, conf.field.shift, axis=0)
@@ -325,15 +336,14 @@ def plot_vec(axis: Axes, step: Step, var: str) -> None:
 
 
 def _findminmax(
-    sdat: StagyyData, sovs: Iterable[str]
+    view: _StepsView, sovs: Iterable[str]
 ) -> Dict[str, Tuple[float, float]]:
     """Find min and max values of several fields."""
     minmax: Dict[str, Tuple[float, float]] = {}
-    for step in sdat.walk.filter(snap=True):
+    for step in view.filter(snap=True):
         for var in sovs:
             if var in step.fields:
-                field = step.fields[var]
-                vals, _ = sdat.scale(field.values, field.meta.dim)
+                vals = step.fields[var].values
                 if var in minmax:
                     minmax[var] = (
                         min(minmax[var][0], np.nanmin(vals)),
@@ -344,14 +354,10 @@ def _findminmax(
     return minmax
 
 
-def cmd() -> None:
-    """Implementation of field subcommand.
-
-    Other Parameters:
-        conf.field
-        conf.core
-    """
+def cmd(conf: Config) -> None:
+    """Implementation of field subcommand."""
     sdat = StagyyData(conf.core.path)
+    view = _helpers.walk(sdat, conf)
     # no more than two fields in a subplot
     lovs = [[slov[:2] for slov in plov] for plov in conf.field.plot]
     minmax = {}
@@ -359,8 +365,8 @@ def cmd() -> None:
         conf.plot.vmin = None
         conf.plot.vmax = None
         sovs = set(slov[0] for plov in lovs for slov in plov)
-        minmax = _findminmax(sdat, sovs)
-    for step in sdat.walk.filter(snap=True):
+        minmax = _findminmax(view, sovs)
+    for step in view.filter(snap=True):
         for vfig in lovs:
             fig, axes = plt.subplots(
                 ncols=len(vfig), squeeze=False, figsize=(6 * len(vfig), 6)
@@ -372,18 +378,18 @@ def cmd() -> None:
                 opts: Dict[str, Any] = {}
                 if var[0] in minmax:
                     opts = dict(vmin=minmax[var[0]][0], vmax=minmax[var[0]][1])
-                plot_scalar(step, var[0], axis=axis, **opts)
+                plot_scalar(step, var[0], axis=axis, conf=conf, **opts)
                 if len(var) == 2:
                     if valid_field_var(var[1]):
-                        plot_iso(axis, step, var[1])
+                        plot_iso(axis, step, var[1], conf=conf)
                     elif valid_field_var(var[1] + "1"):
-                        plot_vec(axis, step, var[1])
+                        plot_vec(axis, step, var[1], conf=conf)
             if conf.field.timelabel:
-                time, unit = sdat.scale(step.timeinfo["t"], "s")
+                time = step.timeinfo["t"]
                 time = _helpers.scilabel(time)
                 axes[0, 0].text(
-                    0.02, 1.02, f"$t={time}$ {unit}", transform=axes[0, 0].transAxes
+                    0.02, 1.02, f"$t={time}$", transform=axes[0, 0].transAxes
                 )
             oname = "_".join(chain.from_iterable(vfig))
             plt.tight_layout(w_pad=3)
-            _helpers.saveplot(fig, oname, step.isnap)
+            _helpers.saveplot(conf, fig, oname, step.isnap)

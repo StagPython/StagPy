@@ -56,4 +56,4 @@ phyvars
 
       Dictionary mapping dimension strings (**dim** fields in ``Var*``) to
       functions which are themselves mapping from
-      :class:`~stagpy.stagyydata.StagyyData` to the scale for that dimension.
+      :class:`~stagpy.dimensions.Scales` to the scale for that dimension.

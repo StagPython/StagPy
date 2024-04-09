@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from . import _helpers, conf
+from . import _helpers
+from .config import Config
 from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData
 
@@ -18,7 +19,7 @@ if typing.TYPE_CHECKING:
     from pandas import DataFrame
 
 
-def _collect_marks(sdat: StagyyData) -> List[float]:
+def _collect_marks(sdat: StagyyData, conf: Config) -> List[float]:
     """Concatenate mark* config variable."""
     times = list(conf.time.marktimes)
     times.extend(step.timeinfo["t"] for step in sdat.snaps[conf.time.marksnaps])
@@ -27,19 +28,19 @@ def _collect_marks(sdat: StagyyData) -> List[float]:
 
 
 def plot_time_series(
-    sdat: StagyyData, names: Sequence[Sequence[Sequence[str]]]
+    sdat: StagyyData,
+    names: Sequence[Sequence[Sequence[str]]],
+    conf: Optional[Config] = None,
 ) -> None:
     """Plot requested time series.
 
     Args:
         sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
         names: time series names organized by figures, plots and subplots.
-
-    Other Parameters:
-        conf.time.tstart: the starting time.
-        conf.time.tend: the ending time.
     """
-    time_marks = _collect_marks(sdat)
+    if conf is None:
+        conf = Config.default_()
+    time_marks = _collect_marks(sdat, conf)
     for vfig in names:
         tstart = conf.time.tstart
         tend = conf.time.tend
@@ -74,9 +75,6 @@ def plot_time_series(
             if ivar == 0:
                 ylabel = tseries.meta.description
             if ylabel:
-                _, unit = sdat.scale(1, tseries.meta.dim)
-                if unit:
-                    ylabel += f" ({unit})"
                 axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == "eta":  # list of log variables
                 axes[iplt].set_yscale("log")
@@ -86,13 +84,10 @@ def plot_time_series(
             axes[iplt].tick_params()
             for time_mark in time_marks:
                 axes[iplt].axvline(time_mark, color="black", linestyle="--")
-        _, unit = sdat.scale(1, "s")
-        if unit:
-            unit = f" ({unit})"
-        axes[-1].set_xlabel("Time" + unit)
+        axes[-1].set_xlabel("Time")
         axes[-1].set_xlim(tstart, tend)
         axes[-1].tick_params()
-        _helpers.saveplot(fig, "_".join(fname))
+        _helpers.saveplot(conf, fig, "_".join(fname))
 
 
 def compstat(
@@ -125,13 +120,8 @@ def compstat(
     return stats
 
 
-def cmd() -> None:
-    """Implementation of time subcommand.
-
-    Other Parameters:
-        conf.time
-        conf.core
-    """
+def cmd(conf: Config) -> None:
+    """Implementation of time subcommand."""
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return
@@ -144,7 +134,7 @@ def cmd() -> None:
         t_f = sdat.tseries.time[-1]
         conf.time.tstart = t_0 * conf.time.fraction + t_f * (1 - conf.time.fraction)
 
-    plot_time_series(sdat, conf.time.plot)
+    plot_time_series(sdat, conf.time.plot, conf)
 
     if conf.time.compstat:
         stats = compstat(

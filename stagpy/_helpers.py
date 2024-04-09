@@ -7,16 +7,24 @@ from inspect import getdoc
 
 import matplotlib.pyplot as plt
 
-from . import conf
-
 if typing.TYPE_CHECKING:
     from typing import Any, Optional
 
     from matplotlib.figure import Figure
     from numpy import ndarray
 
+    from .config import Config
+    from .stagyydata import StagyyData, _StepsView
 
-def out_name(stem: str, timestep: Optional[int] = None) -> str:
+
+def walk(sdat: StagyyData, conf: Config) -> _StepsView:
+    """Return view on configured steps slice."""
+    if conf.core.timesteps:
+        return sdat.steps[conf.core.timesteps]
+    return sdat.snaps[conf.core.snapshots]
+
+
+def out_name(conf: Config, stem: str, timestep: Optional[int] = None) -> str:
     """Return StagPy out file name.
 
     Args:
@@ -25,9 +33,6 @@ def out_name(stem: str, timestep: Optional[int] = None) -> str:
 
     Returns:
         the output file name.
-
-    Other Parameters:
-        conf.core.outname: the generic name stem, defaults to ``'stagpy'``.
     """
     if conf.core.shortname:
         return conf.core.outname
@@ -54,7 +59,11 @@ def scilabel(value: float, precision: int = 2) -> str:
 
 
 def saveplot(
-    fig: Figure, *name_args: Any, close: bool = True, **name_kwargs: Any
+    conf: Config,
+    fig: Figure,
+    stem: str,
+    timestep: Optional[int] = None,
+    close: bool = True,
 ) -> None:
     """Save matplotlib figure.
 
@@ -63,11 +72,11 @@ def saveplot(
 
     Args:
         fig: the :class:`matplotlib.figure.Figure` to save.
+        stem: short description of file content.
+        timestep: timestep if relevant.
         close: whether to close the figure.
-        name_args: positional arguments passed on to :func:`out_name`.
-        name_kwargs: keyword arguments passed on to :func:`out_name`.
     """
-    oname = out_name(*name_args, **name_kwargs)
+    oname = out_name(conf, stem, timestep)
     fig.savefig(
         f"{oname}.{conf.plot.format}", format=conf.plot.format, bbox_inches="tight"
     )
