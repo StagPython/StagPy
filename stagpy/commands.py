@@ -14,7 +14,7 @@ from ._helpers import baredoc, walk
 from .config import CONFIG_LOCAL, Config
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, Union
+    from typing import Callable, Iterable, Mapping, Optional, Sequence, Union
 
     from loam.base import Section
 
@@ -52,7 +52,7 @@ def info_cmd(conf: Config) -> None:
 
 
 def _pretty_print(
-    key_val: Sequence[Tuple[str, str]],
+    key_val: Sequence[tuple[str, str]],
     sep: str = ": ",
     min_col_width: int = 39,
     text_width: Optional[int] = None,

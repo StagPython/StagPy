@@ -20,19 +20,9 @@ from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
 
 if typing.TYPE_CHECKING:
-    from typing import (
-        Any,
-        Callable,
-        Dict,
-        Iterator,
-        List,
-        Mapping,
-        NoReturn,
-        Optional,
-        Tuple,
-    )
+    from typing import Any, Callable, Iterator, Mapping, NoReturn, Optional
 
-    from numpy import ndarray
+    from numpy.typing import NDArray
     from pandas import DataFrame, Series
 
     from .datatypes import Varf
@@ -46,10 +36,10 @@ class _Geometry:
     output by StagYY.
     """
 
-    def __init__(self, header: Dict[str, Any], step: Step):
+    def __init__(self, header: dict[str, Any], step: Step):
         self._header = header
         self._step = step
-        self._shape: Dict[str, Any] = {
+        self._shape: dict[str, Any] = {
             "sph": False,
             "cyl": False,
             "axi": False,
@@ -57,7 +47,7 @@ class _Geometry:
         }
         self._init_shape()
 
-    def _scale_radius_mo(self, radius: ndarray) -> ndarray:
+    def _scale_radius_mo(self, radius: NDArray) -> NDArray:
         """Rescale radius for evolving MO runs."""
         if self._step.sdat.par.get("magma_oceans_in", "evolving_magma_oceans", False):
             return self._header["mo_thick_sol"] * (radius + self._header["mo_lambda"])
@@ -103,7 +93,7 @@ class _Geometry:
         return self.nrtot
 
     @cached_property
-    def r_walls(self) -> ndarray:
+    def r_walls(self) -> NDArray:
         """Position of FV walls along the z/r direction."""
         rgeom = self._header.get("rgeom")
         if rgeom is not None:
@@ -114,7 +104,7 @@ class _Geometry:
         return self._scale_radius_mo(walls)
 
     @cached_property
-    def r_centers(self) -> ndarray:
+    def r_centers(self) -> NDArray:
         """Position of FV centers along the z/r direction."""
         rgeom = self._header.get("rgeom")
         if rgeom is not None:
@@ -124,7 +114,7 @@ class _Geometry:
         return self._scale_radius_mo(walls)
 
     @cached_property
-    def t_walls(self) -> ndarray:
+    def t_walls(self) -> NDArray:
         """Position of FV walls along x/theta."""
         if self.threed or self.twod_xz:
             if self.yinyang:
@@ -143,12 +133,12 @@ class _Geometry:
         return np.array([center - d_t, center + d_t])
 
     @cached_property
-    def t_centers(self) -> ndarray:
+    def t_centers(self) -> NDArray:
         """Position of FV centers along x/theta."""
         return (self.t_walls[:-1] + self.t_walls[1:]) / 2
 
     @cached_property
-    def p_walls(self) -> ndarray:
+    def p_walls(self) -> NDArray:
         """Position of FV walls along y/phi."""
         if self.threed or self.twod_yz:
             if self.yinyang:
@@ -165,37 +155,37 @@ class _Geometry:
         return np.array([-d_p, d_p])
 
     @cached_property
-    def p_centers(self) -> ndarray:
+    def p_centers(self) -> NDArray:
         """Position of FV centers along y/phi."""
         return (self.p_walls[:-1] + self.p_walls[1:]) / 2
 
     @property
-    def z_walls(self) -> ndarray:
+    def z_walls(self) -> NDArray:
         """Same as r_walls."""
         return self.r_walls
 
     @property
-    def z_centers(self) -> ndarray:
+    def z_centers(self) -> NDArray:
         """Same as r_centers."""
         return self.r_centers
 
     @property
-    def x_walls(self) -> ndarray:
+    def x_walls(self) -> NDArray:
         """Same as t_walls."""
         return self.t_walls
 
     @property
-    def x_centers(self) -> ndarray:
+    def x_centers(self) -> NDArray:
         """Same as t_centers."""
         return self.t_centers
 
     @property
-    def y_walls(self) -> ndarray:
+    def y_walls(self) -> NDArray:
         """Same as p_walls."""
         return self.p_walls
 
     @property
-    def y_centers(self) -> ndarray:
+    def y_centers(self) -> NDArray:
         """Same as p_centers."""
         return self.p_centers
 
@@ -297,15 +287,15 @@ class _Fields(abc.Mapping):
         step: Step,
         variables: Mapping[str, Varf],
         extravars: Mapping[str, Callable[[Step], Field]],
-        files: Mapping[str, List[str]],
-        filesh5: Mapping[str, List[str]],
+        files: Mapping[str, list[str]],
+        filesh5: Mapping[str, list[str]],
     ):
         self.step = step
         self._vars = variables
         self._extra = extravars
         self._files = files
         self._filesh5 = filesh5
-        self._data: Dict[str, Field] = {}
+        self._data: dict[str, Field] = {}
         super().__init__()
 
     def __getitem__(self, name: str) -> Field:
@@ -329,7 +319,7 @@ class _Fields(abc.Mapping):
         return self._data[name]
 
     @cached_property
-    def _present_fields(self) -> List[str]:
+    def _present_fields(self) -> list[str]:
         return [fld for fld in chain(self._vars, self._extra) if fld in self]
 
     def __iter__(self) -> Iterator[str]:
@@ -347,7 +337,7 @@ class _Fields(abc.Mapping):
     def __eq__(self, other: object) -> bool:
         return self is other
 
-    def _get_raw_data(self, name: str) -> Tuple[List[str], Any]:
+    def _get_raw_data(self, name: str) -> tuple[list[str], Any]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
         filestem = ""
@@ -384,7 +374,7 @@ class _Fields(abc.Mapping):
                     break
         return list_fvar, parsed_data
 
-    def _set(self, name: str, fld: ndarray) -> None:
+    def _set(self, name: str, fld: NDArray) -> None:
         sdat = self.step.sdat
         col_fld = sdat._collected_fields
         col_fld.append((self.step.istep, name))
@@ -399,7 +389,7 @@ class _Fields(abc.Mapping):
             del self._data[name]
 
     @cached_property
-    def _header(self) -> Optional[Dict[str, Any]]:
+    def _header(self) -> Optional[dict[str, Any]]:
         if self.step.isnap is None:
             return None
         binfiles = self.step.sdat._binfiles_set(self.step.isnap)
@@ -439,9 +429,9 @@ class _Tracers:
 
     def __init__(self, step: Step):
         self.step = step
-        self._data: Dict[str, Optional[List[ndarray]]] = {}
+        self._data: dict[str, Optional[list[NDArray]]] = {}
 
-    def __getitem__(self, name: str) -> Optional[List[ndarray]]:
+    def __getitem__(self, name: str) -> Optional[list[NDArray]]:
         if name in self._data:
             return self._data[name]
         if self.step.isnap is None:
@@ -480,7 +470,7 @@ class _Rprofs:
 
     def __init__(self, step: Step):
         self.step = step
-        self._cached_extra: Dict[str, Rprof] = {}
+        self._cached_extra: dict[str, Rprof] = {}
 
     @cached_property
     def _data(self) -> Optional[DataFrame]:
@@ -527,12 +517,12 @@ class _Rprofs:
         return str(self.step.istep)
 
     @cached_property
-    def centers(self) -> ndarray:
+    def centers(self) -> NDArray:
         """Radial position of cell centers."""
         return self._rprofs["r"].to_numpy() + self.bounds[0]
 
     @cached_property
-    def walls(self) -> ndarray:
+    def walls(self) -> NDArray:
         """Radial position of cell walls."""
         rbot, rtop = self.bounds
         try:
@@ -547,7 +537,7 @@ class _Rprofs:
         return walls
 
     @cached_property
-    def bounds(self) -> Tuple[float, float]:
+    def bounds(self) -> tuple[float, float]:
         """Radial or vertical position of boundaries.
 
         Radial/vertical positions of boundaries of the domain.

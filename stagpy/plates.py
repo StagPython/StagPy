@@ -18,15 +18,15 @@ from .datatypes import Field
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Sequence, TextIO, Tuple, Union
+    from typing import Optional, Sequence, TextIO, Union
 
     from matplotlib.axes import Axes
-    from numpy import ndarray
+    from numpy.typing import NDArray
 
     from ._step import Step, _Geometry
 
 
-def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> ndarray:
+def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray:
     """Remove positions where vz is below threshold."""
     # verifying vertical velocity
     vzabs = np.abs(snap.fields["v3"].values[0, ..., 0])
@@ -39,7 +39,7 @@ def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> ndarray:
 
 
 @lru_cache
-def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> Tuple[ndarray, ndarray]:
+def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> tuple[NDArray, NDArray]:
     """Detect plate limits using derivative of horizontal velocity.
 
     This function is cached for convenience.
@@ -96,7 +96,7 @@ def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> Tuple[ndarray, ndarr
     return itrenches, iridges
 
 
-def _plot_plate_limits(axis: Axes, trenches: ndarray, ridges: ndarray) -> None:
+def _plot_plate_limits(axis: Axes, trenches: NDArray, ridges: NDArray) -> None:
     """Plot lines designating ridges and trenches."""
     for trench in trenches:
         axis.axvline(x=trench, color="red", ls="dashed", alpha=0.4)
@@ -106,7 +106,7 @@ def _plot_plate_limits(axis: Axes, trenches: ndarray, ridges: ndarray) -> None:
 
 def _annot_pos(
     geom: _Geometry, iphi: int
-) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+) -> tuple[tuple[float, float], tuple[float, float]]:
     """Position of arrows to mark limit positions."""
     phi = geom.p_centers[iphi]
     rtot = geom.r_walls[-1]
@@ -181,7 +181,7 @@ def _surf_diag(snap: Step, name: str) -> Field:
     raise error.UnknownVarError(name)
 
 
-def _continents_location(snap: Step, at_surface: bool = True) -> ndarray:
+def _continents_location(snap: Step, at_surface: bool = True) -> NDArray:
     """Location of continents as a boolean array.
 
     If at_surface is True, it is evaluated only at the surface, otherwise it is

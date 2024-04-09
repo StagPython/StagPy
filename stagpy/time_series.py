@@ -14,12 +14,12 @@ from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import List, Optional, Sequence
+    from typing import Optional, Sequence
 
     from pandas import DataFrame
 
 
-def _collect_marks(sdat: StagyyData, conf: Config) -> List[float]:
+def _collect_marks(sdat: StagyyData, conf: Config) -> list[float]:
     """Concatenate mark* config variable."""
     times = list(conf.time.marktimes)
     times.extend(step.timeinfo["t"] for step in sdat.snaps[conf.time.marksnaps])

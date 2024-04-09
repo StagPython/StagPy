@@ -17,13 +17,13 @@ from .error import NotAvailableError
 from .stagyydata import StagyyData
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Dict, Iterable, Optional, Tuple, Union
+    from typing import Any, Iterable, Optional, Union
 
     from matplotlib.axes import Axes
     from matplotlib.collections import QuadMesh
     from matplotlib.colorbar import Colorbar
     from matplotlib.figure import Figure
-    from numpy import ndarray
+    from numpy.typing import NDArray
 
     from ._step import Step
     from .datatypes import Varf
@@ -36,7 +36,7 @@ if typing.TYPE_CHECKING:
 
 def _threed_extract(
     conf: Config, step: Step, var: str, walls: bool = False
-) -> Tuple[Tuple[ndarray, ndarray], ndarray]:
+) -> tuple[tuple[NDArray, NDArray], NDArray]:
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
     hwalls = is_vector or walls
@@ -89,7 +89,7 @@ def valid_field_var(var: str) -> bool:
 
 def get_meshes_fld(
     conf: Config, step: Step, var: str, walls: bool = False
-) -> Tuple[ndarray, ndarray, ndarray, Varf]:
+) -> tuple[NDArray, NDArray, NDArray, Varf]:
     """Return scalar field along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
@@ -129,7 +129,7 @@ def get_meshes_fld(
 
 def get_meshes_vec(
     conf: Config, step: Step, var: str
-) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
+) -> tuple[NDArray, NDArray, NDArray, NDArray]:
     """Return vector field components along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
@@ -170,11 +170,11 @@ def get_meshes_vec(
 def plot_scalar(
     step: Step,
     var: str,
-    field: Optional[ndarray] = None,
+    field: Optional[NDArray] = None,
     axis: Optional[Axes] = None,
     conf: Optional[Config] = None,
     **extra: Any,
-) -> Tuple[Figure, Axes, QuadMesh, Optional[Colorbar]]:
+) -> tuple[Figure, Axes, QuadMesh, Optional[Colorbar]]:
     """Plot scalar field.
 
     Args:
@@ -264,7 +264,7 @@ def plot_iso(
     axis: Axes,
     step: Step,
     var: str,
-    field: Optional[ndarray] = None,
+    field: Optional[NDArray] = None,
     conf: Optional[Config] = None,
     **extra: Any,
 ) -> None:
@@ -289,7 +289,7 @@ def plot_iso(
 
     if conf.field.shift:
         fld = np.roll(fld, conf.field.shift, axis=0)
-    extra_opts: Dict[str, Any] = dict(linewidths=1)
+    extra_opts: dict[str, Any] = dict(linewidths=1)
     if "cmap" not in extra and conf.field.isocolors:
         extra_opts["colors"] = conf.field.isocolors
     elif "colors" not in extra:
@@ -337,9 +337,9 @@ def plot_vec(
 
 def _findminmax(
     view: _StepsView, sovs: Iterable[str]
-) -> Dict[str, Tuple[float, float]]:
+) -> dict[str, tuple[float, float]]:
     """Find min and max values of several fields."""
-    minmax: Dict[str, Tuple[float, float]] = {}
+    minmax: dict[str, tuple[float, float]] = {}
     for step in view.filter(snap=True):
         for var in sovs:
             if var in step.fields:
@@ -375,7 +375,7 @@ def cmd(conf: Config) -> None:
                 if var[0] not in step.fields:
                     print(f"{var[0]!r} field on snap {step.isnap} not found")
                     continue
-                opts: Dict[str, Any] = {}
+                opts: dict[str, Any] = {}
                 if var[0] in minmax:
                     opts = dict(vmin=minmax[var[0]][0], vmax=minmax[var[0]][1])
                 plot_scalar(step, var[0], axis=axis, conf=conf, **opts)

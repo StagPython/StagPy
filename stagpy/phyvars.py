@@ -15,7 +15,7 @@ from . import processing
 from .datatypes import Varf, Varr, Vart
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, List, Mapping
+    from typing import Callable, Mapping
 
     from ._step import Step
     from .datatypes import Field, Rprof, Tseries
@@ -73,7 +73,7 @@ FIELD_EXTRA: Mapping[str, Callable[[Step], Field]] = MappingProxyType(
     }
 )
 
-FIELD_FILES: Mapping[str, List[str]] = MappingProxyType(
+FIELD_FILES: Mapping[str, list[str]] = MappingProxyType(
     {
         "t": ["T"],
         "vp": ["v1", "v2", "v3", "p"],
@@ -103,7 +103,7 @@ FIELD_FILES: Mapping[str, List[str]] = MappingProxyType(
     }
 )
 
-FIELD_FILES_H5: Mapping[str, List[str]] = MappingProxyType(
+FIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
     {
         "Temperature": ["T"],
         "Velocity": ["v1", "v2", "v3"],
@@ -157,7 +157,7 @@ SFIELD: Mapping[str, Varf] = MappingProxyType(
     }
 )
 
-SFIELD_FILES: Mapping[str, List[str]] = MappingProxyType(
+SFIELD_FILES: Mapping[str, list[str]] = MappingProxyType(
     {
         "cs": ["topo_bot", "topo_top"],
         "g": ["geoid_bot", "geoid_top"],
@@ -168,7 +168,7 @@ SFIELD_FILES: Mapping[str, List[str]] = MappingProxyType(
     }
 )
 
-SFIELD_FILES_H5: Mapping[str, List[str]] = MappingProxyType(
+SFIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
     {
         "BottomTopography": ["topo_bot"],
         "SurfaceTopography": ["topo_top"],

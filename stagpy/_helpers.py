@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
     from typing import Any, Optional
 
     from matplotlib.figure import Figure
-    from numpy import ndarray
+    from numpy.typing import NDArray
 
     from .config import Config
     from .stagyydata import StagyyData, _StepsView
@@ -102,7 +102,7 @@ def baredoc(obj: object) -> str:
     return doc.rstrip(" .").lstrip()
 
 
-def find_in_sorted_arr(value: Any, array: ndarray, after: bool = False) -> int:
+def find_in_sorted_arr(value: Any, array: NDArray, after: bool = False) -> int:
     """Return position of element in a sorted array.
 
     Returns:

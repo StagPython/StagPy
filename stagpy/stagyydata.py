@@ -30,18 +30,14 @@ if typing.TYPE_CHECKING:
     from typing import (
         Any,
         Callable,
-        Dict,
         Iterable,
         Iterator,
-        List,
         Optional,
         Sequence,
-        Set,
-        Tuple,
         Union,
     )
 
-    from numpy import ndarray
+    from numpy.typing import NDArray
     from pandas import DataFrame, Series
 
     StepIndex = Union[int, slice]
@@ -88,7 +84,7 @@ class _Refstate:
         self._sdat = sdat
 
     @cached_property
-    def _data(self) -> Tuple[List[List[DataFrame]], List[DataFrame]]:
+    def _data(self) -> tuple[list[list[DataFrame]], list[DataFrame]]:
         """Read reference state profile."""
         reffile = self._sdat.filename("refstat.dat")
         if self._sdat.hdf5 and not reffile.is_file():
@@ -100,7 +96,7 @@ class _Refstate:
         return data
 
     @property
-    def systems(self) -> List[List[DataFrame]]:
+    def systems(self) -> list[list[DataFrame]]:
         """Reference state profiles of phases.
 
         It is a list of list of :class:`pandas.DataFrame` containing
@@ -115,7 +111,7 @@ class _Refstate:
         return self._data[0]
 
     @property
-    def adiabats(self) -> List[DataFrame]:
+    def adiabats(self) -> list[DataFrame]:
         """Adiabatic reference state profiles.
 
         It is a list of :class:`pandas.DataFrame` containing the reference
@@ -150,7 +146,7 @@ class _Tseries:
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._cached_extra: Dict[str, Tseries] = {}
+        self._cached_extra: dict[str, Tseries] = {}
 
     @cached_property
     def _data(self) -> Optional[DataFrame]:
@@ -220,12 +216,12 @@ class _Tseries:
         )
 
     @property
-    def time(self) -> ndarray:
+    def time(self) -> NDArray:
         """Time vector."""
         return self._tseries["t"].to_numpy()
 
     @property
-    def isteps(self) -> ndarray:
+    def isteps(self) -> NDArray:
         """Step indices.
 
         This is such that time[istep] is at step isteps[istep].
@@ -253,7 +249,7 @@ class _RprofsAveraged(_step._Rprofs):
 
     def __init__(self, steps: _StepsView):
         self.steps = steps.filter(rprofs=True)
-        self._cached_data: Dict[str, Rprof] = {}
+        self._cached_data: dict[str, Rprof] = {}
         super().__init__(next(iter(self.steps)))
 
     def __getitem__(self, name: str) -> Rprof:
@@ -310,7 +306,7 @@ class _Steps:
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._data: Dict[int, Step] = {}
+        self._data: dict[int, Step] = {}
         self._len: Optional[int] = None
 
     def __repr__(self) -> str:
@@ -407,7 +403,7 @@ class _Snaps(_Steps):
     """
 
     def __init__(self, sdat: StagyyData):
-        self._isteps: Dict[int, Optional[int]] = {}
+        self._isteps: dict[int, Optional[int]] = {}
         self._all_isteps_known = False
         super().__init__(sdat)
 
@@ -516,8 +512,8 @@ class _Filters:
 
     snap: bool = False
     rprofs: bool = False
-    fields: Set[str] = field(default_factory=set)
-    funcs: List[Callable[[Step], bool]] = field(default_factory=list)
+    fields: set[str] = field(default_factory=set)
+    funcs: list[Callable[[Step], bool]] = field(default_factory=list)
 
     def passes(self, step: Step) -> bool:
         """Whether a given Step passes the filters."""
@@ -679,7 +675,7 @@ class StagyyData:
         self.snaps = _Snaps(self)
         self._nfields_max: Optional[int] = 50
         # list of (istep, field_name) in memory
-        self._collected_fields: List[Tuple[int, str]] = []
+        self._collected_fields: list[tuple[int, str]] = []
 
     def __repr__(self) -> str:
         return f"StagyyData({self.path!r})"
@@ -737,7 +733,7 @@ class StagyyData:
         return StagyyPar.from_main_par(self.parpath)
 
     @cached_property
-    def _rprof_and_times(self) -> Tuple[Dict[int, DataFrame], Optional[DataFrame]]:
+    def _rprof_and_times(self) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
         rproffile = self.filename("rprof.h5")
         data = stagyyparsers.rprof_h5(rproffile, list(phyvars.RPROF.keys()))
         if data[1] is not None:
@@ -754,7 +750,7 @@ class StagyyData:
         return self._rprof_and_times[1]
 
     @cached_property
-    def _files(self) -> Set[Path]:
+    def _files(self) -> set[Path]:
         """Set of found binary files output by StagYY."""
         out_stem = self.par.legacy_output("_")
         out_dir = self.path / out_stem.parent
@@ -807,7 +803,7 @@ class StagyyData:
             fpath = self.path / fpath
         return fpath
 
-    def _binfiles_set(self, isnap: int) -> Set[Path]:
+    def _binfiles_set(self, isnap: int) -> set[Path]:
         """Set of existing binary files at a given snap.
 
         Args:
