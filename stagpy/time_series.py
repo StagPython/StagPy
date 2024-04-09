@@ -37,10 +37,6 @@ def plot_time_series(
     Args:
         sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
         names: time series names organized by figures, plots and subplots.
-
-    Other Parameters:
-        conf.time.tstart: the starting time.
-        conf.time.tend: the ending time.
     """
     if conf is None:
         conf = Config.default_()
@@ -125,12 +121,7 @@ def compstat(
 
 
 def cmd(conf: Config) -> None:
-    """Implementation of time subcommand.
-
-    Other Parameters:
-        conf.time
-        conf.core
-    """
+    """Implementation of time subcommand."""
     sdat = StagyyData(conf.core.path)
     if sdat.tseries is None:
         return

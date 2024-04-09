@@ -18,12 +18,7 @@ if typing.TYPE_CHECKING:
 
 
 def walk(sdat: StagyyData, conf: Config) -> _StepsView:
-    """Return view on configured steps slice.
-
-    Other Parameters:
-        conf.core.snapshots: the slice of snapshots.
-        conf.core.timesteps: the slice of timesteps.
-    """
+    """Return view on configured steps slice."""
     if conf.core.timesteps:
         return sdat.steps[conf.core.timesteps]
     return sdat.snaps[conf.core.snapshots]

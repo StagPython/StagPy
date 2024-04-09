@@ -22,11 +22,7 @@ if typing.TYPE_CHECKING:
 
 
 def info_cmd(conf: Config) -> None:
-    """Print basic information about StagYY run.
-
-    Other Parameters:
-        conf.info
-    """
+    """Print basic information about StagYY run."""
     sdat = stagyydata.StagyyData(conf.core.path)
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
@@ -174,11 +170,7 @@ def config_pp(subs: Iterable[str], conf: Config) -> None:
 
 
 def config_cmd(conf: Config) -> None:
-    """Configuration handling.
-
-    Other Parameters:
-        conf.config
-    """
+    """Configuration handling."""
     if conf.config.create:
         conf.default_().to_file_(CONFIG_LOCAL)
     else:

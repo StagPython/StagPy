@@ -92,12 +92,7 @@ def plot_grid(step: Step, conf: Optional[Config] = None) -> None:
 
 
 def cmd(conf: Config) -> None:
-    """Implementation of rprof subcommand.
-
-    Other Parameters:
-        conf.rprof
-        conf.core
-    """
+    """Implementation of rprof subcommand."""
     sdat = StagyyData(conf.core.path)
     view = _helpers.walk(sdat, conf)
 

@@ -1,4 +1,4 @@
-"""Parse command line arguments and update :attr:`stagpy.conf`."""
+"""Parse command line arguments."""
 
 from __future__ import annotations
 
