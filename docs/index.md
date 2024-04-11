@@ -1,1 +1,3 @@
-# Welcome to StagPy
+{%
+    include-markdown "../README.md"
+%}
