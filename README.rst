@@ -1,7 +1,3 @@
-.. image:: https://readthedocs.org/projects/stagpy/badge/?version=latest
-   :target: https://stagpy.readthedocs.org/en/latest/?badge=latest
-   :alt: Documentation Status
-
 .. image:: https://badge.fury.io/py/stagpy.svg
    :target: https://badge.fury.io/py/stagpy
    :alt: PyPI Version
