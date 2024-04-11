@@ -1,4 +1,6 @@
 site_name: StagPy
+repo_url: https://github.com/StagPython/StagPy
+repo_name: StagPython/StagPy
 
 plugins:
   - include-markdown
@@ -23,3 +25,5 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
+  icon:
+    repo: fontawesome/brands/github
