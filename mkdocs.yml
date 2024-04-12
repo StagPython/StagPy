@@ -20,6 +20,7 @@ nav:
     - cookbook/field.md
     - cookbook/nura.md
     - cookbook/vrmsra.md
+    - cookbook/tracers.md
   - API Reference: reference/
   - Developers:
     - devs/index.md
