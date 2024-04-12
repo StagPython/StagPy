@@ -15,6 +15,7 @@ nav:
     - user-guide/getting-started.md
     - user-guide/stagyydata.md
     - user-guide/cli.md
+    - user-guide/config-opts.md
   - Cookbook:
     - cookbook/time.md
     - cookbook/rprof.md
@@ -36,6 +37,7 @@ plugins:
   - gen-files:
       scripts:
         - scripts/gen_ref_pages.py
+        - scripts/gen_conf_list.py
   - literate-nav:
       nav_file: SUMMARY.md
   - mkdocstrings:
