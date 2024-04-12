@@ -232,7 +232,7 @@ class Tseries:
         return self._tseries.loc[istep]  # type: ignore
 
 
-class _RprofsAveraged(_step._Rprofs):
+class RprofsAveraged(_step._Rprofs):
     """Radial profiles time-averaged over a [`StepsView`][stagpy.stagyydata.StepsView].
 
     The [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged]
@@ -551,14 +551,14 @@ class StepsView:
     def __init__(self, steps_col: Union[_Steps, _Snaps], items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
-        self._rprofs_averaged: Optional[_RprofsAveraged] = None
+        self._rprofs_averaged: Optional[RprofsAveraged] = None
         self._flt = _Filters()
 
     @property
-    def rprofs_averaged(self) -> _RprofsAveraged:
+    def rprofs_averaged(self) -> RprofsAveraged:
         """Time-averaged radial profiles."""
         if self._rprofs_averaged is None:
-            self._rprofs_averaged = _RprofsAveraged(self)
+            self._rprofs_averaged = RprofsAveraged(self)
         return self._rprofs_averaged
 
     @cached_property
