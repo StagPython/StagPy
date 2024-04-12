@@ -24,8 +24,8 @@ def plot_rprofs(
     """Plot requested radial profiles.
 
     Args:
-        rprofs: a radial profile collection, such as :attr:`Step.rprofs` or
-            :attr:`_StepsView.rprofs_averaged`.
+        rprofs: a radial profile collection, such as `Step.rprofs` or
+            [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged].
         names: profile names organized by figures, plots and subplots.
     """
     if conf is None:

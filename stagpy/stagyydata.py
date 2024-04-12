@@ -58,7 +58,7 @@ def _as_view_item(obj: int) -> None: ...
 def _as_view_item(
     obj: Union[Sequence[StepIndex], slice, int],
 ) -> Union[Sequence[StepIndex], Sequence[slice], None]:
-    """Return None or a suitable iterable to build a _StepsView."""
+    """Return None or a suitable iterable to build a StepsView."""
     try:
         iter(obj)  # type: ignore
         return obj  # type: ignore
@@ -237,20 +237,16 @@ class _Tseries:
 
 
 class _RprofsAveraged(_step._Rprofs):
-    """Radial profiles time-averaged over a :class:`_StepsView`.
+    """Radial profiles time-averaged over a [`StepsView`][stagpy.stagyydata.StepsView].
 
-    The :attr:`_StepsView.rprofs_averaged` attribute is an instance of this
-    class.
+    The [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged]
+    attribute is an instance of this class.
 
-    It implements the same interface as :class:`~stagpy._step._Rprofs` but
+    It implements the same interface as [`Rprofs`][stagpy.step.Rprofs] but
     returns time-averaged profiles instead.
-
-    Attributes:
-        steps: the :class:`_StepsView` owning the :class:`_RprofsAveraged`
-            instance.
     """
 
-    def __init__(self, steps: _StepsView):
+    def __init__(self, steps: StepsView):
         self.steps = steps.filter(rprofs=True)
         self._cached_data: dict[str, dt.Rprof] = {}
         super().__init__(next(iter(self.steps)))
@@ -289,7 +285,7 @@ class _Steps:
         sdat.steps[istep]  # Step object of the istep-th time step
 
     Slices or tuple of istep and slices of :class:`_Steps` object are
-    :class:`_StepsView` instances that you can iterate and filter::
+    `StepsView` instances that you can iterate and filter::
 
         for step in steps[500:]:
             # iterate through all time steps from the 500-th one
@@ -319,14 +315,14 @@ class _Steps:
     def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView: ...
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> StepsView: ...
 
     def __getitem__(
         self, istep: Union[int, slice, Sequence[StepIndex]]
-    ) -> Union[Step, _StepsView]:
+    ) -> Union[Step, StepsView]:
         keys = _as_view_item(istep)
         if keys is not None:
-            return _StepsView(self, keys)
+            return StepsView(self, keys)
         try:
             istep = int(istep)  # type: ignore
         except ValueError:
@@ -383,8 +379,8 @@ class _Steps:
         rprofs: bool = False,
         fields: Optional[Iterable[str]] = None,
         func: Optional[Callable[[Step], bool]] = None,
-    ) -> _StepsView:
-        """Build a _StepsView with requested filters."""
+    ) -> StepsView:
+        """Build a `StepsView` with requested filters."""
         return self[:].filter(snap, rprofs, fields, func)
 
 
@@ -417,12 +413,12 @@ class _Snaps(_Steps):
     def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView: ...
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> StepsView: ...
 
-    def __getitem__(self, isnap: Any) -> Union[Step, _StepsView]:
+    def __getitem__(self, isnap: Any) -> Union[Step, StepsView]:
         keys = _as_view_item(isnap)
         if keys is not None:
-            return _StepsView(self, keys).filter(snap=True)
+            return StepsView(self, keys).filter(snap=True)
         if isnap < 0:
             isnap += len(self)
         if isnap < 0 or isnap >= len(self):
@@ -544,15 +540,15 @@ class _Filters:
         return ", ".join(flts)
 
 
-class _StepsView:
+class StepsView:
     """Filtered iterator over steps or snaps.
 
     Instances of this class are returned when taking slices of
-    :attr:`StagyyData.steps` or :attr:`StagyyData.snaps` attributes.
+    `StagyyData.steps` or `StagyyData.snaps` attributes.
 
     Args:
-        steps_col: steps collection, i.e. :attr:`StagyyData.steps` or
-            :attr:`StagyyData.snaps` attributes.
+        steps_col: steps collection, i.e. `StagyyData.steps` or
+            `StagyyData.snaps` attributes.
         items: iterable of isteps/isnaps or slices.
     """
 
@@ -607,17 +603,19 @@ class _StepsView:
         rprofs: bool = False,
         fields: Optional[Iterable[str]] = None,
         func: Optional[Callable[[Step], bool]] = None,
-    ) -> _StepsView:
+    ) -> StepsView:
         """Add filters to the view.
 
         Note that filters are only resolved when the view is iterated.
         Successive calls to :meth:`filter` compose.  For example, with this
         code::
 
-            view = sdat.steps[500:].filter(rprofs=True, fields=['T'])
-            view.filter(fields=['eta'])
+        ```py
+        view = sdat.steps[500:].filter(rprofs=True, fields=["T"])
+        view.filter(fields=["eta"])
+        ```
 
-        the produced ``view``, when iterated, will generate the steps after the
+        the produced `view`, when iterated, will generate the steps after the
         500-th that have radial profiles, and both the temperature and
         viscosity fields.
 

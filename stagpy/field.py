@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
 
     from ._step import Step
     from .datatypes import Varf
-    from .stagyydata import _StepsView
+    from .stagyydata import StepsView
 
 
 # The location is off for vertical velocities: they have an extra
@@ -335,9 +335,7 @@ def plot_vec(
     )
 
 
-def _findminmax(
-    view: _StepsView, sovs: Iterable[str]
-) -> dict[str, tuple[float, float]]:
+def _findminmax(view: StepsView, sovs: Iterable[str]) -> dict[str, tuple[float, float]]:
     """Find min and max values of several fields."""
     minmax: dict[str, tuple[float, float]] = {}
     for step in view.filter(snap=True):
