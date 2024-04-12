@@ -42,6 +42,7 @@ theme:
   features:
     - content.code.copy
     - navigation.indexes
+    - navigation.tabs
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
