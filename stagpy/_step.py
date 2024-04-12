@@ -561,37 +561,34 @@ class _Rprofs:
 class Step:
     """Time step data structure.
 
-    Elements of :class:`~stagpy.stagyydata._Steps` and
-    :class:`~stagpy.stagyydata._Snaps` instances are all :class:`Step`
-    instances. Note that :class:`Step` objects are not duplicated.
+    Elements of [`Steps`][stagpy.stagyydata.Steps] and
+    [`Snaps`][stagpy.stagyydata.Snaps] instances are all `Step`
+    instances. Note that `Step` objects are not duplicated.
 
     Examples:
-        Here are a few examples illustrating some properties of :class:`Step`
+        Here are a few examples illustrating some properties of `Step`
         instances.
 
-        >>> sdat = StagyyData('path/to/run')
-        >>> istep_last_snap = sdat.snaps[-1].istep
-        >>> assert(sdat.steps[istep_last_snap] is sdat.snaps[-1])
-        >>> n = 0  # or any valid time step / snapshot index
-        >>> assert(sdat.steps[n].sdat is sdat)
-        >>> assert(sdat.steps[n].istep == n)
-        >>> assert(sdat.snaps[n].isnap == n)
-        >>> assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
-        >>> assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
-
-    Args:
-        istep: the index of the time step that the instance represents.
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance owning the
-            :class:`Step` instance.
+        ```py
+        sdat = StagyyData('path/to/run')
+        istep_last_snap = sdat.snaps[-1].istep
+        assert(sdat.steps[istep_last_snap] is sdat.snaps[-1])
+        n = 0  # or any valid time step / snapshot index
+        assert(sdat.steps[n].sdat is sdat)
+        assert(sdat.steps[n].istep == n)
+        assert(sdat.snaps[n].isnap == n)
+        assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
+        assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
+        ```
 
     Attributes:
         istep: the index of the time step that the instance represents.
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` StagyyData instance
-            owning the :class:`Step` instance.
-        fields (:class:`_Fields`): fields available at this time step.
-        sfields (:class:`_Fields`): surface fields available at this time
+        sdat: the [`StagyyData`][stagpy.stagyydata.StagyyData] instance
+            owning the `Step` instance.
+        fields (`Fields`): fields available at this time step.
+        sfields (`Fields`): surface fields available at this time
             step.
-        tracers (:class:`_Tracers`): tracers available at this time step.
+        tracers (`Tracers`): tracers available at this time step.
     """
 
     def __init__(self, istep: int, sdat: StagyyData):

@@ -270,33 +270,34 @@ class RprofsAveraged(_step._Rprofs):
         return self.steps.stepstr
 
 
-class _Steps:
+class Steps:
     """Collections of time steps.
 
-    The :attr:`StagyyData.steps` attribute is an instance of this class.
-    Time steps (which are :class:`~stagpy._step.Step` instances) can be
+    The `StagyyData.steps` attribute is an instance of this class.
+    Time steps (which are [`Step`][stagpy.step.Step] instances) can be
     accessed with the item accessor::
 
-        sdat = StagyyData('path/to/run')
-        sdat.steps[istep]  # Step object of the istep-th time step
+    ```py
+    sdat = StagyyData(Path("path/to/run"))
+    sdat.steps[istep]  # Step object of the istep-th time step
+    ```
 
-    Slices or tuple of istep and slices of :class:`_Steps` object are
-    `StepsView` instances that you can iterate and filter::
+    Slices or tuple of istep and slices of `Steps` object are
+    `StepsView` instances that you can iterate and filter:
 
-        for step in steps[500:]:
-            # iterate through all time steps from the 500-th one
-            do_something(step)
+    ```py
+    for step in steps[500:]:
+        # iterate through all time steps from the 500-th one
+        do_something(step)
 
-        for step in steps[-100:].filter(snap=True):
-            # iterate through all snapshots present in the last 100 time steps
-            do_something(step)
+    for step in steps[-100:].filter(snap=True):
+        # iterate through all snapshots present in the last 100 time steps
+        do_something(step)
 
-        for step in steps[0,3,5,-2:]:
-            # iterate through steps 0, 3, 5 and the last two
-            do_something(step)
-
-    Attributes:
-        sdat: the StagyyData instance owning the :class:`_Steps` instance.
+    for step in steps[0,3,5,-2:]:
+        # iterate through steps 0, 3, 5 and the last two
+        do_something(step)
+    ```
     """
 
     def __init__(self, sdat: StagyyData):
@@ -380,7 +381,7 @@ class _Steps:
         return self[:].filter(snap, rprofs, fields, func)
 
 
-class _Snaps(_Steps):
+class _Snaps(Steps):
     """Collections of snapshots.
 
     The :attr:`StagyyData.snaps` attribute is an instance of this class.
@@ -389,8 +390,6 @@ class _Snaps(_Steps):
 
         sdat = StagyyData('path/to/run')
         sdat.snaps[isnap]  # Step object of the isnap-th snapshot
-
-    This class inherits from :class:`_Steps`.
 
     Attributes:
         sdat: the :class:`StagyyData` instance owning the :class:`_Snaps`
@@ -476,7 +475,7 @@ class _Snaps(_Steps):
         Returns:
             the relevant :class:`~stagpy._step.Step`.
         """
-        # in theory, this could be a valid implementation of _Steps.at_time
+        # in theory, this could be a valid implementation of Steps.at_time
         # but this isn't safe against missing data...
         igm = 0
         igp = len(self) - 1
@@ -548,7 +547,7 @@ class StepsView:
         items: iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col: Union[_Steps, _Snaps], items: Sequence[StepIndex]):
+    def __init__(self, steps_col: Union[Steps, _Snaps], items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
         self._rprofs_averaged: Optional[RprofsAveraged] = None
@@ -657,7 +656,7 @@ class StagyyData:
             to be path/par.
 
     Attributes:
-        steps (:class:`_Steps`): collection of time steps.
+        steps (Steps): collection of time steps.
         snaps (:class:`_Snaps`): collection of snapshots.
         refstate (Refstate): reference state profiles.
     """
@@ -668,7 +667,7 @@ class StagyyData:
             self._parpath /= "par"
         self.refstate = Refstate(self)
         self.tseries = Tseries(self)
-        self.steps = _Steps(self)
+        self.steps = Steps(self)
         self.snaps = _Snaps(self)
         self._nfields_max: Optional[int] = 50
         # list of (istep, field_name) in memory
