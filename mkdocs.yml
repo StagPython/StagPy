@@ -16,6 +16,7 @@ nav:
     - user-guide/cli.md
   - Cookbook:
     - cookbook/time.md
+    - cookbook/rprof.md
   - API Reference: reference/
   - Developers:
     - devs/index.md
