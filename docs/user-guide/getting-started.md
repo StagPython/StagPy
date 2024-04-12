@@ -83,7 +83,7 @@ StagPy lets you operate the interface it uses internally to access StagYY
 output data. This allows you to write your own scripts to do some specific
 processings that aren't implemented in StagPy.
 
-The interface is wrapped in the [`StagyyData`](stagpy.stagyydata.StagyyData) class.
+The interface is wrapped in the [`StagyyData`][stagpy.stagyydata.StagyyData] class.
 Instantiating and using this class is rather simple::
 
 ```py
@@ -103,16 +103,16 @@ for snap in sdat.snaps[100::5]:
 ```
 
 As you can see, the snapshot/time step distinction is automatically taken care
-of by [`StagyyData`](stagpy.stagyydata.StagyyData).
+of by [`StagyyData`][stagpy.stagyydata.StagyyData].
 
 All output data available in the StagYY run is accessible through this
-interface. [`StagyyData`](stagpy.stagyydata.StagyyData) is designed as a lazy data
+interface. [`StagyyData`][stagpy.stagyydata.StagyyData] is designed as a lazy data
 accessor. This means output files are read only when the data they contain is
 asked for. For example, the temperature field of the last snapshot isn't read
 until `sdat.snaps[-1].fields['T']` is asked for.
 
 See the [dedicated section](stagyydata.md) for more information on how to
-use the [`StagyyData`](stagpy.stagyydata.StagyyData) class.
+use the [`StagyyData`][stagpy.stagyydata.StagyyData] class.
 
 Plotting style
 --------------
