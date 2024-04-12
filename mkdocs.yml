@@ -2,6 +2,11 @@ site_name: StagPy
 repo_url: https://github.com/StagPython/StagPy
 repo_name: StagPython/StagPy
 
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
 plugins:
   - include-markdown
 
