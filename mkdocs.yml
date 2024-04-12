@@ -23,7 +23,12 @@ plugins:
         - scripts/gen_ref_pages.py
   - literate-nav:
       nav_file: SUMMARY.md
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_signature_annotations: true
+            separate_signature: true
 
 markdown_extensions:
   - pymdownx.highlight:
