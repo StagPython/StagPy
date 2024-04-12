@@ -381,19 +381,17 @@ class Steps:
         return self[:].filter(snap, rprofs, fields, func)
 
 
-class _Snaps(Steps):
-    """Collections of snapshots.
+class Snaps(Steps):
+    """Collection of snapshots.
 
-    The :attr:`StagyyData.snaps` attribute is an instance of this class.
-    Snapshots (which are :class:`~stagpy._step.Step` instances) can be accessed
+    The `StagyyData.snaps` attribute is an instance of this class.
+    Snapshots (which are [`Step`][stagpy.step.Step] instances) can be accessed
     with the item accessor::
 
-        sdat = StagyyData('path/to/run')
-        sdat.snaps[isnap]  # Step object of the isnap-th snapshot
-
-    Attributes:
-        sdat: the :class:`StagyyData` instance owning the :class:`_Snaps`
-            instance.
+    ```py
+    sdat = StagyyData(Path("path/to/run"))
+    sdat.snaps[isnap]  # Step object of the isnap-th snapshot
+    ```
     """
 
     def __init__(self, sdat: StagyyData):
@@ -473,7 +471,7 @@ class _Snaps(Steps):
                 otherwise the same snap is returned).
 
         Returns:
-            the relevant :class:`~stagpy._step.Step`.
+            the relevant `Step`.
         """
         # in theory, this could be a valid implementation of Steps.at_time
         # but this isn't safe against missing data...
@@ -547,7 +545,7 @@ class StepsView:
         items: iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col: Union[Steps, _Snaps], items: Sequence[StepIndex]):
+    def __init__(self, steps_col: Union[Steps, Snaps], items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
         self._rprofs_averaged: Optional[RprofsAveraged] = None
@@ -657,7 +655,7 @@ class StagyyData:
 
     Attributes:
         steps (Steps): collection of time steps.
-        snaps (:class:`_Snaps`): collection of snapshots.
+        snaps (Snaps): collection of snapshots.
         refstate (Refstate): reference state profiles.
     """
 
@@ -668,7 +666,7 @@ class StagyyData:
         self.refstate = Refstate(self)
         self.tseries = Tseries(self)
         self.steps = Steps(self)
-        self.snaps = _Snaps(self)
+        self.snaps = Snaps(self)
         self._nfields_max: Optional[int] = 50
         # list of (istep, field_name) in memory
         self._collected_fields: list[tuple[int, str]] = []
