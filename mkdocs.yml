@@ -12,6 +12,7 @@ nav:
   - "User Guide":
     - user-guide/install.md
     - user-guide/getting-started.md
+    - user-guide/stagyydata.md
     - user-guide/cli.md
   - API Reference: reference/
 
