@@ -18,7 +18,6 @@ nav:
 plugins:
   - search
   - include-markdown
-  - section-index
   - gen-files:
       scripts:
         - scripts/gen_ref_pages.py
@@ -42,6 +41,7 @@ theme:
   name: material
   features:
     - content.code.copy
+    - navigation.indexes
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
