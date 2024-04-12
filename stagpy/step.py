@@ -3,7 +3,7 @@
 Note:
     This module and the classes it defines are internals of StagPy, they
     should not be used in an external script.  Instead, use the
-    :class:`~stagpy.stagyydata.StagyyData` class.
+    [`StagyyData`][stagpy.stagyydata.StagyyData] class.
 """
 
 from __future__ import annotations
@@ -570,7 +570,7 @@ class Step:
         instances.
 
         ```py
-        sdat = StagyyData('path/to/run')
+        sdat = StagyyData(Path("path/to/run"))
         istep_last_snap = sdat.snaps[-1].istep
         assert(sdat.steps[istep_last_snap] is sdat.snaps[-1])
         n = 0  # or any valid time step / snapshot index
@@ -582,13 +582,12 @@ class Step:
         ```
 
     Attributes:
-        istep: the index of the time step that the instance represents.
-        sdat: the [`StagyyData`][stagpy.stagyydata.StagyyData] instance
-            owning the `Step` instance.
-        fields (`Fields`): fields available at this time step.
-        sfields (`Fields`): surface fields available at this time
+        istep (int): the index of the time step that the instance represents.
+        sdat (StagyyData): the owner of the `Step` instance.
+        fields (Fields): fields available at this time step.
+        sfields (Fields): surface fields available at this time
             step.
-        tracers (`Tracers`): tracers available at this time step.
+        tracers (Tracers): tracers available at this time step.
     """
 
     def __init__(self, istep: int, sdat: StagyyData):
@@ -618,8 +617,8 @@ class Step:
     def geom(self) -> _Geometry:
         """Geometry information.
 
-        :class:`_Geometry` instance holding geometry information. It is
-        issued from binary files holding field information. It is set to
+        [`Geometry`][stagpy.step.Geometry] instance holding geometry information.
+        It is issued from binary files holding field information. It is set to
         None if not available for this time step.
         """
         return self.fields.geom
