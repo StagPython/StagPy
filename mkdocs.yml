@@ -14,6 +14,8 @@ nav:
     - user-guide/getting-started.md
     - user-guide/stagyydata.md
     - user-guide/cli.md
+  - Cookbook:
+    - cookbook/time.md
   - API Reference: reference/
   - Developers:
     - devs/index.md
