@@ -411,17 +411,14 @@ class Fields(abc.Mapping):
         return Geometry(self._header, self.step)
 
 
-class _Tracers:
+class Tracers:
     """Tracers data structure.
 
-    The :attr:`Step.tracers` attribute is an instance of this class.
+    The `Step.tracers` attribute is an instance of this class.
 
-    :class:`_Tracers` implements the getitem mechanism. Items are tracervar
-    names such as 'Type' or 'Mass'.  The position of tracers are the 'x', 'y'
-    and 'z' items.
-
-    Attributes:
-        step: the :class:`Step` owning the :class:`_Tracers` instance.
+    `Tracers` implements the getitem mechanism. Items are tracervar names such
+    as `"Type"` or `"Mass"`.  The position of tracers are the `"x"`, `"y"` and
+    `"z"` items.
     """
 
     def __init__(self, step: Step):
@@ -600,7 +597,7 @@ class Step:
         self.sfields = Fields(
             self, phyvars.SFIELD, {}, phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5
         )
-        self.tracers = _Tracers(self)
+        self.tracers = Tracers(self)
         self.rprofs = _Rprofs(self)
         self._isnap: Optional[int] = -1
 
