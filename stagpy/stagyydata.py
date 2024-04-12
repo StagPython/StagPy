@@ -20,8 +20,8 @@ from pathlib import Path
 import numpy as np
 
 from . import _helpers, _step, error, phyvars, stagyyparsers
+from . import datatypes as dt
 from ._step import Step
-from .datatypes import Rprof, Tseries, Vart
 from .parfile import StagyyPar
 from .stagyyparsers import FieldXmf, TracersXmf
 
@@ -149,7 +149,7 @@ class _Tseries:
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._cached_extra: dict[str, Tseries] = {}
+        self._cached_extra: dict[str, dt.Tseries] = {}
 
     @cached_property
     def _data(self) -> Optional[DataFrame]:
@@ -170,14 +170,14 @@ class _Tseries:
             raise error.MissingDataError(f"No tseries data in {self.sdat}")
         return self._data
 
-    def __getitem__(self, name: str) -> Tseries:
+    def __getitem__(self, name: str) -> dt.Tseries:
         if name in self._tseries.columns:
             series = self._tseries[name].to_numpy()
             time = self.time
             if name in phyvars.TIME:
                 meta = phyvars.TIME[name]
             else:
-                meta = Vart(name, "", "1")
+                meta = dt.Vart(name, "", "1")
         elif name in self._cached_extra:
             tseries = self._cached_extra[name]
             series = tseries.values
@@ -191,11 +191,11 @@ class _Tseries:
             meta = tseries.meta
         else:
             raise error.UnknownTimeVarError(name)
-        return Tseries(series, time, meta)
+        return dt.Tseries(series, time, meta)
 
     def tslice(
         self, name: str, tstart: Optional[float] = None, tend: Optional[float] = None
-    ) -> Tseries:
+    ) -> dt.Tseries:
         """Return a Tseries between specified times.
 
         Args:
@@ -212,7 +212,7 @@ class _Tseries:
             istart = _helpers.find_in_sorted_arr(tstart, series.time)
         if tend is not None:
             iend = _helpers.find_in_sorted_arr(tend, series.time, True) + 1
-        return Tseries(
+        return dt.Tseries(
             series.values[istart:iend],
             series.time[istart:iend],
             series.meta,
@@ -252,10 +252,10 @@ class _RprofsAveraged(_step._Rprofs):
 
     def __init__(self, steps: _StepsView):
         self.steps = steps.filter(rprofs=True)
-        self._cached_data: dict[str, Rprof] = {}
+        self._cached_data: dict[str, dt.Rprof] = {}
         super().__init__(next(iter(self.steps)))
 
-    def __getitem__(self, name: str) -> Rprof:
+    def __getitem__(self, name: str) -> dt.Rprof:
         # the averaging method has two shortcomings:
         # - does not take into account time changing geometry;
         # - does not take into account time changing timestep.
@@ -269,7 +269,7 @@ class _RprofsAveraged(_step._Rprofs):
             nprofs += 1
             rprof += step.rprofs[name].values
         rprof /= nprofs
-        self._cached_data[name] = Rprof(rprof, rpf.rad, rpf.meta)
+        self._cached_data[name] = dt.Rprof(rprof, rpf.rad, rpf.meta)
         return self._cached_data[name]
 
     @property
