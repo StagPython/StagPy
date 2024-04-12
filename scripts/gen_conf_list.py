@@ -1,5 +1,6 @@
 """Generate list of configuration options."""
 
+import os
 from dataclasses import fields
 from pathlib import Path
 from typing import TextIO
@@ -38,4 +39,8 @@ full_doc_path = Path("user-guide") / "config-opts.md"
 with mkdocs_gen_files.open(full_doc_path, "w") as fd:
     print("List of configuration options", file=fd)
     print("===", file=fd)
-    print_config_list(fd)
+    if os.environ.get("STAGPY_DOC_CONFIG") is None:
+        print(file=fd)
+        print("Set `STAGPY_DOC_CONFIG` environment variable to generate.", file=fd)
+    else:
+        print_config_list(fd)
