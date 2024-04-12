@@ -18,6 +18,7 @@ nav:
     - cookbook/time.md
     - cookbook/rprof.md
     - cookbook/field.md
+    - cookbook/nura.md
   - API Reference: reference/
   - Developers:
     - devs/index.md
