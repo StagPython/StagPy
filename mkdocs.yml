@@ -17,6 +17,7 @@ nav:
   - API Reference: reference/
   - Developers:
     - devs/index.md
+    - devs/maintainers.md
 
 plugins:
   - search
