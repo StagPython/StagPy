@@ -25,6 +25,8 @@ markdown_extensions:
 
 theme:
   name: material
+  features:
+    - content.code.copy
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
