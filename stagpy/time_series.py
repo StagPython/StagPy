@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
 
 
 def _collect_marks(sdat: StagyyData, conf: Config) -> list[float]:
-    """Concatenate mark* config variable."""
+    """Concatenate `mark*` config variable."""
     times = list(conf.time.marktimes)
     times.extend(step.timeinfo["t"] for step in sdat.snaps[conf.time.marksnaps])
     times.extend(step.timeinfo["t"] for step in sdat.steps[conf.time.marksteps])
@@ -35,8 +35,9 @@ def plot_time_series(
     """Plot requested time series.
 
     Args:
-        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        sdat: a `StagyyData` instance.
         names: time series names organized by figures, plots and subplots.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()
@@ -99,13 +100,13 @@ def compstat(
     """Compute statistics from series output by StagYY.
 
     Args:
-        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        sdat: a `StagyyData` instance.
         names: variables whose statistics should be computed.
         tstart: starting time. Set to None to start at the beginning of
             available data.
         tend: ending time. Set to None to stop at the end of available data.
     Returns:
-        a :class:`pandas.DataFrame` with statistics. 'mean' and 'rms' as index,
+        a `pandas.DataFrame` with statistics. 'mean' and 'rms' as index,
         variable names as columns.
     """
     stats = pd.DataFrame(columns=names, index=["mean", "rms"])

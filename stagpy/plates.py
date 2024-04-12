@@ -45,10 +45,10 @@ def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> tuple[NDArray, NDArr
     This function is cached for convenience.
 
     Args:
-        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        snap: a `Step` of a `StagyyData` instance.
         vz_thres_ratio: if above zero, an additional check based on the
             vertical velocities is performed.  Limits detected above a region
-            where the vertical velocity is below vz_thres_ratio * mean(vzabs)
+            where the vertical velocity is below `vz_thres_ratio * mean(vzabs)`
             are ignored.
     Returns:
         tuple (itrenches, iridges).  1D arrays containing phi-index of detected
@@ -215,10 +215,11 @@ def plot_at_surface(
     """Plot surface diagnostics.
 
     Args:
-        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        snap: a `Step` of a `StagyyData` instance.
         names: names of requested surface diagnotics. They are organized by
             figures, plots and subplots.  Surface diagnotics can be valid
             surface field names, field names, or `"dv2"` which is d(vphi)/dphi.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()
@@ -336,9 +337,10 @@ def plot_scalar_field(
     """Plot scalar field with plate information.
 
     Args:
-        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        snap: a `Step` of a `StagyyData` instance.
         fieldname: name of the field that should be decorated with plate
             informations.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()
