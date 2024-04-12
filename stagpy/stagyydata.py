@@ -133,18 +133,14 @@ class Refstate:
         return self._data[1]
 
 
-class _Tseries:
+class Tseries:
     """Time series.
 
-    The :attr:`StagyyData.tseries` attribute is an instance of this class.
+    The `StagyyData.tseries` attribute is an instance of this class.
 
-    :class:`_Tseries` implements the getitem mechanism.  Keys are series names
-    defined in :data:`stagpy.phyvars.TIME[_EXTRA]`.  Items are
-    :class:`stagpy.datatypes.Tseries` instances.
-
-    Attributes:
-        sdat: the :class:`StagyyData` instance owning the :class:`_Tseries`
-            instance.
+    `Tseries` implements the getitem mechanism.  Keys are series names
+    defined in `stagpy.phyvars.TIME[_EXTRA]`.  Items are
+    [stagpy.datatypes.Tseries][] instances.
     """
 
     def __init__(self, sdat: StagyyData):
@@ -196,7 +192,7 @@ class _Tseries:
     def tslice(
         self, name: str, tstart: Optional[float] = None, tend: Optional[float] = None
     ) -> dt.Tseries:
-        """Return a Tseries between specified times.
+        """Return a [`Tseries`][stagpy.datatypes.Tseries] between specified times.
 
         Args:
             name: time variable.
@@ -227,7 +223,7 @@ class _Tseries:
     def isteps(self) -> NDArray:
         """Step indices.
 
-        This is such that time[istep] is at step isteps[istep].
+        This is such that `time[istep]` is at step `isteps[istep]`.
         """
         return self._tseries.index.values
 
@@ -671,7 +667,7 @@ class StagyyData:
         if not self._parpath.is_file():
             self._parpath /= "par"
         self.refstate = Refstate(self)
-        self.tseries = _Tseries(self)
+        self.tseries = Tseries(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
         self._nfields_max: Optional[int] = 50
