@@ -13,9 +13,17 @@ nav:
     - user-guide/install.md
     - user-guide/getting-started.md
     - user-guide/cli.md
+  - API Reference: reference/
 
 plugins:
   - include-markdown
+  - section-index
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings
 
 markdown_extensions:
   - pymdownx.highlight:
