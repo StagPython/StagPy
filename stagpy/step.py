@@ -29,7 +29,7 @@ if typing.TYPE_CHECKING:
     from .stagyydata import StagyyData
 
 
-class _Geometry:
+class Geometry:
     """Geometry information.
 
     It is deduced from the information in the header of binary field files
@@ -255,7 +255,7 @@ class _Geometry:
         """Return iz closest to given zval position.
 
         In spherical geometry, the bottom boundary is considered to be at z=0.
-        Use :meth:`at_r` to find a cell at a given radial position.
+        Use `at_r` to find a cell at a given radial position.
         """
         if self.curvilinear:
             zval += self.rcmb
@@ -264,7 +264,7 @@ class _Geometry:
     def at_r(self, rval: float) -> int:
         """Return ir closest to given rval position.
 
-        If called in cartesian geometry, this is equivalent to :meth:`at_z`.
+        If called in cartesian geometry, this is equivalent to `at_z`.
         """
         return int(np.argmin(np.abs(self.r_centers - rval)))
 
@@ -403,15 +403,15 @@ class _Fields(abc.Mapping):
         return header if header else None
 
     @cached_property
-    def geom(self) -> _Geometry:
+    def geom(self) -> Geometry:
         """Geometry information.
 
-        :class:`_Geometry` instance holding geometry information. It is
-        issued from binary files holding field information.
+        [`Geometry`][stagpy.step.Geometry] instance holding geometry information.
+        It is issued from binary files holding field information.
         """
         if self._header is None:
             raise error.NoGeomError(self.step)
-        return _Geometry(self._header, self.step)
+        return Geometry(self._header, self.step)
 
 
 class _Tracers:
@@ -614,7 +614,7 @@ class Step:
             return f"{self.sdat!r}.steps[{self.istep}]"
 
     @property
-    def geom(self) -> _Geometry:
+    def geom(self) -> Geometry:
         """Geometry information.
 
         [`Geometry`][stagpy.step.Geometry] instance holding geometry information.

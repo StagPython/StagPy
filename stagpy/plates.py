@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
     from matplotlib.axes import Axes
     from numpy.typing import NDArray
 
-    from .step import Step, _Geometry
+    from .step import Geometry, Step
 
 
 def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray:
@@ -105,7 +105,7 @@ def _plot_plate_limits(axis: Axes, trenches: NDArray, ridges: NDArray) -> None:
 
 
 def _annot_pos(
-    geom: _Geometry, iphi: int
+    geom: Geometry, iphi: int
 ) -> tuple[tuple[float, float], tuple[float, float]]:
     """Position of arrows to mark limit positions."""
     phi = geom.p_centers[iphi]
