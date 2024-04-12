@@ -7,6 +7,11 @@ validation:
   absolute_links: warn
   unrecognized_links: warn
 
+nav:
+  - index.md
+  - "User Guide":
+    - user-guide/install.md
+
 plugins:
   - include-markdown
 
