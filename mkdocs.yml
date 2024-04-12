@@ -16,6 +16,7 @@ nav:
   - API Reference: reference/
 
 plugins:
+  - search
   - include-markdown
   - section-index
   - gen-files:
