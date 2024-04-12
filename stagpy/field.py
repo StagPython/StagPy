@@ -81,8 +81,8 @@ def valid_field_var(var: str) -> bool:
     Args:
         var: the variable name to be checked.
     Returns:
-        whether the var is defined in :data:`~stagpy.phyvars.FIELD` or
-        :data:`~stagpy.phyvars.FIELD_EXTRA`.
+        whether the var is defined in `phyvars.FIELD` or
+        `phyvars.FIELD_EXTRA`.
     """
     return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
@@ -95,7 +95,8 @@ def get_meshes_fld(
     Only works properly in 2D geometry and 3D cartesian.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        conf: configuration.
+        step: a `Step` of a `StagyyData` instance.
         var: scalar field name.
         walls: consider the walls as the relevant mesh.
     Returns:
@@ -135,7 +136,8 @@ def get_meshes_vec(
     Only works properly in 2D geometry and 3D cartesian.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        conf: configuration.
+        step: a `Step` of a `StagyyData` instance.
         var: vector field name.
     Returns:
         tuple (xmesh, ymesh, fldx, fldy).  2D arrays containing respectively
@@ -178,21 +180,21 @@ def plot_scalar(
     """Plot scalar field.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
         var: the scalar field name.
-        field: if not None, it is plotted instead of step.fields[var].  This is
+        field: if not None, it is plotted instead of `step.fields[var]`.  This is
             useful to plot a masked or rescaled array.
-        axis: the :class:`matplotlib.axes.Axes` object where the field should
+        axis: the `matplotlib.axes.Axes` object where the field should
             be plotted.  If set to None, a new figure with one subplot is
             created.
-        extra: options that will be passed on to
-            :func:`matplotlib.axes.Axes.pcolormesh`.
+        conf: configuration.
+        extra: options that will be passed on to `matplotlib.axes.Axes.pcolormesh`.
     Returns:
         fig, axis, surf, cbar
-            handles to various :mod:`matplotlib` objects, respectively the
+            handles to various `matplotlib` objects, respectively the
             figure, the axis, the surface returned by
-            :func:`~matplotlib.axes.Axes.pcolormesh`, and the colorbar returned
-            by :func:`matplotlib.pyplot.colorbar`.
+            `Axes.pcolormesh`, and the colorbar returned
+            by `matplotlib.pyplot.colorbar`.
     """
     if conf is None:
         conf = Config.default_()
@@ -271,14 +273,14 @@ def plot_iso(
     """Plot isocontours of scalar field.
 
     Args:
-        axis: the :class:`matplotlib.axes.Axes` of an existing matplotlib
+        axis: the `matplotlib.axes.Axes` of an existing matplotlib
             figure where the isocontours should be plotted.
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
         var: the scalar field name.
-        field: if not None, it is plotted instead of step.fields[var].  This is
+        field: if not None, it is plotted instead of `step.fields[var]`.  This is
             useful to plot a masked or rescaled array.
-        extra: options that will be passed on to
-            :func:`matplotlib.axes.Axes.contour`.
+        conf: configuration.
+        extra: options that will be passed on to `Axes.contour`.
     """
     if conf is None:
         conf = Config.default_()
@@ -311,8 +313,9 @@ def plot_vec(
     Args:
         axis: the :class:`matplotlib.axes.Axes` of an existing matplotlib
             figure where the vector field should be plotted.
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
         var: the vector field name.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()
