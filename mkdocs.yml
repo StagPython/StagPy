@@ -11,6 +11,7 @@ nav:
   - index.md
   - "User Guide":
     - user-guide/install.md
+    - user-guide/getting-started.md
 
 plugins:
   - include-markdown
