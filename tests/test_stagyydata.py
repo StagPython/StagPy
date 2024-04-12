@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-import stagpy._step
 import stagpy.error
-from stagpy.stagyydata import StagyyData, Step
+from stagpy.stagyydata import StagyyData
+from stagpy.step import Step
 
 
 def test_sdat_path(example_dir: Path, sdat: StagyyData) -> None:

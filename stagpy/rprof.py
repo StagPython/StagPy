@@ -13,7 +13,7 @@ from .stagyydata import StagyyData
 if typing.TYPE_CHECKING:
     from typing import Optional, Sequence
 
-    from ._step import Step, _Rprofs
+    from .step import Step, _Rprofs
 
 
 def plot_rprofs(

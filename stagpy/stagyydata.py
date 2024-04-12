@@ -19,11 +19,11 @@ from pathlib import Path
 
 import numpy as np
 
-from . import _helpers, _step, error, phyvars, stagyyparsers
+from . import _helpers, error, phyvars, stagyyparsers, step
 from . import datatypes as dt
-from ._step import Step
 from .parfile import StagyyPar
 from .stagyyparsers import FieldXmf, TracersXmf
+from .step import Step
 
 if typing.TYPE_CHECKING:
     from os import PathLike
@@ -232,7 +232,7 @@ class Tseries:
         return self._tseries.loc[istep]  # type: ignore
 
 
-class RprofsAveraged(_step._Rprofs):
+class RprofsAveraged(step._Rprofs):
     """Radial profiles time-averaged over a [`StepsView`][stagpy.stagyydata.StepsView].
 
     The [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged]
@@ -257,9 +257,9 @@ class RprofsAveraged(_step._Rprofs):
         rpf = next(steps_iter).rprofs[name]
         rprof = np.copy(rpf.values)
         nprofs = 1
-        for step in steps_iter:
+        for step_ in steps_iter:
             nprofs += 1
-            rprof += step.rprofs[name].values
+            rprof += step_.rprofs[name].values
         rprof /= nprofs
         self._cached_data[name] = dt.Rprof(rprof, rpf.rad, rpf.meta)
         return self._cached_data[name]

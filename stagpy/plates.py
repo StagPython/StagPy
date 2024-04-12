@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
     from matplotlib.axes import Axes
     from numpy.typing import NDArray
 
-    from ._step import Step, _Geometry
+    from .step import Step, _Geometry
 
 
 def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray:

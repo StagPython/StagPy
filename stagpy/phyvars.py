@@ -17,10 +17,10 @@ from .datatypes import Varf, Varr, Vart
 if typing.TYPE_CHECKING:
     from typing import Callable, Mapping
 
-    from ._step import Step
     from .datatypes import Field, Rprof, Tseries
     from .dimensions import Scales
     from .stagyydata import StagyyData
+    from .step import Step
 
 
 FIELD: Mapping[str, Varf] = MappingProxyType(

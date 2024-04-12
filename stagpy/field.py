@@ -25,9 +25,9 @@ if typing.TYPE_CHECKING:
     from matplotlib.figure import Figure
     from numpy.typing import NDArray
 
-    from ._step import Step
     from .datatypes import Varf
     from .stagyydata import StepsView
+    from .step import Step
 
 
 # The location is off for vertical velocities: they have an extra

@@ -20,8 +20,8 @@ if typing.TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from ._step import Step
     from .stagyydata import StagyyData
+    from .step import Step
 
 
 def dtime(sdat: StagyyData) -> Tseries:

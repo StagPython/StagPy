@@ -7,8 +7,8 @@ import typing
 if typing.TYPE_CHECKING:
     from os import PathLike
 
-    from ._step import Step
     from .stagyydata import StagyyData
+    from .step import Step
 
 
 class StagpyError(Exception):
