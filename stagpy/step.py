@@ -269,17 +269,14 @@ class Geometry:
         return int(np.argmin(np.abs(self.r_centers - rval)))
 
 
-class _Fields(abc.Mapping):
+class Fields(abc.Mapping):
     """Fields data structure.
 
-    The :attr:`Step.fields` attribute is an instance of this class.
+    The `Step.fields` attribute is an instance of this class.
 
-    :class:`_Fields` inherits from :class:`collections.abc.Mapping`. Keys are
-    fields names defined in :data:`stagpy.phyvars.[S]FIELD[_EXTRA]`.  Each item
-    is a :class:`stagpy.datatypes.Field` instance.
-
-    Attributes:
-        step: the step object owning the :class:`_Fields` instance.
+    `Fields` implements `collections.abc.Mapping`. Keys are
+    fields names defined in `stagpy.phyvars.[S]FIELD[_EXTRA]`. Each item
+    is a [`Field`][stagpy.datatypes.Field] instance.
     """
 
     def __init__(
@@ -593,14 +590,14 @@ class Step:
     def __init__(self, istep: int, sdat: StagyyData):
         self.istep = istep
         self.sdat = sdat
-        self.fields = _Fields(
+        self.fields = Fields(
             self,
             phyvars.FIELD,
             phyvars.FIELD_EXTRA,
             phyvars.FIELD_FILES,
             phyvars.FIELD_FILES_H5,
         )
-        self.sfields = _Fields(
+        self.sfields = Fields(
             self, phyvars.SFIELD, {}, phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5
         )
         self.tracers = _Tracers(self)

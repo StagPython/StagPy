@@ -110,7 +110,7 @@ FIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
         "Dynamic_Pressure": ["p"],
         # Depending on the version of StagYY and whether total pressure is used,
         # the dynamic pressure might be written in this file instead.  It will be
-        # used as fallback by _step._Fields._get_raw_data.
+        # used as fallback by step.Fields._get_raw_data.
         "Pressure": ["p"],
         "Composition": ["c"],
         "IronContent": ["cFe"],
