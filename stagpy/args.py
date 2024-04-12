@@ -77,6 +77,7 @@ def parse_args(
     """Parse cmd line arguments.
 
     Args:
+        conf: configuration.
         arglist: the list of cmd line arguments. If set to None, the arguments
             are taken from :attr:`sys.argv`.
 
