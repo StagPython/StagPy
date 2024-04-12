@@ -31,6 +31,10 @@ for path in sorted((src / "stagpy").rglob("*.py")):
     with mkdocs_gen_files.open(full_doc_path, "w") as fd:
         identifier = ".".join(parts)
         print("::: " + identifier, file=fd)
+        if parts[-1] == "config":
+            print("    options:", file=fd)
+            print("      show_if_no_docstring: true", file=fd)
+            print('      filters: ["!^_"]', file=fd)
 
 with mkdocs_gen_files.open("reference/SUMMARY.md", "w") as nav_file:
     nav_file.writelines(nav.build_literate_nav())
