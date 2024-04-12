@@ -26,6 +26,9 @@ nav:
     - devs/index.md
     - devs/maintainers.md
 
+watch:
+  - stagpy
+
 plugins:
   - search
   - include-markdown
