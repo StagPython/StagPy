@@ -1,6 +1,7 @@
 site_name: StagPy
 repo_url: https://github.com/StagPython/StagPy
 repo_name: StagPython/StagPy
+copyright: "© 2015 - present, StagPy developers"
 
 validation:
   omitted_files: warn
