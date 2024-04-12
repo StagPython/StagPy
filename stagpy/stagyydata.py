@@ -69,15 +69,12 @@ def _as_view_item(
     return None
 
 
-class _Refstate:
+class Refstate:
     """Reference state profiles.
 
-    The :attr:`StagyyData.refstate` attribute is an instance of this class.
+    The `StagyyData.refstate` attribute is an instance of this class.
     Reference state profiles are accessed through the attributes of this
     object.
-
-    Args:
-        sdat: the StagyyData instance owning the :class:`_Refstate` instance.
     """
 
     def __init__(self, sdat: StagyyData):
@@ -106,7 +103,9 @@ class _Refstate:
             The temperature profile of the 3rd phase in the 1st
             system is
 
-            >>> sdat.refstate.systems[0][2]['T']
+            ```py
+            sdat.refstate.systems[0][2]["T"]
+            ```
         """
         return self._data[0]
 
@@ -121,11 +120,15 @@ class _Refstate:
         Example:
             The adiabatic temperature profile of the 2nd system is
 
-            >>> sdat.refstate.adiabats[1]['T']
+            ```py
+            sdat.refstate.adiabats[1]["T"]
+            ```
 
             The combined density profile is
 
-            >>> sdat.refstate.adiabats[-1]['rho']
+            ```py
+            sdat.refstate.adiabats[-1]["rho"]
+            ```
         """
         return self._data[1]
 
@@ -662,14 +665,14 @@ class StagyyData:
     Attributes:
         steps (:class:`_Steps`): collection of time steps.
         snaps (:class:`_Snaps`): collection of snapshots.
-        refstate (:class:`_Refstate`): reference state profiles.
+        refstate (Refstate): reference state profiles.
     """
 
     def __init__(self, path: PathLike):
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"
-        self.refstate = _Refstate(self)
+        self.refstate = Refstate(self)
         self.tseries = _Tseries(self)
         self.steps = _Steps(self)
         self.snaps = _Snaps(self)
