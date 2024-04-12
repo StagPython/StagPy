@@ -7,8 +7,7 @@ basic instructions on how to use these two flavors of StagPy.
 Read the [installation instructions](install.md) first in order to have
 StagPy available on your system. The rest of this documentation assumes that
 you have installed StagPy and that you can call it from the command line with
-the command `$ stagpy`. Command examples all begin with a `$` sign,
-representing your command prompt.
+the command `stagpy`.
 
 Command line tool
 -----------------
@@ -16,8 +15,8 @@ Command line tool
 The various processing capabilities of StagPy are organized in subcommands.
 This means a minimal call to StagPy is as follow::
 
-```sh
-$ stagpy <subcommand>
+```sh title="shell"
+stagpy <subcommand>
 ```
 
 `<subcommand>` can be one of the following:
@@ -32,20 +31,20 @@ $ stagpy <subcommand>
 * `version`: display the installed version of StagPy;
 * `config`: configuration handling.
 
-You can run `$ stagpy --help` (or `$ stagpy -h`) to display a help message
-describing those subcommands. You can also run `$ stagpy <subcommand> --help`
+You can run `stagpy --help` (or `stagpy -h`) to display a help message
+describing those subcommands. You can also run `stagpy <subcommand> --help`
 to have some help on the available options for one particular sub command.
 
 A simple example would be::
 
-```sh
-$ stagpy field -p path/to/run/ -o T-p -s 42
+```sh title="shell"
+stagpy field -p path/to/run/ -o T-p -s 42
 ```
 
 This asks StagPy to plot the temperature and pressure fields of snapshot 42
 of the run lying in `./path/to/run`. When not specified, the path defaults to
 `./` (i.e. the current directory) and the snapshot defaults to the last one
-available. The command `$ stagpy var` displays the list of fields available
+available. The command `stagpy var` displays the list of fields available
 with the `-o` option.
 
 See the [dedicated section](cli.md) for more information on the command line
@@ -126,6 +125,6 @@ comma-separated list to combine several styles.  For example, if you want a
 dark-background figure with a font size adapted for slides, you can use the
 following command::
 
-```sh
-$ stagpy field --mplstyle='dark_background,stagpy-slides'
+```sh title="shell"
+stagpy field --mplstyle='dark_background,stagpy-slides'
 ```
