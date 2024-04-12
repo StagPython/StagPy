@@ -757,7 +757,7 @@ class StagyyData:
         """Maximum number of scalar fields kept in memory.
 
         Setting this to a value lower or equal to 5 raises a
-        :class:`~stagpy.error.InvalidNfieldsError`.  Set this to ``None`` if
+        [stagpy.error.InvalidNfieldsError][].  Set this to `None` if
         you do not want any limit on the number of scalar fields kept in
         memory.  Defaults to 50.
         """
