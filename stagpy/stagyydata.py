@@ -232,7 +232,7 @@ class Tseries:
         return self._tseries.loc[istep]  # type: ignore
 
 
-class RprofsAveraged(step._Rprofs):
+class RprofsAveraged(step.Rprofs):
     """Radial profiles time-averaged over a [`StepsView`][stagpy.stagyydata.StepsView].
 
     The [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged]

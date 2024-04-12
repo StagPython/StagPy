@@ -449,17 +449,14 @@ class Tracers:
         raise TypeError("tracers collection is not iterable")
 
 
-class _Rprofs:
+class Rprofs:
     """Radial profiles data structure.
 
-    The :attr:`Step.rprofs` attribute is an instance of this class.
+    The `Step.rprofs` attribute is an instance of this class.
 
-    :class:`_Rprofs` implements the getitem mechanism.  Keys are profile names
-    defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  Items are
-    :class:`stagpy.datatypes.Rprof` instances.
-
-    Attributes:
-        step: the :class:`Step` owning the :class:`_Rprofs` instance
+    `Rprofs` implements the getitem mechanism.  Keys are profile names
+    defined in `stagpy.phyvars.RPROF[_EXTRA]`.  Items are
+    [`Rprof`][stagpy.datatypes.Rprof] instances.
     """
 
     def __init__(self, step: Step):
@@ -598,7 +595,7 @@ class Step:
             self, phyvars.SFIELD, {}, phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5
         )
         self.tracers = Tracers(self)
-        self.rprofs = _Rprofs(self)
+        self.rprofs = Rprofs(self)
         self._isnap: Optional[int] = -1
 
     def __repr__(self) -> str:
