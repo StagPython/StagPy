@@ -1,0 +1,43 @@
+name: docs
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: python3 -m pip install -U pip
+      - run: python3 -m pip install -r docs/requirements.txt
+      - run: python3 -m pip install .
+      - run: mkdocs build
+        env:
+          STAGPY_DOC_CONFIG: 1
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "site/"
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
