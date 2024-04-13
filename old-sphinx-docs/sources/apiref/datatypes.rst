@@ -1,4 +1,0 @@
-datatypes
-=========
-
-.. automodule:: stagpy.datatypes
