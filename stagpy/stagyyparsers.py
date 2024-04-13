@@ -3,7 +3,7 @@
 Note:
     These functions are low level utilities. You should not use these unless
     you know what you are doing. To access StagYY output data, use an instance
-    of :class:`~stagpy.stagyydata.StagyyData`.
+    of [`StagyyData`][stagpy.stagyydata.StagyyData].
 """
 
 from __future__ import annotations
@@ -54,18 +54,17 @@ def _tidy_names(
 def time_series(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
     """Read temporal series text file.
 
-    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    If `colnames` is too long, it will be truncated. If it is too short,
     additional numeric column names from 0 to N-1 will be attributed to the N
-    extra columns present in :data:`timefile`.
+    extra columns present in `timefile`.
 
     Args:
         timefile: path of the time.dat file.
-        colnames: names of the variables expected in :data:`timefile` (may be
-            modified).
+        colnames: names of the variables expected in `timefile` (may be modified).
 
     Returns:
-        A :class:`pandas.DataFrame` containing the time series, organized by
-        variables in columns and time steps in rows.
+        A `pandas.DataFrame` containing the time series, organized by
+            variables in columns and time steps in rows.
     """
     if not timefile.is_file():
         return None
@@ -105,17 +104,16 @@ def time_series(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
 def time_series_h5(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
     """Read temporal series HDF5 file.
 
-    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    If `colnames` is too long, it will be truncated. If it is too short,
     additional column names will be deduced from the content of the file.
 
     Args:
         timefile: path of the TimeSeries.h5 file.
-        colnames: names of the variables expected in :data:`timefile` (may be
-            modified).
+        colnames: names of the variables expected in `timefile` (may be modified).
 
     Returns:
-        A :class:`pandas.DataFrame` containing the time series, organized by
-        variables in columns and the time steps in rows.
+        A `pandas.DataFrame` containing the time series, organized by
+            variables in columns and the time steps in rows.
     """
     if not timefile.is_file():
         return None
@@ -172,18 +170,17 @@ def rprof(
 ) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
     """Extract radial profiles data.
 
-    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    If `colnames` is too long, it will be truncated. If it is too short,
     additional numeric column names from 0 to N-1 will be attributed to the N
-    extra columns present in :data:`timefile`.
+    extra columns present in `timefile`.
 
     Args:
         rproffile: path of the rprof.dat file.
-        colnames: names of the variables expected in :data:`rproffile`.
+        colnames: names of the variables expected in `rproffile`.
 
     Returns:
-        A tuple (profs, times). :data:`profs` is a dict mapping istep to radial
-        profiles (:class:`pandas.DataFrame`). :data:`times` is the time indexed
-        by time steps.
+        profs: a dict mapping istep to radial profiles.
+        times: the time indexed by time steps.
     """
     if not rproffile.is_file():
         return {}, None
@@ -221,17 +218,16 @@ def rprof_h5(
 ) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
     """Extract radial profiles data.
 
-    If :data:`colnames` is too long, it will be truncated. If it is too short,
+    If `colnames` is too long, it will be truncated. If it is too short,
     additional column names will be deduced from the content of the file.
 
     Args:
         rproffile: path of the rprof.h5 file.
-        colnames: names of the variables expected in :data:`rproffile`.
+        colnames: names of the variables expected in `rproffile`.
 
     Returns:
-        A tuple (profs, times). :data:`profs` is a dict mapping istep to radial
-        profiles (:class:`pandas.DataFrame`). :data:`times` is the time indexed
-        by time steps.
+        profs: a dict mapping istep to radial profiles.
+        times: the time indexed by time steps.
     """
     if not rproffile.is_file():
         return {}, None
@@ -275,15 +271,11 @@ def refstate(
         ncols: number of columns.
 
     Returns:
-        tuple (syst, adia).
-
-        :data:`syst` is a list of list of
-        :class:`pandas.DataFrame` containing the reference state profiles for
-        each system and each phase in these systems.
-
-        :data:`adia` is a list of :class:`pandas.DataFrame` containing
-        the adiabatic reference state profiles for each system, the last
-        item being the combined adiabat.
+        syst: list of list of `pandas.DataFrame` containing the reference
+            state profiles for each system and each phase in these systems.
+        adia: list of `pandas.DataFrame` containing the adiabatic reference
+            state profiles for each system, the last item being the combined
+            adiabat.
     """
     if not reffile.is_file():
         return None
@@ -489,14 +481,10 @@ def fields(fieldfile: Path) -> Optional[tuple[dict[str, Any], NDArray]]:
 
     Args:
         fieldfile: path of the binary field file.
-        only_header: when True (and :data:`only_istep` is False), only
-            :data:`header` is returned.
-        only_istep: when True, only :data:`istep` is returned.
 
     Returns:
-        the tuple :data:`(header, fields)`.  :data:`fields` is an array of
-        scalar fields indexed by variable, x-direction, y-direction,
-        z-direction, block.
+        the tuple `(header, fields)`. `fields` is an array of scalar fields
+            indexed by variable, x-direction, y-direction, z-direction, block.
     """
     if not fieldfile.is_file():
         return None
@@ -570,7 +558,7 @@ def tracers(tracersfile: Path) -> Optional[dict[str, list[NDArray]]]:
     """Extract tracers data.
 
     Args:
-        tracersfile (:class:`pathlib.Path`): path of the binary tracers file.
+        tracersfile: path of the binary tracers file.
 
     Returns:
         Tracers data organized by attribute names and blocks.
@@ -620,6 +608,7 @@ def _read_group_h5(filename: Path, groupname: str) -> NDArray:
     Args:
         filename: path of hdf5 file.
         groupname: name of group to read.
+
     Returns:
         content of group.
     """
@@ -639,6 +628,7 @@ def _make_3d(field: NDArray, twod: Optional[str]) -> NDArray:
     Args:
         field: the field that needs to be 3d.
         twod: 'XZ', 'YZ' or None depending on what is relevant.
+
     Returns:
         reshaped field.
     """
@@ -866,8 +856,9 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     """Extract geometry information from hdf5 files.
 
     Args:
-        xdmf_file: path of the xdmf file.
+        xdmf: xdmf file parser.
         snapshot: snapshot number.
+
     Returns:
         geometry information.
     """
@@ -995,13 +986,14 @@ def read_field_h5(
     """Extract field data from hdf5 files.
 
     Args:
-        xdmf_file: path of the xdmf file.
+        xdmf: xdmf file parser.
         fieldname: name of field to extract.
         snapshot: snapshot number.
         header: geometry information.
+
     Returns:
         geometry information and field data. None is returned if data is
-        unavailable.
+            unavailable.
     """
     if header is None:
         header = read_geom_h5(xdmf, snapshot)
@@ -1159,9 +1151,10 @@ def read_tracers_h5(xdmf: TracersXmf, infoname: str, snapshot: int) -> list[NDAr
     """Extract tracers data from hdf5 files.
 
     Args:
-        xdmf_file: path of the xdmf file.
+        xdmf: xdmf file parser.
         infoname: name of information to extract.
         snapshot: snapshot number.
+
     Returns:
         Tracers data organized by attribute and block.
     """
@@ -1181,6 +1174,7 @@ def read_time_h5(h5folder: Path) -> Iterator[tuple[int, int]]:
 
     Args:
         h5folder: directory of HDF5 output files.
+
     Yields:
         tuple (isnap, istep).
     """

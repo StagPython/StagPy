@@ -23,8 +23,6 @@ for path in sorted((src / "stagpy").rglob("*.py")):
 
     if any(p.startswith("_") for p in parts):
         continue
-    elif parts[-1] == "stagyyparsers":  # FIXME
-        continue
 
     nav[parts] = doc_path.as_posix()
 
