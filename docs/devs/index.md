@@ -24,7 +24,7 @@ repository:
 git remote add upstream git@github.com:StagPython/StagPy.git
 ```
 
-To sync your fork with the main repository, you can run the following::
+To sync your fork with the main repository, you can run the following:
 
 ```sh title="shell"
 git switch master
@@ -32,14 +32,14 @@ git pull upstream master
 git push origin
 ```
 
-To add your own modifications, create a new branch from the tip of master::
+To add your own modifications, create a new branch from the tip of master:
 
 ```sh title="shell"
 git switch -c branch-name master
 ```
 
-where ``branch-name`` is the desired branch name.  Modify the code as desired,
-commit it, and push it on your fork::
+where `branch-name` is the desired branch name.  Modify the code as desired,
+commit it, and push it on your fork:
 
 ```sh title="shell"
 git push -u origin branch-name
@@ -52,7 +52,7 @@ Testing
 -------
 
 StagPy uses [tox for code testing](https://tox.wiki/).  Make sure it
-is installed and up to date on your system::
+is installed and up to date on your system:
 
 ```sh title="shell"
 python3 -m pip install -U tox
@@ -66,7 +66,7 @@ Documentation
 -------------
 
 The StagPy documentation is built with [MkDocs](https://www.mkdocs.org/). To
-build it locally, install the needed packages::
+build it locally, install the needed packages:
 
 ```sh title="shell"
 python3 -m pip install -r docs/requirements.txt

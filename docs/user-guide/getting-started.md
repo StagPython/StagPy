@@ -13,7 +13,7 @@ Command line tool
 -----------------
 
 The various processing capabilities of StagPy are organized in subcommands.
-This means a minimal call to StagPy is as follow::
+This means a minimal call to StagPy is as follow:
 
 ```sh title="shell"
 stagpy <subcommand>
@@ -35,7 +35,7 @@ You can run `stagpy --help` (or `stagpy -h`) to display a help message
 describing those subcommands. You can also run `stagpy <subcommand> --help`
 to have some help on the available options for one particular sub command.
 
-A simple example would be::
+A simple example would be:
 
 ```sh title="shell"
 stagpy field -p path/to/run/ -o T-p -s 42
@@ -84,7 +84,7 @@ output data. This allows you to write your own scripts to do some specific
 processings that aren't implemented in StagPy.
 
 The interface is wrapped in the [`StagyyData`][stagpy.stagyydata.StagyyData] class.
-Instantiating and using this class is rather simple::
+Instantiating and using this class is rather simple:
 
 ```py
 from stagpy.stagyydata import StagyyData
@@ -123,7 +123,7 @@ can specify which style to use with `plot.mplstyle`, available in the command
 line interface with the `--mplstyle` option.  You can specify a
 comma-separated list to combine several styles.  For example, if you want a
 dark-background figure with a font size adapted for slides, you can use the
-following command::
+following command:
 
 ```sh title="shell"
 stagpy field --mplstyle='dark_background,stagpy-slides'

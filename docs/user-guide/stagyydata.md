@@ -15,7 +15,7 @@ sdat = StagyyData(Path("path/to/run/"))
 ```
 
 where `path/to/run/` is the path towards the directory containing your run
-(where the ``par`` file is). This path can be absolute or relative to the
+(where the `par` file is). This path can be absolute or relative to the
 current working directory.
 
 Snapshots and time steps
@@ -146,7 +146,7 @@ attributes defining the geometry of the problem.
 
 `cartesian`, `curvilinear`, `cylindrical`, `spherical` and `yinyang` booleans
 define the shape of the domain (`curvilinear` being the opposite of
-`cartesian`, ``True`` if `cylindrical` or `spherical` is ``True``).
+`cartesian`, `True` if `cylindrical` or `spherical` is `True`).
 
 `twod_xz`, `twod_yz`, `twod` and `threed` booleans indicate the number of
 spatial dimensions in the simulation. Note that fields are always four

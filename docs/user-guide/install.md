@@ -46,7 +46,7 @@ stagpy config --create
 
 You can enable command-line auto-completion if you use either bash or zsh.
 
-For bash::
+For bash:
 
 ```sh title="shell"
 # adapt path as appropriate for your system

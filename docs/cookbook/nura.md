@@ -7,7 +7,7 @@ results of all cases on the same figure, compute statistics etc. The
 [`StagyyData`][stagpy.stagyydata.StagyyData] class comes in handy for that. The
 following script can be used to make a loglog plot of the Nusselt number as
 function of the Rayleigh number using all directories stored where the script
-is executed::
+is executed:
 
 ```py
 #!/usr/bin/env python3

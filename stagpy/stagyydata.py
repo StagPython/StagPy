@@ -274,7 +274,7 @@ class Steps:
 
     The `StagyyData.steps` attribute is an instance of this class.
     Time steps (which are [`Step`][stagpy.step.Step] instances) can be
-    accessed with the item accessor::
+    accessed with the item accessor:
 
     ```py
     sdat = StagyyData(Path("path/to/run"))
@@ -385,7 +385,7 @@ class Snaps(Steps):
 
     The `StagyyData.snaps` attribute is an instance of this class.
     Snapshots (which are [`Step`][stagpy.step.Step] instances) can be accessed
-    with the item accessor::
+    with the item accessor:
 
     ```py
     sdat = StagyyData(Path("path/to/run"))
@@ -600,7 +600,7 @@ class StepsView:
 
         Note that filters are only resolved when the view is iterated.
         Successive calls to :meth:`filter` compose.  For example, with this
-        code::
+        code:
 
         ```py
         view = sdat.steps[500:].filter(rprofs=True, fields=["T"])
