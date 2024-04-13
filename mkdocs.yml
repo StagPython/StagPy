@@ -62,6 +62,7 @@ theme:
     - content.code.copy
     - navigation.indexes
     - navigation.tabs
+    - search.suggest
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
