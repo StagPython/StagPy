@@ -1,6 +1,6 @@
 """Define configuration variables for StagPy.
 
-See :mod:`stagpy.args` for additional definitions related to the command line
+See [stagpy.args][] for additional definitions related to the command line
 interface.
 """
 
@@ -21,6 +21,7 @@ _plots = TupleEntry.wrapping(
 )
 
 CONFIG_LOCAL = Path(".stagpy.toml")
+"""Path of local configuration file."""
 
 
 @dataclass

@@ -111,7 +111,7 @@ def _layout(
 def var_cmd(conf: Config) -> None:
     """Print a list of available variables.
 
-    See :mod:`stagpy.phyvars` where the lists of variables organized by command
+    See [stagpy.phyvars][] where the lists of variables organized by command
     are defined.
     """
     print_all = not any(getattr(conf.var, fld.name) for fld in fields(conf.var))
@@ -140,7 +140,7 @@ def var_cmd(conf: Config) -> None:
 def version_cmd(conf: Config) -> None:
     """Print StagPy version.
 
-    Use :data:`stagpy.__version__` to obtain the version in a script.
+    Use `stagpy.__version__` to obtain the version in a script.
     """
     print(f"stagpy version: {__version__}")
 
@@ -150,6 +150,7 @@ def config_pp(subs: Iterable[str], conf: Config) -> None:
 
     Args:
         subs: conf sections to print.
+        conf: configuration.
     """
     print("(c|f): available only as CLI argument/in the config file", end="\n\n")
     for sub in subs:

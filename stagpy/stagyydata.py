@@ -2,9 +2,8 @@
 
 Note:
     The helper classes are not designed to be instantiated on their own, but
-    only as attributes of StagyyData instances. Users of this module should
-    only instantiate :class:`StagyyData`.
-
+    only as attributes of `StagyyData` instances. Users of this module should
+    only instantiate [`StagyyData`][stagpy.stagyydata.StagyyData].
 """
 
 from __future__ import annotations
@@ -19,11 +18,11 @@ from pathlib import Path
 
 import numpy as np
 
-from . import _helpers, _step, error, phyvars, stagyyparsers
-from ._step import Step
-from .datatypes import Rprof, Tseries, Vart
+from . import _helpers, error, phyvars, stagyyparsers, step
+from . import datatypes as dt
 from .parfile import StagyyPar
 from .stagyyparsers import FieldXmf, TracersXmf
+from .step import Step
 
 if typing.TYPE_CHECKING:
     from os import PathLike
@@ -58,7 +57,7 @@ def _as_view_item(obj: int) -> None: ...
 def _as_view_item(
     obj: Union[Sequence[StepIndex], slice, int],
 ) -> Union[Sequence[StepIndex], Sequence[slice], None]:
-    """Return None or a suitable iterable to build a _StepsView."""
+    """Return None or a suitable iterable to build a StepsView."""
     try:
         iter(obj)  # type: ignore
         return obj  # type: ignore
@@ -69,15 +68,12 @@ def _as_view_item(
     return None
 
 
-class _Refstate:
+class Refstate:
     """Reference state profiles.
 
-    The :attr:`StagyyData.refstate` attribute is an instance of this class.
+    The `StagyyData.refstate` attribute is an instance of this class.
     Reference state profiles are accessed through the attributes of this
     object.
-
-    Args:
-        sdat: the StagyyData instance owning the :class:`_Refstate` instance.
     """
 
     def __init__(self, sdat: StagyyData):
@@ -106,7 +102,9 @@ class _Refstate:
             The temperature profile of the 3rd phase in the 1st
             system is
 
-            >>> sdat.refstate.systems[0][2]['T']
+            ```py
+            sdat.refstate.systems[0][2]["T"]
+            ```
         """
         return self._data[0]
 
@@ -121,32 +119,32 @@ class _Refstate:
         Example:
             The adiabatic temperature profile of the 2nd system is
 
-            >>> sdat.refstate.adiabats[1]['T']
+            ```py
+            sdat.refstate.adiabats[1]["T"]
+            ```
 
             The combined density profile is
 
-            >>> sdat.refstate.adiabats[-1]['rho']
+            ```py
+            sdat.refstate.adiabats[-1]["rho"]
+            ```
         """
         return self._data[1]
 
 
-class _Tseries:
+class Tseries:
     """Time series.
 
-    The :attr:`StagyyData.tseries` attribute is an instance of this class.
+    The `StagyyData.tseries` attribute is an instance of this class.
 
-    :class:`_Tseries` implements the getitem mechanism.  Keys are series names
-    defined in :data:`stagpy.phyvars.TIME[_EXTRA]`.  Items are
-    :class:`stagpy.datatypes.Tseries` instances.
-
-    Attributes:
-        sdat: the :class:`StagyyData` instance owning the :class:`_Tseries`
-            instance.
+    `Tseries` implements the getitem mechanism.  Keys are series names
+    defined in `stagpy.phyvars.TIME[_EXTRA]`.  Items are
+    [stagpy.datatypes.Tseries][] instances.
     """
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._cached_extra: dict[str, Tseries] = {}
+        self._cached_extra: dict[str, dt.Tseries] = {}
 
     @cached_property
     def _data(self) -> Optional[DataFrame]:
@@ -167,14 +165,14 @@ class _Tseries:
             raise error.MissingDataError(f"No tseries data in {self.sdat}")
         return self._data
 
-    def __getitem__(self, name: str) -> Tseries:
+    def __getitem__(self, name: str) -> dt.Tseries:
         if name in self._tseries.columns:
             series = self._tseries[name].to_numpy()
             time = self.time
             if name in phyvars.TIME:
                 meta = phyvars.TIME[name]
             else:
-                meta = Vart(name, "", "1")
+                meta = dt.Vart(name, "", "1")
         elif name in self._cached_extra:
             tseries = self._cached_extra[name]
             series = tseries.values
@@ -188,12 +186,12 @@ class _Tseries:
             meta = tseries.meta
         else:
             raise error.UnknownTimeVarError(name)
-        return Tseries(series, time, meta)
+        return dt.Tseries(series, time, meta)
 
     def tslice(
         self, name: str, tstart: Optional[float] = None, tend: Optional[float] = None
-    ) -> Tseries:
-        """Return a Tseries between specified times.
+    ) -> dt.Tseries:
+        """Return a [`Tseries`][stagpy.datatypes.Tseries] between specified times.
 
         Args:
             name: time variable.
@@ -209,7 +207,7 @@ class _Tseries:
             istart = _helpers.find_in_sorted_arr(tstart, series.time)
         if tend is not None:
             iend = _helpers.find_in_sorted_arr(tend, series.time, True) + 1
-        return Tseries(
+        return dt.Tseries(
             series.values[istart:iend],
             series.time[istart:iend],
             series.meta,
@@ -224,7 +222,7 @@ class _Tseries:
     def isteps(self) -> NDArray:
         """Step indices.
 
-        This is such that time[istep] is at step isteps[istep].
+        This is such that `time[istep]` is at step `isteps[istep]`.
         """
         return self._tseries.index.values
 
@@ -233,26 +231,22 @@ class _Tseries:
         return self._tseries.loc[istep]  # type: ignore
 
 
-class _RprofsAveraged(_step._Rprofs):
-    """Radial profiles time-averaged over a :class:`_StepsView`.
+class RprofsAveraged(step.Rprofs):
+    """Radial profiles time-averaged over a [`StepsView`][stagpy.stagyydata.StepsView].
 
-    The :attr:`_StepsView.rprofs_averaged` attribute is an instance of this
-    class.
+    The [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged]
+    attribute is an instance of this class.
 
-    It implements the same interface as :class:`~stagpy._step._Rprofs` but
+    It implements the same interface as [`Rprofs`][stagpy.step.Rprofs] but
     returns time-averaged profiles instead.
-
-    Attributes:
-        steps: the :class:`_StepsView` owning the :class:`_RprofsAveraged`
-            instance.
     """
 
-    def __init__(self, steps: _StepsView):
+    def __init__(self, steps: StepsView):
         self.steps = steps.filter(rprofs=True)
-        self._cached_data: dict[str, Rprof] = {}
+        self._cached_data: dict[str, dt.Rprof] = {}
         super().__init__(next(iter(self.steps)))
 
-    def __getitem__(self, name: str) -> Rprof:
+    def __getitem__(self, name: str) -> dt.Rprof:
         # the averaging method has two shortcomings:
         # - does not take into account time changing geometry;
         # - does not take into account time changing timestep.
@@ -262,11 +256,11 @@ class _RprofsAveraged(_step._Rprofs):
         rpf = next(steps_iter).rprofs[name]
         rprof = np.copy(rpf.values)
         nprofs = 1
-        for step in steps_iter:
+        for step_ in steps_iter:
             nprofs += 1
-            rprof += step.rprofs[name].values
+            rprof += step_.rprofs[name].values
         rprof /= nprofs
-        self._cached_data[name] = Rprof(rprof, rpf.rad, rpf.meta)
+        self._cached_data[name] = dt.Rprof(rprof, rpf.rad, rpf.meta)
         return self._cached_data[name]
 
     @property
@@ -275,33 +269,34 @@ class _RprofsAveraged(_step._Rprofs):
         return self.steps.stepstr
 
 
-class _Steps:
+class Steps:
     """Collections of time steps.
 
-    The :attr:`StagyyData.steps` attribute is an instance of this class.
-    Time steps (which are :class:`~stagpy._step.Step` instances) can be
-    accessed with the item accessor::
+    The `StagyyData.steps` attribute is an instance of this class.
+    Time steps (which are [`Step`][stagpy.step.Step] instances) can be
+    accessed with the item accessor:
 
-        sdat = StagyyData('path/to/run')
-        sdat.steps[istep]  # Step object of the istep-th time step
+    ```py
+    sdat = StagyyData(Path("path/to/run"))
+    sdat.steps[istep]  # Step object of the istep-th time step
+    ```
 
-    Slices or tuple of istep and slices of :class:`_Steps` object are
-    :class:`_StepsView` instances that you can iterate and filter::
+    Slices or tuple of istep and slices of `Steps` object are
+    `StepsView` instances that you can iterate and filter:
 
-        for step in steps[500:]:
-            # iterate through all time steps from the 500-th one
-            do_something(step)
+    ```py
+    for step in steps[500:]:
+        # iterate through all time steps from the 500-th one
+        do_something(step)
 
-        for step in steps[-100:].filter(snap=True):
-            # iterate through all snapshots present in the last 100 time steps
-            do_something(step)
+    for step in steps[-100:].filter(snap=True):
+        # iterate through all snapshots present in the last 100 time steps
+        do_something(step)
 
-        for step in steps[0,3,5,-2:]:
-            # iterate through steps 0, 3, 5 and the last two
-            do_something(step)
-
-    Attributes:
-        sdat: the StagyyData instance owning the :class:`_Steps` instance.
+    for step in steps[0,3,5,-2:]:
+        # iterate through steps 0, 3, 5 and the last two
+        do_something(step)
+    ```
     """
 
     def __init__(self, sdat: StagyyData):
@@ -316,14 +311,14 @@ class _Steps:
     def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView: ...
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> StepsView: ...
 
     def __getitem__(
         self, istep: Union[int, slice, Sequence[StepIndex]]
-    ) -> Union[Step, _StepsView]:
+    ) -> Union[Step, StepsView]:
         keys = _as_view_item(istep)
         if keys is not None:
-            return _StepsView(self, keys)
+            return StepsView(self, keys)
         try:
             istep = int(istep)  # type: ignore
         except ValueError:
@@ -380,26 +375,22 @@ class _Steps:
         rprofs: bool = False,
         fields: Optional[Iterable[str]] = None,
         func: Optional[Callable[[Step], bool]] = None,
-    ) -> _StepsView:
-        """Build a _StepsView with requested filters."""
+    ) -> StepsView:
+        """Build a `StepsView` with requested filters."""
         return self[:].filter(snap, rprofs, fields, func)
 
 
-class _Snaps(_Steps):
-    """Collections of snapshots.
+class Snaps(Steps):
+    """Collection of snapshots.
 
-    The :attr:`StagyyData.snaps` attribute is an instance of this class.
-    Snapshots (which are :class:`~stagpy._step.Step` instances) can be accessed
-    with the item accessor::
+    The `StagyyData.snaps` attribute is an instance of this class.
+    Snapshots (which are [`Step`][stagpy.step.Step] instances) can be accessed
+    with the item accessor:
 
-        sdat = StagyyData('path/to/run')
-        sdat.snaps[isnap]  # Step object of the isnap-th snapshot
-
-    This class inherits from :class:`_Steps`.
-
-    Attributes:
-        sdat: the :class:`StagyyData` instance owning the :class:`_Snaps`
-            instance.
+    ```py
+    sdat = StagyyData(Path("path/to/run"))
+    sdat.snaps[isnap]  # Step object of the isnap-th snapshot
+    ```
     """
 
     def __init__(self, sdat: StagyyData):
@@ -414,12 +405,12 @@ class _Snaps(_Steps):
     def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> _StepsView: ...
+    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> StepsView: ...
 
-    def __getitem__(self, isnap: Any) -> Union[Step, _StepsView]:
+    def __getitem__(self, isnap: Any) -> Union[Step, StepsView]:
         keys = _as_view_item(isnap)
         if keys is not None:
-            return _StepsView(self, keys).filter(snap=True)
+            return StepsView(self, keys).filter(snap=True)
         if isnap < 0:
             isnap += len(self)
         if isnap < 0 or isnap >= len(self):
@@ -479,9 +470,9 @@ class _Snaps(_Steps):
                 otherwise the same snap is returned).
 
         Returns:
-            the relevant :class:`~stagpy._step.Step`.
+            the relevant `Step`.
         """
-        # in theory, this could be a valid implementation of _Steps.at_time
+        # in theory, this could be a valid implementation of Steps.at_time
         # but this isn't safe against missing data...
         igm = 0
         igp = len(self) - 1
@@ -541,29 +532,29 @@ class _Filters:
         return ", ".join(flts)
 
 
-class _StepsView:
+class StepsView:
     """Filtered iterator over steps or snaps.
 
     Instances of this class are returned when taking slices of
-    :attr:`StagyyData.steps` or :attr:`StagyyData.snaps` attributes.
+    `StagyyData.steps` or `StagyyData.snaps` attributes.
 
     Args:
-        steps_col: steps collection, i.e. :attr:`StagyyData.steps` or
-            :attr:`StagyyData.snaps` attributes.
+        steps_col: steps collection, i.e. `StagyyData.steps` or
+            `StagyyData.snaps` attributes.
         items: iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col: Union[_Steps, _Snaps], items: Sequence[StepIndex]):
+    def __init__(self, steps_col: Union[Steps, Snaps], items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
-        self._rprofs_averaged: Optional[_RprofsAveraged] = None
+        self._rprofs_averaged: Optional[RprofsAveraged] = None
         self._flt = _Filters()
 
     @property
-    def rprofs_averaged(self) -> _RprofsAveraged:
+    def rprofs_averaged(self) -> RprofsAveraged:
         """Time-averaged radial profiles."""
         if self._rprofs_averaged is None:
-            self._rprofs_averaged = _RprofsAveraged(self)
+            self._rprofs_averaged = RprofsAveraged(self)
         return self._rprofs_averaged
 
     @cached_property
@@ -604,17 +595,19 @@ class _StepsView:
         rprofs: bool = False,
         fields: Optional[Iterable[str]] = None,
         func: Optional[Callable[[Step], bool]] = None,
-    ) -> _StepsView:
+    ) -> StepsView:
         """Add filters to the view.
 
         Note that filters are only resolved when the view is iterated.
         Successive calls to :meth:`filter` compose.  For example, with this
-        code::
+        code:
 
-            view = sdat.steps[500:].filter(rprofs=True, fields=['T'])
-            view.filter(fields=['eta'])
+        ```py
+        view = sdat.steps[500:].filter(rprofs=True, fields=["T"])
+        view.filter(fields=["eta"])
+        ```
 
-        the produced ``view``, when iterated, will generate the steps after the
+        the produced `view`, when iterated, will generate the steps after the
         500-th that have radial profiles, and both the temperature and
         viscosity fields.
 
@@ -660,19 +653,19 @@ class StagyyData:
             to be path/par.
 
     Attributes:
-        steps (:class:`_Steps`): collection of time steps.
-        snaps (:class:`_Snaps`): collection of snapshots.
-        refstate (:class:`_Refstate`): reference state profiles.
+        steps (Steps): collection of time steps.
+        snaps (Snaps): collection of snapshots.
+        refstate (Refstate): reference state profiles.
     """
 
     def __init__(self, path: PathLike):
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"
-        self.refstate = _Refstate(self)
-        self.tseries = _Tseries(self)
-        self.steps = _Steps(self)
-        self.snaps = _Snaps(self)
+        self.refstate = Refstate(self)
+        self.tseries = Tseries(self)
+        self.steps = Steps(self)
+        self.snaps = Snaps(self)
         self._nfields_max: Optional[int] = 50
         # list of (istep, field_name) in memory
         self._collected_fields: list[tuple[int, str]] = []
@@ -763,7 +756,7 @@ class StagyyData:
         """Maximum number of scalar fields kept in memory.
 
         Setting this to a value lower or equal to 5 raises a
-        :class:`~stagpy.error.InvalidNfieldsError`.  Set this to ``None`` if
+        [stagpy.error.InvalidNfieldsError][].  Set this to `None` if
         you do not want any limit on the number of scalar fields kept in
         memory.  Defaults to 50.
         """
@@ -790,6 +783,7 @@ class StagyyData:
             timestep: snapshot number if relevant.
             suffix: optional suffix of file name.
             force_legacy: force returning the legacy output path.
+
         Returns:
             the path of the output file constructed with the provided segments.
         """
@@ -808,6 +802,7 @@ class StagyyData:
 
         Args:
             isnap: snapshot index.
+
         Returns:
             the set of output files available for this snapshot number.
         """

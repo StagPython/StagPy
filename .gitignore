@@ -7,7 +7,3 @@ stagpy.egg-info/
 /build/
 /stagpy/_version.py
 /stagpy_git/
-docs/_build/
-docs/_static/
-docs/_templates/
-docs/sources/config_opts.rst

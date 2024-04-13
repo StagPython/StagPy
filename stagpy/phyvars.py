@@ -1,7 +1,7 @@
 """Lists of physical variables made available by StagPy.
 
 They are organized by kind of variables (field, profiles, and time series).
-EXTRA lists group variables that are not directly output by StagYY and need to
+`EXTRA` lists group variables that are not directly output by StagYY and need to
 be computed from other variables.
 """
 
@@ -17,10 +17,10 @@ from .datatypes import Varf, Varr, Vart
 if typing.TYPE_CHECKING:
     from typing import Callable, Mapping
 
-    from ._step import Step
     from .datatypes import Field, Rprof, Tseries
     from .dimensions import Scales
     from .stagyydata import StagyyData
+    from .step import Step
 
 
 FIELD: Mapping[str, Varf] = MappingProxyType(
@@ -66,12 +66,14 @@ FIELD: Mapping[str, Varf] = MappingProxyType(
         "fFeR": Varf("fFeR", "1"),
     }
 )
+"""Scalar fields output by StagYY."""
 
 FIELD_EXTRA: Mapping[str, Callable[[Step], Field]] = MappingProxyType(
     {
         "stream": processing.stream_function,
     }
 )
+"""Scalar fields that StagPy can compute."""
 
 FIELD_FILES: Mapping[str, list[str]] = MappingProxyType(
     {
@@ -110,7 +112,7 @@ FIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
         "Dynamic_Pressure": ["p"],
         # Depending on the version of StagYY and whether total pressure is used,
         # the dynamic pressure might be written in this file instead.  It will be
-        # used as fallback by _step._Fields._get_raw_data.
+        # used as fallback by step.Fields._get_raw_data.
         "Pressure": ["p"],
         "Composition": ["c"],
         "IronContent": ["cFe"],
@@ -156,6 +158,7 @@ SFIELD: Mapping[str, Varf] = MappingProxyType(
         "crust": Varf("Crustal thickness", "m"),
     }
 )
+"""Surface scalar fields output by StagYY."""
 
 SFIELD_FILES: Mapping[str, list[str]] = MappingProxyType(
     {
@@ -255,6 +258,7 @@ RPROF: Mapping[str, Varr] = MappingProxyType(
         "advasc": Varr("Upward advection", "Heat flux", "W/m2"),
     }
 )
+"""Radial profiles output by StagYY."""
 
 RPROF_EXTRA: Mapping[str, Callable[[Step], Rprof]] = MappingProxyType(
     {
@@ -270,6 +274,7 @@ RPROF_EXTRA: Mapping[str, Callable[[Step], Rprof]] = MappingProxyType(
         "advth": processing.advth,
     }
 )
+"""Radial profiles that StagPy can compute."""
 
 
 TIME: Mapping[str, Vart] = MappingProxyType(
@@ -305,6 +310,7 @@ TIME: Mapping[str, Vart] = MappingProxyType(
         "botT_val": Vart("Temperature at bottom", "Temperature", "K"),
     }
 )
+"""Time series output by StagYY."""
 
 TIME_EXTRA: Mapping[str, Callable[[StagyyData], Tseries]] = MappingProxyType(
     {
@@ -314,6 +320,7 @@ TIME_EXTRA: Mapping[str, Callable[[StagyyData], Tseries]] = MappingProxyType(
         "mobility": processing.mobility,
     }
 )
+"""Time series that StagPy can compute."""
 
 REFSTATE: Mapping[str, Varr] = MappingProxyType(
     {
@@ -327,6 +334,7 @@ REFSTATE: Mapping[str, Varr] = MappingProxyType(
         "grav": Varr("Gravity", "Gravity", "m/s2"),
     }
 )
+"""Variables in [`Refstate`][stagpy.stagyydata.Refstate]."""
 
 SCALES: Mapping[str, Callable[[Scales], float]] = MappingProxyType(
     {
@@ -346,5 +354,6 @@ SCALES: Mapping[str, Callable[[Scales], float]] = MappingProxyType(
         "m/s2": attrgetter("acceleration"),
     }
 )
+"""Scales to make values dimensional, see [`Scales`][stagpy.dimensions.Scales]."""
 
 PREFIXES = ("k", "M", "G")

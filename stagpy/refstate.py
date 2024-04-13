@@ -16,8 +16,9 @@ def plot_ref(sdat: StagyyData, var: str, conf: Optional[Config] = None) -> None:
     """Plot one reference state.
 
     Args:
-        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        sdat: a `StagyyData` instance.
         var: refstate variable, a key of :data:`~stagpy.phyvars.REFSTATE`.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()

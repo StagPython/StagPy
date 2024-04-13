@@ -7,8 +7,8 @@ import typing
 if typing.TYPE_CHECKING:
     from os import PathLike
 
-    from ._step import Step
     from .stagyydata import StagyyData
+    from .step import Step
 
 
 class StagpyError(Exception):
@@ -27,8 +27,7 @@ class NoSnapshotError(StagpyError):
     """Raised when no snapshot can be found.
 
     Attributes:
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance for which no
-            snapshot was found.
+        sdat (StagyyData): the `StagyyData` for which no snapshot was found.
     """
 
     def __init__(self, sdat: StagyyData):
@@ -40,8 +39,7 @@ class NoGeomError(StagpyError):
     """Raised when no geometry info can be found.
 
     Attributes:
-        step: the :class:`~stagpy._step.Step` instance for which no geometry
-            was found.
+        step (Step): the `Step` for which no geometry was found.
     """
 
     def __init__(self, step: Step):
@@ -53,8 +51,7 @@ class NoTimeError(StagpyError):
     """Raised when no time can be found for a step.
 
     Attributes:
-        step: the :class:`~stagpy._step.Step` instance for which no geometry
-            was found.
+        step (Step): the `Step` instance for which no geometry was found.
     """
 
     def __init__(self, step: Step):
@@ -66,8 +63,7 @@ class NoRefstateError(StagpyError):
     """Raised when no refstate output can be found.
 
     Attributes:
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance for which no
-            refstate output was found.
+        sdat (StagyyData): the `StagyyData` instance for which no refstate was found.
     """
 
     def __init__(self, sdat: StagyyData):
@@ -79,7 +75,7 @@ class NoParFileError(StagpyError):
     """Raised when no par file can be found.
 
     Attributes:
-        parfile: the expected path of the par file.
+        parfile (PathLike): the expected path of the par file.
     """
 
     def __init__(self, parfile: PathLike):
@@ -97,8 +93,8 @@ class ParsingError(StagpyError):
     """Raised when a parsing error occurs.
 
     Attributes:
-        file: path of the file where a parsing problem was encountered.
-        msg: error message.
+        file (PathLike): path of the file where a parsing problem was encountered.
+        msg (str): error message.
     """
 
     def __init__(self, file: PathLike, msg: str):
@@ -111,10 +107,9 @@ class InvalidTimestepError(StagpyError, KeyError):
     """Raised when invalid time step is requested.
 
     Attributes:
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance to which the
-            request was made.
-        istep: the invalid time step index.
-        msg: the error message.
+        sdat (StagyyData): the `StagyyData` instance to which the request was made.
+        istep (int): the invalid time step index.
+        msg (str): the error message.
     """
 
     def __init__(self, sdat: StagyyData, istep: int, msg: str):
@@ -128,10 +123,9 @@ class InvalidSnapshotError(StagpyError, KeyError):
     """Raised when invalid snapshot is requested.
 
     Attributes:
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance to which the
-            request was made.
-        isnap: the invalid snapshot index.
-        msg: the error message.
+        sdat (StagyyData): the `StagyyData` instance to which the request was made.
+        isnap (int): the invalid snapshot index.
+        msg (str): the error message.
     """
 
     def __init__(self, sdat: StagyyData, isnap: int, msg: str):
@@ -145,7 +139,7 @@ class InvalidTimeFractionError(StagpyError):
     """Raised when invalid fraction of series is requested.
 
     Attributes:
-        fraction: the invalid fraction.
+        fraction (float): the invalid fraction.
     """
 
     def __init__(self, fraction: float):
@@ -157,7 +151,7 @@ class InvalidNfieldsError(StagpyError):
     """Raised when invalid nfields_max is requested.
 
     Attributes:
-        nfields: the invalid number of field.
+        nfields (int): the invalid number of field.
     """
 
     def __init__(self, nfields: int):
@@ -169,7 +163,7 @@ class InvalidZoomError(StagpyError):
     """Raised when invalid zoom is requested.
 
     Attributes:
-        zoom: the invalid zoom level.
+        zoom (float): the invalid zoom level.
     """
 
     def __init__(self, zoom: float):
@@ -187,7 +181,7 @@ class UnknownVarError(StagpyError, KeyError):
     """Raised when invalid var is requested.
 
     Attributes:
-        varname: the invalid var name.
+        varname (str): the invalid var name.
     """
 
     def __init__(self, varname: str):
@@ -196,27 +190,18 @@ class UnknownVarError(StagpyError, KeyError):
 
 
 class UnknownFieldVarError(UnknownVarError):
-    """Raised when invalid field var is requested.
-
-    Derived from :class:`~stagpy.error.UnknownVarError`.
-    """
+    """Raised when invalid field var is requested."""
 
     pass
 
 
 class UnknownRprofVarError(UnknownVarError):
-    """Raised when invalid rprof var is requested.
-
-    Derived from :class:`~stagpy.error.UnknownVarError`.
-    """
+    """Raised when invalid rprof var is requested."""
 
     pass
 
 
 class UnknownTimeVarError(UnknownVarError):
-    """Raised when invalid time var is requested.
-
-    Derived from :class:`~stagpy.error.UnknownVarError`.
-    """
+    """Raised when invalid time var is requested."""
 
     pass

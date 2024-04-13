@@ -46,13 +46,13 @@ class StagyyPar:
 
     @staticmethod
     def from_main_par(parfile: Path) -> StagyyPar:
-        """Read StagYY namelist ``parfile``.
+        """Read StagYY namelist `parfile`.
 
         The namelist is populated in order with:
 
-        - ``par_name_defaultparameters`` if it is defined in ``parfile``;
-        - ``par_file`` itself;
-        - ``parameters.dat`` if it can be found in the StagYY output directories.
+        - `par_name_defaultparameters` if it is defined in `parfile`;
+        - `par_file` itself;
+        - `parameters.dat` if it can be found in the StagYY output directories.
         """
         root = parfile.parent
         par_main = StagyyPar._from_file(parfile)

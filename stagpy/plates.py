@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
     from matplotlib.axes import Axes
     from numpy.typing import NDArray
 
-    from ._step import Step, _Geometry
+    from .step import Geometry, Step
 
 
 def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray:
@@ -45,14 +45,15 @@ def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> tuple[NDArray, NDArr
     This function is cached for convenience.
 
     Args:
-        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        snap: a `Step` of a `StagyyData` instance.
         vz_thres_ratio: if above zero, an additional check based on the
             vertical velocities is performed.  Limits detected above a region
-            where the vertical velocity is below vz_thres_ratio * mean(vzabs)
+            where the vertical velocity is below `vz_thres_ratio * mean(vzabs)`
             are ignored.
+
     Returns:
-        tuple (itrenches, iridges).  1D arrays containing phi-index of detected
-        trenches and ridges.
+        itrenches: phi-indices of detected trenches
+        iridges: phi-indices of detected ridges
     """
     dvphi = _surf_diag(snap, "dv2").values
 
@@ -105,7 +106,7 @@ def _plot_plate_limits(axis: Axes, trenches: NDArray, ridges: NDArray) -> None:
 
 
 def _annot_pos(
-    geom: _Geometry, iphi: int
+    geom: Geometry, iphi: int
 ) -> tuple[tuple[float, float], tuple[float, float]]:
     """Position of arrows to mark limit positions."""
     phi = geom.p_centers[iphi]
@@ -215,10 +216,11 @@ def plot_at_surface(
     """Plot surface diagnostics.
 
     Args:
-        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        snap: a `Step` of a `StagyyData` instance.
         names: names of requested surface diagnotics. They are organized by
             figures, plots and subplots.  Surface diagnotics can be valid
             surface field names, field names, or `"dv2"` which is d(vphi)/dphi.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()
@@ -336,9 +338,10 @@ def plot_scalar_field(
     """Plot scalar field with plate information.
 
     Args:
-        snap: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        snap: a `Step` of a `StagyyData` instance.
         fieldname: name of the field that should be decorated with plate
             informations.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()

@@ -13,20 +13,21 @@ from .stagyydata import StagyyData
 if typing.TYPE_CHECKING:
     from typing import Optional, Sequence
 
-    from ._step import Step, _Rprofs
+    from .step import Rprofs, Step
 
 
 def plot_rprofs(
-    rprofs: _Rprofs,
+    rprofs: Rprofs,
     names: Sequence[Sequence[Sequence[str]]],
     conf: Optional[Config] = None,
 ) -> None:
     """Plot requested radial profiles.
 
     Args:
-        rprofs: a radial profile collection, such as :attr:`Step.rprofs` or
-            :attr:`_StepsView.rprofs_averaged`.
+        rprofs: a radial profile collection, such as `Step.rprofs` or
+            [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged].
         names: profile names organized by figures, plots and subplots.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()
@@ -75,8 +76,8 @@ def plot_grid(step: Step, conf: Optional[Config] = None) -> None:
     The figure is call grid_N.pdf where N is replace by the step index.
 
     Args:
-        step (:class:`~stagpy._step.Step`): a step of a StagyyData
-            instance.
+        step: a `Step` of a `StagyyData` instance.
+        conf: configuration.
     """
     if conf is None:
         conf = Config.default_()

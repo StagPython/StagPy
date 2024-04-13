@@ -1,8 +1,7 @@
 """StagPy is a tool to postprocess StagYY output files.
 
 StagPy is both a CLI tool and a powerful Python library. See the
-documentation at
-https://stagpy.readthedocs.io/en/stable/
+documentation at https://stagpython.github.io/StagPy/
 
 When using the CLI interface, warnings are ignored and only a short form of
 encountered StagpyErrors is printed. Set the environment variable STAGPY_DEBUG

@@ -1,0 +1,85 @@
+site_name: StagPy
+repo_url: https://github.com/StagPython/StagPy
+repo_name: StagPython/StagPy
+copyright: "© 2015 - present, StagPy developers"
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+nav:
+  - index.md
+  - "User Guide":
+    - user-guide/install.md
+    - user-guide/getting-started.md
+    - user-guide/stagyydata.md
+    - user-guide/cli.md
+    - user-guide/config-opts.md
+  - Cookbook:
+    - cookbook/time.md
+    - cookbook/rprof.md
+    - cookbook/field.md
+    - cookbook/nura.md
+    - cookbook/vrmsra.md
+    - cookbook/tracers.md
+  - API Reference: reference/
+  - Developers:
+    - devs/index.md
+    - devs/maintainers.md
+
+watch:
+  - stagpy
+
+plugins:
+  - search
+  - include-markdown
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+        - scripts/gen_conf_list.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            members_order: source
+            show_source: false
+            show_signature_annotations: true
+            separate_signature: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.indexes
+    - navigation.tabs
+    - search.suggest
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  icon:
+    repo: fontawesome/brands/github

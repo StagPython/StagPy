@@ -14,10 +14,10 @@ if typing.TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from .config import Config
-    from .stagyydata import StagyyData, _StepsView
+    from .stagyydata import StagyyData, StepsView
 
 
-def walk(sdat: StagyyData, conf: Config) -> _StepsView:
+def walk(sdat: StagyyData, conf: Config) -> StepsView:
     """Return view on configured steps slice."""
     if conf.core.timesteps:
         return sdat.steps[conf.core.timesteps]
@@ -92,6 +92,7 @@ def baredoc(obj: object) -> str:
 
     Args:
         obj: any Python object.
+
     Returns:
         str: the first line of the docstring of obj.
     """

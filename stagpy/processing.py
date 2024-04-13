@@ -20,8 +20,8 @@ if typing.TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from ._step import Step
     from .stagyydata import StagyyData
+    from .step import Step
 
 
 def dtime(sdat: StagyyData) -> Tseries:
@@ -30,7 +30,8 @@ def dtime(sdat: StagyyData) -> Tseries:
     Compute dt as a function of time.
 
     Args:
-        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        sdat: a `StagyyData` instance.
+
     Returns:
         dt and time arrays.
     """
@@ -46,7 +47,8 @@ def dt_dt(sdat: StagyyData) -> Tseries:
     Compute dT/dt as a function of time using an explicit Euler scheme.
 
     Args:
-        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        sdat: a `StagyyData` instance.
+
     Returns:
         derivative of temperature and time arrays.
     """
@@ -64,7 +66,8 @@ def ebalance(sdat: StagyyData) -> Tseries:
     Euler scheme. This should be zero if energy is conserved.
 
     Args:
-        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        sdat: a `StagyyData` instance.
+
     Returns:
         energy balance and time arrays.
     """
@@ -89,7 +92,8 @@ def mobility(sdat: StagyyData) -> Tseries:
     Compute the ratio vsurf / vrms.
 
     Args:
-        sdat: a :class:`~stagpy.stagyydata.StagyyData` instance.
+        sdat: a `StagyyData` instance.
+
     Returns:
         mobility and time arrays.
     """
@@ -107,7 +111,8 @@ def delta_r(step: Step) -> Rprof:
     """Compute cell thicknesses.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the thickness of the cells and radius.
     """
@@ -130,7 +135,8 @@ def diff_prof(step: Step) -> Rprof:
     """Compute diffusion flux.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the diffusion and radius.
     """
@@ -152,7 +158,8 @@ def diffs_prof(step: Step) -> Rprof:
     This computation takes sphericity into account if necessary.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the diffusion and radius.
     """
@@ -167,7 +174,8 @@ def advts_prof(step: Step) -> Rprof:
     This computation takes sphericity into account if necessary.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the scaled advection and radius.
     """
@@ -184,7 +192,8 @@ def advds_prof(step: Step) -> Rprof:
     This computation takes sphericity into account if necessary.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the scaled downward advection and radius.
     """
@@ -201,7 +210,8 @@ def advas_prof(step: Step) -> Rprof:
     This computation takes sphericity into account if necessary.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the scaled upward advection and radius.
     """
@@ -218,7 +228,8 @@ def energy_prof(step: Step) -> Rprof:
     This computation takes sphericity into account if necessary.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the energy flux and radius.
     """
@@ -238,7 +249,8 @@ def advth(step: Step) -> Rprof:
     radius.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the theoretical advection and radius.
     """
@@ -262,7 +274,8 @@ def init_c_overturn(step: Step) -> Rprof:
     crystallization of a SMO is assumed.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the composition and radius.
     """
@@ -298,7 +311,8 @@ def c_overturned(step: Step) -> Rprof:
     overturn happens.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the composition and radius.
     """
@@ -314,7 +328,8 @@ def stream_function(step: Step) -> Field:
     """Compute the stream function in 2D geometry.
 
     Args:
-        step: a :class:`~stagpy._step.Step` of a StagyyData instance.
+        step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the stream function field.
     """

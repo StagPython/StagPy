@@ -3,7 +3,7 @@
 Note:
     This module and the classes it defines are internals of StagPy, they
     should not be used in an external script.  Instead, use the
-    :class:`~stagpy.stagyydata.StagyyData` class.
+    [`StagyyData`][stagpy.stagyydata.StagyyData] class.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ if typing.TYPE_CHECKING:
     from .stagyydata import StagyyData
 
 
-class _Geometry:
+class Geometry:
     """Geometry information.
 
     It is deduced from the information in the header of binary field files
@@ -255,7 +255,7 @@ class _Geometry:
         """Return iz closest to given zval position.
 
         In spherical geometry, the bottom boundary is considered to be at z=0.
-        Use :meth:`at_r` to find a cell at a given radial position.
+        Use `at_r` to find a cell at a given radial position.
         """
         if self.curvilinear:
             zval += self.rcmb
@@ -264,22 +264,19 @@ class _Geometry:
     def at_r(self, rval: float) -> int:
         """Return ir closest to given rval position.
 
-        If called in cartesian geometry, this is equivalent to :meth:`at_z`.
+        If called in cartesian geometry, this is equivalent to `at_z`.
         """
         return int(np.argmin(np.abs(self.r_centers - rval)))
 
 
-class _Fields(abc.Mapping):
+class Fields(abc.Mapping):
     """Fields data structure.
 
-    The :attr:`Step.fields` attribute is an instance of this class.
+    The `Step.fields` attribute is an instance of this class.
 
-    :class:`_Fields` inherits from :class:`collections.abc.Mapping`. Keys are
-    fields names defined in :data:`stagpy.phyvars.[S]FIELD[_EXTRA]`.  Each item
-    is a :class:`stagpy.datatypes.Field` instance.
-
-    Attributes:
-        step: the step object owning the :class:`_Fields` instance.
+    `Fields` implements `collections.abc.Mapping`. Keys are
+    fields names defined in `stagpy.phyvars.[S]FIELD[_EXTRA]`. Each item
+    is a [`Field`][stagpy.datatypes.Field] instance.
     """
 
     def __init__(
@@ -403,28 +400,25 @@ class _Fields(abc.Mapping):
         return header if header else None
 
     @cached_property
-    def geom(self) -> _Geometry:
+    def geom(self) -> Geometry:
         """Geometry information.
 
-        :class:`_Geometry` instance holding geometry information. It is
-        issued from binary files holding field information.
+        [`Geometry`][stagpy.step.Geometry] instance holding geometry information.
+        It is issued from binary files holding field information.
         """
         if self._header is None:
             raise error.NoGeomError(self.step)
-        return _Geometry(self._header, self.step)
+        return Geometry(self._header, self.step)
 
 
-class _Tracers:
+class Tracers:
     """Tracers data structure.
 
-    The :attr:`Step.tracers` attribute is an instance of this class.
+    The `Step.tracers` attribute is an instance of this class.
 
-    :class:`_Tracers` implements the getitem mechanism. Items are tracervar
-    names such as 'Type' or 'Mass'.  The position of tracers are the 'x', 'y'
-    and 'z' items.
-
-    Attributes:
-        step: the :class:`Step` owning the :class:`_Tracers` instance.
+    `Tracers` implements the getitem mechanism. Items are tracervar names such
+    as `"Type"` or `"Mass"`.  The position of tracers are the `"x"`, `"y"` and
+    `"z"` items.
     """
 
     def __init__(self, step: Step):
@@ -455,17 +449,14 @@ class _Tracers:
         raise TypeError("tracers collection is not iterable")
 
 
-class _Rprofs:
+class Rprofs:
     """Radial profiles data structure.
 
-    The :attr:`Step.rprofs` attribute is an instance of this class.
+    The `Step.rprofs` attribute is an instance of this class.
 
-    :class:`_Rprofs` implements the getitem mechanism.  Keys are profile names
-    defined in :data:`stagpy.phyvars.RPROF[_EXTRA]`.  Items are
-    :class:`stagpy.datatypes.Rprof` instances.
-
-    Attributes:
-        step: the :class:`Step` owning the :class:`_Rprofs` instance
+    `Rprofs` implements the getitem mechanism.  Keys are profile names
+    defined in `stagpy.phyvars.RPROF[_EXTRA]`.  Items are
+    [`Rprof`][stagpy.datatypes.Rprof] instances.
     """
 
     def __init__(self, step: Step):
@@ -561,54 +552,50 @@ class _Rprofs:
 class Step:
     """Time step data structure.
 
-    Elements of :class:`~stagpy.stagyydata._Steps` and
-    :class:`~stagpy.stagyydata._Snaps` instances are all :class:`Step`
-    instances. Note that :class:`Step` objects are not duplicated.
+    Elements of [`Steps`][stagpy.stagyydata.Steps] and
+    [`Snaps`][stagpy.stagyydata.Snaps] instances are all `Step`
+    instances. Note that `Step` objects are not duplicated.
 
     Examples:
-        Here are a few examples illustrating some properties of :class:`Step`
+        Here are a few examples illustrating some properties of `Step`
         instances.
 
-        >>> sdat = StagyyData('path/to/run')
-        >>> istep_last_snap = sdat.snaps[-1].istep
-        >>> assert(sdat.steps[istep_last_snap] is sdat.snaps[-1])
-        >>> n = 0  # or any valid time step / snapshot index
-        >>> assert(sdat.steps[n].sdat is sdat)
-        >>> assert(sdat.steps[n].istep == n)
-        >>> assert(sdat.snaps[n].isnap == n)
-        >>> assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
-        >>> assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
-
-    Args:
-        istep: the index of the time step that the instance represents.
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` instance owning the
-            :class:`Step` instance.
+        ```py
+        sdat = StagyyData(Path("path/to/run"))
+        istep_last_snap = sdat.snaps[-1].istep
+        assert(sdat.steps[istep_last_snap] is sdat.snaps[-1])
+        n = 0  # or any valid time step / snapshot index
+        assert(sdat.steps[n].sdat is sdat)
+        assert(sdat.steps[n].istep == n)
+        assert(sdat.snaps[n].isnap == n)
+        assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
+        assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
+        ```
 
     Attributes:
-        istep: the index of the time step that the instance represents.
-        sdat: the :class:`~stagpy.stagyydata.StagyyData` StagyyData instance
-            owning the :class:`Step` instance.
-        fields (:class:`_Fields`): fields available at this time step.
-        sfields (:class:`_Fields`): surface fields available at this time
+        istep (int): the index of the time step that the instance represents.
+        sdat (StagyyData): the owner of the `Step` instance.
+        fields (Fields): fields available at this time step.
+        sfields (Fields): surface fields available at this time
             step.
-        tracers (:class:`_Tracers`): tracers available at this time step.
+        tracers (Tracers): tracers available at this time step.
     """
 
     def __init__(self, istep: int, sdat: StagyyData):
         self.istep = istep
         self.sdat = sdat
-        self.fields = _Fields(
+        self.fields = Fields(
             self,
             phyvars.FIELD,
             phyvars.FIELD_EXTRA,
             phyvars.FIELD_FILES,
             phyvars.FIELD_FILES_H5,
         )
-        self.sfields = _Fields(
+        self.sfields = Fields(
             self, phyvars.SFIELD, {}, phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5
         )
-        self.tracers = _Tracers(self)
-        self.rprofs = _Rprofs(self)
+        self.tracers = Tracers(self)
+        self.rprofs = Rprofs(self)
         self._isnap: Optional[int] = -1
 
     def __repr__(self) -> str:
@@ -618,11 +605,11 @@ class Step:
             return f"{self.sdat!r}.steps[{self.istep}]"
 
     @property
-    def geom(self) -> _Geometry:
+    def geom(self) -> Geometry:
         """Geometry information.
 
-        :class:`_Geometry` instance holding geometry information. It is
-        issued from binary files holding field information. It is set to
+        [`Geometry`][stagpy.step.Geometry] instance holding geometry information.
+        It is issued from binary files holding field information. It is set to
         None if not available for this time step.
         """
         return self.fields.geom
