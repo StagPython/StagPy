@@ -50,9 +50,10 @@ def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> tuple[NDArray, NDArr
             vertical velocities is performed.  Limits detected above a region
             where the vertical velocity is below `vz_thres_ratio * mean(vzabs)`
             are ignored.
+
     Returns:
-        tuple (itrenches, iridges).  1D arrays containing phi-index of detected
-        trenches and ridges.
+        itrenches: phi-indices of detected trenches
+        iridges: phi-indices of detected ridges
     """
     dvphi = _surf_diag(snap, "dv2").values
 

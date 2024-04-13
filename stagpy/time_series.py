@@ -105,9 +105,9 @@ def compstat(
         tstart: starting time. Set to None to start at the beginning of
             available data.
         tend: ending time. Set to None to stop at the end of available data.
+
     Returns:
-        a `pandas.DataFrame` with statistics. 'mean' and 'rms' as index,
-        variable names as columns.
+        statistics. `"mean"` and `"rms"` as index, variable names as columns.
     """
     stats = pd.DataFrame(columns=names, index=["mean", "rms"])
     for name in names:

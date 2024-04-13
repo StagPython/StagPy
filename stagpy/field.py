@@ -80,9 +80,10 @@ def valid_field_var(var: str) -> bool:
 
     Args:
         var: the variable name to be checked.
+
     Returns:
-        whether the var is defined in `phyvars.FIELD` or
-        `phyvars.FIELD_EXTRA`.
+        whether the var is defined in either [`FIELD`][stagpy.phyvars.FIELD] or
+            [`FIELD_EXTRA`][stagpy.phyvars.FIELD_EXTRA].
     """
     return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
@@ -99,10 +100,12 @@ def get_meshes_fld(
         step: a `Step` of a `StagyyData` instance.
         var: scalar field name.
         walls: consider the walls as the relevant mesh.
+
     Returns:
-        tuple (xmesh, ymesh, fld, meta).  2D arrays containing respectively the
-        x position, y position, the values and the metadata of the requested
-        field.
+        xmesh: x position
+        ymesh: y position
+        fld: field values
+        meta: metadata
     """
     fld = step.fields[var]
     hwalls = (
@@ -139,10 +142,12 @@ def get_meshes_vec(
         conf: configuration.
         step: a `Step` of a `StagyyData` instance.
         var: vector field name.
+
     Returns:
-        tuple (xmesh, ymesh, fldx, fldy).  2D arrays containing respectively
-        the x position, y position, x component and y component of the
-        requested vector field.
+        xmesh: x position
+        ymesh: y position
+        fldx: x component
+        fldy: y component
     """
     if step.geom.threed and step.geom.cartesian:
         (xcoord, ycoord), (vec1, vec2) = _threed_extract(conf, step, var)
@@ -189,12 +194,12 @@ def plot_scalar(
             created.
         conf: configuration.
         extra: options that will be passed on to `matplotlib.axes.Axes.pcolormesh`.
+
     Returns:
-        fig, axis, surf, cbar
-            handles to various `matplotlib` objects, respectively the
-            figure, the axis, the surface returned by
-            `Axes.pcolormesh`, and the colorbar returned
-            by `matplotlib.pyplot.colorbar`.
+        fig: matplotlib figure
+        axes: matplotlib axes
+        surf: surface returned by `pcolormesh`
+        cbar: colorbar
     """
     if conf is None:
         conf = Config.default_()

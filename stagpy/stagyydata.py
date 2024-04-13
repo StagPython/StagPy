@@ -2,9 +2,8 @@
 
 Note:
     The helper classes are not designed to be instantiated on their own, but
-    only as attributes of StagyyData instances. Users of this module should
-    only instantiate :class:`StagyyData`.
-
+    only as attributes of `StagyyData` instances. Users of this module should
+    only instantiate [`StagyyData`][stagpy.stagyydata.StagyyData].
 """
 
 from __future__ import annotations
@@ -784,6 +783,7 @@ class StagyyData:
             timestep: snapshot number if relevant.
             suffix: optional suffix of file name.
             force_legacy: force returning the legacy output path.
+
         Returns:
             the path of the output file constructed with the provided segments.
         """
@@ -802,6 +802,7 @@ class StagyyData:
 
         Args:
             isnap: snapshot index.
+
         Returns:
             the set of output files available for this snapshot number.
         """

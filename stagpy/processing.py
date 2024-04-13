@@ -31,6 +31,7 @@ def dtime(sdat: StagyyData) -> Tseries:
 
     Args:
         sdat: a `StagyyData` instance.
+
     Returns:
         dt and time arrays.
     """
@@ -47,6 +48,7 @@ def dt_dt(sdat: StagyyData) -> Tseries:
 
     Args:
         sdat: a `StagyyData` instance.
+
     Returns:
         derivative of temperature and time arrays.
     """
@@ -65,6 +67,7 @@ def ebalance(sdat: StagyyData) -> Tseries:
 
     Args:
         sdat: a `StagyyData` instance.
+
     Returns:
         energy balance and time arrays.
     """
@@ -90,6 +93,7 @@ def mobility(sdat: StagyyData) -> Tseries:
 
     Args:
         sdat: a `StagyyData` instance.
+
     Returns:
         mobility and time arrays.
     """
@@ -108,6 +112,7 @@ def delta_r(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the thickness of the cells and radius.
     """
@@ -131,6 +136,7 @@ def diff_prof(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the diffusion and radius.
     """
@@ -153,6 +159,7 @@ def diffs_prof(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the diffusion and radius.
     """
@@ -168,6 +175,7 @@ def advts_prof(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the scaled advection and radius.
     """
@@ -185,6 +193,7 @@ def advds_prof(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the scaled downward advection and radius.
     """
@@ -202,6 +211,7 @@ def advas_prof(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the scaled upward advection and radius.
     """
@@ -219,6 +229,7 @@ def energy_prof(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the energy flux and radius.
     """
@@ -239,6 +250,7 @@ def advth(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the theoretical advection and radius.
     """
@@ -263,6 +275,7 @@ def init_c_overturn(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the composition and radius.
     """
@@ -299,6 +312,7 @@ def c_overturned(step: Step) -> Rprof:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the composition and radius.
     """
@@ -315,6 +329,7 @@ def stream_function(step: Step) -> Field:
 
     Args:
         step: a `Step` of a `StagyyData` instance.
+
     Returns:
         the stream function field.
     """

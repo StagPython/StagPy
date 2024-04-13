@@ -92,6 +92,7 @@ def baredoc(obj: object) -> str:
 
     Args:
         obj: any Python object.
+
     Returns:
         str: the first line of the docstring of obj.
     """
