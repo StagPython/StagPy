@@ -13,8 +13,7 @@ access StagYY output data directly in a Python script.
 You can install StagPy with `pip` from the [Python Package
 Index](https://pypi.org/project/stagpy/).
 
-This project is registered under https://doi.org/10.5281/zenodo.5512348.
-Individual DOI are also available to cite a specific version.  Cite the project
+If StagPy has been useful to your research, please consider citing the project
 as:
 
 > Adrien Morison, Martina Ulvrova, Stephane Labrosse, & contributors. (2021).
