@@ -12,23 +12,23 @@ Installation using `pip`
 
 In most cases, installing StagPy with `pip` should be as simple as:
 
-```sh
-$ python3 -m pip install stagpy
+```sh title="shell"
+python3 -m pip install stagpy
 ```
 
 It might be preferable or even necessary to install StagPy in a virtual
 environment to isolate it from other packages that could conflict with it:
 
-```sh
-$ python3 -m venv stagpyenv
-$ source stagpyenv/bin/activate
-$ python3 -m pip install stagpy
+```sh title="shell"
+python3 -m venv stagpyenv
+source stagpyenv/bin/activate
+python3 -m pip install stagpy
 ```
 
 You can then update StagPy with the following command:
 
-```sh
-$ python3 -m pip install -U stagpy
+```sh title="shell"
+python3 -m pip install -U stagpy
 ```
 
 See the [official
@@ -40,26 +40,26 @@ Some setup
 
 Run the following to create a local config file (`.stagpy.toml`):
 
-```sh
-$ stagpy config --create
+```sh title="shell"
+stagpy config --create
 ```
 
 You can enable command-line auto-completion if you use either bash or zsh.
 
 For bash::
 
-```sh
+```sh title="shell"
 # adapt path as appropriate for your system
-$ mkdir -p ~/.local/share/bash-completion/completions
-$ cd !$
-$ stagpy completions --bash
+mkdir -p ~/.local/share/bash-completion/completions
+cd !$
+stagpy completions --bash
 ```
 
 For zsh, with `fpath+=~/.zfunc` in your `.zshrc`:
 
-```sh
-$ cd ~/.zfunc
-$ stagpy completions --zsh
+```sh title="shell"
+cd ~/.zfunc
+stagpy completions --zsh
 ```
 
 Enjoy!
