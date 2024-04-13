@@ -1,0 +1,30 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tox.yml
+
+  pypi-publish:
+    needs: tests
+    permissions:
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/p/stagpy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: python3 -m pip install -U pip
+      - run: python3 -m pip install build
+      - run: python3 -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1
