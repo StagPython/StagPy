@@ -24,7 +24,7 @@ jobs:
       - run: python3 -m pip install -U pip
       - run: python3 -m pip install -r docs/requirements.txt
       - run: python3 -m pip install .
-      - run: mkdocs build
+      - run: mkdocs build --strict -d site
         env:
           STAGPY_DOC_CONFIG: 1
       - uses: actions/upload-pages-artifact@v3
