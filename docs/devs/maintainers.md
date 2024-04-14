@@ -14,14 +14,4 @@ git tag -a vX.Y.Z
 git push --follow-tags
 ```
 
-Releasing on PyPI is a two steps process:
-
-1. construct the wheel and source package;
-2. upload those on PyPI using `twine` (you will need a PyPI token).
-
-```sh title="shell"
-python3 -m pip install -U build twine
-python3 -m build
-python3 -m twine upload dist/*
-rm -rf dist/
-```
+Releasing on PyPI is then performed automatically by a GitHub action workflow.
