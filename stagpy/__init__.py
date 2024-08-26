@@ -8,7 +8,6 @@ encountered StagpyErrors is printed. Set the environment variable STAGPY_DEBUG
 to issue warnings normally and raise StagpyError.
 """
 
-try:
-    from ._version import version as __version__
-except ImportError:
-    __version__ = "unknown"
+from importlib.metadata import version
+
+__version__ = version("stagpy")

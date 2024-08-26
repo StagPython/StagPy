@@ -5,6 +5,5 @@ __pycache__/
 .tox
 stagpy.egg-info/
 /build/
-/stagpy/_version.py
 /stagpy_git/
 /uv.lock

@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61", "setuptools_scm[toml]>=7.1"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "stagpy"
-dynamic = ["version"]
+version = "0.19.0"
 description = "Tool for StagYY output files processing"
 readme = "README.md"
 authors = [
@@ -47,9 +47,6 @@ namespaces = false
 
 [tool.setuptools.package-data]
 stagpy = ["py.typed", "_styles/stagpy-*.mplstyle"]
-
-[tool.setuptools_scm]
-write_to = "stagpy/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
