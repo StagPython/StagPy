@@ -31,7 +31,7 @@ requires-python = ">=3.9"
 dependencies = [
     "loam>=0.8.0,<0.9.0",
     "f90nml>=1.4.4",
-    "numpy>=1.24",
+    "numpy>=1.24,<2.0",
     "scipy>=1.10",
     "pandas>=2.0",
     "h5py>=3.10",
