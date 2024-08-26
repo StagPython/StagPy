@@ -7,7 +7,7 @@ on:
 
 jobs:
   tests:
-    uses: ./.github/workflows/tox.yml
+    uses: ./.github/workflows/ci.yml
 
   pypi-publish:
     needs: tests
