@@ -51,29 +51,19 @@ incorporated in the main repository and made available to other users.
 Testing
 -------
 
-StagPy uses [tox for code testing](https://tox.wiki/).  Make sure it
-is installed and up to date on your system:
+StagPy uses [uv to manage dev environments](https://docs.astral.sh/uv/).
+It also uses [just to run commands](https://just.systems/man/en/).
 
-```sh title="shell"
-python3 -m pip install -U tox
-```
-
-Launching `tox` at the root of the repository will automatically run the tests
-in a virtual environment. Before submitting modifications to the code, please
-make sure they pass the tests by running `tox`.
+Launching `just` from anywhere in the repository will automatically run checks
+and tests in a virtual environment. Before submitting modifications to the
+code, please make sure they pass the tests by running `just`.
 
 Documentation
 -------------
 
 The StagPy documentation is built with [MkDocs](https://www.mkdocs.org/). To
-build it locally, install the needed packages:
+build it locally, run:
 
 ```sh title="shell"
-python3 -m pip install -r docs/requirements.txt
-```
-
-Then, run:
-
-```sh title="shell"
-mkdocs serve
+just mkdocs serve
 ```
