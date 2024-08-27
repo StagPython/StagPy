@@ -2,8 +2,5 @@
 *.swp
 __pycache__/
 .coverage
-.tox
-stagpy.egg-info/
 /build/
-/stagpy_git/
 /uv.lock
