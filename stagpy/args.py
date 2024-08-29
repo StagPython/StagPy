@@ -44,10 +44,10 @@ def _bare_cmd(conf: Config) -> None:
 def _load_mplstyle(conf: Config) -> None:
     """Try to load conf.plot.mplstyle matplotlib style."""
     for style in conf.plot.mplstyle:
-        style_fname = style + ".mplstyle"
         # try packaged version
-        if imlr.is_resource(_styles, style_fname):
-            with imlr.path(_styles, style_fname) as stfile:
+        style_file = imlr.files(_styles).joinpath(f"{style}.mplstyle")
+        if style_file.is_file():
+            with imlr.as_file(style_file) as stfile:
                 mpls.use(str(stfile))
                 continue
         mpls.use(style)
