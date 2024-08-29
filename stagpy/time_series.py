@@ -7,6 +7,7 @@ import typing
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.integrate import trapezoid
 
 from . import _helpers
 from .config import Config
@@ -113,10 +114,10 @@ def compstat(
     for name in names:
         series = sdat.tseries.tslice(name, tstart, tend)
         delta_time = series.time[-1] - series.time[0]
-        mean = np.trapz(series.values, x=series.time) / delta_time
+        mean = trapezoid(series.values, x=series.time) / delta_time
         stats.loc["mean", name] = mean
         stats.loc["rms", name] = np.sqrt(
-            np.trapz((series.values - mean) ** 2, x=series.time) / delta_time
+            trapezoid((series.values - mean) ** 2, x=series.time) / delta_time
         )
     return stats
 
