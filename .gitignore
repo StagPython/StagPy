@@ -3,4 +3,5 @@
 __pycache__/
 .coverage
 /build/
+/stagpy.egg-info
 /uv.lock
