@@ -64,7 +64,7 @@ class StagyyPar:
             )
             par_dflt = StagyyPar._from_file(par_main.root / dfltfile)
             par_dflt._update(par_main)
-            par_main = par_dflt
+            par_main = StagyyPar(nml=par_dflt.nml, root=par_main.root)
 
         outfile = par_main.legacy_output("_parameters.dat")
         if outfile.is_file():
