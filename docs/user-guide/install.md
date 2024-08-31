@@ -66,14 +66,8 @@ uv run -- stagpy version
 ```
 
 
-Some setup
-----------
-
-Run the following to create a local config file (`.stagpy.toml`):
-
-```sh title="shell"
-stagpy config --create
-```
+Shell completions
+-----------------
 
 You can enable command-line auto-completion if you use either bash or zsh.
 

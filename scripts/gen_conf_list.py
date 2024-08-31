@@ -14,6 +14,13 @@ def print_config_list(fd: TextIO) -> None:
     importlib.reload(stagpy.config)
     from stagpy.config import Config
 
+    print("Run the following to create a local config file `.stagpy.toml`", file=fd)
+    print('```sh title="shell"', file=fd)
+    print("stagpy config --create", file=fd)
+    print("```", file=fd)
+    print(file=fd)
+    print("Available options are described hereafter.", file=fd)
+
     stagpy_conf = Config.default_()
     for sec_fld in fields(stagpy_conf):
         sec_name = sec_fld.name
