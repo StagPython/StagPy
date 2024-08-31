@@ -23,6 +23,7 @@ class StagyyPar:
     """A Fortran namelist file written for StagYY."""
 
     nml: Namelist
+    root: Path
 
     @staticmethod
     def _from_file(parfile: Path) -> StagyyPar:
@@ -35,7 +36,7 @@ class StagyyPar:
                     content[option] = value.strip()
                 except AttributeError:
                     pass
-        return StagyyPar(nml=par)
+        return StagyyPar(nml=par, root=parfile.parent)
 
     def _update(self, par_new: StagyyPar) -> None:
         for section, content in par_new.nml.items():
@@ -54,7 +55,6 @@ class StagyyPar:
         - `par_file` itself;
         - `parameters.dat` if it can be found in the StagYY output directories.
         """
-        root = parfile.parent
         par_main = StagyyPar._from_file(parfile)
         if "default_parameters_parfile" in par_main.nml:
             dfltfile = par_main.get(
@@ -62,7 +62,7 @@ class StagyyPar:
                 "par_name_defaultparameters",
                 "par_defaults",
             )
-            par_dflt = StagyyPar._from_file(root / dfltfile)
+            par_dflt = StagyyPar._from_file(par_main.root / dfltfile)
             par_dflt._update(par_main)
             par_main = par_dflt
 
@@ -80,8 +80,8 @@ class StagyyPar:
 
     def legacy_output(self, suffix: str) -> Path:
         stem = self.get("ioin", "output_file_stem", "test")
-        return Path(stem + suffix)
+        return self.root / (stem + suffix)
 
     def h5_output(self, filename: str) -> Path:
         h5folder = self.get("ioin", "hdf5_output_folder", "+hdf5")
-        return Path(h5folder) / filename
+        return self.root / h5folder / filename

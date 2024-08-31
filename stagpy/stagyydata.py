@@ -447,7 +447,7 @@ class Snaps(Steps):
                 length = isnap
                 self._all_isteps_known = True
             if length < 0:
-                out_stem = re.escape(Path(self.sdat.par.legacy_output("_")).name[:-1])
+                out_stem = re.escape(self.sdat.par.legacy_output("_").name[:-1])
                 rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
                 fstems = set(fstem for fstem in phyvars.FIELD_FILES)
                 for fname in self.sdat._files:
@@ -745,8 +745,7 @@ class StagyyData:
     @cached_property
     def _files(self) -> set[Path]:
         """Set of found binary files output by StagYY."""
-        out_stem = self.par.legacy_output("_")
-        out_dir = self.path / out_stem.parent
+        out_dir = self.par.legacy_output("_").parent
         if out_dir.is_dir():
             return set(out_dir.iterdir())
         return set()
@@ -791,10 +790,9 @@ class StagyyData:
             fname += f"{timestep:05d}"
         fname += suffix
         if not force_legacy and self.hdf5:
-            fpath = self.hdf5 / fname
+            fpath = self.par.h5_output(fname)
         else:
             fpath = self.par.legacy_output(f"_{fname}")
-            fpath = self.path / fpath
         return fpath
 
     def _binfiles_set(self, isnap: int) -> set[Path]:
