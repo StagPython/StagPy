@@ -1,39 +1,70 @@
 Installation
 ============
 
-You will need Python 3.8 or higher to use StagPy. StagPy is available on
-the Python Package Index, via `pip`.
+StagPy is available on the [Python Package
+Index](https://pypi.org/project/stagpy/).
 
-If you don't have sufficient permissions to install or update Python, you can
-use [pyenv to manage Python](https://github.com/pyenv/pyenv).
+You can use [uv to manage Python environments](https://docs.astral.sh/uv/).
 
-Installation using `pip`
+Installation as a CLI tool
 --------------------------
 
-In most cases, installing StagPy with `pip` should be as simple as:
+If you are interested in using the `stagpy` command line interface,
+you can install it as a tool with uv:
 
 ```sh title="shell"
-python3 -m pip install stagpy
+uv tool install stagpy
 ```
 
-It might be preferable or even necessary to install StagPy in a virtual
-environment to isolate it from other packages that could conflict with it:
-
-```sh title="shell"
-python3 -m venv stagpyenv
-source stagpyenv/bin/activate
-python3 -m pip install stagpy
-```
+This installs `stagpy` in its own environment, isolated from other packages to
+avoid conflicts.
 
 You can then update StagPy with the following command:
 
 ```sh title="shell"
-python3 -m pip install -U stagpy
+uv tool upgrade stagpy
 ```
 
-See the [official
-documentation](https://packaging.python.org/en/latest/tutorials/installing-packages/)
-for more information about installing Python packages.
+[More information about uv tools](https://docs.astral.sh/uv/concepts/tools/).
+
+Installation in a uv managed environment
+----------------------------------------
+
+A convenient way to use StagPy in script is by leveraging uv environments.
+
+With the following (setting versions as desired for your project):
+
+```toml title="pyproject.toml"
+[project]
+name = "my-project"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "stagpy~=0.19.0",
+]
+```
+
+You can then run a script using `stagpy`, for example:
+
+```py title="my_script.py"
+import stagpy
+
+print(stagpy.__version__)
+```
+
+with the following command
+
+```sh title="shell"
+uv run my_script.py
+```
+
+You can run any arbitrary command via uv, including `stagpy`
+itself:
+
+```sh title="shell"
+uv run -- stagpy version
+```
+
 
 Some setup
 ----------

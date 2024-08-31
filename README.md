@@ -10,7 +10,7 @@ simulations and produce high-quality figures.
 This command line tool is built around a generic interface that allows you to
 access StagYY output data directly in a Python script.
 
-You can install StagPy with `pip` from the [Python Package
+You can install StagPy from the [Python Package
 Index](https://pypi.org/project/stagpy/).
 
 If StagPy has been useful to your research, please consider citing the project
