@@ -25,3 +25,13 @@ test:
 # invoke mkdocs with appropriate dependencies
 mkdocs *FLAGS:
     uv run --with-requirements=docs/requirements.txt -- mkdocs {{FLAGS}}
+
+release version:
+    @if [ -n "$(git status --porcelain || echo "dirty")" ]; then echo "repo is dirty!"; exit 1; fi
+    sed -i 's/^version = ".*"$/version = "{{ version }}"/g' pyproject.toml
+    git add pyproject.toml
+    sed -i 's/"stagpy~=.*"/"stagpy~={{ version }}"/g' docs/user-guide/install.md
+    git add docs/user-guide/install.md
+    git commit -m "release {{ version }}"
+    git tag -m "Release {{ version }}" -a -e "v{{ version }}"
+    @echo "check last commit and ammend as necessary, then git push --follow-tags"

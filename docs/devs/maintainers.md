@@ -10,11 +10,10 @@ Please make sure to always provide a patch version number (i.e. use a version
 number with *three* levels such as `1.0.0` instead of `1.0`).
 
 ```sh title="shell"
-# edit version number in pyproject.toml
-git add pyproject.toml
-git commit -m "release vX.Y.Z"
-git tag -a vX.Y.Z
-git push --follow-tags
+just release X.Y.Z
 ```
 
-Releasing on PyPI is then performed automatically by a GitHub action workflow.
+This will update the version number to `X.Y.Z` and create an annotated tag for
+you. Once you've written the release notes, check the created commit. If
+satisfactory, `git push --follow-tags` will trigger publication on PyPI via a
+GitHub Action.
