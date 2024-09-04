@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=74"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
 
 [project]
 name = "stagpy"
@@ -41,12 +41,8 @@ dependencies = [
 [project.scripts]
 stagpy = "stagpy.__main__:main"
 
-[tool.setuptools.packages.find]
+[tool.hatch.build.targets.sdist]
 include = ["stagpy"]
-namespaces = false
-
-[tool.setuptools.package-data]
-stagpy = ["py.typed", "_styles/stagpy-*.mplstyle"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
