@@ -46,14 +46,15 @@ class StagyyPar:
                 self.nml[section] = content
 
     @staticmethod
-    def from_main_par(parfile: Path) -> StagyyPar:
+    def from_main_par(parfile: Path, read_parameters_dat: bool = True) -> StagyyPar:
         """Read StagYY namelist `parfile`.
 
         The namelist is populated in order with:
 
         - `par_name_defaultparameters` if it is defined in `parfile`;
         - `par_file` itself;
-        - `parameters.dat` if it can be found in the StagYY output directories.
+        - `parameters.dat` if it can be found in the StagYY output directories
+          and `read_parameters_dat` is `True`.
         """
         par_main = StagyyPar._from_file(parfile)
         if "default_parameters_parfile" in par_main.nml:
@@ -66,12 +67,13 @@ class StagyyPar:
             par_dflt._update(par_main)
             par_main = StagyyPar(nml=par_dflt.nml, root=par_main.root)
 
-        outfile = par_main.legacy_output("_parameters.dat")
-        if outfile.is_file():
-            par_main._update(StagyyPar._from_file(outfile))
-        outfile = par_main.h5_output("parameters.dat")
-        if outfile.is_file():
-            par_main._update(StagyyPar._from_file(outfile))
+        if read_parameters_dat:
+            outfile = par_main.legacy_output("_parameters.dat")
+            if outfile.is_file():
+                par_main._update(StagyyPar._from_file(outfile))
+            outfile = par_main.h5_output("parameters.dat")
+            if outfile.is_file():
+                par_main._update(StagyyPar._from_file(outfile))
         return par_main
 
     def get(self, section: str, option: str, default: T) -> T:

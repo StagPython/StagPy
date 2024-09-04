@@ -651,6 +651,11 @@ class StagyyData:
             directory containing the par file, or the path of the par file. If
             the path given is a directory, the path of the par file is assumed
             to be path/par.
+        read_parameters_dat: read `parameters.dat` file produced by StagYY. This
+            flag can be switched off to ignore this file. This is intended for
+            runs of StagYY that predate version 1.2.6 for which the
+            `parameters.dat` file contained some values affected by internal
+            logic.
 
     Attributes:
         steps (Steps): collection of time steps.
@@ -658,7 +663,7 @@ class StagyyData:
         refstate (Refstate): reference state profiles.
     """
 
-    def __init__(self, path: PathLike):
+    def __init__(self, path: PathLike, read_parameters_dat: bool = True):
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"
@@ -666,6 +671,7 @@ class StagyyData:
         self.tseries = Tseries(self)
         self.steps = Steps(self)
         self.snaps = Snaps(self)
+        self._read_parameters_dat = read_parameters_dat
         self._nfields_max: Optional[int] = 50
         # list of (istep, field_name) in memory
         self._collected_fields: list[tuple[int, str]] = []
@@ -723,7 +729,7 @@ class StagyyData:
     @cached_property
     def par(self) -> StagyyPar:
         """Content of par file."""
-        return StagyyPar.from_main_par(self.parpath)
+        return StagyyPar.from_main_par(self.parpath, self._read_parameters_dat)
 
     @cached_property
     def _rprof_and_times(self) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
