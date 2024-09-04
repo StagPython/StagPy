@@ -26,6 +26,7 @@ test:
 mkdocs *FLAGS:
     uv run --with-requirements=docs/requirements.txt -- mkdocs {{FLAGS}}
 
+# prepare a new release
 release version:
     @if [ -n "$(git status --porcelain || echo "dirty")" ]; then echo "repo is dirty!"; exit 1; fi
     sed -i 's/^version = ".*"$/version = "{{ version }}"/g' pyproject.toml
