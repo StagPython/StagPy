@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from . import _helpers
 from .config import Config
 from .phyvars import REFSTATE
-from .stagyydata import StagyyData
+from .stagyydata import StagyyData, _sdat_from_conf
 
 
 def plot_ref(sdat: StagyyData, var: str, conf: Optional[Config] = None) -> None:
@@ -45,7 +45,7 @@ def plot_ref(sdat: StagyyData, var: str, conf: Optional[Config] = None) -> None:
 
 def cmd(conf: Config) -> None:
     """Implementation of refstate subcommand."""
-    sdat = StagyyData(conf.core.path)
+    sdat = _sdat_from_conf(conf.core)
 
     for var in conf.refstate.plot:
         plot_ref(sdat, var, conf)

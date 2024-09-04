@@ -39,6 +39,8 @@ if typing.TYPE_CHECKING:
     from numpy.typing import NDArray
     from pandas import DataFrame, Series
 
+    from .config import Core
+
     StepIndex = Union[int, slice]
 
 
@@ -641,6 +643,10 @@ class StepsView:
         if not isinstance(other, abc.Iterable):
             return NotImplemented
         return all(s1 is s2 for s1, s2 in zip_longest(self, other))
+
+
+def _sdat_from_conf(core: Core) -> StagyyData:
+    return StagyyData(core.path, core.read_parameters_dat)
 
 
 class StagyyData:

@@ -12,7 +12,7 @@ from scipy.integrate import trapezoid
 from . import _helpers
 from .config import Config
 from .error import InvalidTimeFractionError
-from .stagyydata import StagyyData
+from .stagyydata import StagyyData, _sdat_from_conf
 
 if typing.TYPE_CHECKING:
     from typing import Optional, Sequence
@@ -124,7 +124,7 @@ def compstat(
 
 def cmd(conf: Config) -> None:
     """Implementation of time subcommand."""
-    sdat = StagyyData(conf.core.path)
+    sdat = _sdat_from_conf(conf.core)
     if sdat.tseries is None:
         return
 

@@ -38,6 +38,7 @@ class Core(Section):
     path: Path = path_entry(
         path=".", cli_short="p", doc="path of StagYY run directory or par file"
     )
+    read_parameters_dat: bool = switch_opt(True, None, "enable reading parameters.dat")
     outname: str = entry(val="stagpy", cli_short="n", doc="output file name prefix")
     shortname: bool = switch_opt(False, None, "output file name is only prefix")
     timesteps: Sequence[Union[int, slice]] = _indices.entry(

@@ -9,9 +9,10 @@ from math import ceil
 from shutil import get_terminal_size
 from textwrap import TextWrapper, indent
 
-from . import __version__, phyvars, stagyydata
+from . import __version__, phyvars
 from ._helpers import baredoc, walk
 from .config import CONFIG_LOCAL, Config
+from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
     from typing import Callable, Iterable, Mapping, Optional, Sequence, Union
@@ -23,7 +24,7 @@ if typing.TYPE_CHECKING:
 
 def info_cmd(conf: Config) -> None:
     """Print basic information about StagYY run."""
-    sdat = stagyydata.StagyyData(conf.core.path)
+    sdat = _sdat_from_conf(conf.core)
     lsnap = sdat.snaps[-1]
     lstep = sdat.steps[-1]
     print(f"StagYY run in {sdat.path}")

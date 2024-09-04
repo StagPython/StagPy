@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from . import _helpers
 from .config import Config
-from .stagyydata import StagyyData
+from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
     from typing import Optional, Sequence
@@ -94,7 +94,7 @@ def plot_grid(step: Step, conf: Optional[Config] = None) -> None:
 
 def cmd(conf: Config) -> None:
     """Implementation of rprof subcommand."""
-    sdat = StagyyData(conf.core.path)
+    sdat = _sdat_from_conf(conf.core)
     view = _helpers.walk(sdat, conf)
 
     if conf.rprof.grid:

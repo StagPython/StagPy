@@ -14,7 +14,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from . import _helpers, phyvars
 from .config import Config
 from .error import NotAvailableError
-from .stagyydata import StagyyData
+from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
     from typing import Any, Iterable, Optional, Union
@@ -362,7 +362,7 @@ def _findminmax(view: StepsView, sovs: Iterable[str]) -> dict[str, tuple[float, 
 
 def cmd(conf: Config) -> None:
     """Implementation of field subcommand."""
-    sdat = StagyyData(conf.core.path)
+    sdat = _sdat_from_conf(conf.core)
     view = _helpers.walk(sdat, conf)
     # no more than two fields in a subplot
     lovs = [[slov[:2] for slov in plov] for plov in conf.field.plot]

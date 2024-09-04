@@ -15,7 +15,7 @@ from . import _helpers, error, field, phyvars
 from ._helpers import saveplot
 from .config import Config
 from .datatypes import Field
-from .stagyydata import StagyyData
+from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
     from typing import Optional, Sequence, TextIO, Union
@@ -399,7 +399,7 @@ def plot_scalar_field(
 
 def cmd(conf: Config) -> None:
     """Implementation of plates subcommand."""
-    sdat = StagyyData(conf.core.path)
+    sdat = _sdat_from_conf(conf.core)
     view = _helpers.walk(sdat, conf)
 
     isurf = _isurf(next(iter(view)))
