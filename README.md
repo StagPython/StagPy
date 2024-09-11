@@ -13,6 +13,8 @@ access StagYY output data directly in a Python script.
 You can install StagPy from the [Python Package
 Index](https://pypi.org/project/stagpy/).
 
+The full documentation is available [here](https://stagpython.github.io/StagPy/)
+
 If StagPy has been useful to your research, please consider citing the project
 as:
 
