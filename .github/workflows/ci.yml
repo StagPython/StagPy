@@ -37,4 +37,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
       - run: uv build
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - run: uv publish
