@@ -38,6 +38,19 @@ dependencies = [
     "matplotlib~=3.9",
 ]
 
+[dependency-groups]
+test = [
+    "pytest>=8.3.3",
+    "pytest-cov>=5.0.0",
+]
+lint = [
+    "ruff>=0.6.9",
+]
+typing = [
+    "mypy>=1.11.2",
+    "pandas-stubs>=2.2.3.241009",
+]
+
 [project.scripts]
 stagpy = "stagpy.__main__:main"
 
@@ -61,10 +74,4 @@ module = [
 ignore_missing_imports = true
 
 [tool.uv]
-dev-dependencies = [
-    "pytest>=8.3.2",
-    "pytest-cov>=5.0.0",
-    "mypy>=1.11.2",
-    "ruff>=0.6.9",
-    "pandas-stubs>=2.2.3.241003",
-]
+default-groups = ["test", "typing"]
