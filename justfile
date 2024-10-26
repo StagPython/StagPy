@@ -24,7 +24,7 @@ test:
 
 # invoke mkdocs with appropriate dependencies
 mkdocs *FLAGS:
-    uv run --with-requirements=docs/requirements.txt -- mkdocs {{FLAGS}}
+    uv run --group=doc -- mkdocs {{FLAGS}}
 
 # prepare a new release
 release version:
