@@ -7,6 +7,10 @@ from typing import Iterator
 from xml.etree import ElementTree as ET
 
 
+class EndOfXml(Exception):
+    """End of Xml has been reached."""
+
+
 class XmlStream:
     def __init__(self, filepath: Path):
         self.filepath = filepath
@@ -22,7 +26,7 @@ class XmlStream:
             if self._event == "start":
                 return self._elem
             self._elem.clear()
-        raise RuntimeError("Reached end of file")
+        raise EndOfXml("Reached end of file")
 
     @property
     def current(self) -> ET.Element:
@@ -46,7 +50,7 @@ class XmlStream:
             while True:
                 self.skip_to_tag(tag)
                 yield None
-        except RuntimeError:
+        except EndOfXml:
             pass
 
     def drop(self) -> None:
