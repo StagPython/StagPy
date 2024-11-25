@@ -35,4 +35,4 @@ release version:
     git add docs/user-guide/install.md
     git commit -m "release {{ version }}"
     git tag -m "Release {{ version }}" -a -e "v{{ version }}"
-    @echo "check last commit and ammend as necessary, then git push --follow-tags"
+    @echo "check last commit and amend as necessary, then git push --follow-tags"
