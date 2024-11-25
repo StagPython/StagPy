@@ -29,7 +29,7 @@ nav:
     - devs/maintainers.md
 
 watch:
-  - stagpy
+  - src/
 
 plugins:
   - search
