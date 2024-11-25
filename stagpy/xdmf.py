@@ -53,6 +53,14 @@ class XmlStream:
         except EndOfXml:
             pass
 
+    def iter_load_successive_tag(self, tag: str) -> Iterator[ET.Element]:
+        try:
+            while self.current.tag == tag:
+                with self.load() as elt:
+                    yield elt
+        except EndOfXml:
+            pass
+
     def drop(self) -> None:
         """Discard the current element and its children."""
         self.current  # make sure to be at current "start" event

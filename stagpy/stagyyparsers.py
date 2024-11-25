@@ -820,13 +820,12 @@ class FieldXmf:
                 coord_filepattern = "_".join(coord_file_chunks)
 
             fields_info = {}
-            while xs.current.tag == "Attribute":
-                with xs.load() as elt_fvar:
-                    name = elt_fvar.attrib["Name"]
-                    elt_data = elt_fvar[0]
-                    shape = self._get_dims(elt_data)
-                    ifile, isnap = _ifile_isnap(xs.filepath, elt_data)
-                    fields_info[name] = (ifile, shape)
+            for elt_fvar in xs.iter_load_successive_tag("Attribute"):
+                name = elt_fvar.attrib["Name"]
+                elt_data = elt_fvar[0]
+                shape = self._get_dims(elt_data)
+                ifile, isnap = _ifile_isnap(xs.filepath, elt_data)
+                fields_info[name] = (ifile, shape)
 
             r_yin, r_yang = _count_subdomains(xs, i0_yin)
 
@@ -1120,11 +1119,10 @@ class TracersXmf:
                     ifile, isnap = _ifile_isnap(xs.filepath, data_item)
                     fields_info[name] = ifile
 
-            while xs.current.tag == "Attribute":
-                with xs.load() as elt_fvar:
-                    name = elt_fvar.attrib["Name"]
-                    ifile, _ = _ifile_isnap(xs.filepath, elt_fvar[0])
-                    fields_info[name] = ifile
+            for elt_fvar in xs.iter_load_successive_tag("Attribute"):
+                name = elt_fvar.attrib["Name"]
+                ifile, _ = _ifile_isnap(xs.filepath, elt_fvar[0])
+                fields_info[name] = ifile
 
             r_yin, r_yang = _count_subdomains(xs, i0_yin)
 
