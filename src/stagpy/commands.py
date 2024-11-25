@@ -15,7 +15,7 @@ from .config import CONFIG_LOCAL, Config
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Iterable, Mapping, Sequence, Union
+    from typing import Callable, Iterable, Mapping, Sequence
 
     from loam.base import Section
 
@@ -100,7 +100,7 @@ def _pretty_print(
 
 
 def _layout(
-    dict_vars: Mapping[str, Union[Varf, Varr, Vart]],
+    dict_vars: Mapping[str, Varf | Varr | Vart],
     dict_vars_extra: Mapping[str, Callable],
 ) -> None:
     """Print nicely [(var, description)] from phyvars."""

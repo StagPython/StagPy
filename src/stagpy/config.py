@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Sequence, Union
+from typing import Dict, Sequence
 
 import loam.parsers as lprs
 from loam.base import ConfigBase, Section, entry
@@ -41,10 +41,10 @@ class Core(Section):
     read_parameters_dat: bool = switch_opt(True, None, "enable reading parameters.dat")
     outname: str = entry(val="stagpy", cli_short="n", doc="output file name prefix")
     shortname: bool = switch_opt(False, None, "output file name is only prefix")
-    timesteps: Sequence[Union[int, slice]] = _indices.entry(
+    timesteps: Sequence[int | slice] = _indices.entry(
         doc="timesteps slice", in_file=False, cli_short="t"
     )
-    snapshots: Sequence[Union[int, slice]] = _indices.entry(
+    snapshots: Sequence[int | slice] = _indices.entry(
         default=[-1], doc="snapshots slice", in_file=False, cli_short="s"
     )
 
@@ -159,10 +159,10 @@ class Time(Section):
     marktimes: Sequence[float] = TupleEntry(float).entry(
         doc="list of times where to put a mark", in_file=False, cli_short="M"
     )
-    marksteps: Sequence[Union[int, slice]] = _indices.entry(
+    marksteps: Sequence[int | slice] = _indices.entry(
         doc="list of steps where to put a mark", in_file=False, cli_short="T"
     )
-    marksnaps: Sequence[Union[int, slice]] = _indices.entry(
+    marksnaps: Sequence[int | slice] = _indices.entry(
         doc="list of snaps where to put a mark", in_file=False, cli_short="S"
     )
 

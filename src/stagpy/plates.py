@@ -18,7 +18,7 @@ from .datatypes import Field
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence, TextIO, Union
+    from typing import Sequence, TextIO
 
     from matplotlib.axes import Axes
     from numpy.typing import NDArray
@@ -188,7 +188,7 @@ def _continents_location(snap: Step, at_surface: bool = True) -> NDArray:
     If at_surface is True, it is evaluated only at the surface, otherwise it is
     evaluated in the entire domain.
     """
-    icont: Union[int, slice]
+    icont: int | slice
     if at_surface:
         if snap.sdat.par.get("boundaries", "air_layer", False):
             icont = _isurf(snap) - 6

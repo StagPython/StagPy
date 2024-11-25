@@ -26,21 +26,14 @@ from .step import Step
 
 if typing.TYPE_CHECKING:
     from os import PathLike
-    from typing import (
-        Any,
-        Callable,
-        Iterable,
-        Iterator,
-        Sequence,
-        Union,
-    )
+    from typing import Any, Callable, Iterable, Iterator, Sequence, TypeAlias
 
     from numpy.typing import NDArray
     from pandas import DataFrame, Series
 
     from .config import Core
 
-    StepIndex = Union[int, slice]
+    StepIndex: TypeAlias = int | slice
 
 
 @typing.overload
@@ -56,8 +49,8 @@ def _as_view_item(obj: int) -> None: ...
 
 
 def _as_view_item(
-    obj: Union[Sequence[StepIndex], slice, int],
-) -> Union[Sequence[StepIndex], Sequence[slice], None]:
+    obj: Sequence[StepIndex] | slice | int,
+) -> Sequence[StepIndex] | Sequence[slice] | None:
     """Return None or a suitable iterable to build a StepsView."""
     try:
         iter(obj)  # type: ignore
@@ -312,11 +305,9 @@ class Steps:
     def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> StepsView: ...
+    def __getitem__(self, istep: slice | Sequence[StepIndex]) -> StepsView: ...
 
-    def __getitem__(
-        self, istep: Union[int, slice, Sequence[StepIndex]]
-    ) -> Union[Step, StepsView]:
+    def __getitem__(self, istep: int | slice | Sequence[StepIndex]) -> Step | StepsView:
         keys = _as_view_item(istep)
         if keys is not None:
             return StepsView(self, keys)
@@ -406,9 +397,9 @@ class Snaps(Steps):
     def __getitem__(self, istep: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: Union[slice, Sequence[StepIndex]]) -> StepsView: ...
+    def __getitem__(self, istep: slice | Sequence[StepIndex]) -> StepsView: ...
 
-    def __getitem__(self, isnap: Any) -> Union[Step, StepsView]:
+    def __getitem__(self, isnap: Any) -> Step | StepsView:
         keys = _as_view_item(isnap)
         if keys is not None:
             return StepsView(self, keys).filter(snap=True)
@@ -545,7 +536,7 @@ class StepsView:
         items: iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col: Union[Steps, Snaps], items: Sequence[StepIndex]):
+    def __init__(self, steps_col: Steps | Snaps, items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
         self._rprofs_averaged: RprofsAveraged | None = None
