@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import matplotlib.pyplot as plt
 
 from . import _helpers
@@ -12,7 +10,7 @@ from .phyvars import REFSTATE
 from .stagyydata import StagyyData, _sdat_from_conf
 
 
-def plot_ref(sdat: StagyyData, var: str, conf: Optional[Config] = None) -> None:
+def plot_ref(sdat: StagyyData, var: str, conf: Config | None = None) -> None:
     """Plot one reference state.
 
     Args:

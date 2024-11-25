@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Sequence, Union
+from typing import Dict, Sequence, Union
 
 import loam.parsers as lprs
 from loam.base import ConfigBase, Section, entry
@@ -53,15 +53,15 @@ class Core(Section):
 class Plot(Section):
     """Plotting."""
 
-    ratio: Optional[float] = MaybeEntry(float).entry(
+    ratio: float | None = MaybeEntry(float).entry(
         doc="force aspect ratio of field plot", in_file=False
     )
     raster: bool = switch_opt(True, None, "rasterize field plots")
     format: str = entry(val="pdf", doc="figure format (pdf, eps, svg, png)")
-    vmin: Optional[float] = MaybeEntry(float).entry(
+    vmin: float | None = MaybeEntry(float).entry(
         doc="minimal value on plot", in_file=False
     )
-    vmax: Optional[float] = MaybeEntry(float).entry(
+    vmax: float | None = MaybeEntry(float).entry(
         doc="maximal value on plot", in_file=False
     )
     cminmax: bool = switch_opt(False, "C", "constant min max across plots")
@@ -97,18 +97,18 @@ class FieldSec(Section):
         default="T,stream", cli_short="o", doc="variables to plot (see stagpy var)"
     )
     perturbation: bool = switch_opt(False, None, "plot departure from average profile")
-    shift: Optional[int] = MaybeEntry(int).entry(
+    shift: int | None = MaybeEntry(int).entry(
         doc="shift plot horizontally", in_file=False
     )
     timelabel: bool = switch_opt(False, None, "add label with time")
     colorbar: bool = switch_opt(True, None, "add color bar to plot")
-    ix: Optional[int] = MaybeEntry(int).entry(
+    ix: int | None = MaybeEntry(int).entry(
         doc="x-index of slice for 3D fields", in_file=False
     )
-    iy: Optional[int] = MaybeEntry(int).entry(
+    iy: int | None = MaybeEntry(int).entry(
         doc="y-index of slice for 3D fields", in_file=False
     )
-    iz: Optional[int] = MaybeEntry(int).entry(
+    iz: int | None = MaybeEntry(int).entry(
         doc="z-index of slice for 3D fields", in_file=False
     )
     isocolors: Sequence[str] = TupleEntry(str).entry(doc="list of colors for isolines")
@@ -151,11 +151,9 @@ class Time(Section):
     compstat: Sequence[str] = TupleEntry(str).entry(
         doc="compute mean and rms of listed variables", in_file=False
     )
-    tstart: Optional[float] = MaybeEntry(float).entry(
-        doc="beginning time", in_file=False
-    )
-    tend: Optional[float] = MaybeEntry(float).entry(doc="end time", in_file=False)
-    fraction: Optional[float] = MaybeEntry(float).entry(
+    tstart: float | None = MaybeEntry(float).entry(doc="beginning time", in_file=False)
+    tend: float | None = MaybeEntry(float).entry(doc="end time", in_file=False)
+    fraction: float | None = MaybeEntry(float).entry(
         doc="ending fraction of series to process", in_file=False
     )
     marktimes: Sequence[float] = TupleEntry(float).entry(
@@ -200,7 +198,7 @@ class Plates(Section):
         False, None, "plot number of plates as function of time"
     )
     distribution: bool = switch_opt(False, None, "plot plate size distribution")
-    zoom: Optional[float] = MaybeEntry(float).entry(
+    zoom: float | None = MaybeEntry(float).entry(
         doc="zoom around surface", in_file=False
     )
 

@@ -31,7 +31,6 @@ if typing.TYPE_CHECKING:
         Callable,
         Iterable,
         Iterator,
-        Optional,
         Sequence,
         Union,
     )
@@ -149,7 +148,7 @@ class Tseries:
         self._cached_extra: dict[str, dt.Tseries] = {}
 
     @cached_property
-    def _data(self) -> Optional[DataFrame]:
+    def _data(self) -> DataFrame | None:
         timefile = self.sdat.filename("TimeSeries.h5")
         data = stagyyparsers.time_series_h5(timefile, list(phyvars.TIME.keys()))
         if data is not None:
@@ -191,7 +190,7 @@ class Tseries:
         return dt.Tseries(series, time, meta)
 
     def tslice(
-        self, name: str, tstart: Optional[float] = None, tend: Optional[float] = None
+        self, name: str, tstart: float | None = None, tend: float | None = None
     ) -> dt.Tseries:
         """Return a [`Tseries`][stagpy.datatypes.Tseries] between specified times.
 
@@ -304,7 +303,7 @@ class Steps:
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
         self._data: dict[int, Step] = {}
-        self._len: Optional[int] = None
+        self._len: int | None = None
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.steps"
@@ -340,7 +339,7 @@ class Steps:
             self._data[istep] = Step(istep, self.sdat)
         return self._data[istep]
 
-    def __delitem__(self, istep: Optional[int]) -> None:
+    def __delitem__(self, istep: int | None) -> None:
         if istep is not None and istep in self._data:
             self.sdat._collected_fields = [
                 (i, f) for i, f in self.sdat._collected_fields if i != istep
@@ -375,8 +374,8 @@ class Steps:
         self,
         snap: bool = False,
         rprofs: bool = False,
-        fields: Optional[Iterable[str]] = None,
-        func: Optional[Callable[[Step], bool]] = None,
+        fields: Iterable[str] | None = None,
+        func: Callable[[Step], bool] | None = None,
     ) -> StepsView:
         """Build a `StepsView` with requested filters."""
         return self[:].filter(snap, rprofs, fields, func)
@@ -396,7 +395,7 @@ class Snaps(Steps):
     """
 
     def __init__(self, sdat: StagyyData):
-        self._isteps: dict[int, Optional[int]] = {}
+        self._isteps: dict[int, int | None] = {}
         self._all_isteps_known = False
         super().__init__(sdat)
 
@@ -434,7 +433,7 @@ class Snaps(Steps):
             raise error.InvalidSnapshotError(self.sdat, isnap, "Invalid snapshot index")
         return self.sdat.steps[istep]
 
-    def __delitem__(self, isnap: Optional[int]) -> None:
+    def __delitem__(self, isnap: int | None) -> None:
         if isnap is not None:
             istep = self._isteps.get(isnap)
             del self.sdat.steps[istep]
@@ -549,7 +548,7 @@ class StepsView:
     def __init__(self, steps_col: Union[Steps, Snaps], items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
-        self._rprofs_averaged: Optional[RprofsAveraged] = None
+        self._rprofs_averaged: RprofsAveraged | None = None
         self._flt = _Filters()
 
     @property
@@ -595,8 +594,8 @@ class StepsView:
         self,
         snap: bool = False,
         rprofs: bool = False,
-        fields: Optional[Iterable[str]] = None,
-        func: Optional[Callable[[Step], bool]] = None,
+        fields: Iterable[str] | None = None,
+        func: Callable[[Step], bool] | None = None,
     ) -> StepsView:
         """Add filters to the view.
 
@@ -678,7 +677,7 @@ class StagyyData:
         self.steps = Steps(self)
         self.snaps = Snaps(self)
         self._read_parameters_dat = read_parameters_dat
-        self._nfields_max: Optional[int] = 50
+        self._nfields_max: int | None = 50
         # list of (istep, field_name) in memory
         self._collected_fields: list[tuple[int, str]] = []
 
@@ -699,7 +698,7 @@ class StagyyData:
         return self._parpath
 
     @cached_property
-    def hdf5(self) -> Optional[Path]:
+    def hdf5(self) -> Path | None:
         """Path of output hdf5 folder if relevant, None otherwise."""
         h5xmf = self.par.h5_output("Data.xmf")
         return h5xmf.parent if h5xmf.is_file() else None
@@ -738,7 +737,7 @@ class StagyyData:
         return StagyyPar.from_main_par(self.parpath, self._read_parameters_dat)
 
     @cached_property
-    def _rprof_and_times(self) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
+    def _rprof_and_times(self) -> tuple[dict[int, DataFrame], DataFrame | None]:
         rproffile = self.filename("rprof.h5")
         data = stagyyparsers.rprof_h5(rproffile, list(phyvars.RPROF.keys()))
         if data[1] is not None:
@@ -750,7 +749,7 @@ class StagyyData:
         return stagyyparsers.rprof(rproffile, list(phyvars.RPROF.keys()))
 
     @property
-    def rtimes(self) -> Optional[DataFrame]:
+    def rtimes(self) -> DataFrame | None:
         """Radial profiles times."""
         return self._rprof_and_times[1]
 
@@ -763,7 +762,7 @@ class StagyyData:
         return set()
 
     @property
-    def nfields_max(self) -> Optional[int]:
+    def nfields_max(self) -> int | None:
         """Maximum number of scalar fields kept in memory.
 
         Setting this to a value lower or equal to 5 raises a
@@ -774,7 +773,7 @@ class StagyyData:
         return self._nfields_max
 
     @nfields_max.setter
-    def nfields_max(self, nfields: Optional[int]) -> None:
+    def nfields_max(self, nfields: int | None) -> None:
         """Check nfields > 5 or None."""
         if nfields is not None and nfields <= 5:
             raise error.InvalidNfieldsError(nfields)
@@ -783,7 +782,7 @@ class StagyyData:
     def filename(
         self,
         fname: str,
-        timestep: Optional[int] = None,
+        timestep: int | None = None,
         suffix: str = "",
         force_legacy: bool = False,
     ) -> Path:

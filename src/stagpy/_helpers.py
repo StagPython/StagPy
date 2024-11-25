@@ -8,8 +8,6 @@ from inspect import getdoc
 import matplotlib.pyplot as plt
 
 if typing.TYPE_CHECKING:
-    from typing import Optional
-
     from matplotlib.figure import Figure
     from numpy.typing import NDArray
 
@@ -24,7 +22,7 @@ def walk(sdat: StagyyData, conf: Config) -> StepsView:
     return sdat.snaps[conf.core.snapshots]
 
 
-def out_name(conf: Config, stem: str, timestep: Optional[int] = None) -> str:
+def out_name(conf: Config, stem: str, timestep: int | None = None) -> str:
     """Return StagPy out file name.
 
     Args:
@@ -62,7 +60,7 @@ def saveplot(
     conf: Config,
     fig: Figure,
     stem: str,
-    timestep: Optional[int] = None,
+    timestep: int | None = None,
     close: bool = True,
 ) -> None:
     """Save matplotlib figure.

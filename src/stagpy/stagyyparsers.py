@@ -25,7 +25,7 @@ from .xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any, BinaryIO, Callable, Iterator, Mapping, Optional
+    from typing import Any, BinaryIO, Callable, Iterator, Mapping
     from xml.etree.ElementTree import Element
 
     from numpy.typing import NDArray
@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
 
 
 def _tidy_names(
-    names: list[str], nnames: int, extra_names: Optional[list[str]] = None
+    names: list[str], nnames: int, extra_names: list[str] | None = None
 ) -> None:
     """Truncate or extend names so that its len is nnames.
 
@@ -51,7 +51,7 @@ def _tidy_names(
     del names[nnames:]
 
 
-def time_series(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
+def time_series(timefile: Path, colnames: list[str]) -> DataFrame | None:
     """Read temporal series text file.
 
     If `colnames` is too long, it will be truncated. If it is too short,
@@ -101,7 +101,7 @@ def time_series(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
     return data
 
 
-def time_series_h5(timefile: Path, colnames: list[str]) -> Optional[DataFrame]:
+def time_series_h5(timefile: Path, colnames: list[str]) -> DataFrame | None:
     """Read temporal series HDF5 file.
 
     If `colnames` is too long, it will be truncated. If it is too short,
@@ -167,7 +167,7 @@ def _extract_rsnap_isteps(
 
 def rprof(
     rproffile: Path, colnames: list[str]
-) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
+) -> tuple[dict[int, DataFrame], DataFrame | None]:
     """Extract radial profiles data.
 
     If `colnames` is too long, it will be truncated. If it is too short,
@@ -215,7 +215,7 @@ def rprof(
 
 def rprof_h5(
     rproffile: Path, colnames: list[str]
-) -> tuple[dict[int, DataFrame], Optional[DataFrame]]:
+) -> tuple[dict[int, DataFrame], DataFrame | None]:
     """Extract radial profiles data.
 
     If `colnames` is too long, it will be truncated. If it is too short,
@@ -263,7 +263,7 @@ def _clean_names_refstate(names: list[str]) -> list[str]:
 
 def refstate(
     reffile: Path, ncols: int = 8
-) -> Optional[tuple[list[list[DataFrame]], list[DataFrame]]]:
+) -> tuple[list[list[DataFrame]], list[DataFrame]] | None:
     """Extract reference state profiles.
 
     Args:
@@ -444,7 +444,7 @@ def _legacy_header(
     return header_info
 
 
-def field_istep(fieldfile: Path) -> Optional[int]:
+def field_istep(fieldfile: Path) -> int | None:
     """Read istep from binary field file.
 
     Args:
@@ -460,7 +460,7 @@ def field_istep(fieldfile: Path) -> Optional[int]:
     return hdr.header["ti_step"]
 
 
-def field_header(fieldfile: Path) -> Optional[dict[str, Any]]:
+def field_header(fieldfile: Path) -> dict[str, Any] | None:
     """Read header info from binary field file.
 
     Args:
@@ -476,7 +476,7 @@ def field_header(fieldfile: Path) -> Optional[dict[str, Any]]:
     return hdr.header
 
 
-def fields(fieldfile: Path) -> Optional[tuple[dict[str, Any], NDArray]]:
+def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray] | None:
     """Extract fields data.
 
     Args:
@@ -554,7 +554,7 @@ def fields(fieldfile: Path) -> Optional[tuple[dict[str, Any], NDArray]]:
     return header, flds
 
 
-def tracers(tracersfile: Path) -> Optional[dict[str, list[NDArray]]]:
+def tracers(tracersfile: Path) -> dict[str, list[NDArray]] | None:
     """Extract tracers data.
 
     Args:
@@ -622,7 +622,7 @@ def _read_group_h5(filename: Path, groupname: str) -> NDArray:
     return data  # need to be reshaped
 
 
-def _make_3d(field: NDArray, twod: Optional[str]) -> NDArray:
+def _make_3d(field: NDArray, twod: str | None) -> NDArray:
     """Add a dimension to field if necessary.
 
     Args:
@@ -640,7 +640,7 @@ def _make_3d(field: NDArray, twod: Optional[str]) -> NDArray:
     return field.reshape(shp)
 
 
-def _ncores(meshes: list[dict[str, NDArray]], twod: Optional[str]) -> NDArray:
+def _ncores(meshes: list[dict[str, NDArray]], twod: str | None) -> NDArray:
     """Compute number of nodes in each direction."""
     nnpb = len(meshes)  # number of nodes per block
     nns = [1, 1, 1]  # number of nodes in x, y, z directions
@@ -741,11 +741,11 @@ class FieldSub:
 @dataclass(frozen=True)
 class XmfEntry:
     isnap: int
-    time: Optional[float]
-    mo_lambda: Optional[float]
-    mo_thick_sol: Optional[float]
+    time: float | None
+    mo_lambda: float | None
+    mo_thick_sol: float | None
     yin_yang: bool
-    twod: Optional[str]
+    twod: str | None
     coord_filepattern: str
     coord_shape: tuple[int, ...]
     range_yin: range
@@ -980,8 +980,8 @@ def read_field_h5(
     xdmf: FieldXmf,
     fieldname: str,
     snapshot: int,
-    header: Optional[dict[str, Any]] = None,
-) -> Optional[tuple[dict[str, Any], NDArray]]:
+    header: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], NDArray] | None:
     """Extract field data from hdf5 files.
 
     Args:
@@ -1062,9 +1062,9 @@ class TracerSub:
 @dataclass(frozen=True)
 class XmfTracersEntry:
     isnap: int
-    time: Optional[float]
-    mo_lambda: Optional[float]
-    mo_thick_sol: Optional[float]
+    time: float | None
+    mo_lambda: float | None
+    mo_thick_sol: float | None
     yin_yang: bool
     range_yin: range
     range_yang: range

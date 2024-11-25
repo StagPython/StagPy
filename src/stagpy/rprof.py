@@ -11,7 +11,7 @@ from .config import Config
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Sequence
+    from typing import Sequence
 
     from .step import Rprofs, Step
 
@@ -19,7 +19,7 @@ if typing.TYPE_CHECKING:
 def plot_rprofs(
     rprofs: Rprofs,
     names: Sequence[Sequence[Sequence[str]]],
-    conf: Optional[Config] = None,
+    conf: Config | None = None,
 ) -> None:
     """Plot requested radial profiles.
 
@@ -70,7 +70,7 @@ def plot_rprofs(
         _helpers.saveplot(conf, fig, fname + stepstr)
 
 
-def plot_grid(step: Step, conf: Optional[Config] = None) -> None:
+def plot_grid(step: Step, conf: Config | None = None) -> None:
     """Plot cell position and thickness.
 
     The figure is call grid_N.pdf where N is replace by the step index.

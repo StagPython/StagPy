@@ -15,7 +15,7 @@ from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData, _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Sequence
+    from typing import Sequence
 
     from pandas import DataFrame
 
@@ -31,7 +31,7 @@ def _collect_marks(sdat: StagyyData, conf: Config) -> list[float]:
 def plot_time_series(
     sdat: StagyyData,
     names: Sequence[Sequence[Sequence[str]]],
-    conf: Optional[Config] = None,
+    conf: Config | None = None,
 ) -> None:
     """Plot requested time series.
 
@@ -95,8 +95,8 @@ def plot_time_series(
 def compstat(
     sdat: StagyyData,
     *names: str,
-    tstart: Optional[float] = None,
-    tend: Optional[float] = None,
+    tstart: float | None = None,
+    tend: float | None = None,
 ) -> DataFrame:
     """Compute statistics from series output by StagYY.
 

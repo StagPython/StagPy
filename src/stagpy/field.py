@@ -17,7 +17,7 @@ from .error import NotAvailableError
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Iterable, Optional, Union
+    from typing import Any, Iterable
 
     from matplotlib.axes import Axes
     from matplotlib.collections import QuadMesh
@@ -40,9 +40,9 @@ def _threed_extract(
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
     hwalls = is_vector or walls
-    i_x: Optional[Union[int, slice]] = conf.field.ix
-    i_y: Optional[Union[int, slice]] = conf.field.iy
-    i_z: Optional[Union[int, slice]] = conf.field.iz
+    i_x: int | slice | None = conf.field.ix
+    i_y: int | slice | None = conf.field.iy
+    i_z: int | slice | None = conf.field.iz
     if i_x is not None or i_y is not None:
         i_z = None
     if i_x is not None or i_z is not None:
@@ -177,11 +177,11 @@ def get_meshes_vec(
 def plot_scalar(
     step: Step,
     var: str,
-    field: Optional[NDArray] = None,
-    axis: Optional[Axes] = None,
-    conf: Optional[Config] = None,
+    field: NDArray | None = None,
+    axis: Axes | None = None,
+    conf: Config | None = None,
     **extra: Any,
-) -> tuple[Figure, Axes, QuadMesh, Optional[Colorbar]]:
+) -> tuple[Figure, Axes, QuadMesh, Colorbar | None]:
     """Plot scalar field.
 
     Args:
@@ -271,8 +271,8 @@ def plot_iso(
     axis: Axes,
     step: Step,
     var: str,
-    field: Optional[NDArray] = None,
-    conf: Optional[Config] = None,
+    field: NDArray | None = None,
+    conf: Config | None = None,
     **extra: Any,
 ) -> None:
     """Plot isocontours of scalar field.
@@ -311,7 +311,7 @@ def plot_vec(
     axis: Axes,
     step: Step,
     var: str,
-    conf: Optional[Config] = None,
+    conf: Config | None = None,
 ) -> None:
     """Plot vector field.
 

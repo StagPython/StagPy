@@ -20,7 +20,7 @@ from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, Iterator, Mapping, NoReturn, Optional
+    from typing import Any, Callable, Iterator, Mapping, NoReturn
 
     from numpy.typing import NDArray
     from pandas import DataFrame, Series
@@ -386,7 +386,7 @@ class Fields(abc.Mapping):
             del self._data[name]
 
     @cached_property
-    def _header(self) -> Optional[dict[str, Any]]:
+    def _header(self) -> dict[str, Any] | None:
         if self.step.isnap is None:
             return None
         binfiles = self.step.sdat._binfiles_set(self.step.isnap)
@@ -423,9 +423,9 @@ class Tracers:
 
     def __init__(self, step: Step):
         self.step = step
-        self._data: dict[str, Optional[list[NDArray]]] = {}
+        self._data: dict[str, list[NDArray] | None] = {}
 
-    def __getitem__(self, name: str) -> Optional[list[NDArray]]:
+    def __getitem__(self, name: str) -> list[NDArray] | None:
         if name in self._data:
             return self._data[name]
         if self.step.isnap is None:
@@ -464,7 +464,7 @@ class Rprofs:
         self._cached_extra: dict[str, Rprof] = {}
 
     @cached_property
-    def _data(self) -> Optional[DataFrame]:
+    def _data(self) -> DataFrame | None:
         step = self.step
         return step.sdat._rprof_and_times[0].get(step.istep)
 
@@ -596,7 +596,7 @@ class Step:
         )
         self.tracers = Tracers(self)
         self.rprofs = Rprofs(self)
-        self._isnap: Optional[int] = -1
+        self._isnap: int | None = -1
 
     def __repr__(self) -> str:
         if self.isnap is not None:
@@ -637,7 +637,7 @@ class Step:
         return steptime
 
     @property
-    def isnap(self) -> Optional[int]:
+    def isnap(self) -> int | None:
         """Snapshot index corresponding to time step.
 
         It is None if no snapshot exists for the time step.

@@ -18,7 +18,7 @@ from .datatypes import Field
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Sequence, TextIO, Union
+    from typing import Sequence, TextIO, Union
 
     from matplotlib.axes import Axes
     from numpy.typing import NDArray
@@ -211,7 +211,7 @@ def _continents_location(snap: Step, at_surface: bool = True) -> NDArray:
 def plot_at_surface(
     snap: Step,
     names: Sequence[Sequence[Sequence[str]]],
-    conf: Optional[Config],
+    conf: Config | None,
 ) -> None:
     """Plot surface diagnostics.
 
@@ -333,7 +333,7 @@ def _write_trench_diagnostics(
 def plot_scalar_field(
     snap: Step,
     fieldname: str,
-    conf: Optional[Config] = None,
+    conf: Config | None = None,
 ) -> None:
     """Plot scalar field with plate information.
 

@@ -26,7 +26,7 @@ from ._helpers import baredoc
 from .config import Config
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, Optional
+    from typing import Any, Callable
 
 
 def _sub(cmd: Any, *sections: str) -> Subcmd:
@@ -72,7 +72,7 @@ SUB_CMDS = MappingProxyType(
 
 
 def parse_args(
-    conf: Config, arglist: Optional[list[str]] = None
+    conf: Config, arglist: list[str] | None = None
 ) -> Callable[[Config], None]:
     """Parse cmd line arguments.
 
