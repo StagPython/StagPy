@@ -6,21 +6,21 @@ check-static: lint typecheck
 
 # check style and format
 lint:
-    uv run --group=lint -- ruff check --extend-select I .
-    uv run --group=lint -- ruff format --check .
+    uv run -- ruff check --extend-select I .
+    uv run -- ruff format --check .
 
 # format code and sort imports
 format:
-    uv run --group=lint -- ruff check --select I --fix .
-    uv run --group=lint -- ruff format .
+    uv run -- ruff check --select I --fix .
+    uv run -- ruff format .
 
 # check static typing annotations
 typecheck:
-    uv run --group=typing -- mypy stagpy/ tests/
+    uv run -- mypy stagpy/ tests/
 
 # run test suite
 test:
-    uv run --group=test -- pytest --cov=./stagpy --cov-report term-missing
+    uv run -- pytest --cov=./stagpy --cov-report term-missing
 
 # invoke mkdocs with appropriate dependencies
 mkdocs *FLAGS:
