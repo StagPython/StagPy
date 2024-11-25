@@ -16,11 +16,11 @@ format:
 
 # check static typing annotations
 typecheck:
-    uv run -- mypy stagpy/ tests/
+    uv run -- mypy src/ tests/
 
 # run test suite
 test:
-    uv run -- pytest --cov=./stagpy --cov-report term-missing
+    uv run -- pytest --cov=src/stagpy --cov-report term-missing
 
 # invoke mkdocs with appropriate dependencies
 mkdocs *FLAGS:
