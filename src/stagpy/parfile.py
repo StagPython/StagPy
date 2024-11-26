@@ -81,7 +81,7 @@ class StagyyPar:
         return sec.get(option, default)
 
     def legacy_output(self, suffix: str) -> Path:
-        stem = self.get("ioin", "output_file_stem", "test")
+        stem = self.get("ioin", "output_file_stem", "output")
         return self.root / (stem + suffix)
 
     def h5_output(self, filename: str) -> Path:
