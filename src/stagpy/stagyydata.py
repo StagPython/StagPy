@@ -388,7 +388,6 @@ class Snaps:
         self.sdat = sdat
         self._isteps: dict[int, int | None] = {}
         self._all_isteps_known = False
-        self._len: int | None = None
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.snaps"
@@ -429,26 +428,28 @@ class Snaps:
             istep = self._isteps.get(isnap)
             del self.sdat.steps[istep]
 
+    @cached_property
+    def _len(self) -> int:
+        length = -1
+        if self.sdat.hdf5:
+            isnap = -1
+            for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+                self._bind(isnap, istep)
+            length = isnap
+            self._all_isteps_known = True
+        if length < 0:
+            out_stem = re.escape(self.sdat.par.legacy_output("_").name[:-1])
+            rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
+            fstems = set(fstem for fstem in phyvars.FIELD_FILES)
+            for fname in self.sdat._files:
+                match = rgx.match(fname.name)
+                if match is not None and match.group(1) in fstems:
+                    length = max(int(match.group(2)), length)
+        if length < 0:
+            raise error.NoSnapshotError(self.sdat)
+        return length + 1
+
     def __len__(self) -> int:
-        if self._len is None:
-            length = -1
-            if self.sdat.hdf5:
-                isnap = -1
-                for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                    self._bind(isnap, istep)
-                length = isnap
-                self._all_isteps_known = True
-            if length < 0:
-                out_stem = re.escape(self.sdat.par.legacy_output("_").name[:-1])
-                rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
-                fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-                for fname in self.sdat._files:
-                    match = rgx.match(fname.name)
-                    if match is not None and match.group(1) in fstems:
-                        length = max(int(match.group(2)), length)
-            if length < 0:
-                raise error.NoSnapshotError(self.sdat)
-            self._len = length + 1
         return self._len
 
     def __iter__(self) -> Iterator[Step]:
