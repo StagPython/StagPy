@@ -371,7 +371,7 @@ class Steps:
         return self[:].filter(snap, rprofs, fields, func)
 
 
-class Snaps(Steps):
+class Snaps:
     """Collection of snapshots.
 
     The `StagyyData.snaps` attribute is an instance of this class.
@@ -385,9 +385,10 @@ class Snaps(Steps):
     """
 
     def __init__(self, sdat: StagyyData):
+        self.sdat = sdat
         self._isteps: dict[int, int | None] = {}
         self._all_isteps_known = False
-        super().__init__(sdat)
+        self._len: int | None = None
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.snaps"
@@ -450,6 +451,9 @@ class Snaps(Steps):
             self._len = length + 1
         return self._len
 
+    def __iter__(self) -> Iterator[Step]:
+        return iter(self[:])
+
     def at_time(self, time: float, after: bool = False) -> Step:
         """Return snap corresponding to a given physical time.
 
@@ -486,6 +490,16 @@ class Snaps(Steps):
         """
         self._isteps[isnap] = istep
         self.sdat.steps[istep]._isnap = isnap
+
+    def filter(
+        self,
+        snap: bool = False,
+        rprofs: bool = False,
+        fields: Iterable[str] | None = None,
+        func: Callable[[Step], bool] | None = None,
+    ) -> StepsView:
+        """Build a `StepsView` with requested filters."""
+        return self[:].filter(snap, rprofs, fields, func)
 
 
 @dataclass(frozen=True)
