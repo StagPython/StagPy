@@ -651,21 +651,12 @@ class StagyyData:
             runs of StagYY that predate version 1.2.6 for which the
             `parameters.dat` file contained some values affected by internal
             logic.
-
-    Attributes:
-        steps (Steps): collection of time steps.
-        snaps (Snaps): collection of snapshots.
-        refstate (Refstate): reference state profiles.
     """
 
     def __init__(self, path: PathLike, read_parameters_dat: bool = True):
         self._parpath = Path(path)
         if not self._parpath.is_file():
             self._parpath /= "par"
-        self.refstate = Refstate(self)
-        self.tseries = Tseries(self)
-        self.steps = Steps(self)
-        self.snaps = Snaps(self)
         self._read_parameters_dat = read_parameters_dat
 
     def __repr__(self) -> str:
@@ -689,6 +680,26 @@ class StagyyData:
         """Path of output hdf5 folder if relevant, None otherwise."""
         h5xmf = self.par.h5_output("Data.xmf")
         return h5xmf.parent if h5xmf.is_file() else None
+
+    @cached_property
+    def steps(self) -> Steps:
+        """Collection of time steps."""
+        return Steps(self)
+
+    @cached_property
+    def snaps(self) -> Snaps:
+        """Collection of snapshots."""
+        return Snaps(self)
+
+    @cached_property
+    def tseries(self) -> Tseries:
+        """Time series data."""
+        return Tseries(self)
+
+    @cached_property
+    def refstate(self) -> Refstate:
+        """Reference state profiles."""
+        return Refstate(self)
 
     @cached_property
     def _dataxmf(self) -> FieldXmf:
