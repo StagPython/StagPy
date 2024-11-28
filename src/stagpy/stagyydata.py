@@ -27,7 +27,7 @@ from .step import Step
 
 if typing.TYPE_CHECKING:
     from os import PathLike
-    from typing import Any, Callable, Iterable, Iterator, Sequence, TypeAlias
+    from typing import Callable, Iterable, Iterator, Sequence, TypeAlias
 
     from numpy.typing import NDArray
     from pandas import DataFrame, Series
@@ -400,15 +400,16 @@ class Snaps:
         return {}
 
     @typing.overload
-    def __getitem__(self, istep: int) -> Step: ...
+    def __getitem__(self, isnap: int) -> Step: ...
 
     @typing.overload
-    def __getitem__(self, istep: slice | Sequence[StepIndex]) -> StepsView: ...
+    def __getitem__(self, isnap: slice | Sequence[StepIndex]) -> StepsView: ...
 
-    def __getitem__(self, isnap: Any) -> Step | StepsView:
+    def __getitem__(self, isnap: int | slice | Sequence[StepIndex]) -> Step | StepsView:
         keys = _as_view_item(isnap)
         if keys is not None:
             return StepsView(self, keys).filter(snap=True)
+        assert isinstance(isnap, int)
         if isnap < 0:
             isnap += len(self)
         if isnap < 0 or isnap >= len(self):
