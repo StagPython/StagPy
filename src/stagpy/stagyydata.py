@@ -510,6 +510,14 @@ class _Filters:
             return False
         return all(func(step) for func in self.funcs)
 
+    def compose_with(self, other: _Filters) -> _Filters:
+        return _Filters(
+            snap=self.snap or other.snap,
+            rprofs=self.rprofs or other.rprofs,
+            fields=self.fields | other.fields,
+            funcs=self.funcs + other.funcs,
+        )
+
 
 class StepsView:
     """Filtered iterator over steps or snaps.
@@ -597,12 +605,13 @@ class StepsView:
         Returns:
             self.
         """
-        self._flt.snap = self._flt.snap or snap
-        self._flt.rprofs = self._flt.rprofs or rprofs
-        if fields is not None:
-            self._flt.fields = self._flt.fields.union(fields)
-        if func is not None:
-            self._flt.funcs.append(func)
+        new_filters = _Filters(
+            snap=snap,
+            rprofs=rprofs,
+            fields=set() if fields is None else set(fields),
+            funcs=[] if func is None else [func],
+        )
+        self._flt = self._flt.compose_with(new_filters)
         return self
 
     def __iter__(self) -> Iterator[Step]:
