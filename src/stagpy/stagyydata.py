@@ -489,7 +489,7 @@ class Snaps(Steps):
 
 
 @dataclass(frozen=True)
-class _Filters:
+class Filters:
     """Filters on a step view."""
 
     snap: bool = False
@@ -510,8 +510,8 @@ class _Filters:
             return False
         return all(func(step) for func in self.funcs)
 
-    def compose_with(self, other: _Filters) -> _Filters:
-        return _Filters(
+    def compose_with(self, other: Filters) -> Filters:
+        return Filters(
             snap=self.snap or other.snap,
             rprofs=self.rprofs or other.rprofs,
             fields=self.fields | other.fields,
@@ -534,7 +534,7 @@ class StepsView:
     def __init__(self, steps_col: Steps | Snaps, items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
-        self._flt = _Filters()
+        self._flt = Filters()
 
     @cached_property
     def rprofs_averaged(self) -> RprofsAveraged:
@@ -605,7 +605,7 @@ class StepsView:
         Returns:
             self.
         """
-        new_filters = _Filters(
+        new_filters = Filters(
             snap=snap,
             rprofs=rprofs,
             fields=set() if fields is None else set(fields),
