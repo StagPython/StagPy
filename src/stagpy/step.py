@@ -25,6 +25,7 @@ if typing.TYPE_CHECKING:
     from numpy.typing import NDArray
     from pandas import DataFrame, Series
 
+    from ._caching import FieldCache
     from .datatypes import Varf
     from .stagyydata import StagyyData
 
@@ -292,28 +293,41 @@ class Fields(abc.Mapping):
         self._extra = extravars
         self._files = files
         self._filesh5 = filesh5
-        self._data: dict[str, Field] = {}
         super().__init__()
 
+    @cached_property
+    def _all_vars(self) -> set[str]:
+        return set(self._vars.keys()).union(self._extra.keys())
+
+    @cached_property
+    def _cache(self) -> FieldCache:
+        return self.step.sdat._field_cache
+
     def __getitem__(self, name: str) -> Field:
-        if name in self._data:
-            return self._data[name]
-        if name in self._vars:
-            fld_names, parsed_data = self._get_raw_data(name)
-        elif name in self._extra:
-            self._data[name] = self._extra[name](self.step)
-            return self._data[name]
-        else:
+        if name not in self._all_vars:
             raise error.UnknownFieldVarError(name)
+
+        maybe_fld = self._cache.get(self.step.istep, name)
+        if maybe_fld is not None:
+            return maybe_fld
+
+        if name in self._extra:
+            fld = self._extra[name](self.step)
+            self._cache.insert(self.step.istep, name, fld)
+            return fld
+
+        # requested field is one of self._vars
+        fld_names, parsed_data = self._get_raw_data(name)
         if parsed_data is None:
             raise error.MissingDataError(
                 f"Missing field {name} in step {self.step.istep}"
             )
         header, fields = parsed_data
         self._cropped__header = header
-        for fld_name, fld in zip(fld_names, fields):
-            self._set(fld_name, fld)
-        return self._data[name]
+        for fld_name, fld_vals in zip(fld_names, fields):
+            fld = Field(fld_vals, self._vars[fld_name])
+            self._cache.insert(self.step.istep, fld_name, fld)
+        return self[name]
 
     @cached_property
     def _present_fields(self) -> list[str]:
@@ -370,20 +384,6 @@ class Fields(abc.Mapping):
                 if parsed_data is not None:
                     break
         return list_fvar, parsed_data
-
-    def _set(self, name: str, fld: NDArray) -> None:
-        sdat = self.step.sdat
-        col_fld = sdat._collected_fields
-        col_fld.append((self.step.istep, name))
-        if sdat.nfields_max is not None:
-            while len(col_fld) > sdat.nfields_max:
-                istep, fld_name = col_fld.pop(0)
-                del sdat.steps[istep].fields[fld_name]
-        self._data[name] = Field(fld, self._vars[name])
-
-    def __delitem__(self, name: str) -> None:
-        if name in self._data:
-            del self._data[name]
 
     @cached_property
     def _header(self) -> dict[str, Any] | None:

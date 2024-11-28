@@ -20,6 +20,7 @@ import numpy as np
 
 from . import _helpers, error, phyvars, stagyyparsers, step
 from . import datatypes as dt
+from ._caching import FieldCache
 from .parfile import StagyyPar
 from .stagyyparsers import FieldXmf, TracersXmf
 from .step import Step
@@ -332,9 +333,7 @@ class Steps:
 
     def __delitem__(self, istep: int | None) -> None:
         if istep is not None and istep in self._data:
-            self.sdat._collected_fields = [
-                (i, f) for i, f in self.sdat._collected_fields if i != istep
-            ]
+            self.sdat._field_cache.evict_istep(istep)
             del self._data[istep]
 
     def __len__(self) -> int:
@@ -668,9 +667,6 @@ class StagyyData:
         self.steps = Steps(self)
         self.snaps = Snaps(self)
         self._read_parameters_dat = read_parameters_dat
-        self._nfields_max: int | None = 50
-        # list of (istep, field_name) in memory
-        self._collected_fields: list[tuple[int, str]] = []
 
     def __repr__(self) -> str:
         return f"StagyyData({self.path!r})"
@@ -752,23 +748,17 @@ class StagyyData:
             return set(out_dir.iterdir())
         return set()
 
-    @property
-    def nfields_max(self) -> int | None:
-        """Maximum number of scalar fields kept in memory.
+    def set_nfields_max(self, nfields: int | None) -> None:
+        """Adjust maximum number of scalar fields kept in memory.
 
         Setting this to a value lower or equal to 5 raises a
         [stagpy.error.InvalidNfieldsError][].  Set this to `None` if
         you do not want any limit on the number of scalar fields kept in
         memory.  Defaults to 50.
         """
-        return self._nfields_max
-
-    @nfields_max.setter
-    def nfields_max(self, nfields: int | None) -> None:
-        """Check nfields > 5 or None."""
         if nfields is not None and nfields <= 5:
             raise error.InvalidNfieldsError(nfields)
-        self._nfields_max = nfields
+        self._field_cache.resize(nfields)
 
     def filename(
         self,
@@ -811,3 +801,7 @@ class StagyyData:
             for fstem in phyvars.FIELD_FILES
         )
         return possible_files & self._files
+
+    @cached_property
+    def _field_cache(self) -> FieldCache:
+        return FieldCache(maxsize=50)

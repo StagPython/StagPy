@@ -11,23 +11,9 @@ def test_sdat_path(example_dir: Path, sdat: StagyyData) -> None:
     assert sdat.path == example_dir
 
 
-def test_sdat_deflt_nfields_max(sdat: StagyyData) -> None:
-    assert sdat.nfields_max == 50
-
-
-def test_sdat_set_nfields_max(sdat: StagyyData) -> None:
-    sdat.nfields_max = 6
-    assert sdat.nfields_max == 6
-
-
-def test_sdat_set_nfields_max_none(sdat: StagyyData) -> None:
-    sdat.nfields_max = None
-    assert sdat.nfields_max is None
-
-
 def test_sdat_set_nfields_max_invalid(sdat: StagyyData) -> None:
     with pytest.raises(stagpy.error.InvalidNfieldsError) as err:
-        sdat.nfields_max = 5
+        sdat.set_nfields_max(5)
     assert err.value.nfields == 5
 
 
