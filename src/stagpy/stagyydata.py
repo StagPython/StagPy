@@ -264,6 +264,7 @@ class RprofsAveraged(step.Rprofs):
         return self.steps.stepstr
 
 
+@dataclass(frozen=True)
 class Steps:
     """Collections of time steps.
 
@@ -294,8 +295,7 @@ class Steps:
     ```
     """
 
-    def __init__(self, sdat: StagyyData):
-        self.sdat = sdat
+    sdat: StagyyData
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.steps"
