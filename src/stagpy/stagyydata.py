@@ -638,11 +638,12 @@ def _sdat_from_conf(core: Core) -> StagyyData:
     return StagyyData(core.path, core.read_parameters_dat)
 
 
+@dataclass(frozen=True)
 class StagyyData:
     """Generic lazy interface to StagYY output data.
 
     Args:
-        path: path of the StagYY run. It can either be the path of the
+        path_hint: path of the StagYY run. It can either be the path of the
             directory containing the par file, or the path of the par file. If
             the path given is a directory, the path of the par file is assumed
             to be path/par.
@@ -653,27 +654,21 @@ class StagyyData:
             logic.
     """
 
-    def __init__(self, path: PathLike, read_parameters_dat: bool = True):
-        self._parpath = Path(path)
-        if not self._parpath.is_file():
-            self._parpath /= "par"
-        self._read_parameters_dat = read_parameters_dat
-
-    def __repr__(self) -> str:
-        return f"StagyyData({self.path!r})"
-
-    def __str__(self) -> str:
-        return f"StagyyData in {self.path}"
+    path_hint: PathLike | str
+    read_parameters_dat: bool = True
 
     @property
     def path(self) -> Path:
         """Path of StagYY run directory."""
-        return self._parpath.parent
+        return self.parpath.parent
 
-    @property
+    @cached_property
     def parpath(self) -> Path:
         """Path of par file."""
-        return self._parpath
+        parpath = Path(self.path_hint)
+        if parpath.is_file():
+            return parpath
+        return parpath / "par"
 
     @cached_property
     def hdf5(self) -> Path | None:
@@ -732,7 +727,7 @@ class StagyyData:
     @cached_property
     def par(self) -> StagyyPar:
         """Content of par file."""
-        return StagyyPar.from_main_par(self.parpath, self._read_parameters_dat)
+        return StagyyPar.from_main_par(self.parpath, self.read_parameters_dat)
 
     @cached_property
     def _rprof_and_times(self) -> tuple[dict[int, DataFrame], DataFrame | None]:
