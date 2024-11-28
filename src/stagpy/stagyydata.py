@@ -390,11 +390,14 @@ class Snaps:
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._isteps: dict[int, int | None] = {}
         self._all_isteps_known = False
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.snaps"
+
+    @cached_property
+    def _isteps(self) -> dict[int, int | None]:
+        return {}
 
     @typing.overload
     def __getitem__(self, istep: int) -> Step: ...
