@@ -541,7 +541,7 @@ class StepsView:
     `StagyyData.steps` or `StagyyData.snaps` attributes.
 
     Args:
-        steps_col: steps collection, i.e. `StagyyData.steps` or
+        over: steps collection, i.e. `StagyyData.steps` or
             `StagyyData.snaps` attributes.
         items: iterable of isteps/isnaps or slices.
     """
