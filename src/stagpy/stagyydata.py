@@ -488,7 +488,7 @@ class Snaps(Steps):
         self.sdat.steps[istep]._isnap = isnap
 
 
-@dataclass
+@dataclass(frozen=True)
 class _Filters:
     """Filters on a step view."""
 
