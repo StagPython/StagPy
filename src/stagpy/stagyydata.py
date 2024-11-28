@@ -510,18 +510,6 @@ class _Filters:
             return False
         return all(func(step) for func in self.funcs)
 
-    def __repr__(self) -> str:
-        flts = []
-        if self.snap:
-            flts.append("snap=True")
-        if self.rprofs:
-            flts.append("rprofs=True")
-        if self.fields:
-            flts.append(f"fields={self.fields!r}")
-        if self.funcs:
-            flts.append(f"func={self.funcs!r}")
-        return ", ".join(flts)
-
 
 class StepsView:
     """Filtered iterator over steps or snaps.
