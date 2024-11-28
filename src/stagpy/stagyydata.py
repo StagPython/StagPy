@@ -296,10 +296,13 @@ class Steps:
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._data: dict[int, Step] = {}
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.steps"
+
+    @cached_property
+    def _data(self) -> dict[int, Step]:
+        return {}
 
     @typing.overload
     def __getitem__(self, istep: int) -> Step: ...
