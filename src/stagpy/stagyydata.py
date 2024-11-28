@@ -297,7 +297,6 @@ class Steps:
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
         self._data: dict[int, Step] = {}
-        self._len: int | None = None
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.steps"
@@ -336,9 +335,11 @@ class Steps:
             self.sdat._field_cache.evict_istep(istep)
             del self._data[istep]
 
+    @cached_property
+    def _len(self) -> int:
+        return self.sdat.tseries.isteps[-1] + 1
+
     def __len__(self) -> int:
-        if self._len is None:
-            self._len = self.sdat.tseries.isteps[-1] + 1
         return self._len
 
     def __iter__(self) -> Iterator[Step]:
