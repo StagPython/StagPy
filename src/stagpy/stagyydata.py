@@ -519,6 +519,7 @@ class Filters:
         )
 
 
+@dataclass(frozen=True)
 class StepsView:
     """Filtered iterator over steps or snaps.
 
@@ -531,10 +532,9 @@ class StepsView:
         items: iterable of isteps/isnaps or slices.
     """
 
-    def __init__(self, steps_col: Steps | Snaps, items: Sequence[StepIndex]):
-        self._col = steps_col
-        self._items = items
-        self._flt = Filters()
+    over: Steps | Snaps
+    items: Sequence[StepIndex]
+    filters: Filters = field(default_factory=Filters)
 
     @cached_property
     def rprofs_averaged(self) -> RprofsAveraged:
@@ -546,32 +546,25 @@ class StepsView:
         """String representation of the requested set of steps."""
         items = []
         no_slice = True
-        for item in self._items:
+        for item in self.items:
             if isinstance(item, slice):
-                items.append("{}:{}:{}".format(*item.indices(len(self._col))))
+                items.append("{}:{}:{}".format(*item.indices(len(self.over))))
                 no_slice = False
             else:
                 items.append(repr(item))
         item_str = ",".join(items)
         if no_slice and len(items) == 1:
             item_str += ","
-        colstr = repr(self._col).rsplit(".", maxsplit=1)[-1]
+        colstr = repr(self.over).rsplit(".", maxsplit=1)[-1]
         return f"{colstr}[{item_str}]"
-
-    def __repr__(self) -> str:
-        rep = f"{self._col.sdat!r}.{self.stepstr}"
-        flts = repr(self._flt)
-        if flts:
-            rep += f".filter({flts})"
-        return rep
 
     def _pass(self, item: int) -> bool:
         """Check whether an item passes the filters."""
         try:
-            step = self._col[item]
+            step = self.over[item]
         except KeyError:
             return False
-        return self._flt.passes(step)
+        return self.filters.passes(step)
 
     def filter(
         self,
@@ -611,16 +604,19 @@ class StepsView:
             fields=set() if fields is None else set(fields),
             funcs=[] if func is None else [func],
         )
-        self._flt = self._flt.compose_with(new_filters)
-        return self
+        return StepsView(
+            over=self.over,
+            items=self.items,
+            filters=self.filters.compose_with(new_filters),
+        )
 
     def __iter__(self) -> Iterator[Step]:
-        for item in self._items:
+        for item in self.items:
             if isinstance(item, slice):
-                idx = item.indices(len(self._col))
-                yield from (self._col[i] for i in range(*idx) if self._pass(i))
+                idx = item.indices(len(self.over))
+                yield from (self.over[i] for i in range(*idx) if self._pass(i))
             elif self._pass(item):
-                yield self._col[item]
+                yield self.over[item]
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, abc.Iterable):
