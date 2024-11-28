@@ -538,15 +538,12 @@ class StepsView:
     def __init__(self, steps_col: Steps | Snaps, items: Sequence[StepIndex]):
         self._col = steps_col
         self._items = items
-        self._rprofs_averaged: RprofsAveraged | None = None
         self._flt = _Filters()
 
-    @property
+    @cached_property
     def rprofs_averaged(self) -> RprofsAveraged:
         """Time-averaged radial profiles."""
-        if self._rprofs_averaged is None:
-            self._rprofs_averaged = RprofsAveraged(self)
-        return self._rprofs_averaged
+        return RprofsAveraged(self)
 
     @cached_property
     def stepstr(self) -> str:
