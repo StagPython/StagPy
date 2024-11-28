@@ -1,6 +1,6 @@
 """Define configuration variables for StagPy.
 
-See [stagpy.args][] for additional definitions related to the command line
+See [stagpy.cli][] for additional definitions related to the command line
 interface.
 """
 

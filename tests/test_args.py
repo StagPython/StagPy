@@ -4,7 +4,7 @@ import pytest
 from pytest import CaptureFixture
 
 import stagpy
-from stagpy.args import parse_args
+from stagpy.cli import parse_args
 from stagpy.config import Config
 
 
