@@ -425,7 +425,10 @@ class Tracers:
 
     def __init__(self, step: Step):
         self.step = step
-        self._data: dict[str, list[NDArray] | None] = {}
+
+    @cached_property
+    def _data(self) -> dict[str, list[NDArray] | None]:
+        return {}
 
     def __getitem__(self, name: str) -> list[NDArray] | None:
         if name in self._data:
