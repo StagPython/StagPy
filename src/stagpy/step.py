@@ -588,6 +588,7 @@ class RprofsInstant(Rprofs):
         return rbot, rbot + thickness
 
 
+@dataclass(frozen=True)
 class Step:
     """Time step data structure.
 
@@ -612,13 +613,12 @@ class Step:
         ```
 
     Attributes:
-        istep (int): the index of the time step that the instance represents.
-        sdat (StagyyData): the owner of the `Step` instance.
+        istep: the index of the time step that the instance represents.
+        sdat: the owner of the `Step` instance.
     """
 
-    def __init__(self, istep: int, sdat: StagyyData):
-        self.istep = istep
-        self.sdat = sdat
+    istep: int
+    sdat: StagyyData
 
     @cached_property
     def fields(self) -> Fields:
