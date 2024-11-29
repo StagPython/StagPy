@@ -234,6 +234,8 @@ class RprofsAveraged(step.Rprofs):
 
     The [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged]
     attribute is an instance of this class.
+
+    The current implementation does not take into account time-changing geometry.
     """
 
     steps: StepsView
@@ -246,21 +248,27 @@ class RprofsAveraged(step.Rprofs):
     def _cached_data(self) -> dict[str, dt.Rprof]:
         return {}
 
+    @cached_property
+    def _times(self) -> NDArray[np.float64]:
+        return np.fromiter((s.time for s in self._steps_with_rprofs), dtype=float)
+
+    @cached_property
+    def _dtimes(self) -> NDArray[np.float64]:
+        midpoints = (self._times[:-1] + self._times[1:]) / 2
+        return np.diff(midpoints, prepend=self._times[0], append=self._times[-1])
+
     def __getitem__(self, name: str) -> dt.Rprof:
-        # the averaging method has two shortcomings:
-        # - does not take into account time changing geometry;
-        # - does not take into account time changing timestep.
         if name in self._cached_data:
             return self._cached_data[name]
-        steps_iter = iter(self._steps_with_rprofs)
-        rpf = next(steps_iter).rprofs[name]
-        rprof = np.copy(rpf.values)
-        nprofs = 1
-        for step_ in steps_iter:
-            nprofs += 1
-            rprof += step_.rprofs[name].values
-        rprof /= nprofs
-        self._cached_data[name] = dt.Rprof(rprof, rpf.rad, rpf.meta)
+        integral_prof = sum(
+            dtime * s.rprofs[name].values
+            for dtime, s in zip(self._dtimes, self._steps_with_rprofs, strict=True)
+        )
+        self._cached_data[name] = dt.Rprof(
+            values=integral_prof / (self._times[-1] - self._times[0]),
+            rad=self._first_rprofs[name].rad,
+            meta=self._first_rprofs[name].meta,
+        )
         return self._cached_data[name]
 
     @property
