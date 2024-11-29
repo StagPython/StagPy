@@ -230,15 +230,11 @@ class RprofsAveraged(step.Rprofs):
 
     The [`StepsView.rprofs_averaged`][stagpy.stagyydata.StepsView.rprofs_averaged]
     attribute is an instance of this class.
-
-    It implements the same interface as [`Rprofs`][stagpy.step.Rprofs] but
-    returns time-averaged profiles instead.
     """
 
     def __init__(self, steps: StepsView):
         self.steps = steps.filter(rprofs=True)
         self._cached_data: dict[str, dt.Rprof] = {}
-        super().__init__(next(iter(self.steps)))
 
     def __getitem__(self, name: str) -> dt.Rprof:
         # the averaging method has two shortcomings:
@@ -259,8 +255,24 @@ class RprofsAveraged(step.Rprofs):
 
     @property
     def stepstr(self) -> str:
-        """String representation of steps indices."""
         return self.steps.stepstr
+
+    @cached_property
+    def _first_rprofs(self) -> step.RprofsInstant:
+        first_step = next(iter(self.steps))
+        return first_step.rprofs
+
+    @property
+    def centers(self) -> NDArray:
+        return self._first_rprofs.centers
+
+    @property
+    def walls(self) -> NDArray:
+        return self._first_rprofs.walls
+
+    @property
+    def bounds(self) -> tuple[float, float]:
+        return self._first_rprofs.bounds
 
 
 @dataclass(frozen=True)

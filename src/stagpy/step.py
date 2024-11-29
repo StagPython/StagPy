@@ -9,6 +9,7 @@ Note:
 from __future__ import annotations
 
 import typing
+from abc import ABC, abstractmethod
 from collections import abc
 from functools import cached_property
 from itertools import chain
@@ -449,14 +450,45 @@ class Tracers:
         raise TypeError("tracers collection is not iterable")
 
 
-class Rprofs:
-    """Radial profiles data structure.
-
-    The `Step.rprofs` attribute is an instance of this class.
+class Rprofs(ABC):
+    """Radial profiles.
 
     `Rprofs` implements the getitem mechanism.  Keys are profile names
     defined in `stagpy.phyvars.RPROF[_EXTRA]`.  Items are
     [`Rprof`][stagpy.datatypes.Rprof] instances.
+    """
+
+    @abstractmethod
+    def __getitem__(self, name: str) -> Rprof: ...
+
+    @property
+    @abstractmethod
+    def stepstr(self) -> str:
+        """String representation of steps indices."""
+
+    @property
+    @abstractmethod
+    def centers(self) -> NDArray:
+        """Radial position of cell centers."""
+
+    @property
+    @abstractmethod
+    def walls(self) -> NDArray:
+        """Radial position of cell walls."""
+
+    @property
+    @abstractmethod
+    def bounds(self) -> tuple[float, float]:
+        """Radial or vertical position of boundaries.
+
+        Radial/vertical positions of boundaries of the domain.
+        """
+
+
+class RprofsInstant(Rprofs):
+    """Radial profiles at a given step.
+
+    The `Step.rprofs` attribute is an instance of this class.
     """
 
     def __init__(self, step: Step):
@@ -595,7 +627,7 @@ class Step:
             self, phyvars.SFIELD, {}, phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5
         )
         self.tracers = Tracers(self)
-        self.rprofs = Rprofs(self)
+        self.rprofs = RprofsInstant(self)
 
     def __repr__(self) -> str:
         if self.isnap is not None:
