@@ -614,27 +614,43 @@ class Step:
     Attributes:
         istep (int): the index of the time step that the instance represents.
         sdat (StagyyData): the owner of the `Step` instance.
-        fields (Fields): fields available at this time step.
-        sfields (Fields): surface fields available at this time
-            step.
-        tracers (Tracers): tracers available at this time step.
     """
 
     def __init__(self, istep: int, sdat: StagyyData):
         self.istep = istep
         self.sdat = sdat
-        self.fields = Fields(
+
+    @cached_property
+    def fields(self) -> Fields:
+        """Fields available at this time step."""
+        return Fields(
             self,
             phyvars.FIELD,
             phyvars.FIELD_EXTRA,
             phyvars.FIELD_FILES,
             phyvars.FIELD_FILES_H5,
         )
-        self.sfields = Fields(
-            self, phyvars.SFIELD, {}, phyvars.SFIELD_FILES, phyvars.SFIELD_FILES_H5
+
+    @cached_property
+    def sfields(self) -> Fields:
+        """Surface fields available at this time step."""
+        return Fields(
+            self,
+            phyvars.SFIELD,
+            {},
+            phyvars.SFIELD_FILES,
+            phyvars.SFIELD_FILES_H5,
         )
-        self.tracers = Tracers(self)
-        self.rprofs = RprofsInstant(self)
+
+    @cached_property
+    def tracers(self) -> Tracers:
+        """Tracer information available at this time step."""
+        return Tracers(self)
+
+    @cached_property
+    def rprofs(self) -> RprofsInstant:
+        """Radial profiles available at this time step."""
+        return RprofsInstant(self)
 
     def __repr__(self) -> str:
         if self.isnap is not None:
