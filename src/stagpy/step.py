@@ -493,7 +493,10 @@ class RprofsInstant(Rprofs):
 
     def __init__(self, step: Step):
         self.step = step
-        self._cached_extra: dict[str, Rprof] = {}
+
+    @cached_property
+    def _cached_extra(self) -> dict[str, Rprof]:
+        return {}
 
     @cached_property
     def _data(self) -> DataFrame | None:
