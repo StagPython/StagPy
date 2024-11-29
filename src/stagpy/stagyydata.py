@@ -138,7 +138,10 @@ class Tseries:
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._cached_extra: dict[str, dt.Tseries] = {}
+
+    @cached_property
+    def _cached_extra(self) -> dict[str, dt.Tseries]:
+        return {}
 
     @cached_property
     def _data(self) -> DataFrame | None:
