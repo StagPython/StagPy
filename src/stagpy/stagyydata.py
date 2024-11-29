@@ -62,6 +62,7 @@ def _as_view_item(
     return None
 
 
+@dataclass(frozen=True)
 class Refstate:
     """Reference state profiles.
 
@@ -70,19 +71,18 @@ class Refstate:
     object.
     """
 
-    def __init__(self, sdat: StagyyData):
-        self._sdat = sdat
+    sdat: StagyyData
 
     @cached_property
     def _data(self) -> tuple[list[list[DataFrame]], list[DataFrame]]:
         """Read reference state profile."""
-        reffile = self._sdat.filename("refstat.dat")
-        if self._sdat.hdf5 and not reffile.is_file():
+        reffile = self.sdat.filename("refstat.dat")
+        if self.sdat.hdf5 and not reffile.is_file():
             # check legacy folder as well
-            reffile = self._sdat.filename("refstat.dat", force_legacy=True)
+            reffile = self.sdat.filename("refstat.dat", force_legacy=True)
         data = stagyyparsers.refstate(reffile)
         if data is None:
-            raise error.NoRefstateError(self._sdat)
+            raise error.NoRefstateError(self.sdat)
         return data
 
     @property
