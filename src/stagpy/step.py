@@ -413,6 +413,7 @@ class Fields(abc.Mapping):
         return Geometry(self._header, self.step)
 
 
+@dataclass(frozen=True)
 class Tracers:
     """Tracers data structure.
 
@@ -423,8 +424,7 @@ class Tracers:
     `"z"` items.
     """
 
-    def __init__(self, step: Step):
-        self.step = step
+    step: Step
 
     @cached_property
     def _data(self) -> dict[str, list[NDArray] | None]:
