@@ -126,6 +126,7 @@ class Refstate:
         return self._data[1]
 
 
+@dataclass(frozen=True)
 class Tseries:
     """Time series.
 
@@ -136,8 +137,7 @@ class Tseries:
     [stagpy.datatypes.Tseries][] instances.
     """
 
-    def __init__(self, sdat: StagyyData):
-        self.sdat = sdat
+    sdat: StagyyData
 
     @cached_property
     def _cached_extra(self) -> dict[str, dt.Tseries]:
