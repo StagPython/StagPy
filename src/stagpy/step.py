@@ -11,6 +11,7 @@ from __future__ import annotations
 import typing
 from abc import ABC, abstractmethod
 from collections import abc
+from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
 
@@ -485,14 +486,14 @@ class Rprofs(ABC):
         """
 
 
+@dataclass(frozen=True)
 class RprofsInstant(Rprofs):
     """Radial profiles at a given step.
 
     The `Step.rprofs` attribute is an instance of this class.
     """
 
-    def __init__(self, step: Step):
-        self.step = step
+    step: Step
 
     @cached_property
     def _cached_extra(self) -> dict[str, Rprof]:
