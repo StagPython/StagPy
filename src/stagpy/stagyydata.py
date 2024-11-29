@@ -374,6 +374,7 @@ class Steps:
         return self[:].filter(snap, rprofs, fields, func)
 
 
+@dataclass(frozen=True)
 class Snaps:
     """Collection of snapshots.
 
@@ -387,8 +388,7 @@ class Snaps:
     ```
     """
 
-    def __init__(self, sdat: StagyyData):
-        self.sdat = sdat
+    sdat: StagyyData
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.snaps"
