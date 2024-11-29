@@ -225,6 +225,7 @@ class Tseries:
         return self._tseries.loc[istep]  # type: ignore
 
 
+@dataclass(frozen=True)
 class RprofsAveraged(step.Rprofs):
     """Radial profiles time-averaged over a [`StepsView`][stagpy.stagyydata.StepsView].
 
@@ -232,8 +233,11 @@ class RprofsAveraged(step.Rprofs):
     attribute is an instance of this class.
     """
 
-    def __init__(self, steps: StepsView):
-        self.steps = steps.filter(rprofs=True)
+    steps: StepsView
+
+    @cached_property
+    def _steps_with_rprofs(self) -> StepsView:
+        return self.steps.filter(rprofs=True)
 
     @cached_property
     def _cached_data(self) -> dict[str, dt.Rprof]:
@@ -245,7 +249,7 @@ class RprofsAveraged(step.Rprofs):
         # - does not take into account time changing timestep.
         if name in self._cached_data:
             return self._cached_data[name]
-        steps_iter = iter(self.steps)
+        steps_iter = iter(self._steps_with_rprofs)
         rpf = next(steps_iter).rprofs[name]
         rprof = np.copy(rpf.values)
         nprofs = 1
@@ -262,7 +266,7 @@ class RprofsAveraged(step.Rprofs):
 
     @cached_property
     def _first_rprofs(self) -> step.RprofsInstant:
-        first_step = next(iter(self.steps))
+        first_step = next(iter(self._steps_with_rprofs))
         return first_step.rprofs
 
     @property
