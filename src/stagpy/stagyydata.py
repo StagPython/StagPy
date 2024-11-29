@@ -234,7 +234,10 @@ class RprofsAveraged(step.Rprofs):
 
     def __init__(self, steps: StepsView):
         self.steps = steps.filter(rprofs=True)
-        self._cached_data: dict[str, dt.Rprof] = {}
+
+    @cached_property
+    def _cached_data(self) -> dict[str, dt.Rprof]:
+        return {}
 
     def __getitem__(self, name: str) -> dt.Rprof:
         # the averaging method has two shortcomings:
