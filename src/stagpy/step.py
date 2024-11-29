@@ -596,7 +596,6 @@ class Step:
         )
         self.tracers = Tracers(self)
         self.rprofs = Rprofs(self)
-        self._isnap: int | None = -1
 
     def __repr__(self) -> str:
         if self.isnap is not None:
@@ -642,19 +641,4 @@ class Step:
 
         It is None if no snapshot exists for the time step.
         """
-        if self._isnap == -1:
-            istep = None
-            isnap = -1
-            # could be more efficient if do 0 and -1 then bisection
-            # (but loose intermediate <- would probably use too much
-            # memory for what it's worth if search algo is efficient)
-            while (istep is None or istep < self.istep) and isnap < 99999:
-                isnap += 1
-                try:
-                    istep = self.sdat.snaps[isnap].istep
-                except KeyError:
-                    pass
-                # all intermediate istep could have their ._isnap to None
-            if istep != self.istep:
-                self._isnap = None
-        return self._isnap
+        return self.sdat._step_snap.isnap(istep=self.istep)

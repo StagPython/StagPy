@@ -8,7 +8,6 @@ Note:
 
 from __future__ import annotations
 
-import re
 import typing
 from collections import abc
 from dataclasses import dataclass, field
@@ -20,7 +19,7 @@ import numpy as np
 
 from . import _helpers, error, phyvars, stagyyparsers, step
 from . import datatypes as dt
-from ._caching import FieldCache
+from ._caching import FieldCache, StepSnap, StepSnapH5, StepSnapLegacy
 from .parfile import StagyyPar
 from .stagyyparsers import FieldXmf, TracersXmf
 from .step import Step
@@ -390,14 +389,9 @@ class Snaps:
 
     def __init__(self, sdat: StagyyData):
         self.sdat = sdat
-        self._all_isteps_known = False
 
     def __repr__(self) -> str:
         return f"{self.sdat!r}.snaps"
-
-    @cached_property
-    def _isteps(self) -> dict[int, int | None]:
-        return {}
 
     @typing.overload
     def __getitem__(self, isnap: int) -> Step: ...
@@ -412,53 +406,21 @@ class Snaps:
         assert isinstance(isnap, int)
         if isnap < 0:
             isnap += len(self)
-        if isnap < 0 or isnap >= len(self):
-            istep = None
-        else:
-            istep = self._isteps.get(isnap, None if self._all_isteps_known else -1)
-        if istep == -1:
-            # isnap not in _isteps but not all isteps known, keep looking
-            binfiles = self.sdat._binfiles_set(isnap)
-            if binfiles:
-                istep = stagyyparsers.field_istep(binfiles.pop())
-            else:
-                istep = None
-            if istep is not None:
-                self._bind(isnap, istep)
-            else:
-                self._isteps[isnap] = None
+        istep = self.sdat._step_snap.istep(isnap=isnap)
         if istep is None:
             raise error.InvalidSnapshotError(self.sdat, isnap, "Invalid snapshot index")
         return self.sdat.steps[istep]
 
     def __delitem__(self, isnap: int | None) -> None:
         if isnap is not None:
-            istep = self._isteps.get(isnap)
+            istep = self.sdat._step_snap.istep(isnap=isnap)
             del self.sdat.steps[istep]
 
-    @cached_property
-    def _len(self) -> int:
-        length = -1
-        if self.sdat.hdf5:
-            isnap = -1
-            for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
-                self._bind(isnap, istep)
-            length = isnap
-            self._all_isteps_known = True
-        if length < 0:
-            out_stem = re.escape(self.sdat.par.legacy_output("_").name[:-1])
-            rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
-            fstems = set(fstem for fstem in phyvars.FIELD_FILES)
-            for fname in self.sdat._files:
-                match = rgx.match(fname.name)
-                if match is not None and match.group(1) in fstems:
-                    length = max(int(match.group(2)), length)
-        if length < 0:
-            raise error.NoSnapshotError(self.sdat)
-        return length + 1
-
     def __len__(self) -> int:
-        return self._len
+        length = self.sdat._step_snap.len_snap()
+        if length <= 0:
+            raise error.NoSnapshotError(self.sdat)
+        return length
 
     def __iter__(self) -> Iterator[Step]:
         return iter(self[:])
@@ -489,16 +451,6 @@ class Snaps:
         if self[igp].time > time and not after and igp > 0:
             igp -= 1
         return self[igp]
-
-    def _bind(self, isnap: int, istep: int) -> None:
-        """Register the isnap / istep correspondence.
-
-        Args:
-            isnap: snapshot index.
-            istep: time step index.
-        """
-        self._isteps[isnap] = istep
-        self.sdat.steps[istep]._isnap = isnap
 
     def filter(
         self,
@@ -824,3 +776,9 @@ class StagyyData:
     @cached_property
     def _field_cache(self) -> FieldCache:
         return FieldCache(maxsize=50)
+
+    @cached_property
+    def _step_snap(self) -> StepSnap:
+        if self.hdf5 is not None:
+            return StepSnapH5(sdat=self)
+        return StepSnapLegacy(sdat=self)
