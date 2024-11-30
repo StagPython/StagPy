@@ -270,29 +270,22 @@ class Geometry:
         return int(np.argmin(np.abs(self.r_centers - rval)))
 
 
+@dataclass(frozen=True)
 class Fields:
     """Fields data structure.
 
     The `Step.fields` attribute is an instance of this class.
     """
 
-    def __init__(
-        self,
-        step: Step,
-        variables: Mapping[str, Varf],
-        extravars: Mapping[str, Callable[[Step], Field]],
-        files: Mapping[str, list[str]],
-        filesh5: Mapping[str, list[str]],
-    ):
-        self.step = step
-        self._vars = variables
-        self._extra = extravars
-        self._files = files
-        self._filesh5 = filesh5
+    step: Step
+    variables: Mapping[str, Varf]
+    extravars: Mapping[str, Callable[[Step], Field]]
+    files: Mapping[str, list[str]]
+    filesh5: Mapping[str, list[str]]
 
     @cached_property
     def _all_vars(self) -> set[str]:
-        return set(self._vars.keys()).union(self._extra.keys())
+        return set(self.variables.keys()).union(self.extravars.keys())
 
     @cached_property
     def _cache(self) -> FieldCache:
@@ -306,8 +299,8 @@ class Fields:
         if maybe_fld is not None:
             return maybe_fld
 
-        if name in self._extra:
-            fld = self._extra[name](self.step)
+        if name in self.extravars:
+            fld = self.extravars[name](self.step)
             self._cache.insert(self.step.istep, name, fld)
             return fld
 
@@ -319,7 +312,7 @@ class Fields:
             )
         header, fields = parsed_data
         for fld_name, fld_vals in zip(fld_names, fields):
-            fld = Field(fld_vals, self._vars[fld_name])
+            fld = Field(fld_vals, self.variables[fld_name])
             self._cache.insert(self.step.istep, fld_name, fld)
         return self[name]
 
@@ -336,7 +329,7 @@ class Fields:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
         filestem = ""
-        for filestem, list_fvar in self._files.items():
+        for filestem, list_fvar in self.files.items():
             if name in list_fvar:
                 break
         parsed_data = None
@@ -349,10 +342,10 @@ class Fields:
             fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
         if fieldfile.is_file():
             parsed_data = stagyyparsers.fields(fieldfile)
-        elif self.step.sdat.hdf5 and self._filesh5:
+        elif self.step.sdat.hdf5 and self.filesh5:
             # files in which the requested data can be found
             files = [
-                (stem, fvars) for stem, fvars in self._filesh5.items() if name in fvars
+                (stem, fvars) for stem, fvars in self.filesh5.items() if name in fvars
             ]
             for filestem, list_fvar in files:
                 sdat = self.step.sdat
