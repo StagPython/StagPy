@@ -44,7 +44,6 @@ class Geometry:
             "sph": False,
             "cyl": False,
             "axi": False,
-            "ntot": list(header["nts"]) + [header["ntb"]],
         }
         self._init_shape()
 
@@ -59,24 +58,28 @@ class Geometry:
         return self._step.sdat.par.nml["geometry"]["aspect_ratio"]
 
     @cached_property
+    def _ntot(self) -> tuple[int, int, int, int]:
+        return (*self._header["nts"], self._header["ntb"])
+
+    @cached_property
     def nttot(self) -> int:
         """Number of grid point along the x/theta direction."""
-        return self._shape["ntot"][0]
+        return self._ntot[0]
 
     @cached_property
     def nptot(self) -> int:
         """Number of grid point along the y/phi direction."""
-        return self._shape["ntot"][1]
+        return self._ntot[1]
 
     @cached_property
     def nrtot(self) -> int:
         """Number of grid point along the z/r direction."""
-        return self._shape["ntot"][2]
+        return self._ntot[2]
 
     @cached_property
     def nbtot(self) -> int:
         """Number of blocks."""
-        return self._shape["ntot"][3]
+        return self._ntot[3]
 
     @property
     def nxtot(self) -> int:
