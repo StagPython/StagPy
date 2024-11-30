@@ -12,7 +12,6 @@ import typing
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import chain
 
 import numpy as np
 
@@ -21,7 +20,7 @@ from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, Iterator, Mapping, NoReturn
+    from typing import Any, Callable, Mapping, NoReturn
 
     from numpy.typing import NDArray
     from pandas import DataFrame, Series
@@ -324,21 +323,11 @@ class Fields:
             self._cache.insert(self.step.istep, fld_name, fld)
         return self[name]
 
-    @cached_property
-    def _present_fields(self) -> list[str]:
-        return [fld for fld in chain(self._vars, self._extra) if fld in self]
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self._present_fields)
-
     def __contains__(self, item: Any) -> bool:
         try:
             return self[item] is not None
         except error.MissingDataError:
             return False
-
-    def __len__(self) -> int:
-        return len(self._present_fields)
 
     def __eq__(self, other: object) -> bool:
         return self is other
