@@ -40,12 +40,6 @@ class Geometry:
     def __init__(self, header: dict[str, Any], step: Step):
         self._header = header
         self._step = step
-        self._shape: dict[str, Any] = {
-            "sph": False,
-            "cyl": False,
-            "axi": False,
-        }
-        self._init_shape()
 
     def _scale_radius_mo(self, radius: NDArray) -> NDArray:
         """Rescale radius for evolving MO runs."""
@@ -193,42 +187,44 @@ class Geometry:
         """Same as p_centers."""
         return self.p_centers
 
-    def _init_shape(self) -> None:
-        """Determine shape of geometry."""
-        shape = self._step.sdat.par.nml["geometry"]["shape"].lower()
-        aspect = self._header["aspect"]
-        if self._header["rcmb"] >= 0:
-            # curvilinear
-            self._shape["cyl"] = self.twod_xz and (
-                shape == "cylindrical" or aspect[0] >= np.pi
-            )
-            self._shape["sph"] = not self._shape["cyl"]
-        self._shape["axi"] = self.cartesian and self.twod_xz and shape == "axisymmetric"
-
     @cached_property
     def rcmb(self) -> float:
         """Radius of CMB, 0 in cartesian geometry."""
         return max(self._header["rcmb"], 0)
+
+    @cached_property
+    def _shape(self) -> str:
+        return self._step.sdat.par.nml["geometry"]["shape"].lower()
+
+    @cached_property
+    def curvilinear(self) -> bool:
+        """Whether the grid is in curvilinear geometry."""
+        return self._header["rcmb"] >= 0
 
     @property
     def cartesian(self) -> bool:
         """Whether the grid is in cartesian geometry."""
         return not self.curvilinear
 
-    @property
-    def curvilinear(self) -> bool:
-        """Whether the grid is in curvilinear geometry."""
-        return self.spherical or self.cylindrical
-
-    @property
+    @cached_property
     def cylindrical(self) -> bool:
         """Whether the grid is in cylindrical geometry (2D spherical)."""
-        return self._shape["cyl"]
+        aspect = self._header["aspect"]
+        return (
+            self.curvilinear
+            and self.twod_xz
+            and (self._shape == "cylindrical" or aspect[0] >= np.pi)
+        )
 
-    @property
+    @cached_property
     def spherical(self) -> bool:
         """Whether the grid is in spherical geometry."""
-        return self._shape["sph"]
+        return self.curvilinear and not self.cylindrical
+
+    @cached_property
+    def axisymmetric(self) -> bool:
+        """Whether the grid is in cartesian axisymmetric geometry."""
+        return self.cartesian and self.twod_xz and self._shape == "axisymmetric"
 
     @property
     def yinyang(self) -> bool:
