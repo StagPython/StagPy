@@ -36,6 +36,7 @@ dependencies = [
     "pandas~=2.2",
     "h5py~=3.12",
     "matplotlib~=3.9",
+    "rich>=13.9.4",
 ]
 
 [dependency-groups]

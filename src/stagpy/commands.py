@@ -9,6 +9,9 @@ from math import ceil
 from shutil import get_terminal_size
 from textwrap import TextWrapper, indent
 
+from rich.columns import Columns
+from rich.console import Console
+
 from . import __version__, phyvars
 from ._helpers import baredoc, walk
 from .config import CONFIG_LOCAL, Config
@@ -102,11 +105,15 @@ def _pretty_print(
 def _layout(
     dict_vars: Mapping[str, Varf | Varr | Vart],
     dict_vars_extra: Mapping[str, Callable],
-) -> None:
+) -> Columns:
     """Print nicely [(var, description)] from phyvars."""
     desc = [(v, m.description) for v, m in dict_vars.items()]
     desc.extend((v, baredoc(m)) for v, m in dict_vars_extra.items())
-    _pretty_print(desc, min_col_width=26)
+    return Columns(
+        renderables=(f"{var}: [dim]{descr}[/dim]" for var, descr in desc),
+        padding=(0, 2),
+        column_first=True,
+    )
 
 
 def var_cmd(conf: Config) -> None:
@@ -115,27 +122,28 @@ def var_cmd(conf: Config) -> None:
     See [stagpy.phyvars][] where the lists of variables organized by command
     are defined.
     """
+    console = Console()
     print_all = not any(getattr(conf.var, fld.name) for fld in fields(conf.var))
     if print_all or conf.var.field:
-        print("field:")
-        _layout(phyvars.FIELD, phyvars.FIELD_EXTRA)
-        print()
+        console.rule("fields", style="magenta")
+        console.print(_layout(phyvars.FIELD, phyvars.FIELD_EXTRA))
+        console.print()
     if print_all or conf.var.sfield:
-        print("surface field:")
-        _layout(phyvars.SFIELD, {})
-        print()
+        console.rule("surface fields", style="magenta")
+        console.print(_layout(phyvars.SFIELD, {}))
+        console.print()
     if print_all or conf.var.rprof:
-        print("rprof:")
-        _layout(phyvars.RPROF, phyvars.RPROF_EXTRA)
-        print()
+        console.rule("radial profiles", style="magenta")
+        console.print(_layout(phyvars.RPROF, phyvars.RPROF_EXTRA))
+        console.print()
     if print_all or conf.var.time:
-        print("time:")
-        _layout(phyvars.TIME, phyvars.TIME_EXTRA)
-        print()
+        console.rule("time series", style="magenta")
+        console.print(_layout(phyvars.TIME, phyvars.TIME_EXTRA))
+        console.print()
     if print_all or conf.var.refstate:
-        print("refstate:")
-        _layout(phyvars.REFSTATE, {})
-        print()
+        console.rule("refstate", style="magenta")
+        console.print(_layout(phyvars.REFSTATE, {}))
+        console.print()
 
 
 def version_cmd(conf: Config) -> None:

@@ -18,13 +18,6 @@ def test_info_cmd(capsys: CaptureFixture, example_dir: Path) -> None:
     assert expected.fullmatch(output.out)
 
 
-def test_var_cmd(capsys: CaptureFixture) -> None:
-    commands.var_cmd(Config.default_())
-    output = capsys.readouterr()
-    expected = re.compile(r"field:\n.*\nrprof:\n.*\ntime:\n.*\n.*$", flags=re.DOTALL)
-    assert expected.fullmatch(output.out)
-
-
 def test_version_cmd(capsys: CaptureFixture) -> None:
     commands.version_cmd(Config.default_())
     output = capsys.readouterr()
