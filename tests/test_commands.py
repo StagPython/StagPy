@@ -23,10 +23,3 @@ def test_version_cmd(capsys: CaptureFixture) -> None:
     output = capsys.readouterr()
     expected = "stagpy version: {}\n".format(__version__)
     assert output.out == expected
-
-
-def test_config_cmd(capsys: CaptureFixture) -> None:
-    commands.config_cmd(Config.default_())
-    output = capsys.readouterr()
-    expected = "(c|f): available only as CLI argument/in the config file"
-    assert output.out.startswith(expected)

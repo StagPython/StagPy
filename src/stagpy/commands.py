@@ -9,8 +9,10 @@ from math import ceil
 from shutil import get_terminal_size
 from textwrap import TextWrapper, indent
 
+from rich import box
 from rich.columns import Columns
 from rich.console import Console
+from rich.table import Table
 
 from . import __version__, phyvars
 from ._helpers import baredoc, walk
@@ -161,22 +163,28 @@ def config_pp(subs: Iterable[str], conf: Config) -> None:
         subs: conf sections to print.
         conf: configuration.
     """
-    print("(c|f): available only as CLI argument/in the config file", end="\n\n")
+    console = Console()
     for sub in subs:
+        table = Table(title=sub, box=box.SIMPLE)
+        table.add_column(header="option", no_wrap=True)
+        table.add_column(header="doc")
+        table.add_column(header="cli", no_wrap=True)
+        table.add_column(header="file", no_wrap=True)
+
         section: Section = getattr(conf, sub)
-        hlp_lst = []
         for fld in fields(section):
             opt = fld.name
             entry = section.meta_(opt).entry
-            if entry.in_cli ^ entry.in_file:
-                opt += " (c)" if entry.in_cli else " (f)"
-            hlp_lst.append((opt, entry.doc))
-        if hlp_lst:
-            print(f"{sub}:")
-            _pretty_print(
-                hlp_lst, sep=" -- ", text_width=min(get_terminal_size().columns, 100)
+            table.add_row(
+                opt,
+                entry.doc,
+                "yes" if entry.in_cli else "no",
+                "yes" if entry.in_file else "no",
             )
-            print()
+
+        if table.rows:
+            console.print(table)
+            console.print()
 
 
 def config_cmd(conf: Config) -> None:
