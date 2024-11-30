@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import typing
 from abc import ABC, abstractmethod
-from collections import abc
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
@@ -272,14 +271,10 @@ class Geometry:
         return int(np.argmin(np.abs(self.r_centers - rval)))
 
 
-class Fields(abc.Mapping):
+class Fields:
     """Fields data structure.
 
     The `Step.fields` attribute is an instance of this class.
-
-    `Fields` implements `collections.abc.Mapping`. Keys are
-    fields names defined in `stagpy.phyvars.[S]FIELD[_EXTRA]`. Each item
-    is a [`Field`][stagpy.datatypes.Field] instance.
     """
 
     def __init__(
@@ -295,7 +290,6 @@ class Fields(abc.Mapping):
         self._extra = extravars
         self._files = files
         self._filesh5 = filesh5
-        super().__init__()
 
     @cached_property
     def _all_vars(self) -> set[str]:
