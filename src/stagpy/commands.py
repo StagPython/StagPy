@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import typing
 from dataclasses import fields
-from itertools import zip_longest
-from math import ceil
-from shutil import get_terminal_size
-from textwrap import TextWrapper, indent
+from textwrap import indent
 
 from rich import box
 from rich.columns import Columns
@@ -20,7 +17,7 @@ from .config import CONFIG_LOCAL, Config
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Iterable, Mapping, Sequence
+    from typing import Callable, Iterable, Mapping
 
     from loam.base import Section
 
@@ -55,53 +52,6 @@ def info_cmd(conf: Config) -> None:
         series = step.timeinfo.loc[list(conf.info.output)]
         print(indent(series.to_string(header=False), "  "))
         print()
-
-
-def _pretty_print(
-    key_val: Sequence[tuple[str, str]],
-    sep: str = ": ",
-    min_col_width: int = 39,
-    text_width: int | None = None,
-) -> None:
-    """Print a iterable of key/values.
-
-    Args:
-        key_val: the pairs of section names and text.
-        sep: separator between section names and text.
-        min_col_width: minimal acceptable column width
-        text_width: text width to use. If set to None, will try to infer the
-            size of the terminal.
-    """
-    if text_width is None:
-        text_width = get_terminal_size().columns
-    if text_width < min_col_width:
-        min_col_width = text_width
-    ncols = (text_width + 1) // (min_col_width + 1)
-    colw = (text_width + 1) // ncols - 1
-    ncols = min(ncols, len(key_val))
-
-    wrapper = TextWrapper(width=colw)
-    lines = []
-    for key, val in key_val:
-        if len(key) + len(sep) >= colw // 2:
-            wrapper.subsequent_indent = " "
-        else:
-            wrapper.subsequent_indent = " " * (len(key) + len(sep))
-        lines.extend(wrapper.wrap(f"{key}{sep}{val}"))
-
-    chunks = []
-    for rem_col in range(ncols, 1, -1):
-        isep = ceil(len(lines) / rem_col)
-        while isep < len(lines) and lines[isep][0] == " ":
-            isep += 1
-        chunks.append(lines[:isep])
-        lines = lines[isep:]
-    chunks.append(lines)
-    full_lines = zip_longest(*chunks, fillvalue="")
-
-    fmt = "|".join([f"{{:{colw}}}"] * (ncols - 1))
-    fmt += "|{}" if ncols > 1 else "{}"
-    print(*(fmt.format(*line) for line in full_lines), sep="\n")
 
 
 def _layout(
