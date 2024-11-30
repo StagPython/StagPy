@@ -325,7 +325,6 @@ class Fields(abc.Mapping):
                 f"Missing field {name} in step {self.step.istep}"
             )
         header, fields = parsed_data
-        self._cropped__header = header
         for fld_name, fld_vals in zip(fld_names, fields):
             fld = Field(fld_vals, self._vars[fld_name])
             self._cache.insert(self.step.istep, fld_name, fld)
