@@ -61,10 +61,6 @@ def test_step_istep(sdat: StagyyData) -> None:
     assert all(s is sdat.steps[s.istep] for s in sdat.steps)
 
 
-def test_geom_refs(step: Step) -> None:
-    assert step.geom is step.fields.geom
-
-
 def test_geom(step: Step) -> None:
     assert step.geom.twod
     assert not step.geom.threed

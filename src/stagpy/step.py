@@ -367,15 +367,6 @@ class Fields:
                     break
         return list_fvar, parsed_data
 
-    @cached_property
-    def geom(self) -> Geometry:
-        """Geometry information.
-
-        [`Geometry`][stagpy.step.Geometry] instance holding geometry information.
-        It is issued from binary files holding field information.
-        """
-        return Geometry(self.step)
-
 
 @dataclass(frozen=True)
 class Tracers:
@@ -520,7 +511,7 @@ class RprofsInstant(Rprofs):
         """Radial position of cell walls."""
         rbot, rtop = self.bounds
         try:
-            walls = self.step.fields.geom.r_walls
+            walls = self.step.geom.r_walls
         except error.StagpyError:
             # assume walls are mid-way between T-nodes
             # could be T-nodes at center between walls
@@ -572,7 +563,6 @@ class Step:
         assert(sdat.steps[n].sdat is sdat)
         assert(sdat.steps[n].istep == n)
         assert(sdat.snaps[n].isnap == n)
-        assert(sdat.steps[n].geom is sdat.steps[n].fields.geom)
         assert(sdat.snaps[n] is sdat.snaps[n].fields.step)
         ```
 
@@ -634,15 +624,14 @@ class Step:
             header = stagyyparsers.read_geom_h5(self.sdat._dataxmf, self.isnap)
         return header if header else None
 
-    @property
+    @cached_property
     def geom(self) -> Geometry:
         """Geometry information.
 
         [`Geometry`][stagpy.step.Geometry] instance holding geometry information.
-        It is issued from binary files holding field information. It is set to
-        None if not available for this time step.
+        It is issued from binary files holding field information.
         """
-        return self.fields.geom
+        return Geometry(self)
 
     @property
     def timeinfo(self) -> Series:
