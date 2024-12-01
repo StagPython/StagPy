@@ -37,9 +37,15 @@ class Geometry:
     output by StagYY.
     """
 
-    def __init__(self, header: dict[str, Any], step: Step):
-        self._header = header
+    def __init__(self, step: Step):
         self._step = step
+
+    @cached_property
+    def _header(self) -> Mapping[str, Any]:
+        hdr = self._step.fields._header
+        if hdr is None:
+            raise error.NoGeomError(self._step)
+        return hdr
 
     def _scale_radius_mo(self, radius: NDArray) -> NDArray:
         """Rescale radius for evolving MO runs."""
@@ -382,9 +388,7 @@ class Fields:
         [`Geometry`][stagpy.step.Geometry] instance holding geometry information.
         It is issued from binary files holding field information.
         """
-        if self._header is None:
-            raise error.NoGeomError(self.step)
-        return Geometry(self._header, self.step)
+        return Geometry(self.step)
 
 
 @dataclass(frozen=True)
