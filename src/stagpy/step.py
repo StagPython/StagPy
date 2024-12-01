@@ -42,7 +42,7 @@ class Geometry:
 
     @cached_property
     def _header(self) -> Mapping[str, Any]:
-        hdr = self.step.fields._header
+        hdr = self.step._header
         if hdr is None:
             raise error.NoGeomError(self.step)
         return hdr
@@ -356,7 +356,7 @@ class Fields:
                 sdat = self.step.sdat
                 if filestem in phyvars.SFIELD_FILES_H5:
                     xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
-                    header = self._header
+                    header = self.step._header
                 else:
                     xmff = sdat._dataxmf
                     header = None
@@ -366,20 +366,6 @@ class Fields:
                 if parsed_data is not None:
                     break
         return list_fvar, parsed_data
-
-    @cached_property
-    def _header(self) -> dict[str, Any] | None:
-        if self.step.isnap is None:
-            return None
-        binfiles = self.step.sdat._binfiles_set(self.step.isnap)
-        header = None
-        if binfiles:
-            header = stagyyparsers.field_header(binfiles.pop())
-        elif self.step.sdat.hdf5:
-            header = stagyyparsers.read_geom_h5(
-                self.step.sdat._dataxmf, self.step.isnap
-            )
-        return header if header else None
 
     @cached_property
     def geom(self) -> Geometry:
@@ -635,6 +621,18 @@ class Step:
             return f"{self.sdat!r}.snaps[{self.isnap}]"
         else:
             return f"{self.sdat!r}.steps[{self.istep}]"
+
+    @cached_property
+    def _header(self) -> dict[str, Any] | None:
+        if self.isnap is None:
+            return None
+        binfiles = self.sdat._binfiles_set(self.isnap)
+        header = None
+        if binfiles:
+            header = stagyyparsers.field_header(binfiles.pop())
+        elif self.sdat.hdf5:
+            header = stagyyparsers.read_geom_h5(self.sdat._dataxmf, self.isnap)
+        return header if header else None
 
     @property
     def geom(self) -> Geometry:
