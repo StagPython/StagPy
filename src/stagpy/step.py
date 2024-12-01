@@ -41,11 +41,23 @@ class Geometry:
     step: Step
 
     @cached_property
+    def _maybe_header(self) -> dict[str, Any] | None:
+        if self.step.isnap is None:
+            return None
+        sdat = self.step.sdat
+        binfiles = sdat._binfiles_set(self.step.isnap)
+        header = None
+        if binfiles:
+            header = stagyyparsers.field_header(binfiles.pop())
+        elif sdat.hdf5:
+            header = stagyyparsers.read_geom_h5(sdat._dataxmf, self.step.isnap)
+        return header if header else None
+
+    @cached_property
     def _header(self) -> Mapping[str, Any]:
-        hdr = self.step._header
-        if hdr is None:
+        if self._maybe_header is None:
             raise error.NoGeomError(self.step)
-        return hdr
+        return self._maybe_header
 
     def _scale_radius_mo(self, radius: NDArray) -> NDArray:
         """Rescale radius for evolving MO runs."""
@@ -356,7 +368,8 @@ class Fields:
                 sdat = self.step.sdat
                 if filestem in phyvars.SFIELD_FILES_H5:
                     xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
-                    header = self.step._header
+                    header = self.step.geom._maybe_header
+                    assert header is not None
                 else:
                     xmff = sdat._dataxmf
                     header = None
@@ -611,18 +624,6 @@ class Step:
             return f"{self.sdat!r}.snaps[{self.isnap}]"
         else:
             return f"{self.sdat!r}.steps[{self.istep}]"
-
-    @cached_property
-    def _header(self) -> dict[str, Any] | None:
-        if self.isnap is None:
-            return None
-        binfiles = self.sdat._binfiles_set(self.isnap)
-        header = None
-        if binfiles:
-            header = stagyyparsers.field_header(binfiles.pop())
-        elif self.sdat.hdf5:
-            header = stagyyparsers.read_geom_h5(self.sdat._dataxmf, self.isnap)
-        return header if header else None
 
     @cached_property
     def geom(self) -> Geometry:
