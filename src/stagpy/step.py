@@ -30,6 +30,7 @@ if typing.TYPE_CHECKING:
     from .stagyydata import StagyyData
 
 
+@dataclass(frozen=True)
 class Geometry:
     """Geometry information.
 
@@ -37,25 +38,24 @@ class Geometry:
     output by StagYY.
     """
 
-    def __init__(self, step: Step):
-        self._step = step
+    step: Step
 
     @cached_property
     def _header(self) -> Mapping[str, Any]:
-        hdr = self._step.fields._header
+        hdr = self.step.fields._header
         if hdr is None:
-            raise error.NoGeomError(self._step)
+            raise error.NoGeomError(self.step)
         return hdr
 
     def _scale_radius_mo(self, radius: NDArray) -> NDArray:
         """Rescale radius for evolving MO runs."""
-        if self._step.sdat.par.get("magma_oceans_in", "evolving_magma_oceans", False):
+        if self.step.sdat.par.get("magma_oceans_in", "evolving_magma_oceans", False):
             return self._header["mo_thick_sol"] * (radius + self._header["mo_lambda"])
         return radius
 
     @property
     def aspect_ratio(self) -> tuple[float, float]:
-        return self._step.sdat.par.nml["geometry"]["aspect_ratio"]
+        return self.step.sdat.par.nml["geometry"]["aspect_ratio"]
 
     @cached_property
     def _ntot(self) -> tuple[int, int, int, int]:
@@ -104,7 +104,7 @@ class Geometry:
             walls = rgeom[:, 0] + self.rcmb
         else:
             walls = self._header["e3_coord"] + self.rcmb
-            walls = np.append(walls, self._step.rprofs.bounds[1])
+            walls = np.append(walls, self.step.rprofs.bounds[1])
         return self._scale_radius_mo(walls)
 
     @cached_property
@@ -114,7 +114,7 @@ class Geometry:
         if rgeom is not None:
             walls = rgeom[:-1, 1] + self.rcmb
         else:
-            walls = self._step.rprofs.centers
+            walls = self.step.rprofs.centers
         return self._scale_radius_mo(walls)
 
     @cached_property
@@ -200,7 +200,7 @@ class Geometry:
 
     @cached_property
     def _shape(self) -> str:
-        return self._step.sdat.par.nml["geometry"]["shape"].lower()
+        return self.step.sdat.par.nml["geometry"]["shape"].lower()
 
     @cached_property
     def curvilinear(self) -> bool:
