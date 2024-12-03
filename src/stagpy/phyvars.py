@@ -277,9 +277,6 @@ RPROF_EXTRA: Mapping[str, Callable[[Step], Rprof]] = MappingProxyType(
         "advds": processing.advds_prof,
         "advas": processing.advas_prof,
         "energy": processing.energy_prof,
-        "ciover": processing.init_c_overturn,
-        "cfover": processing.c_overturned,
-        "advth": processing.advth,
     }
 )
 """Radial profiles that StagPy can compute."""
