@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
 
 
 def dtime(sdat: StagyyData) -> Tseries:
-    """Compute time increment.
+    """Time increment.
 
     Compute dt as a function of time.
 
@@ -40,7 +40,7 @@ def dtime(sdat: StagyyData) -> Tseries:
 
 
 def dt_dt(sdat: StagyyData) -> Tseries:
-    """Compute derivative of temperature.
+    """Time derivative of temperature.
 
     Compute dT/dt as a function of time using an explicit Euler scheme.
 
@@ -58,7 +58,7 @@ def dt_dt(sdat: StagyyData) -> Tseries:
 
 
 def ebalance(sdat: StagyyData) -> Tseries:
-    """Compute energy balance.
+    """Energy balance.
 
     Compute Nu_t - Nu_b + V*dT/dt as a function of time using an explicit
     Euler scheme. This should be zero if energy is conserved.
@@ -85,7 +85,7 @@ def ebalance(sdat: StagyyData) -> Tseries:
 
 
 def mobility(sdat: StagyyData) -> Tseries:
-    """Compute plates mobility.
+    """Plates mobility.
 
     Compute the ratio vsurf / vrms.
 
@@ -106,7 +106,7 @@ def mobility(sdat: StagyyData) -> Tseries:
 
 
 def delta_r(step: Step) -> Rprof:
-    """Compute cell thicknesses.
+    """Cell thicknesses.
 
     Args:
         step: a `Step` of a `StagyyData` instance.
@@ -130,7 +130,7 @@ def _scale_prof(step: Step, rprof: NDArray, rad: NDArray | None = None) -> NDArr
 
 
 def diff_prof(step: Step) -> Rprof:
-    """Compute diffusion flux.
+    """Diffusion flux.
 
     Args:
         step: a `Step` of a `StagyyData` instance.
@@ -151,7 +151,7 @@ def diff_prof(step: Step) -> Rprof:
 
 
 def diffs_prof(step: Step) -> Rprof:
-    """Compute scaled diffusion flux.
+    """Scaled diffusion flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -167,7 +167,7 @@ def diffs_prof(step: Step) -> Rprof:
 
 
 def advts_prof(step: Step) -> Rprof:
-    """Compute scaled advection flux.
+    """Scaled advection flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -185,7 +185,7 @@ def advts_prof(step: Step) -> Rprof:
 
 
 def advds_prof(step: Step) -> Rprof:
-    """Compute scaled downward advection flux.
+    """Scaled downward advection flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -203,7 +203,7 @@ def advds_prof(step: Step) -> Rprof:
 
 
 def advas_prof(step: Step) -> Rprof:
-    """Compute scaled upward advection flux.
+    """Scaled upward advection flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -221,7 +221,7 @@ def advas_prof(step: Step) -> Rprof:
 
 
 def energy_prof(step: Step) -> Rprof:
-    """Compute total heat flux.
+    """Total heat flux.
 
     This computation takes sphericity into account if necessary.
 
@@ -241,7 +241,7 @@ def energy_prof(step: Step) -> Rprof:
 
 
 def stream_function(step: Step) -> Field:
-    """Compute the stream function in 2D geometry.
+    """Stream function in 2D geometry.
 
     Args:
         step: a `Step` of a `StagyyData` instance.
