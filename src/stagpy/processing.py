@@ -241,7 +241,7 @@ def energy_prof(step: Step) -> Rprof:
 
 
 def stream_function(step: Step) -> Field:
-    """Stream function in 2D geometry.
+    """Stream function (2D).
 
     Args:
         step: a `Step` of a `StagyyData` instance.
