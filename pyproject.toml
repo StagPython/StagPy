@@ -80,7 +80,9 @@ module = [
 ignore_missing_imports = true
 
 [tool.basedpyright]
+enableTypeIgnoreComments = true
 reportAny = false
+reportIgnoreCommentWithoutRule = false
 reportImportCycles = false
 reportMissingTypeStubs = false
 reportPrivateUsage = false
