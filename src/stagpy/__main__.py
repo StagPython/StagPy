@@ -44,10 +44,8 @@ def main() -> None:
             raise
         errtype = type(err).__name__
         print(
-            "Oops! StagPy encountered the following problem while "
-            "processing your request.",
-            "Please check the path to your "
-            "simulation and the command line arguments.",
+            "Oops! StagPy encountered the following problem while processing your request.",
+            "Please check the path to your simulation and the command line arguments.",
             "",
             f"{errtype}: {err}",
             sep="\n",
