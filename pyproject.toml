@@ -78,3 +78,15 @@ module = [
     "scipy.*",
 ]
 ignore_missing_imports = true
+
+[tool.basedpyright]
+reportAny = false
+reportImportCycles = false
+reportMissingTypeStubs = false
+reportPrivateUsage = false
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportUnknownVariableType = false
+reportUnusedCallResult = false
