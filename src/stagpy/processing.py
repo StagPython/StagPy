@@ -34,9 +34,7 @@ def dtime(sdat: StagyyData) -> Tseries:
         dt and time arrays.
     """
     time = sdat.tseries.time
-    return Tseries(
-        time[1:] - time[:-1], time[:-1], Vart("Time increment dt", "dt", "s")
-    )
+    return Tseries(np.diff(time), time[:-1], Vart("Time increment dt", "dt", "s"))
 
 
 def dt_dt(sdat: StagyyData) -> Tseries:
@@ -53,7 +51,7 @@ def dt_dt(sdat: StagyyData) -> Tseries:
     series = sdat.tseries["Tmean"]
     temp = series.values
     time = series.time
-    dtdt = (temp[1:] - temp[:-1]) / (time[1:] - time[:-1])
+    dtdt = np.diff(temp) / np.diff(time)
     return Tseries(dtdt, time[:-1], Vart("Derivative of temperature", r"dT/dt", "K/s"))
 
 
@@ -116,7 +114,7 @@ def delta_r(step: Step) -> Rprof:
     """
     edges = step.rprofs.walls
     meta = Varr("Cell thickness", "dr", "m")
-    return Rprof((edges[1:] - edges[:-1]), step.rprofs.centers, meta)
+    return Rprof(np.diff(edges), step.rprofs.centers, meta)
 
 
 def _scale_prof(
