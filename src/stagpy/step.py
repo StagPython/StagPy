@@ -341,9 +341,6 @@ class Fields:
             return False
         return True
 
-    def __eq__(self, other: object) -> bool:
-        return self is other
-
     def _get_raw_data(self, name: str) -> tuple[list[str], Any]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
