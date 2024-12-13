@@ -11,7 +11,7 @@ from .config import Config
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence
+    from collections.abc import Sequence
 
     from .step import Rprofs, Step
 

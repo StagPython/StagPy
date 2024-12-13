@@ -15,7 +15,7 @@ from .error import InvalidTimeFractionError
 from .stagyydata import StagyyData, _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence
+    from collections.abc import Sequence
 
     from pandas import DataFrame
 

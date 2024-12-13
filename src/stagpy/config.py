@@ -1,3 +1,5 @@
+# pyright: reportDeprecated=false
+
 """Define configuration variables for StagPy.
 
 See [stagpy.cli][] for additional definitions related to the command line

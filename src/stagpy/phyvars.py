@@ -15,7 +15,8 @@ from . import processing
 from .datatypes import Varf, Varr, Vart
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Mapping
+    from collections.abc import Mapping
+    from typing import Callable
 
     from .datatypes import Field, Rprof, Tseries
     from .dimensions import Scales

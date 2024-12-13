@@ -17,7 +17,8 @@ from .config import CONFIG_LOCAL, Config
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Iterable, Mapping
+    from collections.abc import Iterable, Mapping
+    from typing import Callable
 
     from loam.base import Section
 

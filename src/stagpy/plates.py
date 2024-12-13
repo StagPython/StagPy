@@ -18,7 +18,8 @@ from .datatypes import Field
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Sequence, TextIO
+    from collections.abc import Sequence
+    from typing import TextIO
 
     from matplotlib.axes import Axes
     from numpy.typing import NDArray

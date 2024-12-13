@@ -20,7 +20,8 @@ from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, Mapping, NoReturn
+    from collections.abc import Mapping
+    from typing import Any, Callable, NoReturn
 
     from numpy.typing import NDArray
     from pandas import DataFrame, Series

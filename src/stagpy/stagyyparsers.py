@@ -24,8 +24,9 @@ from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
 from .xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping
     from pathlib import Path
-    from typing import Any, BinaryIO, Callable, Iterator, Mapping
+    from typing import Any, BinaryIO, Callable
     from xml.etree.ElementTree import Element
 
     from numpy.typing import NDArray

@@ -25,8 +25,9 @@ from .stagyyparsers import FieldXmf, TracersXmf
 from .step import Step
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator, Sequence
     from os import PathLike
-    from typing import Callable, Iterable, Iterator, Sequence, TypeAlias
+    from typing import Callable, TypeAlias
 
     from numpy.typing import NDArray
     from pandas import DataFrame, Series

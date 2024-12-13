@@ -17,7 +17,8 @@ from .error import NotAvailableError
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Iterable
+    from collections.abc import Iterable
+    from typing import Any
 
     from matplotlib.axes import Axes
     from matplotlib.collections import QuadMesh

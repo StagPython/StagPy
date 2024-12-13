@@ -10,7 +10,7 @@ from functools import cached_property
 from . import phyvars, stagyyparsers
 
 if typing.TYPE_CHECKING:
-    from typing import Mapping
+    from collections.abc import Mapping
 
     from .datatypes import Field
     from .stagyydata import StagyyData
