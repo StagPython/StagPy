@@ -11,10 +11,10 @@ import numpy as np
 from matplotlib import colors
 from scipy.signal import argrelmax, argrelmin
 
-from . import _helpers, error, field, phyvars
+from . import _helpers, error, field
 from ._helpers import saveplot
 from .config import Config
-from .datatypes import Field
+from .datatypes import Field, Varf
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
@@ -179,7 +179,7 @@ def _surf_diag(snap: Step, name: str) -> Field:
             dvphi = np.diff(vphi) / (
                 snap.geom.r_centers[isurf] * np.diff(snap.geom.p_walls)
             )
-        return Field(dvphi, phyvars.Varf(r"$dv_\phi/rd\phi$", "1/s"))
+        return Field(dvphi, Varf(r"$dv_\phi/rd\phi$", "1/s"))
     raise error.UnknownVarError(name)
 
 
