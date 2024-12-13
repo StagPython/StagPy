@@ -328,7 +328,7 @@ class Fields:
             raise error.MissingDataError(
                 f"Missing field {name} in step {self.step.istep}"
             )
-        header, fields = parsed_data
+        _, fields = parsed_data
         for fld_name, fld_vals in zip(fld_names, fields):
             fld = Field(fld_vals, self.variables[fld_name])
             self._cache.insert(self.step.istep, fld_name, fld)

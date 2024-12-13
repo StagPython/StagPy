@@ -30,7 +30,7 @@ class StagyyPar:
         if not parfile.is_file():
             raise NoParFileError(parfile)
         par = f90nml.read(str(parfile))
-        for section, content in par.items():
+        for content in par.values():
             for option, value in content.items():
                 try:
                     content[option] = value.strip()
