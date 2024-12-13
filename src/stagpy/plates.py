@@ -417,7 +417,7 @@ def cmd(conf: Config) -> None:
     with open(f"{oname}.dat", "w") as fid:
         fid.write(
             "#  istep     time   time_My   phi_trench  vel_trench  "
-            "distance     phi_cont  age_trench_My\n"
+            + "distance     phi_cont  age_trench_My\n"
         )
 
         for step in view.filter(fields=["T"]):

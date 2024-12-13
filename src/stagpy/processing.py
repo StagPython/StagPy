@@ -263,7 +263,7 @@ def stream_function(step: Step) -> Field:
         shape = (v_x.shape[0], 1, v_x.shape[1], 1)
     else:
         raise NotAvailableError(
-            "Stream function only implemented in " "2D cartesian and spherical annulus"
+            "Stream function only implemented in 2D cartesian and spherical annulus"
         )
     psi = np.zeros_like(v_x)
     if step.geom.spherical:  # YZ annulus
