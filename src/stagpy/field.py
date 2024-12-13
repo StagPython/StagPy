@@ -355,11 +355,11 @@ def _findminmax(view: StepsView, sovs: Iterable[str]) -> dict[str, tuple[float, 
                 vals = step.fields[var].values
                 if var in minmax:
                     minmax[var] = (
-                        min(minmax[var][0], np.nanmin(vals)),
-                        max(minmax[var][1], np.nanmax(vals)),
+                        min(minmax[var][0], np.nanmin(vals).item()),
+                        max(minmax[var][1], np.nanmax(vals).item()),
                     )
                 else:
-                    minmax[var] = np.nanmin(vals), np.nanmax(vals)
+                    minmax[var] = np.nanmin(vals).item(), np.nanmax(vals).item()
     return minmax
 
 
