@@ -60,7 +60,7 @@ class Geometry:
             raise error.NoGeomError(self.step)
         return self._maybe_header
 
-    def _scale_radius_mo(self, radius: NDArray) -> NDArray:
+    def _scale_radius_mo(self, radius: NDArray[np.float64]) -> NDArray[np.float64]:
         """Rescale radius for evolving MO runs."""
         if self.step.sdat.par.get("magma_oceans_in", "evolving_magma_oceans", False):
             return self._header["mo_thick_sol"] * (radius + self._header["mo_lambda"])
@@ -110,7 +110,7 @@ class Geometry:
         return self.nrtot
 
     @cached_property
-    def r_walls(self) -> NDArray:
+    def r_walls(self) -> NDArray[np.float64]:
         """Position of FV walls along the z/r direction."""
         rgeom = self._header.get("rgeom")
         if rgeom is not None:
@@ -121,7 +121,7 @@ class Geometry:
         return self._scale_radius_mo(walls)
 
     @cached_property
-    def r_centers(self) -> NDArray:
+    def r_centers(self) -> NDArray[np.float64]:
         """Position of FV centers along the z/r direction."""
         rgeom = self._header.get("rgeom")
         if rgeom is not None:
@@ -131,7 +131,7 @@ class Geometry:
         return self._scale_radius_mo(walls)
 
     @cached_property
-    def t_walls(self) -> NDArray:
+    def t_walls(self) -> NDArray[np.float64]:
         """Position of FV walls along x/theta."""
         if self.threed or self.twod_xz:
             if self.yinyang:
@@ -150,12 +150,12 @@ class Geometry:
         return np.array([center - d_t, center + d_t])
 
     @cached_property
-    def t_centers(self) -> NDArray:
+    def t_centers(self) -> NDArray[np.float64]:
         """Position of FV centers along x/theta."""
         return (self.t_walls[:-1] + self.t_walls[1:]) / 2
 
     @cached_property
-    def p_walls(self) -> NDArray:
+    def p_walls(self) -> NDArray[np.float64]:
         """Position of FV walls along y/phi."""
         if self.threed or self.twod_yz:
             if self.yinyang:
@@ -172,37 +172,37 @@ class Geometry:
         return np.array([-d_p, d_p])
 
     @cached_property
-    def p_centers(self) -> NDArray:
+    def p_centers(self) -> NDArray[np.float64]:
         """Position of FV centers along y/phi."""
         return (self.p_walls[:-1] + self.p_walls[1:]) / 2
 
     @property
-    def z_walls(self) -> NDArray:
+    def z_walls(self) -> NDArray[np.float64]:
         """Same as r_walls."""
         return self.r_walls
 
     @property
-    def z_centers(self) -> NDArray:
+    def z_centers(self) -> NDArray[np.float64]:
         """Same as r_centers."""
         return self.r_centers
 
     @property
-    def x_walls(self) -> NDArray:
+    def x_walls(self) -> NDArray[np.float64]:
         """Same as t_walls."""
         return self.t_walls
 
     @property
-    def x_centers(self) -> NDArray:
+    def x_centers(self) -> NDArray[np.float64]:
         """Same as t_centers."""
         return self.t_centers
 
     @property
-    def y_walls(self) -> NDArray:
+    def y_walls(self) -> NDArray[np.float64]:
         """Same as p_walls."""
         return self.p_walls
 
     @property
-    def y_centers(self) -> NDArray:
+    def y_centers(self) -> NDArray[np.float64]:
         """Same as p_centers."""
         return self.p_centers
 
@@ -396,10 +396,10 @@ class Tracers:
     step: Step
 
     @cached_property
-    def _data(self) -> dict[str, list[NDArray] | None]:
+    def _data(self) -> dict[str, list[NDArray[np.float64]] | None]:
         return {}
 
-    def __getitem__(self, name: str) -> list[NDArray] | None:
+    def __getitem__(self, name: str) -> list[NDArray[np.float64]] | None:
         if name in self._data:
             return self._data[name]
         if self.step.isnap is None:
@@ -441,12 +441,12 @@ class Rprofs(ABC):
 
     @property
     @abstractmethod
-    def centers(self) -> NDArray:
+    def centers(self) -> NDArray[np.float64]:
         """Radial position of cell centers."""
 
     @property
     @abstractmethod
-    def walls(self) -> NDArray:
+    def walls(self) -> NDArray[np.float64]:
         """Radial position of cell walls."""
 
     @property
@@ -516,12 +516,12 @@ class RprofsInstant(Rprofs):
         return str(self.step.istep)
 
     @cached_property
-    def centers(self) -> NDArray:
+    def centers(self) -> NDArray[np.float64]:
         """Radial position of cell centers."""
         return self._rprofs["r"].to_numpy() + self.bounds[0]
 
     @cached_property
-    def walls(self) -> NDArray:
+    def walls(self) -> NDArray[np.float64]:
         """Radial position of cell walls."""
         rbot, rtop = self.bounds
         try:

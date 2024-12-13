@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
     from .step import Geometry, Step
 
 
-def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray:
+def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray[np.int32]:
     """Remove positions where vz is below threshold."""
     # verifying vertical velocity
     vzabs = np.abs(snap.fields["v3"].values[0, ..., 0])
@@ -40,7 +40,9 @@ def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray:
 
 
 @lru_cache
-def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> tuple[NDArray, NDArray]:
+def detect_plates(
+    snap: Step, vz_thres_ratio: float = 0
+) -> tuple[NDArray[np.int32], NDArray[np.int32]]:
     """Detect plate limits using derivative of horizontal velocity.
 
     This function is cached for convenience.
@@ -98,7 +100,9 @@ def detect_plates(snap: Step, vz_thres_ratio: float = 0) -> tuple[NDArray, NDArr
     return itrenches, iridges
 
 
-def _plot_plate_limits(axis: Axes, trenches: NDArray, ridges: NDArray) -> None:
+def _plot_plate_limits(
+    axis: Axes, trenches: NDArray[np.float64], ridges: NDArray[np.float64]
+) -> None:
     """Plot lines designating ridges and trenches."""
     for trench in trenches:
         axis.axvline(x=trench, color="red", ls="dashed", alpha=0.4)
@@ -183,7 +187,7 @@ def _surf_diag(snap: Step, name: str) -> Field:
     raise error.UnknownVarError(name)
 
 
-def _continents_location(snap: Step, at_surface: bool = True) -> NDArray:
+def _continents_location(snap: Step, at_surface: bool = True) -> NDArray[np.bool]:
     """Location of continents as a boolean array.
 
     If at_surface is True, it is evaluated only at the surface, otherwise it is

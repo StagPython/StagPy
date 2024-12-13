@@ -212,12 +212,12 @@ class Tseries:
         )
 
     @property
-    def time(self) -> NDArray:
+    def time(self) -> NDArray[np.float64]:
         """Time vector."""
         return self._tseries["t"].to_numpy()
 
     @property
-    def isteps(self) -> NDArray:
+    def isteps(self) -> NDArray[np.float64]:
         """Step indices.
 
         This is such that `time[istep]` is at step `isteps[istep]`.
@@ -282,11 +282,11 @@ class RprofsAveraged(step.Rprofs):
         return first_step.rprofs
 
     @property
-    def centers(self) -> NDArray:
+    def centers(self) -> NDArray[np.float64]:
         return self._first_rprofs.centers
 
     @property
-    def walls(self) -> NDArray:
+    def walls(self) -> NDArray[np.float64]:
         return self._first_rprofs.walls
 
     @property

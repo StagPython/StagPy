@@ -477,7 +477,7 @@ def field_header(fieldfile: Path) -> dict[str, Any] | None:
     return hdr.header
 
 
-def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray] | None:
+def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray[np.float64]] | None:
     """Extract fields data.
 
     Args:
@@ -555,7 +555,7 @@ def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray] | None:
     return header, flds
 
 
-def tracers(tracersfile: Path) -> dict[str, list[NDArray]] | None:
+def tracers(tracersfile: Path) -> dict[str, list[NDArray[np.float64]]] | None:
     """Extract tracers data.
 
     Args:
@@ -566,7 +566,7 @@ def tracers(tracersfile: Path) -> dict[str, list[NDArray]] | None:
     """
     if not tracersfile.is_file():
         return None
-    tra: dict[str, list[NDArray]] = {}
+    tra: dict[str, list[NDArray[np.float64]]] = {}
     with tracersfile.open("rb") as fid:
         readbin = partial(_readbin, fid)
         magic = readbin()
@@ -603,7 +603,7 @@ def tracers(tracersfile: Path) -> dict[str, list[NDArray]] | None:
     return tra
 
 
-def _read_group_h5(filename: Path, groupname: str) -> NDArray:
+def _read_group_h5(filename: Path, groupname: str) -> NDArray[np.float64]:
     """Return group content.
 
     Args:
@@ -623,7 +623,7 @@ def _read_group_h5(filename: Path, groupname: str) -> NDArray:
     return data  # need to be reshaped
 
 
-def _make_3d(field: NDArray, twod: str | None) -> NDArray:
+def _make_3d(field: NDArray[np.float64], twod: str | None) -> NDArray[np.float64]:
     """Add a dimension to field if necessary.
 
     Args:
@@ -641,7 +641,9 @@ def _make_3d(field: NDArray, twod: str | None) -> NDArray:
     return field.reshape(shp)
 
 
-def _ncores(meshes: list[dict[str, NDArray]], twod: str | None) -> NDArray:
+def _ncores(
+    meshes: list[dict[str, NDArray[np.float64]]], twod: str | None
+) -> NDArray[np.float64]:
     """Compute number of nodes in each direction."""
     nnpb = len(meshes)  # number of nodes per block
     nns = [1, 1, 1]  # number of nodes in x, y, z directions
@@ -672,8 +674,8 @@ def _ncores(meshes: list[dict[str, NDArray]], twod: str | None) -> NDArray:
 
 
 def _conglomerate_meshes(
-    meshin: list[dict[str, NDArray]], header: dict[str, Any]
-) -> dict[str, NDArray]:
+    meshin: list[dict[str, NDArray[np.float64]]], header: dict[str, Any]
+) -> dict[str, NDArray[np.float64]]:
     """Conglomerate meshes from several cores into one."""
     meshout = {}
     npc = header["nts"] // header["ncs"]
@@ -870,7 +872,7 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     header["mo_thick_sol"] = entry.mo_thick_sol
     header["ntb"] = 2 if entry.yin_yang else 1
 
-    all_meshes: list[dict[str, NDArray]] = []
+    all_meshes: list[dict[str, NDArray[np.float64]]] = []
     for h5file in entry.coord_files_yin(xdmf.path.parent):
         all_meshes.append({})
         with h5py.File(h5file, "r") as h5f:
@@ -927,7 +929,9 @@ def read_geom_h5(xdmf: FieldXmf, snapshot: int) -> dict[str, Any]:
     return header
 
 
-def _to_spherical(flds: NDArray, header: dict[str, Any]) -> NDArray:
+def _to_spherical(
+    flds: NDArray[np.float64], header: dict[str, Any]
+) -> NDArray[np.float64]:
     """Convert vector field to spherical."""
     cth = np.cos(header["t_mesh"][:, :, :-1])
     sth = np.sin(header["t_mesh"][:, :, :-1])
@@ -962,7 +966,9 @@ def _flds_shape(fieldname: str, header: dict[str, Any]) -> list[int]:
     return shp
 
 
-def _post_read_flds(flds: NDArray, header: dict[str, Any]) -> NDArray:
+def _post_read_flds(
+    flds: NDArray[np.float64], header: dict[str, Any]
+) -> NDArray[np.float64]:
     """Process flds to handle sphericity."""
     if flds.shape[0] >= 3 and header["rcmb"] > 0:
         # spherical vector
@@ -982,7 +988,7 @@ def read_field_h5(
     fieldname: str,
     snapshot: int,
     header: dict[str, Any] | None = None,
-) -> tuple[dict[str, Any], NDArray] | None:
+) -> tuple[dict[str, Any], NDArray[np.float64]] | None:
     """Extract field data from hdf5 files.
 
     Args:
@@ -1146,7 +1152,9 @@ class TracersXmf:
             raise ParsingError(self.path, f"no data for snapshot {isnap}")
 
 
-def read_tracers_h5(xdmf: TracersXmf, infoname: str, snapshot: int) -> list[NDArray]:
+def read_tracers_h5(
+    xdmf: TracersXmf, infoname: str, snapshot: int
+) -> list[NDArray[np.float64]]:
     """Extract tracers data from hdf5 files.
 
     Args:
@@ -1157,11 +1165,11 @@ def read_tracers_h5(xdmf: TracersXmf, infoname: str, snapshot: int) -> list[NDAr
     Returns:
         Tracers data organized by attribute and block.
     """
-    tra: list[list[NDArray]] = [[], []]  # [block][core]
+    tra: list[list[NDArray[np.float64]]] = [[], []]  # [block][core]
     for tsub in xdmf[snapshot].tra_subdomains(xdmf.path.parent, infoname):
         tra[tsub.iblock].append(_read_group_h5(tsub.file, tsub.dataset))
 
-    tra_concat: list[NDArray] = []
+    tra_concat: list[NDArray[np.float64]] = []
     for trab in tra:
         if trab:
             tra_concat.append(np.concatenate(trab))

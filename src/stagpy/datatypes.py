@@ -5,6 +5,8 @@ from __future__ import annotations
 import typing
 from dataclasses import dataclass
 
+import numpy as np
+
 if typing.TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -23,7 +25,7 @@ class Varf:
 class Field:
     """Scalar field and associated metadata."""
 
-    values: NDArray
+    values: NDArray[np.float64]
     """values of field."""
     meta: Varf
     """metadata."""
@@ -45,9 +47,9 @@ class Varr:
 class Rprof:
     """Radial profile with associated radius and metadata."""
 
-    values: NDArray
+    values: NDArray[np.float64]
     """values of profile."""
-    rad: NDArray
+    rad: NDArray[np.float64]
     """radial position of profile."""
     meta: Varr
     """metadata."""
@@ -69,9 +71,9 @@ class Vart:
 class Tseries:
     """A time series with associated time and metadata."""
 
-    values: NDArray
+    values: NDArray[np.float64]
     """values of time series."""
-    time: NDArray
+    time: NDArray[np.float64]
     """time position of time series."""
     meta: Vart
     """metadata."""

@@ -119,7 +119,9 @@ def delta_r(step: Step) -> Rprof:
     return Rprof((edges[1:] - edges[:-1]), step.rprofs.centers, meta)
 
 
-def _scale_prof(step: Step, rprof: NDArray, rad: NDArray | None = None) -> NDArray:
+def _scale_prof(
+    step: Step, rprof: NDArray[np.float64], rad: NDArray[np.float64] | None = None
+) -> NDArray[np.float64]:
     """Scale profile to take sphericity into account."""
     rbot, rtop = step.rprofs.bounds
     if rbot == 0:  # not spherical

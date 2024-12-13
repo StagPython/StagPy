@@ -4,18 +4,18 @@ import typing
 from dataclasses import dataclass
 from functools import cached_property
 
+import numpy as np
+
 from . import phyvars
 from .config import Scaling
 
 if typing.TYPE_CHECKING:
-    from typing import TypeVar
-
     from numpy.typing import NDArray
 
     from .parfile import StagyyPar
     from .stagyydata import StagyyData
 
-    T = TypeVar("T", float, NDArray)
+    T = float | NDArray[np.float64]
 
 
 @dataclass(frozen=True)

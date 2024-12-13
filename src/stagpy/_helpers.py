@@ -6,6 +6,7 @@ import typing
 from inspect import getdoc
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 if typing.TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -101,7 +102,9 @@ def baredoc(obj: object) -> str:
     return doc.rstrip(" .").lstrip()
 
 
-def find_in_sorted_arr(value: float, array: NDArray, after: bool = False) -> int:
+def find_in_sorted_arr(
+    value: float, array: NDArray[np.float64], after: bool = False
+) -> int:
     """Return position of element in a sorted array.
 
     Returns:

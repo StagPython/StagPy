@@ -37,7 +37,7 @@ if typing.TYPE_CHECKING:
 
 def _threed_extract(
     conf: Config, step: Step, var: str, walls: bool = False
-) -> tuple[tuple[NDArray, NDArray], NDArray]:
+) -> tuple[tuple[NDArray[np.float64], NDArray[np.float64]], NDArray[np.float64]]:
     """Return suitable slices and coords for 3D fields."""
     is_vector = not valid_field_var(var)
     hwalls = is_vector or walls
@@ -91,7 +91,7 @@ def valid_field_var(var: str) -> bool:
 
 def get_meshes_fld(
     conf: Config, step: Step, var: str, walls: bool = False
-) -> tuple[NDArray, NDArray, NDArray, Varf]:
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], Varf]:
     """Return scalar field along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
@@ -134,7 +134,9 @@ def get_meshes_fld(
 
 def get_meshes_vec(
     conf: Config, step: Step, var: str
-) -> tuple[NDArray, NDArray, NDArray, NDArray]:
+) -> tuple[
+    NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]
+]:
     """Return vector field components along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
@@ -178,7 +180,7 @@ def get_meshes_vec(
 def plot_scalar(
     step: Step,
     var: str,
-    field: NDArray | None = None,
+    field: NDArray[np.float64] | None = None,
     axis: Axes | None = None,
     conf: Config | None = None,
     **extra: Any,
@@ -272,7 +274,7 @@ def plot_iso(
     axis: Axes,
     step: Step,
     var: str,
-    field: NDArray | None = None,
+    field: NDArray[np.float64] | None = None,
     conf: Config | None = None,
     **extra: Any,
 ) -> None:
