@@ -125,9 +125,6 @@ def compstat(
 def cmd(conf: Config) -> None:
     """Implementation of time subcommand."""
     sdat = _sdat_from_conf(conf.core)
-    if sdat.tseries is None:
-        return
-
     if conf.time.fraction is not None:
         if not 0 < conf.time.fraction <= 1:
             raise InvalidTimeFractionError(conf.time.fraction)

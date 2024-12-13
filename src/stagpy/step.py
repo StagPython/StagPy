@@ -336,9 +336,10 @@ class Fields:
 
     def __contains__(self, item: Any) -> bool:
         try:
-            return self[item] is not None
+            _ = self[item]
         except error.MissingDataError:
             return False
+        return True
 
     def __eq__(self, other: object) -> bool:
         return self is other
