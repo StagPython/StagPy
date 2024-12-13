@@ -213,7 +213,7 @@ def plot_scalar(
     # interpolate at cell centers, this should be abstracted by field objects
     # via an "at_cell_centers" method or similar
     if fld.shape[0] > max(step.geom.nxtot, step.geom.nytot):
-        fld = (fld[:-1] + fld[1:]) / 2
+        fld: NDArray[np.float64] = (fld[:-1] + fld[1:]) / 2  # type: ignore
 
     xmin, xmax = xmesh.min(), xmesh.max()
     ymin, ymax = ymesh.min(), ymesh.max()

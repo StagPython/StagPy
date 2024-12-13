@@ -152,7 +152,7 @@ class Geometry:
     @cached_property
     def t_centers(self) -> NDArray[np.float64]:
         """Position of FV centers along x/theta."""
-        return (self.t_walls[:-1] + self.t_walls[1:]) / 2
+        return (self.t_walls[:-1] + self.t_walls[1:]) / 2  # type: ignore
 
     @cached_property
     def p_walls(self) -> NDArray[np.float64]:
@@ -174,7 +174,7 @@ class Geometry:
     @cached_property
     def p_centers(self) -> NDArray[np.float64]:
         """Position of FV centers along y/phi."""
-        return (self.p_walls[:-1] + self.p_walls[1:]) / 2
+        return (self.p_walls[:-1] + self.p_walls[1:]) / 2  # type: ignore
 
     @property
     def z_walls(self) -> NDArray[np.float64]:
@@ -516,7 +516,7 @@ class RprofsInstant(Rprofs):
     @cached_property
     def centers(self) -> NDArray[np.float64]:
         """Radial position of cell centers."""
-        return self._rprofs["r"].to_numpy() + self.bounds[0]
+        return self._rprofs["r"].to_numpy() + self.bounds[0]  # type: ignore
 
     @cached_property
     def walls(self) -> NDArray[np.float64]:
@@ -528,9 +528,9 @@ class RprofsInstant(Rprofs):
             # assume walls are mid-way between T-nodes
             # could be T-nodes at center between walls
             centers = self.centers
-            walls = (centers[:-1] + centers[1:]) / 2
+            walls: NDArray[np.float64] = (centers[:-1] + centers[1:]) / 2  # type: ignore
             walls = np.insert(walls, 0, rbot)
-            walls = np.append(walls, rtop)
+            walls: NDArray[np.float64] = np.append(walls, rtop)  # type: ignore
         return walls
 
     @cached_property

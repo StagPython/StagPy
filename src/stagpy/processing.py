@@ -78,7 +78,7 @@ def ebalance(sdat: StagyyData) -> Tseries:
     ftop = sdat.tseries["ftop"].values * coefsurf
     fbot = sdat.tseries["fbot"].values
     radio = sdat.tseries["H_int"].values
-    ebal = ftop[1:] - fbot[1:] + volume * (dtdt.values - radio[1:])
+    ebal: NDArray[np.float64] = ftop[1:] - fbot[1:] + volume * (dtdt.values - radio[1:])  # type: ignore
     return Tseries(ebal, dtdt.time, Vart("Energy balance", r"$\mathrm{Nu}$", "1"))
 
 
@@ -126,7 +126,7 @@ def _scale_prof(
         return rprof
     if rad is None:
         rad = step.rprofs.centers
-    return rprof * (2 * rad / (rtop + rbot)) ** 2
+    return rprof * (2 * rad / (rtop + rbot)) ** 2  # type: ignore
 
 
 def diff_prof(step: Step) -> Rprof:
@@ -234,7 +234,7 @@ def energy_prof(step: Step) -> Rprof:
     diff_p = diffs_prof(step)
     adv_p = advts_prof(step)
     return Rprof(
-        diff_p.values + np.append(adv_p.values, 0),
+        diff_p.values + np.append(adv_p.values, 0),  # type: ignore
         diff_p.rad,
         Varr("Total heat flux", "Heat flux", "W/m2"),
     )

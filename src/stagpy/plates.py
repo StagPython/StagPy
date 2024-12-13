@@ -284,7 +284,7 @@ def _write_trench_diagnostics(
 
     # vphi at trenches
     vphi = step.fields["v2"].values[0, :, isurf, 0]
-    vphi = (vphi[1:] + vphi[:-1]) / 2
+    vphi: NDArray[np.float64] = (vphi[1:] + vphi[:-1]) / 2  # type: ignore
     v_trenches = vphi[itrenches]
 
     if "age" in step.fields:

@@ -43,7 +43,7 @@ class Scales:
         if factor in phyvars.PREFIXES:
             scale *= 10 ** (-3 * (phyvars.PREFIXES.index(factor) + 1))
             unit = factor + unit
-        return data * scale, unit
+        return data * scale, unit  # type: ignore
 
     @cached_property
     def length(self) -> float:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import typing
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from . import _helpers
 from .config import Config
@@ -12,6 +13,8 @@ from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from numpy.typing import NDArray
 
     from .step import Rprofs, Step
 
@@ -48,7 +51,7 @@ def plot_rprofs(
                 rad = rpf.rad
                 meta = rpf.meta
                 if conf.rprof.depth:
-                    rad = rprofs.bounds[1] - rad
+                    rad: NDArray[np.float64] = rprofs.bounds[1] - rad  # type: ignore
                 axes[iplt].plot(rprof, rad, conf.rprof.style, label=meta.description)
                 if xlabel is None:
                     xlabel = meta.kind
