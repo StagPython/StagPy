@@ -143,7 +143,7 @@ class Geometry:
             else:
                 tmin = 0
                 tmax = self.aspect_ratio[0]
-            return np.linspace(tmin, tmax, self.nttot + 1)
+            return np.linspace(tmin, tmax, self.nttot + 1, dtype=np.float64)
         # twoD YZ
         center = np.pi / 2 if self.curvilinear else 0
         d_t = (self.p_walls[1] - self.p_walls[0]) / 2
@@ -166,7 +166,7 @@ class Geometry:
             else:
                 pmin = 0
                 pmax = self.aspect_ratio[1]
-            return np.linspace(pmin, pmax, self.nptot + 1)
+            return np.linspace(pmin, pmax, self.nptot + 1, dtype=np.float64)
         # twoD YZ
         d_p = (self.t_walls[1] - self.t_walls[0]) / 2
         return np.array([-d_p, d_p])
