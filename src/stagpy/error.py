@@ -20,8 +20,6 @@ class StagpyError(Exception):
         catch this exception.
     """
 
-    pass
-
 
 class NoSnapshotError(StagpyError):
     """Raised when no snapshot can be found.
@@ -85,8 +83,6 @@ class NoParFileError(StagpyError):
 
 class NotAvailableError(StagpyError):
     """Raised when a feature is not available yet."""
-
-    pass
 
 
 class ParsingError(StagpyError):
@@ -174,8 +170,6 @@ class InvalidZoomError(StagpyError):
 class MissingDataError(StagpyError, KeyError):
     """Raised when requested data is not present in output."""
 
-    pass
-
 
 class UnknownVarError(StagpyError, KeyError):
     """Raised when invalid var is requested.
@@ -192,16 +186,10 @@ class UnknownVarError(StagpyError, KeyError):
 class UnknownFieldVarError(UnknownVarError):
     """Raised when invalid field var is requested."""
 
-    pass
-
 
 class UnknownRprofVarError(UnknownVarError):
     """Raised when invalid rprof var is requested."""
 
-    pass
-
 
 class UnknownTimeVarError(UnknownVarError):
     """Raised when invalid time var is requested."""
-
-    pass
