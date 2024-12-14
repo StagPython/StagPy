@@ -13,8 +13,8 @@ class EndOfXml(Exception):
 
 class XmlStream:
     def __init__(self, filepath: Path):
-        self.filepath = filepath
-        self._event = "end"
+        self.filepath: Path = filepath
+        self._event: str = "end"
         self._elem: ET.Element
 
     @cached_property
