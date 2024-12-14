@@ -67,8 +67,9 @@ def all_cmd_time(
 @fixture(
     params=[
         (
-            "stagpy plates -o v2.dv2 -continents --field T",
+            "stagpy plates -o v2.dv2 -continents --field T +distribution",
             [
+                "stagpy_plates_size_distribution{:05d}.pdf",
                 "stagpy_plates_surf_v2_dv2_{:05d}.pdf",
                 "stagpy_plates_T{:05d}.pdf",
                 "stagpy_plates_trenches_snaps[-1,].dat",
