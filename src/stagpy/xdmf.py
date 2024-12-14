@@ -75,10 +75,12 @@ class XmlStream:
     def load(self) -> Iterator[ET.Element]:
         """Fully read the current element and its children."""
         self.current  # make sure to be at current "start" event
+        elem = None
         for self._event, elem in self._cursor:
             if self._event == "start":
                 self.load().__enter__()
             else:
                 yield elem
                 break
+        assert elem is not None
         elem.clear()
