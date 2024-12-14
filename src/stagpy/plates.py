@@ -438,7 +438,7 @@ def cmd(conf: Config) -> None:
                 limits.sort()
                 plate_sizes = np.diff(limits, append=2 * np.pi + limits[0])
                 fig, axis = plt.subplots()
-                axis.hist(plate_sizes, 10, (0, np.pi))
+                axis.hist(plate_sizes, bins=10, range=(0, np.pi))
                 axis.set_ylabel("Number of plates")
                 axis.set_xlabel(r"$\phi$-span")
                 saveplot(conf, fig, "plates_size_distribution", step.isnap)
