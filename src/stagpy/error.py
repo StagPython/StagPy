@@ -99,7 +99,7 @@ class ParsingError(StagpyError):
         super().__init__(file, msg)
 
 
-class InvalidTimestepError(StagpyError, KeyError):
+class InvalidTimestepError(StagpyError):
     """Raised when invalid time step is requested.
 
     Attributes:
@@ -115,7 +115,7 @@ class InvalidTimestepError(StagpyError, KeyError):
         super().__init__(sdat, istep, msg)
 
 
-class InvalidSnapshotError(StagpyError, KeyError):
+class InvalidSnapshotError(StagpyError):
     """Raised when invalid snapshot is requested.
 
     Attributes:
@@ -167,11 +167,11 @@ class InvalidZoomError(StagpyError):
         super().__init__(f"Zoom angle should be in [0,360] (received {zoom})")
 
 
-class MissingDataError(StagpyError, KeyError):
+class MissingDataError(StagpyError):
     """Raised when requested data is not present in output."""
 
 
-class UnknownVarError(StagpyError, KeyError):
+class UnknownVarError(StagpyError):
     """Raised when invalid var is requested.
 
     Attributes:

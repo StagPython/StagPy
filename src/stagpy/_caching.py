@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from . import phyvars, stagyyparsers
+from .error import InvalidSnapshotError
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping
@@ -169,7 +170,7 @@ class StepSnapLegacy(StepSnap):
                 isnap += 1
                 try:
                     istep_try = self.sdat.snaps[isnap].istep
-                except KeyError:
+                except InvalidSnapshotError:
                     pass
                 # all intermediate istep could have their isnap to None
                 self._snap_to_step[isnap] = istep_try

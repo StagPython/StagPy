@@ -568,7 +568,7 @@ class StepsView:
         """Check whether an item passes the filters."""
         try:
             step = self.over[item]
-        except KeyError:
+        except (error.InvalidTimestepError, error.InvalidSnapshotError):
             return False
         return self.filters.passes(step)
 
