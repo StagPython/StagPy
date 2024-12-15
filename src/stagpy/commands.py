@@ -14,7 +14,7 @@ from rich.table import Table
 from . import __version__, phyvars
 from ._helpers import baredoc, walk
 from .config import CONFIG_LOCAL, Config
-from .stagyydata import _sdat_from_conf
+from .stagyydata import StagyyData, _sdat_from_conf
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -22,7 +22,8 @@ if typing.TYPE_CHECKING:
 
     from loam.base import Section
 
-    from .datatypes import Varf, Varr, Vart
+    from .datatypes import Field, Rprof, Tseries, Varf, Varr, Vart
+    from .step import Step
 
 
 def info_cmd(conf: Config) -> None:
@@ -57,7 +58,10 @@ def info_cmd(conf: Config) -> None:
 
 def _layout(
     dict_vars: Mapping[str, Varf | Varr | Vart],
-    dict_vars_extra: Mapping[str, Callable],
+    dict_vars_extra: Mapping[
+        str,
+        Callable[[Step], Field | Rprof] | Callable[[StagyyData], Tseries],
+    ],
 ) -> Columns:
     """Print nicely [(var, description)] from phyvars."""
     desc = [(v, m.description) for v, m in dict_vars.items()]

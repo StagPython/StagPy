@@ -224,7 +224,7 @@ class Tseries:
         """
         return self._tseries.index.values
 
-    def at_step(self, istep: int) -> Series:
+    def at_step(self, istep: int) -> Series[np.float64]:
         """Time series output for a given step."""
         return self._tseries.loc[istep]  # type: ignore
 
@@ -650,7 +650,7 @@ class StagyyData:
             logic.
     """
 
-    path_hint: PathLike | str
+    path_hint: PathLike[str] | str
     read_parameters_dat: bool = True
 
     @property

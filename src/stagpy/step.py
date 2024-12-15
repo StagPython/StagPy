@@ -634,7 +634,7 @@ class Step:
         return Geometry(self)
 
     @property
-    def timeinfo(self) -> Series:
+    def timeinfo(self) -> Series[np.float64]:
         """Time series data of the time step."""
         try:
             info = self.sdat.tseries.at_step(self.istep)

@@ -395,9 +395,9 @@ def cmd(conf: Config) -> None:
                         plot_vec(axis, step, var[1], conf=conf)
             if conf.field.timelabel:
                 time = step.timeinfo["t"]
-                time = _helpers.scilabel(time)
+                time_str = _helpers.scilabel(time)
                 axes[0, 0].text(
-                    0.02, 1.02, f"$t={time}$", transform=axes[0, 0].transAxes
+                    0.02, 1.02, f"$t={time_str}$", transform=axes[0, 0].transAxes
                 )
             oname = "_".join(chain.from_iterable(vfig))
             plt.tight_layout(w_pad=3)
