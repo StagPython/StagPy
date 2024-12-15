@@ -5,7 +5,7 @@ from __future__ import annotations
 import typing
 
 if typing.TYPE_CHECKING:
-    from os import PathLike
+    from pathlib import Path
 
     from .stagyydata import StagyyData
     from .step import Step
@@ -76,7 +76,7 @@ class NoParFileError(StagpyError):
         parfile (PathLike): the expected path of the par file.
     """
 
-    def __init__(self, parfile: PathLike):
+    def __init__(self, parfile: Path):
         self.parfile = parfile
         super().__init__(f"{parfile} file not found")
 
@@ -93,7 +93,7 @@ class ParsingError(StagpyError):
         msg (str): error message.
     """
 
-    def __init__(self, file: PathLike, msg: str):
+    def __init__(self, file: Path, msg: str):
         self.file = file
         self.msg = msg
         super().__init__(file, msg)
