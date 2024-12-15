@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import typing
+from dataclasses import dataclass
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
@@ -21,166 +22,101 @@ class StagpyError(Exception):
     """
 
 
+@dataclass
 class NoSnapshotError(StagpyError):
-    """Raised when no snapshot can be found.
+    """Raised when no snapshot can be found."""
 
-    Attributes:
-        sdat (StagyyData): the `StagyyData` for which no snapshot was found.
-    """
-
-    def __init__(self, sdat: StagyyData):
-        self.sdat = sdat
-        super().__init__(f"no snapshot found for {sdat}")
+    sdat: StagyyData
 
 
+@dataclass
 class NoGeomError(StagpyError):
-    """Raised when no geometry info can be found.
+    """Raised when no geometry info can be found."""
 
-    Attributes:
-        step (Step): the `Step` for which no geometry was found.
-    """
-
-    def __init__(self, step: Step):
-        self.step = step
-        super().__init__(f"no geometry info found for {step!r}")
+    step: Step
 
 
+@dataclass
 class NoTimeError(StagpyError):
-    """Raised when no time can be found for a step.
+    """Raised when no time can be found for a step."""
 
-    Attributes:
-        step (Step): the `Step` instance for which no geometry was found.
-    """
-
-    def __init__(self, step: Step):
-        self.step = step
-        super().__init__(f"no time found for {step!r}")
+    step: Step
 
 
+@dataclass
 class NoRefstateError(StagpyError):
-    """Raised when no refstate output can be found.
+    """Raised when no refstate output can be found."""
 
-    Attributes:
-        sdat (StagyyData): the `StagyyData` instance for which no refstate was found.
-    """
-
-    def __init__(self, sdat: StagyyData):
-        self.sdat = sdat
-        super().__init__(f"no refstate found for {sdat!r}")
+    sdat: StagyyData
 
 
+@dataclass
 class NoParFileError(StagpyError):
-    """Raised when no par file can be found.
+    """Raised when no par file can be found."""
 
-    Attributes:
-        parfile (PathLike): the expected path of the par file.
-    """
-
-    def __init__(self, parfile: Path):
-        self.parfile = parfile
-        super().__init__(f"{parfile} file not found")
+    parfile: Path
 
 
 class NotAvailableError(StagpyError):
     """Raised when a feature is not available yet."""
 
 
+@dataclass
 class ParsingError(StagpyError):
-    """Raised when a parsing error occurs.
+    """Raised when a parsing error occurs."""
 
-    Attributes:
-        file (PathLike): path of the file where a parsing problem was encountered.
-        msg (str): error message.
-    """
-
-    def __init__(self, file: Path, msg: str):
-        self.file = file
-        self.msg = msg
-        super().__init__(file, msg)
+    file: Path
+    msg: str
 
 
+@dataclass
 class InvalidTimestepError(StagpyError):
-    """Raised when invalid time step is requested.
+    """Raised when invalid time step is requested."""
 
-    Attributes:
-        sdat (StagyyData): the `StagyyData` instance to which the request was made.
-        istep (int): the invalid time step index.
-        msg (str): the error message.
-    """
-
-    def __init__(self, sdat: StagyyData, istep: int, msg: str):
-        self.sdat = sdat
-        self.istep = istep
-        self.msg = msg
-        super().__init__(sdat, istep, msg)
+    sdat: StagyyData
+    istep: int
+    msg: str
 
 
+@dataclass
 class InvalidSnapshotError(StagpyError):
-    """Raised when invalid snapshot is requested.
+    """Raised when invalid snapshot is requested."""
 
-    Attributes:
-        sdat (StagyyData): the `StagyyData` instance to which the request was made.
-        isnap (int): the invalid snapshot index.
-        msg (str): the error message.
-    """
-
-    def __init__(self, sdat: StagyyData, isnap: int, msg: str):
-        self.sdat = sdat
-        self.isnap = isnap
-        self.msg = msg
-        super().__init__(sdat, isnap, msg)
+    sdat: StagyyData
+    isnap: int
+    msg: str
 
 
+@dataclass
 class InvalidTimeFractionError(StagpyError):
-    """Raised when invalid fraction of series is requested.
+    """Raised when invalid fraction of series is requested, should be in (0, 1]."""
 
-    Attributes:
-        fraction (float): the invalid fraction.
-    """
-
-    def __init__(self, fraction: float):
-        self.fraction = fraction
-        super().__init__(f"Fraction should be in (0,1] (received {fraction})")
+    fraction: float
 
 
+@dataclass
 class InvalidNfieldsError(StagpyError):
-    """Raised when invalid nfields_max is requested.
+    """Raised when invalid nfields_max is requested."""
 
-    Attributes:
-        nfields (int): the invalid number of field.
-    """
-
-    def __init__(self, nfields: int):
-        self.nfields = nfields
-        super().__init__(f"nfields_max should be >5 (received {nfields})")
+    nfields: int
 
 
+@dataclass
 class InvalidZoomError(StagpyError):
-    """Raised when invalid zoom is requested.
+    """Raised when invalid zoom is requested, should be in [0, 360]."""
 
-    Attributes:
-        zoom (float): the invalid zoom level.
-    """
-
-    def __init__(self, zoom: float):
-        self.zoom = zoom
-        super().__init__(f"Zoom angle should be in [0,360] (received {zoom})")
+    zoom: float
 
 
 class MissingDataError(StagpyError):
     """Raised when requested data is not present in output."""
 
 
+@dataclass
 class UnknownVarError(StagpyError):
-    """Raised when invalid var is requested.
+    """Raised when invalid var is requested."""
 
-    Attributes:
-        varname (str): the invalid var name.
-    """
-
-    def __init__(self, varname: str):
-        self.varname = varname
-        super().__init__(varname)
+    varname: str
 
 
 class UnknownFieldVarError(UnknownVarError):
