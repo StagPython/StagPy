@@ -55,6 +55,7 @@ def _load_mplstyle(conf: Config) -> None:
         plt.xkcd()
 
 
+assert doc_module is not None
 SUB_CMDS = MappingProxyType(
     {
         "common_": Subcmd(doc_module, "common", func=_bare_cmd),
