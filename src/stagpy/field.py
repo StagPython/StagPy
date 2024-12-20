@@ -5,7 +5,7 @@ from __future__ import annotations
 import typing
 from itertools import chain
 
-import matplotlib as mpl
+import matplotlib.colors as mpl_colors
 import matplotlib.patches as mpat
 import matplotlib.pyplot as plt
 import numpy as np
@@ -246,7 +246,7 @@ def plot_scalar(
         cmap=conf.field.cmap.get(var),
         vmin=conf.plot.vmin,
         vmax=conf.plot.vmax,
-        norm=mpl.colors.LogNorm() if var == "eta" else None,
+        norm=mpl_colors.LogNorm() if var == "eta" else None,
         rasterized=conf.plot.raster,
         shading="flat",
     )
