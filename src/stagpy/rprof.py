@@ -96,7 +96,10 @@ def plot_grid(step: Step, conf: Config | None = None) -> None:
 
 
 def cmd(conf: Config) -> None:
-    """Implementation of rprof subcommand."""
+    """Plot radial profiles.
+
+    This is the implementation of the `rprof` subcommand.
+    """
     sdat = _sdat_from_conf(conf.core)
     view = _helpers.walk(sdat, conf)
 

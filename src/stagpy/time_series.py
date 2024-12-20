@@ -123,7 +123,10 @@ def compstat(
 
 
 def cmd(conf: Config) -> None:
-    """Implementation of time subcommand."""
+    """Plot time series.
+
+    This is the implementation of the `time` subcommand.
+    """
     sdat = _sdat_from_conf(conf.core)
     if conf.time.fraction is not None:
         if not 0 < conf.time.fraction <= 1:

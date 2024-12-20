@@ -403,7 +403,10 @@ def plot_scalar_field(
 
 
 def cmd(conf: Config) -> None:
-    """Implementation of plates subcommand."""
+    """Plate analysis.
+
+    This is the implementation of the `plates` subcommand.
+    """
     sdat = _sdat_from_conf(conf.core)
     view = _helpers.walk(sdat, conf)
 

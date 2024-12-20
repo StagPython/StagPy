@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib.resources as imlr
 import typing
-from inspect import isfunction
 from pathlib import Path
 from types import MappingProxyType
 
@@ -26,13 +25,12 @@ from ._helpers import baredoc
 from .config import Config
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable
+    from typing import Callable
 
 
-def _sub(cmd: Any, *sections: str) -> Subcmd:
+def _sub(cmd: Callable[[Config], None], *sections: str) -> Subcmd:
     """Build Subcmd instance."""
-    cmd_func = cmd if isfunction(cmd) else cmd.cmd
-    return Subcmd(baredoc(cmd), *sections, func=cmd_func)
+    return Subcmd(baredoc(cmd), *sections, func=cmd)
 
 
 def _bare_cmd(conf: Config) -> None:
@@ -59,11 +57,11 @@ assert doc_module is not None
 SUB_CMDS = MappingProxyType(
     {
         "common_": Subcmd(doc_module, "common", func=_bare_cmd),
-        "field": _sub(field, "core", "plot", "scaling"),
-        "rprof": _sub(rprof, "core", "plot", "scaling"),
-        "time": _sub(time_series, "core", "plot", "scaling"),
-        "refstate": _sub(refstate, "core", "plot"),
-        "plates": _sub(plates, "core", "plot", "scaling"),
+        "field": _sub(field.cmd, "core", "plot", "scaling"),
+        "rprof": _sub(rprof.cmd, "core", "plot", "scaling"),
+        "time": _sub(time_series.cmd, "core", "plot", "scaling"),
+        "refstate": _sub(refstate.cmd, "core", "plot"),
+        "plates": _sub(plates.cmd, "core", "plot", "scaling"),
         "info": _sub(commands.info_cmd, "core", "scaling"),
         "var": _sub(commands.var_cmd),
         "version": _sub(commands.version_cmd),

@@ -364,7 +364,10 @@ def _findminmax(view: StepsView, sovs: Iterable[str]) -> dict[str, tuple[float, 
 
 
 def cmd(conf: Config) -> None:
-    """Implementation of field subcommand."""
+    """Plot scalar and vector fields.
+
+    This is the implementation of the `field` subcommand.
+    """
     sdat = _sdat_from_conf(conf.core)
     view = _helpers.walk(sdat, conf)
     # no more than two fields in a subplot

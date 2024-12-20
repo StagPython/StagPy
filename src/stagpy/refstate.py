@@ -42,7 +42,10 @@ def plot_ref(sdat: StagyyData, var: str, conf: Config | None = None) -> None:
 
 
 def cmd(conf: Config) -> None:
-    """Implementation of refstate subcommand."""
+    """Plot reference state profiles.
+
+    This is the implementation of the `refstate` subcommand.
+    """
     sdat = _sdat_from_conf(conf.core)
 
     for var in conf.refstate.plot:
