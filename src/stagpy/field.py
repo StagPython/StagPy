@@ -161,28 +161,33 @@ def get_meshes_vec(
         fldx: x component
         fldy: y component
     """
-    if step.geom.threed and step.geom.cartesian:
+    if step.geom.curvilinear:
+        if step.geom.twod_yz:
+            pcoord = step.geom.p_walls
+            pmesh = np.outer(pcoord, np.ones(step.geom.nrtot))
+            vec_phi = step.fields[var + "2"].values[0, :, :, 0]
+            vec_r = step.fields[var + "3"].values[0, :, :, 0]
+            vec1 = vec_r * np.cos(pmesh) - vec_phi * np.sin(pmesh)
+            vec2 = vec_phi * np.cos(pmesh) + vec_r * np.sin(pmesh)
+            pcoord, rcoord = step.geom.p_walls, step.geom.r_centers
+            pmesh, rmesh = np.meshgrid(pcoord, rcoord, indexing="ij")
+            xmesh, ymesh = rmesh * np.cos(pmesh), rmesh * np.sin(pmesh)
+            return xmesh, ymesh, vec1, vec2
+        else:
+            raise NotImplementedError()
+
+    # cartesian
+    if step.geom.threed:
         (xcoord, ycoord), (vec1, vec2) = _threed_extract(conf, step, var)
     elif step.geom.twod_xz:
         xcoord, ycoord = step.geom.x_walls, step.geom.z_centers
         vec1 = step.fields[var + "1"].values[:, 0, :, 0]
         vec2 = step.fields[var + "3"].values[:, 0, :, 0]
-    elif step.geom.cartesian and step.geom.twod_yz:
+    else:  # twod_yz
         xcoord, ycoord = step.geom.y_walls, step.geom.z_centers
         vec1 = step.fields[var + "2"].values[0, :, :, 0]
         vec2 = step.fields[var + "3"].values[0, :, :, 0]
-    else:  # spherical yz
-        pcoord = step.geom.p_walls
-        pmesh = np.outer(pcoord, np.ones(step.geom.nrtot))
-        vec_phi = step.fields[var + "2"].values[0, :, :, 0]
-        vec_r = step.fields[var + "3"].values[0, :, :, 0]
-        vec1 = vec_r * np.cos(pmesh) - vec_phi * np.sin(pmesh)
-        vec2 = vec_phi * np.cos(pmesh) + vec_r * np.sin(pmesh)
-        pcoord, rcoord = step.geom.p_walls, step.geom.r_centers
-        pmesh, rmesh = np.meshgrid(pcoord, rcoord, indexing="ij")
-        xmesh, ymesh = rmesh * np.cos(pmesh), rmesh * np.sin(pmesh)
-    if step.geom.cartesian:
-        xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing="ij")
+    xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing="ij")
     return xmesh, ymesh, vec1, vec2
 
 
