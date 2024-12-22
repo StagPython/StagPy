@@ -80,7 +80,7 @@ def time_series(timefile: Path, colnames: list[str]) -> DataFrame | None:
         memory_map=True,
         on_bad_lines="skip",
     )
-    data = data.apply(pd.to_numeric, raw=True, errors="coerce")  # type: ignore
+    data = data.apply(pd.to_numeric, raw=True, errors="coerce")
 
     # detect useless lines produced when run is restarted
     rows_to_del = []
@@ -196,7 +196,7 @@ def rprof(
         memory_map=True,
         on_bad_lines="skip",
     )
-    data = data.apply(pd.to_numeric, raw=True, errors="coerce")  # type: ignore
+    data = data.apply(pd.to_numeric, raw=True, errors="coerce")
 
     isteps = _extract_rsnap_isteps(rproffile, data)
 
@@ -290,7 +290,7 @@ def refstate(
         memory_map=True,
         on_bad_lines="skip",
     )
-    data = data.apply(pd.to_numeric, raw=True, errors="coerce")  # type: ignore
+    data = data.apply(pd.to_numeric, raw=True, errors="coerce")
     # drop lines corresponding to metadata
     data.dropna(subset=[0], inplace=True)
     isystem = -1

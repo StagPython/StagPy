@@ -530,7 +530,7 @@ class RprofsInstant(Rprofs):
             centers = self.centers
             walls: NDArray[np.float64] = (centers[:-1] + centers[1:]) / 2  # type: ignore
             walls = np.insert(walls, 0, rbot)
-            walls: NDArray[np.float64] = np.append(walls, rtop)  # type: ignore
+            walls = np.append(walls, rtop)
         return walls
 
     @cached_property
