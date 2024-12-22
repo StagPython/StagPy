@@ -80,6 +80,8 @@ module = [
 ignore_missing_imports = true
 
 [tool.basedpyright]
+venvPath = "."
+venv = ".venv"
 enableTypeIgnoreComments = true
 reportAny = false
 reportIgnoreCommentWithoutRule = false
