@@ -114,21 +114,30 @@ def get_meshes_fld(
         or fld.values.shape[0] != step.geom.nxtot
         or fld.values.shape[1] != step.geom.nytot
     )
-    if step.geom.threed and step.geom.cartesian:
-        (xcoord, ycoord), vals = _threed_extract(conf, step, var, walls)
-    elif step.geom.twod_xz:
-        xcoord = step.geom.x_walls if hwalls else step.geom.x_centers
-        ycoord = step.geom.z_walls if walls else step.geom.z_centers
-        vals = fld.values[:, 0, :, 0]
-    else:  # twod_yz
-        xcoord = step.geom.y_walls if hwalls else step.geom.y_centers
-        ycoord = step.geom.z_walls if walls else step.geom.z_centers
-        if step.geom.curvilinear:
+
+    if step.geom.curvilinear:
+        if step.geom.twod_yz:
+            xcoord = step.geom.y_walls if hwalls else step.geom.y_centers
+            ycoord = step.geom.z_walls if walls else step.geom.z_centers
             pmesh, rmesh = np.meshgrid(xcoord, ycoord, indexing="ij")
             xmesh, ymesh = rmesh * np.cos(pmesh), rmesh * np.sin(pmesh)
-        vals = fld.values[0, :, :, 0]
-    if step.geom.cartesian:
-        xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing="ij")
+            vals = fld.values[0, :, :, 0]
+            return xmesh, ymesh, vals, fld.meta
+        else:
+            raise NotImplementedError()
+
+    # cartesian
+    if step.geom.threed:
+        (xcoord, ycoord), vals = _threed_extract(conf, step, var, walls)
+    else:
+        if step.geom.twod_xz:
+            xcoord = step.geom.x_walls if hwalls else step.geom.x_centers
+            vals = fld.values[:, 0, :, 0]
+        else:  # twod_yz
+            xcoord = step.geom.y_walls if hwalls else step.geom.y_centers
+            vals = fld.values[0, :, :, 0]
+        ycoord = step.geom.z_walls if walls else step.geom.z_centers
+    xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing="ij")
     return xmesh, ymesh, vals, fld.meta
 
 
