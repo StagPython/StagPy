@@ -27,7 +27,7 @@ if typing.TYPE_CHECKING:
     from .step import Geometry, Step
 
 
-def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray[np.int32]:
+def _vzcheck(iphis: NDArray[np.intp], snap: Step, vz_thres: float) -> NDArray[np.intp]:
     """Remove positions where vz is below threshold."""
     # verifying vertical velocity
     vzabs = np.abs(snap.fields["v3"].values[0, ..., 0])
@@ -42,7 +42,7 @@ def _vzcheck(iphis: Sequence[int], snap: Step, vz_thres: float) -> NDArray[np.in
 @lru_cache
 def detect_plates(
     snap: Step, vz_thres_ratio: float = 0
-) -> tuple[NDArray[np.int32], NDArray[np.int32]]:
+) -> tuple[NDArray[np.intp], NDArray[np.intp]]:
     """Detect plate limits using derivative of horizontal velocity.
 
     This function is cached for convenience.
