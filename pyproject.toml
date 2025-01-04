@@ -85,6 +85,7 @@ venv = ".venv"
 enableTypeIgnoreComments = true
 reportAny = false
 reportIgnoreCommentWithoutRule = false
+reportImplicitOverride = false
 reportImportCycles = false
 reportMissingTypeStubs = false
 reportPrivateUsage = false
