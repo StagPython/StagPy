@@ -62,7 +62,7 @@ def plot_time_series(
             tstart = ptstart if tstart is None else min(ptstart, tstart)
             tend = ptend if tend is None else max(ptend, tend)
             fname.extend(vplt)
-            for ivar, tseries in enumerate(series_on_plt):
+            for tseries in series_on_plt:
                 axes[iplt].plot(
                     tseries.time,
                     tseries.values,
@@ -74,14 +74,14 @@ def plot_time_series(
                     ylabel = lbl
                 elif ylabel != lbl:
                     ylabel = ""
-            if ivar == 0:
-                ylabel = tseries.meta.description
+            if len(series_on_plt) == 1:
+                ylabel = series_on_plt[0].meta.description
             if ylabel:
                 axes[iplt].set_ylabel(ylabel)
             if vplt[0][:3] == "eta":  # list of log variables
                 axes[iplt].set_yscale("log")
             axes[iplt].set_ylim(bottom=conf.plot.vmin, top=conf.plot.vmax)
-            if ivar:
+            if len(series_on_plt) > 1:
                 axes[iplt].legend()
             axes[iplt].tick_params()
             for time_mark in time_marks:
