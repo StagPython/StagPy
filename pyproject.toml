@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling>=1.25"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.7.20"]
+build-backend = "uv_build"
 
 [project]
 name = "stagpy"
@@ -60,9 +60,6 @@ doc = [
 
 [project.scripts]
 stagpy = "stagpy.__main__:main"
-
-[tool.hatch.build.targets.sdist]
-include = ["stagpy"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
