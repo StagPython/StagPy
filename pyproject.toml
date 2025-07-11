@@ -15,7 +15,8 @@ authors = [
 maintainers = [
     {name = "Adrien Morison", email = "adrien.morison@gmail.com"},
 ]
-license = {file = "LICENSE"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 urls = {homepage = "https://github.com/StagPython/StagPy"}
 classifiers = [
     "Development Status :: 3 - Alpha",
