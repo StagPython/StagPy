@@ -31,14 +31,14 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "f90nml>=1.4.4",
-    "h5py~=3.12",
-    "loam~=0.8.0",
-    "matplotlib~=3.9",
-    "numpy~=2.1",
-    "pandas~=2.2",
-    "rich>=13.9.4",
-    "scipy~=1.14",
+    "f90nml>=1.5",
+    "h5py~=3.15",
+    "loam~=0.9.0",
+    "matplotlib~=3.10",
+    "numpy~=2.2",
+    "pandas~=2.3",
+    "rich>=14.2.0",
+    "scipy~=1.15",
 ]
 
 [dependency-groups]
