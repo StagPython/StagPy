@@ -486,7 +486,7 @@ class RprofsInstant(Rprofs):
     def __getitem__(self, name: str) -> Rprof:
         step = self.step
         if name in self._rprofs.columns:
-            rprof = self._rprofs[name].to_numpy()
+            rprof = self._rprofs[name].to_numpy(dtype=np.float64)
             rad = self.centers
             if name in phyvars.RPROF:
                 meta = phyvars.RPROF[name]
