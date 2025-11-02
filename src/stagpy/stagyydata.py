@@ -164,6 +164,7 @@ class Tseries:
         return self._data
 
     def __getitem__(self, name: str) -> dt.Tseries:
+        series: NDArray[np.float64]
         if name in self._tseries.columns:
             series = self._tseries[name].to_numpy(dtype=np.float64)
             time = self.time
