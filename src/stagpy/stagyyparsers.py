@@ -396,7 +396,7 @@ def _legacy_header(
         sfield = True
 
     magic %= 100
-    if magic < 9 or magic > 11:
+    if magic < 9 or magic > 12:
         raise ParsingError(filepath, f"{magic=:d} not supported")
 
     header_info = _HeaderInfo(magic, nval, sfield, readbin, {})
@@ -433,6 +433,14 @@ def _legacy_header(
 
     header["ti_ad"] = readbin("f")  # magic >= 3
     header["erupta_total"] = readbin("f")  # magic >= 5
+    if magic >= 12:
+        header["erupta_ttg"] = readbin("f")
+        header["intruda"] = readbin("f", 2)
+        header["ttg_mass"] = readbin("f", 3)
+    else:
+        header["erupta_ttg"] = 0.0
+        header["intruda"] = np.zeros(2)
+        header["ttg_mass"] = np.zeros(3)
     header["bot_temp"] = readbin("f")  # magic >= 6
     header["core_temp"] = readbin("f") if magic >= 10 else 1
     header["ocean_mass"] = readbin("f") if magic >= 11 else 0.0
