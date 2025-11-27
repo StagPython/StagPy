@@ -394,10 +394,10 @@ class Tracers:
     step: Step
 
     @cached_property
-    def _data(self) -> dict[str, list[NDArray[np.float64]] | None]:
+    def _data(self) -> dict[str, list[NDArray[np.floating]] | None]:
         return {}
 
-    def __getitem__(self, name: str) -> list[NDArray[np.float64]] | None:
+    def __getitem__(self, name: str) -> list[NDArray[np.floating]] | None:
         if name in self._data:
             return self._data[name]
         if self.step.isnap is None:
@@ -406,7 +406,7 @@ class Tracers:
             self.step.sdat.filename("tra", timestep=self.step.isnap, force_legacy=True)
         )
         if data is None and self.step.sdat.hdf5:
-            self._data[name] = stagyyparsers.read_tracers_h5(
+            self._data[name] = stagyyparsers.read_tracers_h5(  # type: ignore
                 self.step.sdat._traxmf,
                 name,
                 self.step.isnap,

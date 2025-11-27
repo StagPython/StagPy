@@ -339,6 +339,36 @@ def refstate(
     return syst, adia
 
 
+@dataclass(frozen=True)
+class _Cursor:
+    fid: BinaryIO
+    int_type: type[np.integer]
+    float_type: type[np.floating]
+
+    def reset_with_64_bits(self) -> _Cursor:
+        self.fid.seek(0)
+        return _Cursor(
+            fid=self.fid,
+            int_type=np.int64,
+            float_type=np.float64,
+        )
+
+    def string(self, nbytes: int) -> str:
+        return b"".join(np.fromfile(self.fid, "b", nbytes)).strip().decode()
+
+    def single_int(self) -> np.integer:
+        return np.fromfile(self.fid, self.int_type, 1)[0]
+
+    def single_float(self) -> np.floating:
+        return np.fromfile(self.fid, self.float_type, 1)[0]
+
+    def ints(self, count: int | np.integer) -> NDArray[np.integer]:
+        return np.fromfile(self.fid, self.int_type, count)
+
+    def floats(self, count: int | np.integer) -> NDArray[np.floating]:
+        return np.fromfile(self.fid, self.float_type, count)
+
+
 def _readbin(
     fid: BinaryIO,
     fmt: str = "i",
@@ -563,7 +593,7 @@ def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray[np.float64]] | None
     return header, flds
 
 
-def tracers(tracersfile: Path) -> dict[str, list[NDArray[np.float64]]] | None:
+def tracers(tracersfile: Path) -> dict[str, list[NDArray[np.floating]]] | None:
     """Extract tracers data.
 
     Args:
@@ -574,38 +604,39 @@ def tracers(tracersfile: Path) -> dict[str, list[NDArray[np.float64]]] | None:
     """
     if not tracersfile.is_file():
         return None
-    tra: dict[str, list[NDArray[np.float64]]] = {}
+    tra: dict[str, list[NDArray[np.floating]]] = {}
     with tracersfile.open("rb") as fid:
-        readbin = partial(_readbin, fid)
-        magic = readbin()
+        cursor = _Cursor(fid=fid, int_type=np.int32, float_type=np.float32)
+        magic = cursor.single_int().item()
         if magic > 8000:  # 64 bits
+            cursor = cursor.reset_with_64_bits()
+            if magic != cursor.single_int():
+                raise ParsingError(tracersfile, "inconsistent magic number in 64 bits")
             magic -= 8000
-            readbin()
-            readbin = partial(readbin, file64=True)
         if magic < 100:
             raise ParsingError(
                 tracersfile, "magic > 100 expected to get tracervar info"
             )
         nblk = magic % 100
-        readbin("f", 2)  # aspect ratio
-        readbin()  # istep
-        readbin("f")  # time
-        ninfo = readbin()
-        ntra = readbin(nwords=nblk, unpack=False)
-        readbin("f")  # tracer ideal mass
-        curv = readbin()
+        cursor.floats(2)  # aspect ratio
+        cursor.single_int()  # istep
+        cursor.single_float()  # time
+        ninfo = cursor.single_int()
+        ntra = cursor.ints(nblk)
+        cursor.single_float()  # tracer ideal mass
+        curv = cursor.single_int()
         if curv:
-            readbin("f")  # r_cmb
+            cursor.single_float()  # r_cmb
         infos = []  # list of info names
         for _ in range(ninfo):
-            infos.append(b"".join(readbin("b", 16)).strip().decode())
+            infos.append(cursor.string(16))
             tra[infos[-1]] = []
         if magic > 200:
-            ntrace_elt = readbin()
+            ntrace_elt = cursor.single_int()
             if ntrace_elt > 0:
-                readbin("f", ntrace_elt)  # outgassed
+                cursor.floats(ntrace_elt)  # outgassed
         for ntrab in ntra:  # blocks
-            data = readbin("f", ntrab * ninfo)
+            data = cursor.floats(ntrab * ninfo)
             for idx, info in enumerate(infos):
                 tra[info].append(data[idx::ninfo])
     return tra
