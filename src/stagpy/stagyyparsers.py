@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 import typing
 from dataclasses import dataclass
-from functools import cached_property, partial
+from functools import cached_property
 from itertools import product
 from operator import itemgetter
 
@@ -26,7 +26,7 @@ from .xdmf import XmlStream
 if typing.TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
     from pathlib import Path
-    from typing import Any, BinaryIO, Callable
+    from typing import Any, BinaryIO
     from xml.etree.ElementTree import Element
 
     from numpy.typing import NDArray
@@ -369,30 +369,6 @@ class _Cursor:
         return np.fromfile(self.fid, self.float_type, count)
 
 
-def _readbin(
-    fid: BinaryIO,
-    fmt: str = "i",
-    nwords: int = 1,
-    file64: bool = False,
-    unpack: bool = True,
-) -> Any:
-    """Read n words of 4 or 8 bytes with fmt format.
-
-    fmt: 'i' or 'f' or 'b' (integer or float or bytes)
-    4 or 8 bytes: depends on header
-
-    Return an array of elements if more than one element.
-
-    Default: read 1 word formatted as an integer.
-    """
-    if fmt in "if":
-        fmt += "8" if file64 else "4"
-    elts = np.fromfile(fid, fmt, nwords)
-    if unpack and len(elts) == 1:
-        elts = elts[0]
-    return elts
-
-
 @dataclass(frozen=True)
 class _HeaderInfo:
     """Header information."""
@@ -400,7 +376,7 @@ class _HeaderInfo:
     magic: int
     nval: int
     sfield: bool
-    readbin: Callable
+    cursor: _Cursor
     header: dict[str, Any]
 
 
@@ -408,12 +384,13 @@ def _legacy_header(
     filepath: Path, fid: BinaryIO, stop_at_istep: bool = False
 ) -> _HeaderInfo:
     """Read the header of a legacy binary file."""
-    readbin = partial(_readbin, fid)
-    magic = readbin()
+    cursor = _Cursor(fid=fid, int_type=np.int32, float_type=np.float32)
+    magic = cursor.single_int().item()
     if magic > 8000:  # 64 bits
+        cursor = cursor.reset_with_64_bits()
+        if magic != cursor.single_int():
+            raise ParsingError(filepath, "inconsistent magic number in 64 bits")
         magic -= 8000
-        readbin()  # need to read 4 more bytes
-        readbin = partial(readbin, file64=True)
 
     # check nb components
     nval = 1
@@ -429,7 +406,7 @@ def _legacy_header(
     if magic < 9 or magic > 12:
         raise ParsingError(filepath, f"{magic=:d} not supported")
 
-    header_info = _HeaderInfo(magic, nval, sfield, readbin, {})
+    header_info = _HeaderInfo(magic, nval, sfield, cursor, {})
     header = header_info.header
     # extra ghost point in horizontal direction
     header["xyp"] = int(nval == 4)  # magic >= 9
@@ -437,48 +414,48 @@ def _legacy_header(
     # total number of values in relevant space basis
     # (e1, e2, e3) = (theta, phi, radius) in spherical geometry
     #              = (x, y, z)            in cartesian geometry
-    header["nts"] = readbin(nwords=3)
+    header["nts"] = cursor.ints(3)
 
     # number of blocks, 2 for yinyang or cubed sphere
-    header["ntb"] = readbin()  # magic >= 7
+    header["ntb"] = cursor.single_int()  # magic >= 7
 
     # aspect ratio
-    header["aspect"] = readbin("f", 2)
+    header["aspect"] = cursor.floats(2)
 
     # number of parallel subdomains
-    header["ncs"] = readbin(nwords=3)  # (e1, e2, e3) space
-    header["ncb"] = readbin()  # magic >= 8, blocks
+    header["ncs"] = cursor.ints(3)  # (e1, e2, e3) space
+    header["ncb"] = cursor.single_int()  # magic >= 8, blocks
 
     # r - coordinates
     # rgeom[0:self.nrtot+1, 0] are edge radial position
     # rgeom[0:self.nrtot, 1] are cell-center radial position
-    header["rgeom"] = readbin("f", header["nts"][2] * 2 + 1)  # magic >= 2
+    header["rgeom"] = cursor.floats(header["nts"][2] * 2 + 1)  # magic >= 2
     header["rgeom"] = np.resize(header["rgeom"], (header["nts"][2] + 1, 2))
 
-    header["rcmb"] = readbin("f")  # magic >= 7
+    header["rcmb"] = cursor.single_float()  # magic >= 7
 
-    header["ti_step"] = readbin()  # magic >= 3
+    header["ti_step"] = cursor.single_int()  # magic >= 3
     if stop_at_istep:
         return header_info
 
-    header["ti_ad"] = readbin("f")  # magic >= 3
-    header["erupta_total"] = readbin("f")  # magic >= 5
+    header["ti_ad"] = cursor.single_float()  # magic >= 3
+    header["erupta_total"] = cursor.single_float()  # magic >= 5
     if magic >= 12:
-        header["erupta_ttg"] = readbin("f")
-        header["intruda"] = readbin("f", 2)
-        header["ttg_mass"] = readbin("f", 3)
+        header["erupta_ttg"] = cursor.single_float()
+        header["intruda"] = cursor.floats(2)
+        header["ttg_mass"] = cursor.floats(3)
     else:
         header["erupta_ttg"] = 0.0
         header["intruda"] = np.zeros(2)
         header["ttg_mass"] = np.zeros(3)
-    header["bot_temp"] = readbin("f")  # magic >= 6
-    header["core_temp"] = readbin("f") if magic >= 10 else 1
-    header["ocean_mass"] = readbin("f") if magic >= 11 else 0.0
+    header["bot_temp"] = cursor.single_float()  # magic >= 6
+    header["core_temp"] = cursor.single_float() if magic >= 10 else 1.0
+    header["ocean_mass"] = cursor.single_float() if magic >= 11 else 0.0
 
     # magic >= 4
-    header["e1_coord"] = readbin("f", header["nts"][0])
-    header["e2_coord"] = readbin("f", header["nts"][1])
-    header["e3_coord"] = readbin("f", header["nts"][2])
+    header["e1_coord"] = cursor.floats(header["nts"][0])
+    header["e2_coord"] = cursor.floats(header["nts"][1])
+    header["e3_coord"] = cursor.floats(header["nts"][2])
 
     return header_info
 
@@ -530,6 +507,7 @@ def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray[np.float64]] | None
     with fieldfile.open("rb") as fid:
         hdr = _legacy_header(fieldfile, fid)
         header = hdr.header
+        cursor = hdr.cursor
 
         # READ FIELDS
         # number of points in (e1, e2, e3) directions PER CPU
@@ -545,7 +523,7 @@ def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray[np.float64]] | None
             * hdr.nval
         )
 
-        header["scalefac"] = hdr.readbin("f") if hdr.nval > 1 else 1
+        header["scalefac"] = cursor.single_float() if hdr.nval > 1 else 1.0
 
         flds = np.zeros(
             (
@@ -565,7 +543,7 @@ def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray[np.float64]] | None
             range(header["ncs"][0]),
         ):
             # read the data for one CPU
-            data_cpu = hdr.readbin("f", npi) * header["scalefac"]
+            data_cpu = cursor.floats(npi) * header["scalefac"]
 
             # icpu is (icpu block, icpu z, icpu y, icpu x)
             # data from file is transposed to obtained a field
