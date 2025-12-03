@@ -10,12 +10,29 @@ from . import phyvars
 from .config import Scaling
 
 if typing.TYPE_CHECKING:
+    from typing import TypeVar
+
     from numpy.typing import NDArray
 
     from .parfile import StagyyPar
     from .stagyydata import StagyyData
 
-    T = float | NDArray[np.float64]
+    T = TypeVar("T", float, NDArray[np.float64])
+
+
+def apply_factors(data: T, unit: str, scaling: Scaling) -> tuple[T, str]:
+    """Rescale a dimensional quantity according to scaling factors."""
+    factor = scaling.factors.get(unit, "")
+    if scaling.time_in_y and unit == "s":
+        data /= scaling.yearins
+        unit = "yr"
+    elif scaling.vel_in_cmpy and unit == "m/s":
+        data *= 100 * scaling.yearins
+        unit = "cm/yr"
+    if factor in phyvars.PREFIXES:
+        data *= 10 ** (-3 * (phyvars.PREFIXES.index(factor) + 1))
+        unit = factor + unit
+    return data, unit
 
 
 @dataclass(frozen=True)
@@ -33,17 +50,8 @@ class Scales:
         if self.par.get("switches", "dimensional_units", True) or unit == "1":
             return data, ""
         scale = phyvars.SCALES[unit](self)
-        factor = scaling.factors.get(unit, " ")
-        if scaling.time_in_y and unit == "s":
-            scale /= scaling.yearins
-            unit = "yr"
-        elif scaling.vel_in_cmpy and unit == "m/s":
-            scale *= 100 * scaling.yearins
-            unit = "cm/y"
-        if factor in phyvars.PREFIXES:
-            scale *= 10 ** (-3 * (phyvars.PREFIXES.index(factor) + 1))
-            unit = factor + unit
-        return data * scale, unit  # type: ignore
+        scale, unit = apply_factors(scale, unit, scaling)
+        return data * scale, unit
 
     @cached_property
     def length(self) -> float:
