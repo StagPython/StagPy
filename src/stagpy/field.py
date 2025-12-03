@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+from stagpy.dimensions import apply_factors
+
 from . import _helpers, phyvars
 from .config import Config
 from .error import NotAvailableError
@@ -412,9 +414,13 @@ def cmd(conf: Config) -> None:
                         plot_vec(axis, step, var[1], conf=conf)
             if conf.field.timelabel:
                 time = step.timeinfo["t"]
+                unit = ""
+                if sdat.par.get("switches", "dimensional_units", True):
+                    time, unit = apply_factors(time, "s", conf.scaling)
+                    unit = " " + unit
                 time_str = _helpers.scilabel(time)
                 axes[0, 0].text(
-                    0.02, 1.02, f"$t={time_str}$", transform=axes[0, 0].transAxes
+                    0.02, 1.02, f"$t={time_str}${unit}", transform=axes[0, 0].transAxes
                 )
             oname = "_".join(chain.from_iterable(vfig))
             plt.tight_layout(w_pad=3)

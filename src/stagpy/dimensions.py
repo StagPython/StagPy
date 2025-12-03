@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
     from .parfile import StagyyPar
     from .stagyydata import StagyyData
 
-    T = TypeVar("T", float, NDArray[np.float64])
+    T = TypeVar("T", float, np.float64, NDArray[np.float64])
 
 
 def apply_factors(data: T, unit: str, scaling: Scaling) -> tuple[T, str]:
