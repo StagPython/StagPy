@@ -69,13 +69,24 @@ def time_series(timefile: Path, colnames: list[str]) -> DataFrame | None:
     """
     if not timefile.is_file():
         return None
+
+    with timefile.open() as fid:
+        names_in_file = fid.readline().strip().split()
+    _tidy_names(
+        colnames,
+        len(names_in_file) + 9,  # extra columns in case some were added mid-run
+        extra_names=names_in_file[len(colnames) + 1 :],
+    )
+    colnames.insert(0, "istep")
+
     data = pd.read_csv(
         timefile,
         sep=r"\s+",
         dtype=str,
         header=None,
+        names=colnames,
         skiprows=1,
-        index_col=0,
+        index_col="istep",
         engine="c",
         memory_map=True,
         on_bad_lines="skip",
@@ -94,10 +105,7 @@ def time_series(timefile: Path, colnames: list[str]) -> DataFrame | None:
     if rows_to_del:
         rows_to_keep = set(range(len(data))) - set(rows_to_del)
         data = data.take(list(rows_to_keep))
-
-    ncols = data.shape[1]
-    _tidy_names(colnames, ncols)
-    data.columns = pd.Index(colnames)
+    data.dropna(axis="columns", how="all", inplace=True)
 
     return data
 
