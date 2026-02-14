@@ -287,6 +287,7 @@ def _write_trench_diagnostics(
     vphi: NDArray[np.float64] = (vphi[1:] + vphi[:-1]) / 2  # type: ignore
     v_trenches = vphi[itrenches]
 
+    agetrenches = np.zeros(len(itrenches))
     if "age" in step.fields:
         agefld = step.fields["age"].values[0, :, isurf, 0]
         age_surface = np.ma.masked_where(agefld < 1.0e-5, agefld)
@@ -298,8 +299,6 @@ def _write_trench_diagnostics(
             / 1.0e6
         )
         agetrenches = age_surface_dim[itrenches]  # age at the trench
-    else:
-        agetrenches = np.zeros(len(itrenches))
 
     if conf.plates.continents:
         phi_cont = step.geom.p_centers[_continents_location(step)]
