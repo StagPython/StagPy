@@ -9,7 +9,7 @@ def test_time_series_prs(sdat: StagyyData) -> None:
     data = prs.time_series(sdat.filename("time.dat"), list(names))
     assert data is not None
     assert (data.columns[:3] == names).all()
-    assert (data.columns[3:] == list(map(str, range(data.shape[1] - 3)))).all()
+    assert (data.columns[3:6] == ["Tmin", "Tmean", "Tmax"]).all()
 
 
 def test_time_series_invalid_prs() -> None:
