@@ -52,16 +52,11 @@ def _tidy_names(
     del names[nnames:]
 
 
-def time_series(timefile: Path, colnames: list[str]) -> DataFrame | None:
+def time_series(timefile: Path) -> DataFrame | None:
     """Read temporal series text file.
-
-    If `colnames` is too long, it will be truncated. If it is too short,
-    additional numeric column names from 0 to N-1 will be attributed to the N
-    extra columns present in `timefile`.
 
     Args:
         timefile: path of the time.dat file.
-        colnames: names of the variables expected in `timefile` (may be modified).
 
     Returns:
         A `pandas.DataFrame` containing the time series, organized by
@@ -71,13 +66,9 @@ def time_series(timefile: Path, colnames: list[str]) -> DataFrame | None:
         return None
 
     with timefile.open() as fid:
-        names_in_file = fid.readline().strip().split()
-    _tidy_names(
-        colnames,
-        len(names_in_file) + 9,  # extra columns in case some were added mid-run
-        extra_names=names_in_file[len(colnames) + 1 :],
-    )
-    colnames.insert(0, "istep")
+        colnames = fid.readline().strip().split()
+    # extra columns in case some were added mid-run
+    _tidy_names(colnames, len(colnames) + 10)
 
     data = pd.read_csv(
         timefile,
@@ -110,15 +101,11 @@ def time_series(timefile: Path, colnames: list[str]) -> DataFrame | None:
     return data
 
 
-def time_series_h5(timefile: Path, colnames: list[str]) -> DataFrame | None:
+def time_series_h5(timefile: Path) -> DataFrame | None:
     """Read temporal series HDF5 file.
-
-    If `colnames` is too long, it will be truncated. If it is too short,
-    additional column names will be deduced from the content of the file.
 
     Args:
         timefile: path of the TimeSeries.h5 file.
-        colnames: names of the variables expected in `timefile` (may be modified).
 
     Returns:
         A `pandas.DataFrame` containing the time series, organized by
@@ -130,10 +117,14 @@ def time_series_h5(timefile: Path, colnames: list[str]) -> DataFrame | None:
         dset = h5f["tseries"]
         _, ncols = dset.shape
         ncols -= 1  # first is istep
-        h5names = h5f["names"].asstr()[len(colnames) + 1 :]
-        _tidy_names(colnames, ncols, h5names)
+        colnames = list(h5f["names"].asstr()[()])
+        _tidy_names(colnames, ncols + 1)
         data = dset[()]
-    pdf = pd.DataFrame(data[:, 1:], index=data[:, 0].astype(np.int64), columns=colnames)
+    pdf = pd.DataFrame(
+        data[:, 1:],
+        index=data[:, 0].astype(np.int64),
+        columns=colnames[1:],
+    )
     # remove duplicated lines in case of restart
     return pdf.loc[~pdf.index.duplicated(keep="last")]
 

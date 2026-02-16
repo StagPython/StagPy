@@ -147,14 +147,14 @@ class Tseries:
     @cached_property
     def _data(self) -> DataFrame | None:
         timefile = self.sdat.filename("TimeSeries.h5")
-        data = stagyyparsers.time_series_h5(timefile, list(phyvars.TIME.keys()))
+        data = stagyyparsers.time_series_h5(timefile)
         if data is not None:
             return data
         timefile = self.sdat.filename("time.dat")
         if self.sdat.hdf5 and not timefile.is_file():
             # check legacy folder as well
             timefile = self.sdat.filename("time.dat", force_legacy=True)
-        data = stagyyparsers.time_series(timefile, list(phyvars.TIME.keys()))
+        data = stagyyparsers.time_series(timefile)
         return data
 
     @property

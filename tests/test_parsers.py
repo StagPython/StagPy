@@ -6,23 +6,21 @@ from stagpy.stagyydata import StagyyData
 
 def test_time_series_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    names = ["aa", "bb", "cc"]
-    data = prs.time_series(sdat.filename("time.dat"), list(names))
+    data = prs.time_series(sdat.filename("time.dat"))
     assert data is not None
-    assert (data.columns[:3] == names).all()
     assert (data.columns[3:6] == ["Tmin", "Tmean", "Tmax"]).all()
 
 
 def test_time_series_h5(sdat_h5: StagyyData) -> None:
     sdat = sdat_h5
     assert sdat.hdf5 is not None
-    data = prs.time_series_h5(sdat.hdf5 / "TimeSeries.h5", colnames=[])
+    data = prs.time_series_h5(sdat.hdf5 / "TimeSeries.h5")
     assert data is not None
     assert (data.columns[3:6] == ["Tmin", "Tmean", "Tmax"]).all()
 
 
 def test_time_series_invalid_prs() -> None:
-    assert prs.time_series(Path("dummy"), []) is None
+    assert prs.time_series(Path("dummy")) is None
 
 
 def test_rprof_prs(sdat_legacy: StagyyData) -> None:
