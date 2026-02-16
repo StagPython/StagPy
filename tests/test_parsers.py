@@ -25,7 +25,7 @@ def test_time_series_invalid_prs() -> None:
 
 def test_rprof_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    data, time = prs.rprof(sdat.filename("rprof.dat"))
+    data, _time = prs.rprof(sdat.filename("rprof.dat"))
     assert all((df.columns[:3] == ["r", "Tmean", "Tmin"]).all() for df in data.values())
 
 
