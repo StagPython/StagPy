@@ -732,14 +732,14 @@ class StagyyData:
     @cached_property
     def _rprof_and_times(self) -> tuple[dict[int, DataFrame], DataFrame | None]:
         rproffile = self.filename("rprof.h5")
-        data = stagyyparsers.rprof_h5(rproffile, list(phyvars.RPROF.keys()))
+        data = stagyyparsers.rprof_h5(rproffile)
         if data[1] is not None:
             return data
         rproffile = self.filename("rprof.dat")
         if self.hdf5 and not rproffile.is_file():
             # check legacy folder as well
             rproffile = self.filename("rprof.dat", force_legacy=True)
-        return stagyyparsers.rprof(rproffile, list(phyvars.RPROF.keys()))
+        return stagyyparsers.rprof(rproffile)
 
     @property
     def rtimes(self) -> DataFrame | None:

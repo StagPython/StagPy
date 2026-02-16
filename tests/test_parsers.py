@@ -25,25 +25,20 @@ def test_time_series_invalid_prs() -> None:
 
 def test_rprof_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    names = ["aa", "bb", "cc"]
-    data, time = prs.rprof(sdat.filename("rprof.dat"), list(names))
-    assert all((df.columns[:3] == names).all() for df in data.values())
-    assert all(
-        (df.columns[3:] == list(map(str, range(df.shape[1] - 3)))).all()
-        for df in data.values()
-    )
+    data, time = prs.rprof(sdat.filename("rprof.dat"))
+    assert all((df.columns[:3] == ["r", "Tmean", "Tmin"]).all() for df in data.values())
 
 
 def test_rprof_h5(sdat_h5: StagyyData) -> None:
     sdat = sdat_h5
     assert sdat.hdf5 is not None
-    data, _times = prs.rprof_h5(sdat.hdf5 / "rprof.h5", colnames=[])
+    data, _times = prs.rprof_h5(sdat.hdf5 / "rprof.h5")
     assert data is not None
     assert (data[1000].columns[:3] == ["r", "Tmean", "Tmin"]).all()
 
 
 def test_rprof_invalid_prs() -> None:
-    assert prs.rprof(Path("dummy"), []) == ({}, None)
+    assert prs.rprof(Path("dummy")) == ({}, None)
 
 
 def test_fields_prs(sdat_legacy: StagyyData) -> None:

@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 
 from .error import ParsingError
-from .phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
+from .phyvars import FIELD_FILES_H5, RPROF, SFIELD_FILES_H5
 from .xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
@@ -165,18 +165,11 @@ def _extract_rsnap_isteps(
     return isteps
 
 
-def rprof(
-    rproffile: Path, colnames: list[str]
-) -> tuple[dict[int, DataFrame], DataFrame | None]:
+def rprof(rproffile: Path) -> tuple[dict[int, DataFrame], DataFrame | None]:
     """Extract radial profiles data.
-
-    If `colnames` is too long, it will be truncated. If it is too short,
-    additional numeric column names from 0 to N-1 will be attributed to the N
-    extra columns present in `timefile`.
 
     Args:
         rproffile: path of the rprof.dat file.
-        colnames: names of the variables expected in `rproffile`.
 
     Returns:
         profs: a dict mapping istep to radial profiles.
@@ -184,6 +177,12 @@ def rprof(
     """
     if not rproffile.is_file():
         return {}, None
+
+    with rproffile.open() as fid:
+        colnames = fid.readline().strip().split()
+    if not colnames:
+        colnames = list(RPROF.keys())
+
     data = pd.read_csv(
         rproffile,
         sep=r"\s+",
@@ -213,17 +212,11 @@ def rprof(
     return all_data, df_times
 
 
-def rprof_h5(
-    rproffile: Path, colnames: list[str]
-) -> tuple[dict[int, DataFrame], DataFrame | None]:
+def rprof_h5(rproffile: Path) -> tuple[dict[int, DataFrame], DataFrame | None]:
     """Extract radial profiles data.
-
-    If `colnames` is too long, it will be truncated. If it is too short,
-    additional column names will be deduced from the content of the file.
 
     Args:
         rproffile: path of the rprof.h5 file.
-        colnames: names of the variables expected in `rproffile`.
 
     Returns:
         profs: a dict mapping istep to radial profiles.
@@ -235,13 +228,13 @@ def rprof_h5(
     data = {}
     with h5py.File(rproffile, "r") as h5f:
         dnames = sorted(dname for dname in h5f.keys() if dname.startswith("rprof_"))
-        h5names = h5f["names"].asstr()[len(colnames) :]
+        colnames = h5f["names"].asstr()[()]
         for dname in dnames:
             dset = h5f[dname]
             arr = dset[()]
             istep = dset.attrs["istep"]
             step_cols = list(colnames)
-            _tidy_names(step_cols, arr.shape[1], h5names)  # check shape
+            _tidy_names(step_cols, arr.shape[1])  # check shape
             data[istep] = pd.DataFrame(arr, columns=step_cols)
             isteps.append((istep, dset.attrs["time"]))
 
