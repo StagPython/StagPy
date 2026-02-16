@@ -145,7 +145,7 @@ class Time(Section):
     """Time command."""
 
     plot: Sequence[Sequence[Sequence[str]]] = _plots.entry(
-        default="Nutop,ebalance,Nubot.Tmean",
+        default="Nu_top,Nu_bot.Vrms.Tmean",
         cli_short="o",
         doc="variables to plot (see stagpy var)",
     )
