@@ -210,7 +210,9 @@ class Info(Section):
     """Info command."""
 
     output: Sequence[str] = TupleEntry(str).entry(
-        default="t,Tmean,vrms,Nutop,Nubot", cli_short="o", doc="time series to print"
+        default="time,Tmean,Vrms,Nu_top,Nu_bot",
+        cli_short="o",
+        doc="time series to print",
     )
 
 

@@ -96,8 +96,8 @@ def mobility(sdat: StagyyData) -> Tseries:
     time = []
     mob = []
     for step in sdat.steps.filter(rprofs=True):
-        time.append(step.timeinfo["t"])
-        mob.append(step.rprofs["vrms"].values[-1] / step.timeinfo["vrms"])
+        time.append(step.timeinfo["time"])
+        mob.append(step.rprofs["vrms"].values[-1] / step.timeinfo["Vrms"])
     return Tseries(
         np.array(mob), np.array(time), Vart("Plates mobility", "Mobility", "1")
     )

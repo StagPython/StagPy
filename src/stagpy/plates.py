@@ -428,7 +428,7 @@ def cmd(conf: Config) -> None:
             plot_at_surface(step, conf.plates.plot, conf)
             plot_scalar_field(step, conf.plates.field, conf)
             if conf.plates.nbplates:
-                time.append(step.timeinfo.loc["t"])
+                time.append(step.time)
                 itr, ird = detect_plates(step, conf.plates.vzratio)
                 nb_plates.append(itr.size + ird.size)
                 istart = step.isnap if istart is None else istart

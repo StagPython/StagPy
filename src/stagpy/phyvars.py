@@ -285,35 +285,35 @@ RPROF_EXTRA: Mapping[str, Callable[[Step], Rprof]] = MappingProxyType(
 
 TIME: Mapping[str, Vart] = MappingProxyType(
     {
-        "t": Vart("Time", "Time", "s"),
-        "ftop": Vart("Heat flux at top", "Heat flux", "W/m2"),
-        "fbot": Vart("Heat flux at bottom", "Heat flux", "W/m2"),
+        "time": Vart("Time", "Time", "s"),
+        "F_top": Vart("Heat flux at top", "Heat flux", "W/m2"),
+        "F_bot": Vart("Heat flux at bottom", "Heat flux", "W/m2"),
         "Tmin": Vart("Min temperature", "Temperature", "K"),
         "Tmean": Vart("Temperature", "Temperature", "K"),
         "Tmax": Vart("Max temperature", "Temperature", "K"),
-        "vmin": Vart("Min velocity", "Velocity", "m/s"),
-        "vrms": Vart("rms velocity", "Velocity", "m/s"),
-        "vmax": Vart("Max velocity", "Velocity", "m/s"),
-        "etamin": Vart("Min viscosity", "Viscosity", "Pa.s"),
-        "etamean": Vart("Viscosity", "Viscosity", "Pa.s"),
-        "etamax": Vart("Max viscosity", "Viscosity", "Pa.s"),
-        "Raeff": Vart("Effective Ra", r"$\mathrm{Ra}$", "1"),
-        "Nutop": Vart("Nusselt at top", r"$\mathrm{Nu}$", "1"),
-        "Nubot": Vart("Nusselt at bot", r"$\mathrm{Nu}$", "1"),
-        "Cmin": Vart("Min concentration", "Concentration", "1"),
-        "Cmean": Vart("Concentration", "Concentration", "1"),
-        "Cmax": Vart("Max concentration", "Concentration", "1"),
-        "moltenf_mean": Vart("Molten fraction", "Fraction", "1"),
-        "moltenf_max": Vart("Max molten fraction", "Fraction", "1"),
+        "Vmin": Vart("Min velocity", "Velocity", "m/s"),
+        "Vrms": Vart("rms velocity", "Velocity", "m/s"),
+        "Vmax": Vart("Max velocity", "Velocity", "m/s"),
+        "eta_min": Vart("Min viscosity", "Viscosity", "Pa.s"),
+        "eta_amean": Vart("Viscosity", "Viscosity", "Pa.s"),
+        "eta_max": Vart("Max viscosity", "Viscosity", "Pa.s"),
+        "ra_eff": Vart("Effective Ra", r"$\mathrm{Ra}$", "1"),
+        "Nu_top": Vart("Nusselt at top", r"$\mathrm{Nu}$", "1"),
+        "Nu_bot": Vart("Nusselt at bot", r"$\mathrm{Nu}$", "1"),
+        "C_min": Vart("Min concentration", "Concentration", "1"),
+        "C_mean": Vart("Concentration", "Concentration", "1"),
+        "C_max": Vart("Max concentration", "Concentration", "1"),
+        "F_mean": Vart("Molten fraction", "Fraction", "1"),
+        "F_max": Vart("Max molten fraction", "Fraction", "1"),
         "erupt_rate": Vart("Eruption rate", "Eruption rate", "1/s"),
-        "erupt_tot": Vart("Erupta total", "Eruption rate", "1/s"),
-        "erupt_heat": Vart("Erupta heat", "Eruption rate", "1/s"),
+        "erupta": Vart("Erupta total", "Eruption rate", "1/s"),
+        "erupt_heatflux": Vart("Erupta heat", "Eruption rate", "1/s"),
         "entrainment": Vart("Entrainment", "Eruption rate", "1/s"),
         "Cmass_error": Vart("Error on Cmass", "Error", "1"),
         "H_int": Vart("Internal heating", "Internal heating", "W/m3"),
-        "r_ic": Vart("Inner core radius", "Inner core radius", "m"),
-        "topT_val": Vart("Temperature at top", "Temperature", "K"),
-        "botT_val": Vart("Temperature at bottom", "Temperature", "K"),
+        "r_innercore": Vart("Inner core radius", "Inner core radius", "m"),
+        "Tsurf": Vart("Temperature at top", "Temperature", "K"),
+        "Tcmb": Vart("Temperature at bottom", "Temperature", "K"),
     }
 )
 """Time series output by StagYY."""
@@ -327,6 +327,34 @@ TIME_EXTRA: Mapping[str, Callable[[StagyyData], Tseries]] = MappingProxyType(
     }
 )
 """Time series that StagPy can compute."""
+
+TIME_ALIAS: Mapping[str, str] = MappingProxyType(
+    {
+        "t": "time",
+        "ftop": "F_top",
+        "fbot": "F_bot",
+        "vmin": "Vmin",
+        "vrms": "Vrms",
+        "vmax": "Vmax",
+        "etamin": "eta_min",
+        "etamean": "eta_amean",
+        "etamax": "eta_max",
+        "Raeff": "ra_eff",
+        "Nutop": "Nu_top",
+        "Nubot": "Nu_bot",
+        "Cmin": "C_min",
+        "Cmean": "C_mean",
+        "Cmax": "C_max",
+        "moltenf_mean": "F_mean",
+        "moltenf_max": "F_max",
+        "erupt_tot": "erupta",
+        "erupt_heat": "erupt_heatflux",
+        "r_ic": "r_innercore",
+        "topT_val": "Tsurf",
+        "botT_val": "Tcmb",
+    }
+)
+"""Time series name aliases."""
 
 REFSTATE: Mapping[str, Varr] = MappingProxyType(
     {

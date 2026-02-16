@@ -413,7 +413,7 @@ def cmd(conf: Config) -> None:
                     elif valid_field_var(var[1] + "1"):
                         plot_vec(axis, step, var[1], conf=conf)
             if conf.field.timelabel:
-                time = step.timeinfo["t"]
+                time = step.time
                 unit = ""
                 if sdat.par.get("switches", "dimensional_units", True):
                     time, unit = apply_factors(time, "s", conf.scaling)

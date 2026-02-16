@@ -648,7 +648,7 @@ class Step:
         """Time of this time step."""
         steptime = None
         try:
-            steptime = self.timeinfo["t"]
+            steptime = self.timeinfo["time"]
         except error.MissingDataError:
             if self.isnap is not None:
                 steptime = self.geom._header.get("ti_ad")

@@ -23,8 +23,8 @@ if typing.TYPE_CHECKING:
 def _collect_marks(sdat: StagyyData, conf: Config) -> list[float]:
     """Concatenate `mark*` config variable."""
     times = list(conf.time.marktimes)
-    times.extend(step.timeinfo["t"] for step in sdat.snaps[conf.time.marksnaps])
-    times.extend(step.timeinfo["t"] for step in sdat.steps[conf.time.marksteps])
+    times.extend(step.timeinfo["time"] for step in sdat.snaps[conf.time.marksnaps])
+    times.extend(step.timeinfo["time"] for step in sdat.steps[conf.time.marksteps])
     return times
 
 

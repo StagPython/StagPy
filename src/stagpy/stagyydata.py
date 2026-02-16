@@ -164,6 +164,9 @@ class Tseries:
         return self._data
 
     def __getitem__(self, name: str) -> dt.Tseries:
+        if (name_alias := phyvars.TIME_ALIAS.get(name)) is not None:
+            name = name_alias
+
         series: NDArray[np.float64]
         if name in self._tseries.columns:
             series = self._tseries[name].to_numpy(dtype=np.float64)
@@ -215,7 +218,7 @@ class Tseries:
     @property
     def time(self) -> NDArray[np.float64]:
         """Time vector."""
-        return self._tseries["t"].to_numpy(dtype=np.float64)
+        return self._tseries["time"].to_numpy(dtype=np.float64)
 
     @property
     def isteps(self) -> NDArray[np.float64]:
