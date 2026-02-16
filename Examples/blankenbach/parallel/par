@@ -1,0 +1,93 @@
+&switches
+  try_continue = .false.
+  dens_strat = .false.
+  dens_actual = .false.
+  dimensional_units = .false.
+/
+
+&geometry
+  shape = 'cartesian'
+  anti_squeeze = .false.
+  nxtot = 1
+  nytot = 64
+  nztot = 64
+  aspect_ratio = 1.0, 1.0
+  zspacing_mode = 'constant'
+/
+
+&phase
+/
+
+&refstate
+  ra0 = 1e4
+  Tref_surf = 0.5
+/
+
+&boundaries
+  x_bc = 'rr'
+  y_bc = 'rr'
+  topT_mode = 'iso'
+  topT_val = 0.0
+  botT_mode = 'iso'
+  botT_val = 1.0
+/
+
+&t_init
+  T0_init = 0.5
+  blthick = 0.1
+/
+
+&timein
+  nsteps = 1000
+  nwrite = 500
+  alpha_adv = 0.6
+  alpha_diff = 0.6
+/
+
+&viscosity
+  ietalaw = 0
+/
+
+&iteration
+  maxits = 20
+/
+
+&multi
+  nrelax1 = 15
+  nrelax2 = 15
+  f_cycle = .true.
+  idle_duplicates = .false.
+/
+
+&ioin
+  output_format = 'hdf'
+  hdf5_output_folder = "out"
+  t_write = .true.
+  vp_write = .true.
+  tseries_format = "hdf"
+  rprof_format = "hdf"
+/
+
+&plot
+/
+
+&grainsize
+/
+
+&compin
+/
+
+&melt
+/
+
+&continents
+/
+
+&atm_stuff
+/
+
+&tracersin
+/
+
+&postprocessing
+/
