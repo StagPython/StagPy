@@ -33,9 +33,7 @@ if typing.TYPE_CHECKING:
     from pandas import DataFrame
 
 
-def _tidy_names(
-    names: list[str], nnames: int, extra_names: list[str] | None = None
-) -> None:
+def _tidy_names(names: list[str], nnames: int) -> None:
     """Truncate or extend names so that its len is nnames.
 
     The list is modified in-place.
@@ -43,11 +41,7 @@ def _tidy_names(
     Args:
         names: list of names.
         nnames: desired number of names.
-        extra_names: list of names to be used to extend the list if needed. If
-            this list isn't provided, a range is used instead.
     """
-    if len(names) < nnames and extra_names is not None:
-        names.extend(extra_names)
     names.extend(map(str, range(nnames - len(names))))
     del names[nnames:]
 
