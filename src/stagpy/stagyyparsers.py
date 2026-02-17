@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
     from pandas import DataFrame
 
 
-def _tidy_names(names: list[str], nnames: int) -> None:
+def _resize(names: list[str], nnames: int) -> None:
     """Truncate or extend names so that its len is nnames.
 
     The list is modified in-place.
@@ -62,7 +62,7 @@ def time_series(timefile: Path) -> DataFrame | None:
     with timefile.open() as fid:
         colnames = fid.readline().strip().split()
     # extra columns in case some were added mid-run
-    _tidy_names(colnames, len(colnames) + 10)
+    _resize(colnames, len(colnames) + 10)
 
     data = pd.read_csv(
         timefile,
@@ -112,7 +112,7 @@ def time_series_h5(timefile: Path) -> DataFrame | None:
         _, ncols = dset.shape
         ncols -= 1  # first is istep
         colnames = list(h5f["names"].asstr()[()])
-        _tidy_names(colnames, ncols + 1)
+        _resize(colnames, ncols + 1)
         data = dset[()]
     pdf = pd.DataFrame(
         data[:, 1:],
@@ -196,7 +196,7 @@ def rprof(rproffile: Path) -> tuple[dict[int, DataFrame], DataFrame | None]:
     for istep, _, step_df in isteps:
         step_df.index = pd.RangeIndex(step_df.shape[0])  # check whether necessary
         step_cols = list(colnames)
-        _tidy_names(step_cols, step_df.shape[1])
+        _resize(step_cols, step_df.shape[1])
         step_df.columns = pd.Index(step_cols)
         all_data[istep] = step_df
 
@@ -228,7 +228,7 @@ def rprof_h5(rproffile: Path) -> tuple[dict[int, DataFrame], DataFrame | None]:
             arr = dset[()]
             istep = dset.attrs["istep"]
             step_cols = list(colnames)
-            _tidy_names(step_cols, arr.shape[1])  # check shape
+            _resize(step_cols, arr.shape[1])  # check shape
             data[istep] = pd.DataFrame(arr, columns=step_cols)
             isteps.append((istep, dset.attrs["time"]))
 
