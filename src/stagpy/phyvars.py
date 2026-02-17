@@ -310,10 +310,17 @@ TIME: Mapping[str, Vart] = MappingProxyType(
         "erupt_heatflux": Vart("Erupta heat", "Eruption rate", "1/s"),
         "entrainment": Vart("Entrainment", "Eruption rate", "1/s"),
         "Cmass_error": Vart("Error on Cmass", "Error", "1"),
-        "H_int": Vart("Internal heating", "Internal heating", "W/m3"),
+        "H_int": Vart("Internal heating", "Power density", "W/m3"),
         "r_innercore": Vart("Inner core radius", "Inner core radius", "m"),
         "Tsurf": Vart("Temperature at top", "Temperature", "K"),
         "Tcmb": Vart("Temperature at bottom", "Temperature", "K"),
+        "Tpotl": Vart("Mass mean potential temperature", "Temperature", "K"),
+        "eta_gmean": Vart("Geometric mass mean viscosity", "Viscosity", "Pa.s"),
+        "H_diffus": Vart("Heat diffusion", "Power density", "W/m3"),
+        "H_VD": Vart("Viscous dissipation", "Power density", "W/m3"),
+        "H_AH": Vart("Adiabatic heating", "Power density", "W/m3"),
+        "H_cool": Vart("Cooling", "Heat flux", "W/m2"),
+        "H_melt": Vart("Melting heat flux", "Heat flux", "W/m2"),
     }
 )
 """Time series output by StagYY."""
