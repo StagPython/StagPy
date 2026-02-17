@@ -72,6 +72,11 @@ class Scales:
         return self.par.nml["refstate"]["dens_dimensional"]
 
     @property
+    def mass(self) -> float:
+        """Mass in kg."""
+        return self.density * self.length**3
+
+    @property
     def th_cond(self) -> float:
         """Thermal conductivity in W/(m.K)."""
         return self.par.nml["refstate"]["tcond_dimensional"]
