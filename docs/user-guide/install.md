@@ -40,7 +40,7 @@ name = "my-project"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
-    "stagpy~=0.21.1",
+    "stagpy~=0.22.0",
 ]
 ```
 
