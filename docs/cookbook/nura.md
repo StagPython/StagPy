@@ -28,7 +28,7 @@ for folder in pwd.glob('ra-*'):
     # get the value of the Rayleigh number
     ran.append(sdat.par.nml['refstate']['ra0'])
     # get the last value of the Nusselt number
-    nun.append(sdat.tseries['Nutop'].values[-1])
+    nun.append(sdat.tseries['Nu_top'].values[-1])
 
 ran = np.array(ran)
 nun = np.array(nun)

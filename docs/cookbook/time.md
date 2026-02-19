@@ -12,14 +12,14 @@ The command
 stagpy time
 ```
 
-will give you by default one figure with two subplots. The first subplot
+will give you by default one figure with three subplots. The first subplot
 contains the time series of the Nusselt number at the top and bottom
-boundaries, with a check of the energy balance. The corresponding line should
-be zero at all times for a perfect balance. The second subplot contains the
-time series of the mean temperature. This is equivalent to typing
+boundaries. The second subplot contains the time series of the rms velocity.
+The third subplot is the time series of the mean temperature. This is
+equivalent to typing
 
 ```sh title="shell"
-stagpy time -o Nubot,Nutop,ebalance.vrms
+stagpy time -o Nu_top,Nu_bot.Vrms.Tmean
 ```
 
 The command
@@ -32,7 +32,7 @@ will give you the same plots but starting at time 0.02 and ending at
 time 0.03.
 
 ```sh title="shell"
-stagpy time -o vrms-Tmin,Tmean,Tmax.dTdt
+stagpy time -o Vrms-Tmin,Tmean,Tmax.dTdt
 ```
 
 creates two figures. The first one contains the time series of the rms

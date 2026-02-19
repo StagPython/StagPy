@@ -23,7 +23,7 @@ for folder in pwd.glob('ra-*'):
     # Reference Rayleigh number as a power of ten
     ra0_log10 = int(np.log10(sdat.par.nml['refstate']['ra0']))
     # vrms time series object
-    vrms = sdat.tseries['vrms']
+    vrms = sdat.tseries['Vrms']
     # plot time vs vrms values
     plt.plot(vrms.time, vrms.values, label=f'$Ra=10^{{{ra0_log10}}}$')
 
