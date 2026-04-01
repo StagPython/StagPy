@@ -12,7 +12,7 @@ import typing
 import numpy as np
 from scipy.integrate import cumulative_trapezoid
 
-from .datatypes import Field, Rprof, Tseries, Varf, Varr, Vart
+from .datatypes import Field, Rprof, Tseries, Varr, Vart
 from .error import NotAvailableError
 
 if typing.TYPE_CHECKING:
@@ -292,4 +292,4 @@ def stream_function(step: Step) -> Field:
     if step.geom.twod_xz:
         psi = -psi
     psi = np.reshape(psi, shape)
-    return Field(psi, Varf("Stream function", "m2/s"))
+    return Field(psi, "Stream function", "m2/s")

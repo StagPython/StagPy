@@ -27,8 +27,10 @@ class Field:
 
     values: NDArray[np.float64]
     """values of field."""
-    meta: Varf
-    """metadata."""
+    description: str
+    """description of field variable."""
+    dim: str
+    """dimension used to scale to dimensional values."""
 
 
 @dataclass(frozen=True)

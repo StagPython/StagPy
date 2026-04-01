@@ -130,7 +130,7 @@ def get_meshes_fld(
             pmesh, rmesh = np.meshgrid(xcoord, ycoord, indexing="ij")
             xmesh, ymesh = rmesh * np.cos(pmesh), rmesh * np.sin(pmesh)
             vals = fld.values[0, :, :, 0]
-            return FieldOn2dMesh(xmesh, ymesh, vals, fld.meta.description, fld.meta.dim)
+            return FieldOn2dMesh(xmesh, ymesh, vals, fld.description, fld.dim)
         else:
             raise NotImplementedError()
 
@@ -146,7 +146,7 @@ def get_meshes_fld(
             vals = fld.values[0, :, :, 0]
         ycoord = step.geom.z_walls if walls else step.geom.z_centers
     xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing="ij")
-    return FieldOn2dMesh(xmesh, ymesh, vals, fld.meta.description, fld.meta.dim)
+    return FieldOn2dMesh(xmesh, ymesh, vals, fld.description, fld.dim)
 
 
 def get_meshes_vec(

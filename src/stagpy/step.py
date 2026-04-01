@@ -330,7 +330,8 @@ class Fields:
             )
         _, fields = parsed_data
         for fld_name, fld_vals in zip(fld_names, fields):
-            fld = Field(fld_vals, self.variables[fld_name])
+            meta = self.variables[fld_name]
+            fld = Field(fld_vals, meta.description, meta.dim)
             self._cache.insert(self.step.istep, fld_name, fld)
         return self[name]
 

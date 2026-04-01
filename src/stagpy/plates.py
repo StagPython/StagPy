@@ -14,7 +14,7 @@ from scipy.signal import argrelmax, argrelmin
 from . import _helpers, error, field
 from ._helpers import saveplot
 from .config import Config
-from .datatypes import Field, Varf
+from .datatypes import Field
 from .stagyydata import _sdat_from_conf
 
 if typing.TYPE_CHECKING:
@@ -174,7 +174,7 @@ def _surf_diag(snap: Step, name: str) -> Field:
     isurf = _isurf(snap)
     with suppress(error.UnknownVarError):
         field = snap.fields[name]
-        return Field(field.values[0, :, isurf, 0], field.meta)
+        return Field(field.values[0, :, isurf, 0], field.description, field.dim)
     if name == "dv2":
         vphi = snap.fields["v2"].values[0, :, isurf, 0]
         if snap.geom.cartesian:
@@ -183,7 +183,7 @@ def _surf_diag(snap: Step, name: str) -> Field:
             dvphi = np.diff(vphi) / (
                 snap.geom.r_centers[isurf] * np.diff(snap.geom.p_walls)
             )
-        return Field(dvphi, Varf(r"$dv_\phi/rd\phi$", "1/s"))
+        return Field(dvphi, r"$dv_\phi/rd\phi$", "1/s")
     raise error.UnknownVarError(name)
 
 
@@ -240,7 +240,7 @@ def plot_at_surface(
             label = ""
             for name in vplt:
                 field = _surf_diag(snap, name)
-                label = field.meta.description
+                label = field.description
                 phi = (
                     snap.geom.p_centers
                     if field.values.size == snap.geom.nptot
