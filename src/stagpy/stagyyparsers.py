@@ -947,11 +947,11 @@ def _to_spherical(
     return fout
 
 
-def _flds_shape(fieldname: str, header: dict[str, Any]) -> list[int]:
+def _flds_shape(vector_field: bool, header: dict[str, Any]) -> list[int]:
     """Compute shape of flds variable."""
     shp = list(header["nts"])
     shp.append(header["ntb"])
-    if len(FIELD_FILES_H5.get(fieldname, [])) == 3:
+    if vector_field:
         shp.insert(0, 3)
         # extra points
         header["xp"] = int(header["nts"][0] != 1)
@@ -1007,8 +1007,10 @@ def read_field_h5(
     if header is None:
         header = read_geom_h5(xdmf, snapshot)
 
+    vector_field = len(FIELD_FILES_H5.get(fieldname, [])) == 3
+
     npc = header["nts"] // header["ncs"]  # number of grid point per node
-    flds = np.zeros(_flds_shape(fieldname, header))
+    flds = np.zeros(_flds_shape(vector_field, header))
     data_found = False
 
     for fsub in xdmf[snapshot].field_subdomains(xdmf.path.parent, fieldname):
