@@ -495,8 +495,7 @@ def fields(fieldfile: Path) -> tuple[dict[str, Any], NDArray[np.float64]] | None
         header = hdr.header
         cursor = hdr.cursor
 
-        # READ FIELDS
-        # number of points in (e1, e2, e3) directions PER CPU
+        # number of points in (e1, e2, e3) directions per cpu
         npc = header["nts"] // header["ncs"]
         # number of blocks per cpu
         nbk = header["ntb"] // header["ncb"]
