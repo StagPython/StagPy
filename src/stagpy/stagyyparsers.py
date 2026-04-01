@@ -1008,6 +1008,7 @@ def read_field_h5(
         header = read_geom_h5(xdmf, snapshot)
 
     vector_field = len(FIELD_FILES_H5.get(fieldname, [])) == 3
+    surface_field = fieldname in SFIELD_FILES_H5
 
     npc = header["nts"] // header["ncs"]  # number of grid point per node
     flds = np.zeros(_flds_shape(vector_field, header))
@@ -1027,7 +1028,7 @@ def read_field_h5(
             fld = fld.reshape((shp[0], shp[1], 1, shp[2]))
             if header["rcmb"] < 0:
                 fld = fld[(1, 2, 0), ...]
-        elif fieldname in SFIELD_FILES_H5:
+        elif surface_field:
             fld = fld.reshape((1, npc[0], npc[1], 1))
         elif header["nts"][1] == 1:  # cart XZ
             fld = fld.reshape((1, shp[0], 1, shp[1]))
@@ -1035,7 +1036,7 @@ def read_field_h5(
             fsub.icore // np.prod(header["ncs"][:i]) % header["ncs"][i] * npc[i]
             for i in range(3)
         ]
-        if fieldname in SFIELD_FILES_H5:
+        if surface_field:
             ifs[2] = 0
             npc[2] = 1
         if header["zp"]:  # remove top row
@@ -1057,7 +1058,7 @@ def read_field_h5(
         flds[2, ..., 1] = vt
     flds = _post_read_flds(flds, header)
 
-    if fieldname in SFIELD_FILES_H5:
+    if surface_field:
         # remove z component
         flds = flds[..., 0, :]
     return (header, flds) if data_found else None
