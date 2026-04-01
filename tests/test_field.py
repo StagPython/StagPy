@@ -4,7 +4,7 @@ import stagpy.error
 import stagpy.phyvars
 from stagpy.config import Config
 from stagpy.field import get_meshes_fld, get_meshes_vec, valid_field_var
-from stagpy.stagyydata import Step
+from stagpy.step import Step
 
 
 def test_field_unknown(step: Step) -> None:
