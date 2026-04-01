@@ -31,19 +31,19 @@ def test_valid_field_var_invalid() -> None:
 
 
 def test_get_meshes_fld_no_walls(step: Step) -> None:
-    xmesh, ymesh, fld, meta = get_meshes_fld(Config.default_(), step, "T", walls=False)
-    assert len(fld.shape) == 2
-    assert xmesh.shape[0] == ymesh.shape[0] == fld.shape[0]
-    assert xmesh.shape[1] == ymesh.shape[1] == fld.shape[1]
-    assert meta.description == "Temperature"
+    f2d = get_meshes_fld(Config.default_(), step, "T", walls=False)
+    assert len(f2d.values.shape) == 2
+    assert f2d.xmesh.shape[0] == f2d.ymesh.shape[0] == f2d.values.shape[0]
+    assert f2d.xmesh.shape[1] == f2d.ymesh.shape[1] == f2d.values.shape[1]
+    assert f2d.description == "Temperature"
 
 
 def test_get_meshes_fld_walls(step: Step) -> None:
-    xmesh, ymesh, fld, meta = get_meshes_fld(Config.default_(), step, "T", walls=True)
-    assert len(fld.shape) == 2
-    assert xmesh.shape[0] == ymesh.shape[0] == fld.shape[0] + 1
-    assert xmesh.shape[1] == ymesh.shape[1] == fld.shape[1] + 1
-    assert meta.description == "Temperature"
+    f2d = get_meshes_fld(Config.default_(), step, "T", walls=True)
+    assert len(f2d.values.shape) == 2
+    assert f2d.xmesh.shape[0] == f2d.ymesh.shape[0] == f2d.values.shape[0] + 1
+    assert f2d.xmesh.shape[1] == f2d.ymesh.shape[1] == f2d.values.shape[1] + 1
+    assert f2d.description == "Temperature"
 
 
 def test_get_meshes_vec(step: Step) -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import typing
+from dataclasses import dataclass
 from itertools import chain
 
 import matplotlib.colors as mpl_colors
@@ -28,7 +29,6 @@ if typing.TYPE_CHECKING:
     from matplotlib.figure import Figure
     from numpy.typing import NDArray
 
-    from .datatypes import Varf
     from .stagyydata import StepsView
     from .step import Step
 
@@ -91,9 +91,18 @@ def valid_field_var(var: str) -> bool:
     return var in phyvars.FIELD or var in phyvars.FIELD_EXTRA
 
 
+@dataclass(frozen=True)
+class FieldOn2dMesh:
+    xmesh: NDArray[np.float64]
+    ymesh: NDArray[np.float64]
+    values: NDArray[np.float64]
+    description: str
+    dim: str
+
+
 def get_meshes_fld(
     conf: Config, step: Step, var: str, walls: bool = False
-) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64], Varf]:
+) -> FieldOn2dMesh:
     """Return scalar field along with coordinates meshes.
 
     Only works properly in 2D geometry and 3D cartesian.
@@ -105,10 +114,7 @@ def get_meshes_fld(
         walls: consider the walls as the relevant mesh.
 
     Returns:
-        xmesh: x position
-        ymesh: y position
-        fld: field values
-        meta: metadata
+        The field along with a 2D mesh for plotting purposes.
     """
     fld = step.fields[var]
     hwalls = (
@@ -124,7 +130,7 @@ def get_meshes_fld(
             pmesh, rmesh = np.meshgrid(xcoord, ycoord, indexing="ij")
             xmesh, ymesh = rmesh * np.cos(pmesh), rmesh * np.sin(pmesh)
             vals = fld.values[0, :, :, 0]
-            return xmesh, ymesh, vals, fld.meta
+            return FieldOn2dMesh(xmesh, ymesh, vals, fld.meta.description, fld.meta.dim)
         else:
             raise NotImplementedError()
 
@@ -140,7 +146,7 @@ def get_meshes_fld(
             vals = fld.values[0, :, :, 0]
         ycoord = step.geom.z_walls if walls else step.geom.z_centers
     xmesh, ymesh = np.meshgrid(xcoord, ycoord, indexing="ij")
-    return xmesh, ymesh, vals, fld.meta
+    return FieldOn2dMesh(xmesh, ymesh, vals, fld.meta.description, fld.meta.dim)
 
 
 def get_meshes_vec(
@@ -225,14 +231,15 @@ def plot_scalar(
     if step.geom.threed and step.geom.spherical:
         raise NotAvailableError("plot_scalar not implemented for 3D spherical geometry")
 
-    xmesh, ymesh, fld, meta = get_meshes_fld(conf, step, var, walls=True)
+    f2d = get_meshes_fld(conf, step, var, walls=True)
+    fld = f2d.values
     # interpolate at cell centers, this should be abstracted by field objects
     # via an "at_cell_centers" method or similar
     if fld.shape[0] > max(step.geom.nxtot, step.geom.nytot):
         fld: NDArray[np.float64] = (fld[:-1] + fld[1:]) / 2  # type: ignore
 
-    xmin, xmax = xmesh.min(), xmesh.max()
-    ymin, ymax = ymesh.min(), ymesh.max()
+    xmin, xmax = f2d.xmesh.min(), f2d.xmesh.max()
+    ymin, ymax = f2d.ymesh.min(), f2d.ymesh.max()
 
     if field is not None:
         fld = field
@@ -267,13 +274,13 @@ def plot_scalar(
         shading="flat",
     )
     extra_opts.update(extra)
-    surf = axis.pcolormesh(xmesh, ymesh, fld, **extra_opts)  # type: ignore
+    surf = axis.pcolormesh(f2d.xmesh, f2d.ymesh, fld, **extra_opts)  # type: ignore
 
     cbar = None
     if conf.field.colorbar:
         cax = make_axes_locatable(axis).append_axes("right", size="3%", pad=0.15)
         cbar = plt.colorbar(surf, cax=cax)
-        cbar.set_label(meta.description + (" pert." if conf.field.perturbation else ""))
+        cbar.set_label(f2d.description + (" pert." if conf.field.perturbation else ""))
     if step.geom.spherical or conf.plot.ratio is None:
         axis.set_aspect("equal")
         axis.set_axis_off()
@@ -308,7 +315,8 @@ def plot_iso(
     """
     if conf is None:
         conf = Config.default_()
-    xmesh, ymesh, fld, _ = get_meshes_fld(conf, step, var)
+    f2d = get_meshes_fld(conf, step, var)
+    fld = f2d.values
 
     if field is not None:
         fld = field
@@ -323,7 +331,7 @@ def plot_iso(
     if conf.plot.isolines:
         extra_opts["levels"] = sorted(conf.plot.isolines)
     extra_opts.update(extra)
-    axis.contour(xmesh, ymesh, fld, **extra_opts)
+    axis.contour(f2d.xmesh, f2d.ymesh, fld, **extra_opts)
 
 
 def plot_vec(
