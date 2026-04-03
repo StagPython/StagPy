@@ -345,6 +345,7 @@ TIME: Mapping[str, Vart] = MappingProxyType(
         "H_AH": Vart("Adiabatic heating", "Power density", "W/m3"),
         "H_cool": Vart("Cooling", "Heat flux", "W/m2"),
         "H_melt": Vart("Melting heat flux", "Heat flux", "W/m2"),
+        "H_GPE": Vart("Gravitational potential energy flux", "Energy flux", "W/m2"),
         "erupta_total": Vart("Total erupta", "Mass", "kg"),
         "Psurf": Vart("Ground pressure", "Pressure", "Pa"),
         "weathering": Vart("Weathering", "Mass flux", "tons/yr"),
