@@ -21,7 +21,8 @@ from . import _helpers, error, parsers, phyvars, step
 from . import datatypes as dt
 from ._caching import FieldCache, StepSnap, StepSnapH5, StepSnapLegacy
 from .parfile import StagyyPar
-from .parsers.stagyyparsers import FieldXmf, TracersXmf
+from .parsers.h5.field import FieldXmf
+from .parsers.stagyyparsers import TracersXmf
 from .step import Step
 
 if typing.TYPE_CHECKING:

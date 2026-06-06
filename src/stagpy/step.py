@@ -52,7 +52,7 @@ class Geometry:
         if binfiles:
             header = parsers.bin.field.header(binfiles.pop())
         elif sdat.hdf5:
-            header = stagyyparsers.read_geom_h5(sdat._dataxmf, self.step.isnap)
+            header = parsers.h5.field.read_geom(sdat._dataxmf, self.step.isnap)
         return header if header else None
 
     @cached_property
@@ -374,7 +374,7 @@ class Fields:
                 else:
                     xmff = sdat._dataxmf
                     header = None
-                parsed_data = stagyyparsers.read_field_h5(
+                parsed_data = parsers.h5.field.field(
                     xmff, filestem, self.step.isnap, header
                 )
                 if parsed_data is not None:
