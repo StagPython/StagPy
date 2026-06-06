@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import _helpers, error, phyvars, step
+from . import _helpers, error, parsers, phyvars, step
 from . import datatypes as dt
 from ._caching import FieldCache, StepSnap, StepSnapH5, StepSnapLegacy
 from .parfile import StagyyPar
@@ -82,7 +82,7 @@ class Refstate:
         if self.sdat.hdf5 and not reffile.is_file():
             # check legacy folder as well
             reffile = self.sdat.filename("refstat.dat", force_legacy=True)
-        data = stagyyparsers.refstate(reffile)
+        data = parsers.txt.refstate(reffile)
         if data is None:
             raise error.NoRefstateError(self.sdat)
         return data
@@ -155,7 +155,7 @@ class Tseries:
         if self.sdat.hdf5 and not timefile.is_file():
             # check legacy folder as well
             timefile = self.sdat.filename("time.dat", force_legacy=True)
-        data = stagyyparsers.time_series(timefile)
+        data = parsers.txt.tseries(timefile)
         return data
 
     @property
@@ -740,7 +740,7 @@ class StagyyData:
         if self.hdf5 and not rproffile.is_file():
             # check legacy folder as well
             rproffile = self.filename("rprof.dat", force_legacy=True)
-        return stagyyparsers.rprof(rproffile)
+        return parsers.txt.rprof(rproffile)
 
     @property
     def rtimes(self) -> DataFrame | None:

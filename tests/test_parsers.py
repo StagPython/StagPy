@@ -1,12 +1,13 @@
 from pathlib import Path
 
+from stagpy import parsers
 from stagpy.parsers import stagyyparsers as prs
 from stagpy.stagyydata import StagyyData
 
 
 def test_time_series_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    data = prs.time_series(sdat.filename("time.dat"))
+    data = parsers.txt.tseries(sdat.filename("time.dat"))
     assert data is not None
     assert (data.columns[3:6] == ["Tmin", "Tmean", "Tmax"]).all()
 
@@ -20,12 +21,12 @@ def test_time_series_h5(sdat_h5: StagyyData) -> None:
 
 
 def test_time_series_invalid_prs() -> None:
-    assert prs.time_series(Path("dummy")) is None
+    assert parsers.txt.tseries(Path("dummy")) is None
 
 
 def test_rprof_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    data, _time = prs.rprof(sdat.filename("rprof.dat"))
+    data, _time = parsers.txt.rprof(sdat.filename("rprof.dat"))
     assert all((df.columns[:3] == ["r", "Tmean", "Tmin"]).all() for df in data.values())
 
 
@@ -38,7 +39,7 @@ def test_rprof_h5(sdat_h5: StagyyData) -> None:
 
 
 def test_rprof_invalid_prs() -> None:
-    assert prs.rprof(Path("dummy")) == ({}, None)
+    assert parsers.txt.rprof(Path("dummy")) == ({}, None)
 
 
 def test_fields_prs(sdat_legacy: StagyyData) -> None:
@@ -69,7 +70,7 @@ def test_fields_invalid_prs() -> None:
 
 
 def test_refstate_parser(example_h5_path: Path) -> None:
-    out = prs.refstate(example_h5_path / "output_refstat.dat")
+    out = parsers.txt.refstate(example_h5_path / "output_refstat.dat")
     cols = ["z", "T", "rho", "expan", "Cp", "Tcond"]
     assert out is not None
     systems, adias = out
