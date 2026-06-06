@@ -15,7 +15,7 @@ from functools import cached_property
 
 import numpy as np
 
-from . import error, phyvars
+from . import error, parsers, phyvars
 from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
 from .parsers import stagyyparsers
@@ -50,7 +50,7 @@ class Geometry:
         binfiles = sdat._binfiles_set(self.step.isnap)
         header = None
         if binfiles:
-            header = stagyyparsers.field_header(binfiles.pop())
+            header = parsers.bin.field.header(binfiles.pop())
         elif sdat.hdf5:
             header = stagyyparsers.read_geom_h5(sdat._dataxmf, self.step.isnap)
         return header if header else None
@@ -359,7 +359,7 @@ class Fields:
         if not fieldfile.is_file():
             fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
         if fieldfile.is_file():
-            parsed_data = stagyyparsers.fields(fieldfile)
+            parsed_data = parsers.bin.field.field(fieldfile)
         elif self.step.sdat.hdf5 and self.filesh5:
             # files in which the requested data can be found
             files = [

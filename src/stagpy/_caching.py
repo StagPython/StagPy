@@ -7,7 +7,7 @@ from collections import deque
 from dataclasses import dataclass
 from functools import cached_property
 
-from . import phyvars
+from . import parsers, phyvars
 from .error import InvalidSnapshotError
 from .parsers import stagyyparsers
 
@@ -151,7 +151,7 @@ class StepSnapLegacy(StepSnap):
         if istep == -1:
             binfiles = self.sdat._binfiles_set(isnap)
             if binfiles:
-                istep = stagyyparsers.field_istep(binfiles.pop())
+                istep = parsers.bin.field.istep(binfiles.pop())
             else:
                 istep = None
             self._snap_to_step[isnap] = istep

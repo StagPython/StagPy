@@ -1,2 +1,2 @@
 # ruff: noqa: F401
-from . import h5, txt
+from . import bin, h5, txt

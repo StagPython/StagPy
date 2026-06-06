@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from stagpy import parsers
-from stagpy.parsers import stagyyparsers as prs
 from stagpy.stagyydata import StagyyData
 
 
@@ -44,7 +43,7 @@ def test_rprof_invalid_prs() -> None:
 
 def test_fields_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    parsed = prs.fields(sdat.filename("t", len(sdat.snaps) - 1))
+    parsed = parsers.bin.field.field(sdat.filename("t", len(sdat.snaps) - 1))
     assert parsed is not None
     hdr, flds = parsed
     assert flds.shape[0] == 1
@@ -54,19 +53,19 @@ def test_fields_prs(sdat_legacy: StagyyData) -> None:
 
 def test_field_header_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    hdr = prs.field_header(sdat.filename("t", len(sdat.snaps) - 1))
+    hdr = parsers.bin.field.header(sdat.filename("t", len(sdat.snaps) - 1))
     assert hdr is not None
     assert hdr["nts"].shape == (3,)
 
 
 def test_fields_istep_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    istep = prs.field_istep(sdat.filename("t", len(sdat.snaps) - 1))
+    istep = parsers.bin.field.istep(sdat.filename("t", len(sdat.snaps) - 1))
     assert istep == sdat.snaps[-1].istep
 
 
 def test_fields_invalid_prs() -> None:
-    assert prs.fields(Path("dummy")) is None
+    assert parsers.bin.field.field(Path("dummy")) is None
 
 
 def test_refstate_parser(example_h5_path: Path) -> None:
