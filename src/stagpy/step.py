@@ -18,7 +18,6 @@ import numpy as np
 from . import error, parsers, phyvars
 from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
-from .parsers import stagyyparsers
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping
@@ -408,7 +407,7 @@ class Tracers:
             self.step.sdat.filename("tra", timestep=self.step.isnap, force_legacy=True)
         )
         if data is None and self.step.sdat.hdf5:
-            self._data[name] = stagyyparsers.read_tracers_h5(  # type: ignore
+            self._data[name] = parsers.h5.tracers.tracers(  # type: ignore
                 self.step.sdat._traxmf,
                 name,
                 self.step.isnap,
