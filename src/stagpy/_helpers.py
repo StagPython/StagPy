@@ -16,6 +16,19 @@ if typing.TYPE_CHECKING:
     from .stagyydata import StagyyData, StepsView
 
 
+def resize(names: list[str], nnames: int) -> None:
+    """Truncate or extend names so that its len is nnames.
+
+    The list is modified in-place.
+
+    Args:
+        names: list of names.
+        nnames: desired number of names.
+    """
+    names.extend(map(str, range(nnames - len(names))))
+    del names[nnames:]
+
+
 def walk(sdat: StagyyData, conf: Config) -> StepsView:
     """Return view on configured steps slice."""
     if conf.core.timesteps:
