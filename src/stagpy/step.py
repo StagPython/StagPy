@@ -404,7 +404,7 @@ class Tracers:
             return self._data[name]
         if self.step.isnap is None:
             return None
-        data = stagyyparsers.tracers(
+        data = parsers.bin.tracers.tracers(
             self.step.sdat.filename("tra", timestep=self.step.isnap, force_legacy=True)
         )
         if data is None and self.step.sdat.hdf5:
