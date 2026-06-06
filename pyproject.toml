@@ -94,3 +94,4 @@ reportUnknownMemberType = false
 reportUnknownParameterType = false
 reportUnknownVariableType = false
 reportUnusedCallResult = false
+reportUnusedImport = false
