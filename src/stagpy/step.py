@@ -15,9 +15,10 @@ from functools import cached_property
 
 import numpy as np
 
-from . import error, phyvars, stagyyparsers
+from . import error, phyvars
 from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
+from .parsers import stagyyparsers
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping

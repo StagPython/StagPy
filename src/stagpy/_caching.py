@@ -7,8 +7,9 @@ from collections import deque
 from dataclasses import dataclass
 from functools import cached_property
 
-from . import phyvars, stagyyparsers
+from . import phyvars
 from .error import InvalidSnapshotError
+from .parsers import stagyyparsers
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping

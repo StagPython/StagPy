@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from stagpy import stagyyparsers as prs
+from stagpy.parsers import stagyyparsers as prs
 from stagpy.stagyydata import StagyyData
 
 

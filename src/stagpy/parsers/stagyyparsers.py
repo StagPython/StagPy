@@ -19,8 +19,8 @@ import h5py
 import numpy as np
 import pandas as pd
 
-from .error import ParsingError
-from .phyvars import FIELD_FILES_H5, RPROF, SFIELD_FILES_H5
+from ..error import ParsingError
+from ..phyvars import FIELD_FILES_H5, RPROF, SFIELD_FILES_H5
 from .xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
