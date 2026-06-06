@@ -15,7 +15,7 @@ def test_time_series_prs(sdat_legacy: StagyyData) -> None:
 def test_time_series_h5(sdat_h5: StagyyData) -> None:
     sdat = sdat_h5
     assert sdat.hdf5 is not None
-    data = prs.time_series_h5(sdat.hdf5 / "TimeSeries.h5")
+    data = parsers.h5.tseries.tseries(sdat.hdf5 / "TimeSeries.h5")
     assert data is not None
     assert (data.columns[3:6] == ["Tmin", "Tmean", "Tmax"]).all()
 
@@ -33,7 +33,7 @@ def test_rprof_prs(sdat_legacy: StagyyData) -> None:
 def test_rprof_h5(sdat_h5: StagyyData) -> None:
     sdat = sdat_h5
     assert sdat.hdf5 is not None
-    data, _times = prs.rprof_h5(sdat.hdf5 / "rprof.h5")
+    data, _times = parsers.h5.rprof.rprof(sdat.hdf5 / "rprof.h5")
     assert data is not None
     assert (data[1000].columns[:3] == ["r", "Tmean", "Tmin"]).all()
 

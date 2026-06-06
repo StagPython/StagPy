@@ -12,16 +12,13 @@ import typing
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import product
-from operator import itemgetter
 
 import h5py
 import numpy as np
-import pandas as pd
 
-from .._helpers import resize
 from ..error import ParsingError
 from ..phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
-from .xdmf import XmlStream
+from .h5.xdmf import XmlStream
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
@@ -30,67 +27,6 @@ if typing.TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
     from numpy.typing import NDArray
-    from pandas import DataFrame
-
-
-def time_series_h5(timefile: Path) -> DataFrame | None:
-    """Read temporal series HDF5 file.
-
-    Args:
-        timefile: path of the TimeSeries.h5 file.
-
-    Returns:
-        A `pandas.DataFrame` containing the time series, organized by
-            variables in columns and the time steps in rows.
-    """
-    if not timefile.is_file():
-        return None
-    with h5py.File(timefile, "r") as h5f:
-        dset = h5f["tseries"]
-        _, ncols = dset.shape
-        ncols -= 1  # first is istep
-        colnames = list(h5f["names"].asstr()[()])
-        resize(colnames, ncols + 1)
-        data = dset[()]
-    pdf = pd.DataFrame(
-        data[:, 1:],
-        index=data[:, 0].astype(np.int64),
-        columns=colnames[1:],
-    )
-    # remove duplicated lines in case of restart
-    return pdf.loc[~pdf.index.duplicated(keep="last")]
-
-
-def rprof_h5(rproffile: Path) -> tuple[dict[int, DataFrame], DataFrame | None]:
-    """Extract radial profiles data.
-
-    Args:
-        rproffile: path of the rprof.h5 file.
-
-    Returns:
-        profs: a dict mapping istep to radial profiles.
-        times: the time indexed by time steps.
-    """
-    if not rproffile.is_file():
-        return {}, None
-    isteps = []
-    data = {}
-    with h5py.File(rproffile, "r") as h5f:
-        dnames = sorted(dname for dname in h5f.keys() if dname.startswith("rprof_"))
-        colnames = h5f["names"].asstr()[()]
-        for dname in dnames:
-            dset = h5f[dname]
-            arr = dset[()]
-            istep = dset.attrs["istep"]
-            step_cols = list(colnames)
-            resize(step_cols, arr.shape[1])  # check shape
-            data[istep] = pd.DataFrame(arr, columns=step_cols)
-            isteps.append((istep, dset.attrs["time"]))
-
-    df_times = pd.DataFrame(
-        list(map(itemgetter(1), isteps)), index=pd.Index(map(itemgetter(0), isteps))
-    )
-    return data, df_times
 
 
 @dataclass(frozen=True)

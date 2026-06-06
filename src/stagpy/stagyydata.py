@@ -21,7 +21,6 @@ from . import _helpers, error, parsers, phyvars, step
 from . import datatypes as dt
 from ._caching import FieldCache, StepSnap, StepSnapH5, StepSnapLegacy
 from .parfile import StagyyPar
-from .parsers import stagyyparsers
 from .parsers.stagyyparsers import FieldXmf, TracersXmf
 from .step import Step
 
@@ -148,7 +147,7 @@ class Tseries:
     @cached_property
     def _data(self) -> DataFrame | None:
         timefile = self.sdat.filename("TimeSeries.h5")
-        data = stagyyparsers.time_series_h5(timefile)
+        data = parsers.h5.tseries.tseries(timefile)
         if data is not None:
             return data
         timefile = self.sdat.filename("time.dat")
@@ -733,7 +732,7 @@ class StagyyData:
     @cached_property
     def _rprof_and_times(self) -> tuple[dict[int, DataFrame], DataFrame | None]:
         rproffile = self.filename("rprof.h5")
-        data = stagyyparsers.rprof_h5(rproffile)
+        data = parsers.h5.rprof.rprof(rproffile)
         if data[1] is not None:
             return data
         rproffile = self.filename("rprof.dat")
