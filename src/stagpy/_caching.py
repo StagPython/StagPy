@@ -9,7 +9,6 @@ from functools import cached_property
 
 from . import parsers, phyvars
 from .error import InvalidSnapshotError
-from .parsers import stagyyparsers
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping
@@ -98,7 +97,7 @@ class StepSnapH5(StepSnap):
         isnap = -1
         step_to_snap = {}
         snap_to_step = {}
-        for isnap, istep in stagyyparsers.read_time_h5(self.sdat.hdf5):
+        for isnap, istep in parsers.h5.extras.isnap_istep(self.sdat.hdf5):
             step_to_snap[istep] = isnap
             snap_to_step[isnap] = istep
         return StepSnapInfo(

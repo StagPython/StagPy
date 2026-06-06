@@ -1,11 +1,3 @@
-"""Parsers of StagYY output files.
-
-Note:
-    These functions are low level utilities. You should not use these unless
-    you know what you are doing. To access StagYY output data, use an instance
-    of [`StagyyData`][stagpy.stagyydata.StagyyData].
-"""
-
 from __future__ import annotations
 
 import typing
@@ -17,7 +9,7 @@ if typing.TYPE_CHECKING:
     from pathlib import Path
 
 
-def read_time_h5(h5folder: Path) -> Iterator[tuple[int, int]]:
+def isnap_istep(h5folder: Path) -> Iterator[tuple[int, int]]:
     """Iterate through (isnap, istep) recorded in h5folder/'time_botT.h5'.
 
     Args:
