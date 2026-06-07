@@ -752,7 +752,7 @@ class StagyyData:
     @cached_property
     def _files(self) -> set[Path]:
         """Set of found binary files output by StagYY."""
-        out_dir = self.par.legacy_output("_").parent
+        out_dir = self.par.legacy_output("").parent
         if out_dir.is_dir():
             return set(out_dir.iterdir())
         return set()
@@ -791,7 +791,7 @@ class StagyyData:
         if not force_legacy and self.hdf5:
             fpath = self.par.h5_output(fname)
         else:
-            fpath = self.par.legacy_output(f"_{fname}")
+            fpath = self.par.legacy_output(fname)
         return fpath
 
     def _binfiles_set(self, isnap: int) -> set[Path]:
@@ -804,8 +804,7 @@ class StagyyData:
             the set of output files available for this snapshot number.
         """
         possible_files = set(
-            self.filename(fstem, isnap, force_legacy=True)
-            for fstem in phyvars.FIELD_FILES
+            self.par.legacy_output(fstem, isnap) for fstem in phyvars.FIELD_FILES
         )
         return possible_files & self._files
 

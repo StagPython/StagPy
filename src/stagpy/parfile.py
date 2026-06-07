@@ -68,7 +68,7 @@ class StagyyPar:
             par_main = StagyyPar(nml=par_dflt.nml, root=par_main.root)
 
         if read_parameters_dat:
-            outfile = par_main.legacy_output("_parameters.dat")
+            outfile = par_main.legacy_output("parameters.dat")
             if outfile.is_file():
                 par_main._update(StagyyPar._from_file(outfile))
             outfile = par_main.h5_output("parameters.dat")
@@ -80,9 +80,11 @@ class StagyyPar:
         sec = self.nml.get(section, {})
         return sec.get(option, default)
 
-    def legacy_output(self, suffix: str) -> Path:
+    def legacy_output(self, suffix: str, isnap: int | None = None) -> Path:
+        if isnap is not None:
+            suffix += f"{isnap:05d}"
         stem = self.get("ioin", "output_file_stem", "output")
-        return self.root / (stem + suffix)
+        return self.root / f"{stem}_{suffix}"
 
     def h5_output(self, filename: str) -> Path:
         h5folder = self.get("ioin", "hdf5_output_folder", "+hdf5")

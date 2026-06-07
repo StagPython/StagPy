@@ -131,7 +131,7 @@ class StepSnapLegacy(StepSnap):
     @cached_property
     def isnap_max(self) -> int:
         imax = -1
-        out_stem = re.escape(self.sdat.par.legacy_output("_").name[:-1])
+        out_stem = re.escape(self.sdat.par.legacy_output("").name[:-1])
         rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
         fstems = set(fstem for fstem in phyvars.FIELD_FILES)
         for fname in self.sdat._files:
