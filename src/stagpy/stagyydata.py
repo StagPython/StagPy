@@ -779,31 +779,6 @@ class StagyyData:
             return fpath
         return None
 
-    def filename(
-        self,
-        fname: str,
-        timestep: int | None = None,
-        force_legacy: bool = False,
-    ) -> Path:
-        """Return name of StagYY output file.
-
-        Args:
-            fname: name stem.
-            timestep: snapshot number if relevant.
-            suffix: optional suffix of file name.
-            force_legacy: force returning the legacy output path.
-
-        Returns:
-            the path of the output file constructed with the provided segments.
-        """
-        if timestep is not None:
-            fname += f"{timestep:05d}"
-        if not force_legacy and self.hdf5:
-            fpath = self.par.h5_output(fname)
-        else:
-            fpath = self.par.legacy_output(fname)
-        return fpath
-
     def _binfiles_set(self, isnap: int) -> set[Path]:
         """Set of existing binary files at a given snap.
 
