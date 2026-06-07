@@ -78,11 +78,10 @@ class Refstate:
     @cached_property
     def _data(self) -> tuple[list[list[DataFrame]], list[DataFrame]]:
         """Read reference state profile."""
-        reffile = self.sdat.filename("refstat.dat")
-        if self.sdat.hdf5 and not reffile.is_file():
-            # check legacy folder as well
-            reffile = self.sdat.filename("refstat.dat", force_legacy=True)
-        data = parsers.txt.refstate(reffile)
+        reffile = self.sdat._find_file("refstat.dat")
+        data = None
+        if reffile is not None:
+            data = parsers.txt.refstate(reffile)
         if data is None:
             raise error.NoRefstateError(self.sdat)
         return data
@@ -152,11 +151,9 @@ class Tseries:
         data = parsers.h5.tseries.tseries(timefile)
         if data is not None:
             return data
-        timefile = self.sdat.filename("time.dat")
-        if self.sdat.hdf5 and not timefile.is_file():
-            # check legacy folder as well
-            timefile = self.sdat.filename("time.dat", force_legacy=True)
-        data = parsers.txt.tseries(timefile)
+        timefile = self.sdat._find_file("time.dat")
+        if timefile is not None:
+            data = parsers.txt.tseries(timefile)
         return data
 
     @property
@@ -738,11 +735,10 @@ class StagyyData:
         data = parsers.h5.rprof.rprof(rproffile)
         if data[1] is not None:
             return data
-        rproffile = self.filename("rprof.dat")
-        if self.hdf5 and not rproffile.is_file():
-            # check legacy folder as well
-            rproffile = self.filename("rprof.dat", force_legacy=True)
-        return parsers.txt.rprof(rproffile)
+        rproffile = self._find_file("rprof.dat")
+        if rproffile is not None:
+            return parsers.txt.rprof(rproffile)
+        return {}, None
 
     @property
     def rtimes(self) -> DataFrame | None:
@@ -768,6 +764,20 @@ class StagyyData:
         if nfields is not None and nfields <= 5:
             raise error.InvalidNfieldsError(nfields)
         self._field_cache.resize(nfields)
+
+    def _find_file(self, fname: str) -> Path | None:
+        """Return path of StagYY output file if found.
+
+        This searches in the legacy folder first, and then the hdf5
+        output folder.
+        """
+        fpath = self.par.legacy_output(fname)
+        if fpath.is_file():
+            return fpath
+        fpath = self.par.h5_output(fname)
+        if fpath.is_file():
+            return fpath
+        return None
 
     def filename(
         self,
