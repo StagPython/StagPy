@@ -799,6 +799,7 @@ class StagyyData:
 
     @cached_property
     def _step_snap(self) -> StepSnap:
-        if self.hdf5 is not None:
-            return StepSnapH5(sdat=self)
+        timeh5 = self.par.h5_output("time_botT.h5")
+        if timeh5.is_file():
+            return StepSnapH5(timeh5=timeh5)
         return StepSnapLegacy(sdat=self)
