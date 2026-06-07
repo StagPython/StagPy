@@ -771,7 +771,6 @@ class StagyyData:
         self,
         fname: str,
         timestep: int | None = None,
-        suffix: str = "",
         force_legacy: bool = False,
     ) -> Path:
         """Return name of StagYY output file.
@@ -787,7 +786,6 @@ class StagyyData:
         """
         if timestep is not None:
             fname += f"{timestep:05d}"
-        fname += suffix
         if not force_legacy and self.hdf5:
             fpath = self.par.h5_output(fname)
         else:
