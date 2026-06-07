@@ -147,7 +147,8 @@ class Tseries:
 
     @cached_property
     def _data(self) -> DataFrame | None:
-        timefile = self.sdat.filename("TimeSeries.h5")
+        timefile: Path | None
+        timefile = self.sdat.par.h5_output("TimeSeries.h5")
         data = parsers.h5.tseries.tseries(timefile)
         if data is not None:
             return data
@@ -732,7 +733,8 @@ class StagyyData:
 
     @cached_property
     def _rprof_and_times(self) -> tuple[dict[int, DataFrame], DataFrame | None]:
-        rproffile = self.filename("rprof.h5")
+        rproffile: Path | None
+        rproffile = self.par.h5_output("rprof.h5")
         data = parsers.h5.rprof.rprof(rproffile)
         if data[1] is not None:
             return data
