@@ -403,9 +403,9 @@ class Tracers:
         data = parsers.bin.tracers.tracers(
             sdat.par.legacy_output("tra", self.step.isnap)
         )
-        if data is None and self.step.sdat.hdf5:
+        if data is None and sdat._traxmf is not None:
             self._data[name] = parsers.h5.tracers.tracers(  # type: ignore
-                self.step.sdat._traxmf,
+                sdat._traxmf,
                 name,
                 self.step.isnap,
             )

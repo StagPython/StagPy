@@ -717,11 +717,11 @@ class StagyyData:
         )
 
     @cached_property
-    def _traxmf(self) -> TracersXmf:
-        assert self.hdf5 is not None
-        return TracersXmf(
-            path=self.hdf5 / "DataTracers.xmf",
-        )
+    def _traxmf(self) -> TracersXmf | None:
+        path = self.par.h5_output("DataTracers.xmf")
+        if path.is_file():
+            return TracersXmf(path=path)
+        return None
 
     @cached_property
     def par(self) -> StagyyPar:
