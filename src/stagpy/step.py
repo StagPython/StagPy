@@ -50,7 +50,7 @@ class Geometry:
         header = None
         if binfiles:
             header = parsers.bin.field.header(binfiles.pop())
-        elif sdat.hdf5:
+        elif sdat._dataxmf is not None:
             header = parsers.h5.field.read_geom(sdat._dataxmf, self.step.isnap)
         return header if header else None
 
@@ -356,18 +356,22 @@ class Fields:
         if fieldfile.is_file():
             parsed_data = parsers.bin.field.field(fieldfile)
             return list_fvar, parsed_data
-        if not (self.step.sdat.hdf5 and self.filesh5):
+        if not self.filesh5:
             return list_fvar, parsed_data
         # files in which the requested data can be found
         files = [(stem, fvars) for stem, fvars in self.filesh5.items() if name in fvars]
+        sdat = self.step.sdat
+        if filestem in phyvars.SFIELD_FILES_H5:
+            xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
+        else:
+            xmff = sdat._dataxmf
+        if xmff is None:
+            return list_fvar, parsed_data
         for filestem, list_fvar in files:
-            sdat = self.step.sdat
             if filestem in phyvars.SFIELD_FILES_H5:
-                xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
                 header = self.step.geom._maybe_header
                 assert header is not None
             else:
-                xmff = sdat._dataxmf
                 header = None
             parsed_data = parsers.h5.field.field(
                 xmff, filestem, self.step.isnap, header

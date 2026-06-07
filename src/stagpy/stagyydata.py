@@ -696,25 +696,25 @@ class StagyyData:
         return Refstate(self)
 
     @cached_property
-    def _dataxmf(self) -> FieldXmf:
-        assert self.hdf5 is not None
-        return FieldXmf(
-            path=self.hdf5 / "Data.xmf",
-        )
+    def _dataxmf(self) -> FieldXmf | None:
+        path = self.par.h5_output("Data.xmf")
+        if path.is_file():
+            return FieldXmf(path=path)
+        return None
 
     @cached_property
-    def _topxmf(self) -> FieldXmf:
-        assert self.hdf5 is not None
-        return FieldXmf(
-            path=self.hdf5 / "DataSurface.xmf",
-        )
+    def _topxmf(self) -> FieldXmf | None:
+        path = self.par.h5_output("DataSurface.xmf")
+        if path.is_file():
+            return FieldXmf(path=path)
+        return None
 
     @cached_property
-    def _botxmf(self) -> FieldXmf:
-        assert self.hdf5 is not None
-        return FieldXmf(
-            path=self.hdf5 / "DataBottom.xmf",
-        )
+    def _botxmf(self) -> FieldXmf | None:
+        path = self.par.h5_output("DataBottom.xmf")
+        if path.is_file():
+            return FieldXmf(path=path)
+        return None
 
     @cached_property
     def _traxmf(self) -> TracersXmf | None:
