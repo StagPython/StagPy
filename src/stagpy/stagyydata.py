@@ -670,12 +670,6 @@ class StagyyData:
         return parpath / "par"
 
     @cached_property
-    def hdf5(self) -> Path | None:
-        """Path of output hdf5 folder if relevant, None otherwise."""
-        h5xmf = self.par.h5_output("Data.xmf")
-        return h5xmf.parent if h5xmf.is_file() else None
-
-    @cached_property
     def steps(self) -> Steps:
         """Collection of time steps."""
         return Steps(self)
