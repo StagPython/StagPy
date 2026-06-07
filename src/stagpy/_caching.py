@@ -93,11 +93,11 @@ class StepSnapH5(StepSnap):
 
     @cached_property
     def _info(self) -> StepSnapInfo:
-        assert self.sdat.hdf5 is not None
         isnap = -1
         step_to_snap = {}
         snap_to_step = {}
-        for isnap, istep in parsers.h5.extras.isnap_istep(self.sdat.hdf5):
+        timeh5 = self.sdat.par.h5_output("time_botT.h5")
+        for isnap, istep in parsers.h5.extras.isnap_istep(timeh5):
             step_to_snap[istep] = isnap
             snap_to_step[isnap] = istep
         return StepSnapInfo(

@@ -9,16 +9,16 @@ if typing.TYPE_CHECKING:
     from pathlib import Path
 
 
-def isnap_istep(h5folder: Path) -> Iterator[tuple[int, int]]:
-    """Iterate through (isnap, istep) recorded in h5folder/'time_botT.h5'.
+def isnap_istep(timeh5: Path) -> Iterator[tuple[int, int]]:
+    """Iterate through (isnap, istep) recorded in 'time_botT.h5'.
 
     Args:
-        h5folder: directory of HDF5 output files.
+        timeh5: path of the time h5 file.
 
     Yields:
         tuple (isnap, istep).
     """
-    with h5py.File(h5folder / "time_botT.h5", "r") as h5f:
+    with h5py.File(timeh5, "r") as h5f:
         for name, dset in h5f.items():
             isnap = int(name[-5:])
             if len(dset) == 3:
