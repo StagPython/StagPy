@@ -50,7 +50,7 @@ class Geometry:
         header = None
         if binfiles:
             header = parsers.bin.field.header(binfiles.pop())
-        elif sdat.hdf5:
+        elif sdat._dataxmf is not None:
             header = parsers.h5.field.read_geom(sdat._dataxmf, self.step.isnap)
         return header if header else None
 
@@ -352,32 +352,32 @@ class Fields:
         parsed_data = None
         if self.step.isnap is None:
             return list_fvar, None
-        fieldfile = self.step.sdat.filename(
-            filestem, self.step.isnap, force_legacy=True
-        )
-        if not fieldfile.is_file():
-            fieldfile = self.step.sdat.filename(filestem, self.step.isnap)
+        fieldfile = self.step.sdat.par.legacy_output(filestem, self.step.isnap)
         if fieldfile.is_file():
             parsed_data = parsers.bin.field.field(fieldfile)
-        elif self.step.sdat.hdf5 and self.filesh5:
-            # files in which the requested data can be found
-            files = [
-                (stem, fvars) for stem, fvars in self.filesh5.items() if name in fvars
-            ]
-            for filestem, list_fvar in files:
-                sdat = self.step.sdat
-                if filestem in phyvars.SFIELD_FILES_H5:
-                    xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
-                    header = self.step.geom._maybe_header
-                    assert header is not None
-                else:
-                    xmff = sdat._dataxmf
-                    header = None
-                parsed_data = parsers.h5.field.field(
-                    xmff, filestem, self.step.isnap, header
-                )
-                if parsed_data is not None:
-                    break
+            return list_fvar, parsed_data
+        if not self.filesh5:
+            return list_fvar, parsed_data
+        # files in which the requested data can be found
+        files = [(stem, fvars) for stem, fvars in self.filesh5.items() if name in fvars]
+        sdat = self.step.sdat
+        if filestem in phyvars.SFIELD_FILES_H5:
+            xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
+        else:
+            xmff = sdat._dataxmf
+        if xmff is None:
+            return list_fvar, parsed_data
+        for filestem, list_fvar in files:
+            if filestem in phyvars.SFIELD_FILES_H5:
+                header = self.step.geom._maybe_header
+                assert header is not None
+            else:
+                header = None
+            parsed_data = parsers.h5.field.field(
+                xmff, filestem, self.step.isnap, header
+            )
+            if parsed_data is not None:
+                break
         return list_fvar, parsed_data
 
 
@@ -403,12 +403,13 @@ class Tracers:
             return self._data[name]
         if self.step.isnap is None:
             return None
+        sdat = self.step.sdat
         data = parsers.bin.tracers.tracers(
-            self.step.sdat.filename("tra", timestep=self.step.isnap, force_legacy=True)
+            sdat.par.legacy_output("tra", self.step.isnap)
         )
-        if data is None and self.step.sdat.hdf5:
+        if data is None and sdat._traxmf is not None:
             self._data[name] = parsers.h5.tracers.tracers(  # type: ignore
-                self.step.sdat._traxmf,
+                sdat._traxmf,
                 name,
                 self.step.isnap,
             )

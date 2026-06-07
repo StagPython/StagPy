@@ -78,11 +78,10 @@ class Refstate:
     @cached_property
     def _data(self) -> tuple[list[list[DataFrame]], list[DataFrame]]:
         """Read reference state profile."""
-        reffile = self.sdat.filename("refstat.dat")
-        if self.sdat.hdf5 and not reffile.is_file():
-            # check legacy folder as well
-            reffile = self.sdat.filename("refstat.dat", force_legacy=True)
-        data = parsers.txt.refstate(reffile)
+        reffile = self.sdat._find_file("refstat.dat")
+        data = None
+        if reffile is not None:
+            data = parsers.txt.refstate(reffile)
         if data is None:
             raise error.NoRefstateError(self.sdat)
         return data
@@ -147,15 +146,14 @@ class Tseries:
 
     @cached_property
     def _data(self) -> DataFrame | None:
-        timefile = self.sdat.filename("TimeSeries.h5")
+        timefile: Path | None
+        timefile = self.sdat.par.h5_output("TimeSeries.h5")
         data = parsers.h5.tseries.tseries(timefile)
         if data is not None:
             return data
-        timefile = self.sdat.filename("time.dat")
-        if self.sdat.hdf5 and not timefile.is_file():
-            # check legacy folder as well
-            timefile = self.sdat.filename("time.dat", force_legacy=True)
-        data = parsers.txt.tseries(timefile)
+        timefile = self.sdat._find_file("time.dat")
+        if timefile is not None:
+            data = parsers.txt.tseries(timefile)
         return data
 
     @property
@@ -672,12 +670,6 @@ class StagyyData:
         return parpath / "par"
 
     @cached_property
-    def hdf5(self) -> Path | None:
-        """Path of output hdf5 folder if relevant, None otherwise."""
-        h5xmf = self.par.h5_output("Data.xmf")
-        return h5xmf.parent if h5xmf.is_file() else None
-
-    @cached_property
     def steps(self) -> Steps:
         """Collection of time steps."""
         return Steps(self)
@@ -698,32 +690,32 @@ class StagyyData:
         return Refstate(self)
 
     @cached_property
-    def _dataxmf(self) -> FieldXmf:
-        assert self.hdf5 is not None
-        return FieldXmf(
-            path=self.hdf5 / "Data.xmf",
-        )
+    def _dataxmf(self) -> FieldXmf | None:
+        path = self.par.h5_output("Data.xmf")
+        if path.is_file():
+            return FieldXmf(path=path)
+        return None
 
     @cached_property
-    def _topxmf(self) -> FieldXmf:
-        assert self.hdf5 is not None
-        return FieldXmf(
-            path=self.hdf5 / "DataSurface.xmf",
-        )
+    def _topxmf(self) -> FieldXmf | None:
+        path = self.par.h5_output("DataSurface.xmf")
+        if path.is_file():
+            return FieldXmf(path=path)
+        return None
 
     @cached_property
-    def _botxmf(self) -> FieldXmf:
-        assert self.hdf5 is not None
-        return FieldXmf(
-            path=self.hdf5 / "DataBottom.xmf",
-        )
+    def _botxmf(self) -> FieldXmf | None:
+        path = self.par.h5_output("DataBottom.xmf")
+        if path.is_file():
+            return FieldXmf(path=path)
+        return None
 
     @cached_property
-    def _traxmf(self) -> TracersXmf:
-        assert self.hdf5 is not None
-        return TracersXmf(
-            path=self.hdf5 / "DataTracers.xmf",
-        )
+    def _traxmf(self) -> TracersXmf | None:
+        path = self.par.h5_output("DataTracers.xmf")
+        if path.is_file():
+            return TracersXmf(path=path)
+        return None
 
     @cached_property
     def par(self) -> StagyyPar:
@@ -732,15 +724,15 @@ class StagyyData:
 
     @cached_property
     def _rprof_and_times(self) -> tuple[dict[int, DataFrame], DataFrame | None]:
-        rproffile = self.filename("rprof.h5")
+        rproffile: Path | None
+        rproffile = self.par.h5_output("rprof.h5")
         data = parsers.h5.rprof.rprof(rproffile)
         if data[1] is not None:
             return data
-        rproffile = self.filename("rprof.dat")
-        if self.hdf5 and not rproffile.is_file():
-            # check legacy folder as well
-            rproffile = self.filename("rprof.dat", force_legacy=True)
-        return parsers.txt.rprof(rproffile)
+        rproffile = self._find_file("rprof.dat")
+        if rproffile is not None:
+            return parsers.txt.rprof(rproffile)
+        return {}, None
 
     @property
     def rtimes(self) -> DataFrame | None:
@@ -750,7 +742,7 @@ class StagyyData:
     @cached_property
     def _files(self) -> set[Path]:
         """Set of found binary files output by StagYY."""
-        out_dir = self.par.legacy_output("_").parent
+        out_dir = self.par.legacy_output("").parent
         if out_dir.is_dir():
             return set(out_dir.iterdir())
         return set()
@@ -767,32 +759,19 @@ class StagyyData:
             raise error.InvalidNfieldsError(nfields)
         self._field_cache.resize(nfields)
 
-    def filename(
-        self,
-        fname: str,
-        timestep: int | None = None,
-        suffix: str = "",
-        force_legacy: bool = False,
-    ) -> Path:
-        """Return name of StagYY output file.
+    def _find_file(self, fname: str) -> Path | None:
+        """Return path of StagYY output file if found.
 
-        Args:
-            fname: name stem.
-            timestep: snapshot number if relevant.
-            suffix: optional suffix of file name.
-            force_legacy: force returning the legacy output path.
-
-        Returns:
-            the path of the output file constructed with the provided segments.
+        This searches in the legacy folder first, and then the hdf5
+        output folder.
         """
-        if timestep is not None:
-            fname += f"{timestep:05d}"
-        fname += suffix
-        if not force_legacy and self.hdf5:
-            fpath = self.par.h5_output(fname)
-        else:
-            fpath = self.par.legacy_output(f"_{fname}")
-        return fpath
+        fpath = self.par.legacy_output(fname)
+        if fpath.is_file():
+            return fpath
+        fpath = self.par.h5_output(fname)
+        if fpath.is_file():
+            return fpath
+        return None
 
     def _binfiles_set(self, isnap: int) -> set[Path]:
         """Set of existing binary files at a given snap.
@@ -804,8 +783,7 @@ class StagyyData:
             the set of output files available for this snapshot number.
         """
         possible_files = set(
-            self.filename(fstem, isnap, force_legacy=True)
-            for fstem in phyvars.FIELD_FILES
+            self.par.legacy_output(fstem, isnap) for fstem in phyvars.FIELD_FILES
         )
         return possible_files & self._files
 
@@ -815,6 +793,7 @@ class StagyyData:
 
     @cached_property
     def _step_snap(self) -> StepSnap:
-        if self.hdf5 is not None:
-            return StepSnapH5(sdat=self)
+        timeh5 = self.par.h5_output("time_botT.h5")
+        if timeh5.is_file():
+            return StepSnapH5(timeh5=timeh5)
         return StepSnapLegacy(sdat=self)

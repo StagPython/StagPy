@@ -12,6 +12,7 @@ from .error import InvalidSnapshotError
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping
+    from pathlib import Path
 
     from .datatypes import Field
     from .stagyydata import StagyyData
@@ -89,15 +90,14 @@ class StepSnapInfo:
 
 @dataclass(frozen=True)
 class StepSnapH5(StepSnap):
-    sdat: StagyyData
+    timeh5: Path
 
     @cached_property
     def _info(self) -> StepSnapInfo:
-        assert self.sdat.hdf5 is not None
         isnap = -1
         step_to_snap = {}
         snap_to_step = {}
-        for isnap, istep in parsers.h5.extras.isnap_istep(self.sdat.hdf5):
+        for isnap, istep in parsers.h5.extras.isnap_istep(self.timeh5):
             step_to_snap[istep] = isnap
             snap_to_step[isnap] = istep
         return StepSnapInfo(
@@ -131,7 +131,7 @@ class StepSnapLegacy(StepSnap):
     @cached_property
     def isnap_max(self) -> int:
         imax = -1
-        out_stem = re.escape(self.sdat.par.legacy_output("_").name[:-1])
+        out_stem = re.escape(self.sdat.par.legacy_output("").name[:-1])
         rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
         fstems = set(fstem for fstem in phyvars.FIELD_FILES)
         for fname in self.sdat._files:
