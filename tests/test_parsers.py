@@ -6,7 +6,7 @@ from stagpy.stagyydata import StagyyData
 
 def test_time_series_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    data = parsers.txt.tseries(sdat.filename("time.dat"))
+    data = parsers.txt.tseries(sdat.par.legacy_output("time.dat"))
     assert data is not None
     assert (data.columns[3:6] == ["Tmin", "Tmean", "Tmax"]).all()
 
@@ -25,7 +25,7 @@ def test_time_series_invalid_prs() -> None:
 
 def test_rprof_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    data, _time = parsers.txt.rprof(sdat.filename("rprof.dat"))
+    data, _time = parsers.txt.rprof(sdat.par.legacy_output("rprof.dat"))
     assert all((df.columns[:3] == ["r", "Tmean", "Tmin"]).all() for df in data.values())
 
 
@@ -43,7 +43,7 @@ def test_rprof_invalid_prs() -> None:
 
 def test_fields_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    parsed = parsers.bin.field.field(sdat.filename("t", len(sdat.snaps) - 1))
+    parsed = parsers.bin.field.field(sdat.par.legacy_output("t", len(sdat.snaps) - 1))
     assert parsed is not None
     hdr, flds = parsed
     assert flds.shape[0] == 1
@@ -53,14 +53,14 @@ def test_fields_prs(sdat_legacy: StagyyData) -> None:
 
 def test_field_header_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    hdr = parsers.bin.field.header(sdat.filename("t", len(sdat.snaps) - 1))
+    hdr = parsers.bin.field.header(sdat.par.legacy_output("t", len(sdat.snaps) - 1))
     assert hdr is not None
     assert hdr["nts"].shape == (3,)
 
 
 def test_fields_istep_prs(sdat_legacy: StagyyData) -> None:
     sdat = sdat_legacy
-    istep = parsers.bin.field.istep(sdat.filename("t", len(sdat.snaps) - 1))
+    istep = parsers.bin.field.istep(sdat.par.legacy_output("t", len(sdat.snaps) - 1))
     assert istep == sdat.snaps[-1].istep
 
 
