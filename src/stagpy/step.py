@@ -348,6 +348,12 @@ class Fields:
                 return filestem, list_fvar
         raise error.UnknownFieldVarError(name)
 
+    def _h5_file_info(self, name: str) -> tuple[str, list[str]]:
+        for stem, fvars in self.filesh5.items():
+            if name in fvars:
+                return stem, fvars
+        raise error.UnknownFieldVarError(name)
+
     def _get_raw_data(
         self, name: str
     ) -> tuple[list[str], tuple[dict[str, Any], NDArray[np.float64]] | None]:
@@ -361,10 +367,9 @@ class Fields:
         if fieldfile.is_file():
             parsed_data = parsers.bin.field.field(fieldfile)
             return list_fvar, parsed_data
+
         if not self.filesh5:
             return list_fvar, parsed_data
-        # files in which the requested data can be found
-        files = [(stem, fvars) for stem, fvars in self.filesh5.items() if name in fvars]
         sdat = self.step.sdat
         if filestem in phyvars.SFIELD_FILES_H5:
             xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
@@ -372,17 +377,14 @@ class Fields:
             xmff = sdat._dataxmf
         if xmff is None:
             return list_fvar, parsed_data
-        for filestem, list_fvar in files:
-            if filestem in phyvars.SFIELD_FILES_H5:
-                header = self.step.geom._maybe_header
-                assert header is not None
-            else:
-                header = None
-            parsed_data = parsers.h5.field.field(
-                xmff, filestem, self.step.isnap, header
-            )
-            if parsed_data is not None:
-                break
+
+        filestem, list_fvar = self._h5_file_info(name)
+        if filestem in phyvars.SFIELD_FILES_H5:
+            header = self.step.geom._maybe_header
+            assert header is not None
+        else:
+            header = None
+        parsed_data = parsers.h5.field.field(xmff, filestem, self.step.isnap, header)
         return list_fvar, parsed_data
 
 
