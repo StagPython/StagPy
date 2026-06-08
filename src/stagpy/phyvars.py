@@ -31,6 +31,7 @@ FIELD: Mapping[str, Varf] = MappingProxyType(
         "v2": Varf("Velocity (y)", "m/s"),
         "v3": Varf("Velocity (z)", "m/s"),
         "p": Varf("Pressure", "Pa"),
+        "Pdyn": Varf("Dynamic pressure", "Pa"),
         "eta": Varf("Viscosity", "Pa.s"),
         "rho": Varf("Density", "kg/m3"),
         "rho4rhs": Varf("Density term in RHS", "kg/m3"),
@@ -81,6 +82,7 @@ FIELD_FILES: Mapping[str, list[str]] = MappingProxyType(
     {
         "t": ["T"],
         "vp": ["v1", "v2", "v3", "p"],
+        "Pdyn": ["Pdyn"],
         "c": ["c"],
         "eta": ["eta"],
         "rho": ["rho"],
@@ -114,11 +116,8 @@ FIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
     {
         "Temperature": ["T"],
         "Velocity": ["v1", "v2", "v3"],
-        "Dynamic_Pressure": ["p"],
-        # Depending on the version of StagYY and whether total pressure is used,
-        # the dynamic pressure might be written in this file instead.  It will be
-        # used as fallback by step.Fields._get_raw_data.
         "Pressure": ["p"],
+        "DynamicPressure": ["Pdyn"],
         "Composition": ["c"],
         "IronContent": ["cFe"],
         "HPE": ["hpe"],
