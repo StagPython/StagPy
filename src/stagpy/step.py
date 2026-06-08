@@ -342,15 +342,18 @@ class Fields:
             return False
         return True
 
+    def _legacy_file_info(self, name: str) -> tuple[str, list[str]]:
+        for filestem, list_fvar in self.files.items():
+            if name in list_fvar:
+                return filestem, list_fvar
+        raise error.UnknownFieldVarError(name)
+
     def _get_raw_data(
         self, name: str
     ) -> tuple[list[str], tuple[dict[str, Any], NDArray[np.float64]] | None]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
-        filestem = ""
-        for filestem, list_fvar in self.files.items():
-            if name in list_fvar:
-                break
+        filestem, list_fvar = self._legacy_file_info(name)
         parsed_data = None
         if self.step.isnap is None:
             return list_fvar, None
