@@ -342,7 +342,9 @@ class Fields:
             return False
         return True
 
-    def _get_raw_data(self, name: str) -> tuple[list[str], Any]:
+    def _get_raw_data(
+        self, name: str
+    ) -> tuple[list[str], tuple[dict[str, Any], NDArray[np.float64]] | None]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
         filestem = ""
