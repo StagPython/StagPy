@@ -83,11 +83,11 @@ def var_cmd(conf: Config) -> None:
     print_all = not any(getattr(conf.var, fld.name) for fld in fields(conf.var))
     if print_all or conf.var.field:
         console.rule("fields", style="magenta")
-        console.print(_layout(phyvars.FIELD, phyvars.FIELD_EXTRA))
+        console.print(_layout(phyvars.FIELD.variables, phyvars.FIELD_EXTRA))
         console.print()
     if print_all or conf.var.sfield:
         console.rule("surface fields", style="magenta")
-        console.print(_layout(phyvars.SFIELD, {}))
+        console.print(_layout(phyvars.SFIELD.variables, {}))
         console.print()
     if print_all or conf.var.rprof:
         console.rule("radial profiles", style="magenta")

@@ -31,6 +31,10 @@ if typing.TYPE_CHECKING:
 class FieldVars:
     variables: Mapping[str, Varf]
 
+    @staticmethod
+    def from_dict(dct: dict[str, Varf]) -> FieldVars:
+        return FieldVars(MappingProxyType(dct))
+
     @cached_property
     def _legacy_files(self) -> Mapping[str, Sequence[str]]:
         """Mapping from file name to file content."""
@@ -48,6 +52,9 @@ class FieldVars:
             fname = meta.file_h5
             dct[fname] = dct.get(fname, ()) + (name,)
         return MappingProxyType(dct)
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.variables
 
     def meta(self, name: str) -> Varf:
         return self.variables[name]
@@ -67,7 +74,7 @@ class FieldVars:
             raise error.UnknownFieldVarError(name)
 
 
-FIELD: Mapping[str, Varf] = MappingProxyType(
+FIELD: FieldVars = FieldVars.from_dict(
     {
         "T": Varf("Temperature", "K", "t", "Temperature"),
         "v1": Varf("Velocity (x)", "m/s", "vp", "Velocity"),
@@ -200,7 +207,7 @@ FIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
     }
 )
 
-SFIELD: Mapping[str, Varf] = MappingProxyType(
+SFIELD: FieldVars = FieldVars.from_dict(
     {
         "topo_bot": Varf("Topography at bottom", "m", "cs", "BottomTopography"),
         "topo_top": Varf("Topography at top", "m", "cs", "SurfaceTopography"),

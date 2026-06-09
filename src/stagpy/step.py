@@ -19,7 +19,6 @@ import numpy as np
 from . import error, parsers, phyvars
 from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
-from .phyvars import FieldVars
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping
@@ -29,6 +28,7 @@ if typing.TYPE_CHECKING:
     from pandas import DataFrame, Series
 
     from ._caching import FieldCache
+    from .phyvars import FieldVars
     from .stagyydata import StagyyData
 
 
@@ -576,7 +576,7 @@ class Step:
         """Fields available at this time step."""
         return Fields(
             self,
-            FieldVars(phyvars.FIELD),
+            phyvars.FIELD,
             phyvars.FIELD_EXTRA,
             self.sdat._field_cache,
         )
@@ -586,7 +586,7 @@ class Step:
         """Surface fields available at this time step."""
         return Fields(
             self,
-            FieldVars(phyvars.SFIELD),
+            phyvars.SFIELD,
             {},
             self.sdat._sfield_cache,
         )

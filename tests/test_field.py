@@ -20,7 +20,7 @@ def test_field_missing(step: Step) -> None:
 
 
 def test_valid_field_var() -> None:
-    for var in stagpy.phyvars.FIELD:
+    for var in stagpy.phyvars.FIELD.variables:
         assert valid_field_var(var)
     for var in stagpy.phyvars.FIELD_EXTRA:
         assert valid_field_var(var)
