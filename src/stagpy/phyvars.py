@@ -135,78 +135,6 @@ FIELD_EXTRA: Mapping[str, Callable[[Step], Field]] = MappingProxyType(
 )
 """Scalar fields that StagPy can compute."""
 
-FIELD_FILES: Mapping[str, list[str]] = MappingProxyType(
-    {
-        "t": ["T"],
-        "vp": ["v1", "v2", "v3", "p"],
-        "Pdyn": ["Pdyn"],
-        "c": ["c"],
-        "eta": ["eta"],
-        "rho": ["rho"],
-        "hpe": ["hpe"],
-        "wtr": ["wtr"],
-        "age": ["age"],
-        "nrc": ["contID"],
-        "rs": ["rs1", "rs2", "rs3", "rsc"],
-        "str": ["sII"],
-        "sx": ["sx1", "sx2", "sx3", "s1val"],
-        "ed": ["edot"],
-        "k": ["Tcond"],
-        "bs": ["basalt"],
-        "hz": ["harzburgite"],
-        "imp": ["impactor"],
-        "prm": ["prim"],
-        "f": ["meltfrac"],
-        "fc": ["meltcompo"],
-        "df": ["meltrate"],
-        "vm": ["meltvel"],
-        "nm": ["nmelt"],
-        "fSiO2": ["fSiO2"],
-        "fMgO": ["fMgO"],
-        "fFeO": ["fFeO"],
-        "fXO": ["fXO"],
-        "fFeR": ["fFeR"],
-    }
-)
-
-FIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
-    {
-        "Temperature": ["T"],
-        "Velocity": ["v1", "v2", "v3"],
-        "Pressure": ["p"],
-        "DynamicPressure": ["Pdyn"],
-        "Composition": ["c"],
-        "IronContent": ["cFe"],
-        "HPE": ["hpe"],
-        "Viscosity": ["eta"],
-        "Density": ["rho"],
-        "TraBasedDensity": ["trarho"],
-        "water": ["wtr"],
-        "Age": ["age"],
-        "ContinentNumber": ["contID"],
-        "ResidualMomentum": ["rs1", "rs2", "rs3"],
-        "ResidualContinuity": ["rsc"],
-        "Stress": ["sII"],
-        "PrincipalStressAxis": ["sx1", "sx2", "sx3"],
-        "StrainRate": ["edot"],
-        "ThermalConductivity": ["Tcond"],
-        "Basalt": ["basalt"],
-        "Harzburgite": ["harzburgite"],
-        "Impactor": ["impactor"],
-        "Primordial": ["prim"],
-        "MeltFrac": ["meltfrac"],
-        "MeltComposition": ["meltcompo"],
-        "MeltingRate": ["meltrate"],
-        "MeltVelocity": ["meltvel"],
-        "nmelt": ["nmelt"],
-        "fSiO2": ["fSiO2"],
-        "fMgO": ["fMgO"],
-        "fFeO": ["fFeO"],
-        "fXO": ["fXO"],
-        "fFeR": ["fFeR"],
-    }
-)
-
 SFIELD: FieldVars = FieldVars.from_dict(
     {
         "topo_bot": Varf("Topography at bottom", "m", "cs", "BottomTopography"),
@@ -227,34 +155,6 @@ SFIELD: FieldVars = FieldVars.from_dict(
     }
 )
 """Surface scalar fields output by StagYY."""
-
-SFIELD_FILES: Mapping[str, list[str]] = MappingProxyType(
-    {
-        "cs": ["topo_bot", "topo_top"],
-        "g": ["geoid_bot", "geoid_top"],
-        "csg": ["topo_g_bot", "topo_g_top"],
-        "hf": ["fbot", "ftop"],
-        "hfs": ["fsbot", "fstop"],
-        "cr": ["crust"],
-    }
-)
-
-SFIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
-    {
-        "BottomTopography": ["topo_bot"],
-        "SurfaceTopography": ["topo_top"],
-        "BottomGeoid": ["geoid_bot"],
-        "TopGeoid": ["geoid_top"],
-        "BottomCSGeoid": ["topo_g_bot"],
-        "TopCSGeoid": ["topo_g_top"],
-        "BottomHeatFlux": ["fbot"],
-        "TopHeatFlux": ["ftop"],
-        "BottomHFSpectrum": ["fsbot"],
-        "TopHFSpectrum": ["fstop"],
-        "CrustThickness": ["crust"],
-    }
-)
-
 
 RPROF: Mapping[str, Varr] = MappingProxyType(
     {
