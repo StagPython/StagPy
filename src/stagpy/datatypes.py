@@ -19,6 +19,10 @@ class Varf:
     """description of field variable."""
     dim: str
     """dimension used to scale to dimensional values."""
+    file_legacy: str
+    """legacy file in which the field is found."""
+    file_h5: str
+    """hdf5 file in which the field is found."""
 
 
 @dataclass(frozen=True)

@@ -49,46 +49,54 @@ class FieldVars:
 
 FIELD: Mapping[str, Varf] = MappingProxyType(
     {
-        "T": Varf("Temperature", "K"),
-        "v1": Varf("Velocity (x)", "m/s"),
-        "v2": Varf("Velocity (y)", "m/s"),
-        "v3": Varf("Velocity (z)", "m/s"),
-        "p": Varf("Pressure", "Pa"),
-        "Pdyn": Varf("Dynamic pressure", "Pa"),
-        "eta": Varf("Viscosity", "Pa.s"),
-        "rho": Varf("Density", "kg/m3"),
-        "trarho": Varf("Density from tracer mass", "kg/m3"),
-        "sII": Varf("Second invariant of stress tensor", "Pa"),
-        "sx1": Varf("Principal stress eigenvector (x)", "Pa"),
-        "sx2": Varf("Principal stress eigenvector (y)", "Pa"),
-        "sx3": Varf("Principal stress eigenvector (z)", "Pa"),
-        "s1val": Varf("Principal stress eigenvalue", "Pa"),
-        "edot": Varf("Strain rate", "1/s"),
-        "Tcond": Varf("Thermal conductivity", "W/(m.K)"),
-        "c": Varf("Composition", "1"),
-        "cFe": Varf("FeO content", "1"),
-        "hpe": Varf("HPE content", "1"),
-        "wtr": Varf("Water concentration", "1"),
-        "age": Varf("Age", "s"),
-        "contID": Varf("ID of continents", "1"),
-        "rs1": Varf("Momentum residue (x)", "1"),
-        "rs2": Varf("Momentum residue (y)", "1"),
-        "rs3": Varf("Momentum residue (z)", "1"),
-        "rsc": Varf("Continuity residue", "1"),
-        "basalt": Varf("Basalt fraction", "1"),
-        "harzburgite": Varf("Harzburgite fraction", "1"),
-        "impactor": Varf("Impactor fraction", "1"),
-        "prim": Varf("Primordial layer", "1"),
-        "meltfrac": Varf("Melt fraction", "1"),
-        "meltcompo": Varf("Melt composition", "1"),
-        "meltrate": Varf("Melting rate", "1"),
-        "meltvel": Varf("Melt velocity", "1"),
-        "nmelt": Varf("N melt", "1"),
-        "fSiO2": Varf("fSiO2", "1"),
-        "fMgO": Varf("fMgO", "1"),
-        "fFeO": Varf("fFeO", "1"),
-        "fXO": Varf("fXO", "1"),
-        "fFeR": Varf("fFeR", "1"),
+        "T": Varf("Temperature", "K", "t", "Temperature"),
+        "v1": Varf("Velocity (x)", "m/s", "vp", "Velocity"),
+        "v2": Varf("Velocity (y)", "m/s", "vp", "Velocity"),
+        "v3": Varf("Velocity (z)", "m/s", "vp", "Velocity"),
+        "p": Varf("Pressure", "Pa", "vp", "Pressure"),
+        "Pdyn": Varf("Dynamic pressure", "Pa", "Pdyn", "DynamicPressure"),
+        "eta": Varf("Viscosity", "Pa.s", "eta", "Viscosity"),
+        "rho": Varf("Density", "kg/m3", "rho", "Density"),
+        "trarho": Varf("Density from tracer mass", "kg/m3", "trho", "TraBasedDensity"),
+        "sII": Varf("Second invariant of stress tensor", "Pa", "str", "Stress"),
+        "sx1": Varf(
+            "Principal stress eigenvector (x)", "Pa", "sx", "PrincipalStressAxis"
+        ),
+        "sx2": Varf(
+            "Principal stress eigenvector (y)", "Pa", "sx", "PrincipalStressAxis"
+        ),
+        "sx3": Varf(
+            "Principal stress eigenvector (z)", "Pa", "sx", "PrincipalStressAxis"
+        ),
+        "s1val": Varf(
+            "Principal stress eigenvalue", "Pa", "sx", "PrincipalStressAxisP"
+        ),
+        "edot": Varf("Strain rate", "1/s", "ed", "StrainRate"),
+        "Tcond": Varf("Thermal conductivity", "W/(m.K)", "k", "ThermalConductivity"),
+        "c": Varf("Composition", "1", "c", "Composition"),
+        "cFe": Varf("FeO content", "1", "FeO", "IronContent"),
+        "hpe": Varf("HPE content", "1", "hpe", "HPE"),
+        "wtr": Varf("Water concentration", "1", "wtr", "Water"),
+        "age": Varf("Age", "s", "age", "Age"),
+        "contID": Varf("ID of continents", "1", "nrc", "ContinentNumber"),
+        "rs1": Varf("Momentum residue (x)", "1", "rs", "ResidualMomentum"),
+        "rs2": Varf("Momentum residue (y)", "1", "rs", "ResidualMomentum"),
+        "rs3": Varf("Momentum residue (z)", "1", "rs", "ResidualMomentum"),
+        "rsc": Varf("Continuity residue", "1", "rs", "ResidualContinuity"),
+        "basalt": Varf("Basalt fraction", "1", "bs", "Basalt"),
+        "harzburgite": Varf("Harzburgite fraction", "1", "hz", "Harzburgite"),
+        "impactor": Varf("Impactor fraction", "1", "imp", "Impactor"),
+        "prim": Varf("Primordial layer", "1", "prm", "Primordial"),
+        "meltfrac": Varf("Melt fraction", "1", "f", "MeltFrac"),
+        "meltcompo": Varf("Melt composition", "1", "fc", "MeltComposition"),
+        "meltrate": Varf("Melting rate", "1", "df", "MeltingRate"),
+        "meltvel": Varf("Melt velocity", "1", "vm", "MeltVelocity"),
+        "nmelt": Varf("N melt", "1", "nm", "nmelt"),
+        "fSiO2": Varf("fSiO2", "1", "fSiO2", "fSiO2"),
+        "fMgO": Varf("fMgO", "1", "fMgO", "fMgO"),
+        "fFeO": Varf("fFeO", "1", "fFeO", "fFeO"),
+        "fXO": Varf("fXO", "1", "fXO", "fXO"),
+        "fFeR": Varf("fFeR", "1", "fFeR", "fFeR"),
     }
 )
 """Scalar fields output by StagYY."""
@@ -174,17 +182,21 @@ FIELD_FILES_H5: Mapping[str, list[str]] = MappingProxyType(
 
 SFIELD: Mapping[str, Varf] = MappingProxyType(
     {
-        "topo_top": Varf("Topography at top", "m"),
-        "topo_bot": Varf("Topography at bottom", "m"),
-        "geoid_top": Varf("Geoid at top", "m"),
-        "geoid_bot": Varf("Geoid at bottom", "m"),
-        "topo_g_top": Varf("Topography for geoid at top", "m"),
-        "topo_g_bot": Varf("Topography for geoid at bottom", "m"),
-        "ftop": Varf("Heat flux at top", "W/m2"),
-        "fbot": Varf("Heat flux at bottom", "W/m2"),
-        "fstop": Varf("Heat flux from spectrum at top", "W/m2"),
-        "fsbot": Varf("Heat flux from spectrum at bottom", "W/m2"),
-        "crust": Varf("Crustal thickness", "m"),
+        "topo_bot": Varf("Topography at bottom", "m", "cs", "BottomTopography"),
+        "topo_top": Varf("Topography at top", "m", "cs", "SurfaceTopography"),
+        "geoid_bot": Varf("Geoid at bottom", "m", "g", "BottomGeoid"),
+        "geoid_top": Varf("Geoid at top", "m", "g", "TopGeoid"),
+        "topo_g_bot": Varf(
+            "Topography for geoid at bottom", "m", "csg", "BottomCSGeoid"
+        ),
+        "topo_g_top": Varf("Topography for geoid at top", "m", "csg", "TopCSGeoid"),
+        "fbot": Varf("Heat flux at bottom", "W/m2", "hf", "BottomHeatFlux"),
+        "ftop": Varf("Heat flux at top", "W/m2", "hf", "TopHeatFlux"),
+        "fsbot": Varf(
+            "Heat flux from spectrum at bottom", "W/m2", "hfs", "BottomHFSpectrum"
+        ),
+        "fstop": Varf("Heat flux from spectrum at top", "W/m2", "hfs", "TopHFSpectrum"),
+        "crust": Varf("Crustal thickness", "m", "cr", "CrustThickness"),
     }
 )
 """Surface scalar fields output by StagYY."""
