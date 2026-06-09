@@ -300,29 +300,26 @@ class Fields:
     extravars: Mapping[str, Callable[[Step], Field]]
     files: Mapping[str, list[str]]
     filesh5: Mapping[str, list[str]]
+    cache: FieldCache
 
     @cached_property
     def _all_vars(self) -> set[str]:
         return set(self.variables.keys()).union(self.extravars.keys())
 
-    @cached_property
-    def _cache(self) -> FieldCache:
-        return self.step.sdat._field_cache
-
     def __getitem__(self, name: str) -> Field:
         if name not in self._all_vars:
             raise error.UnknownFieldVarError(name)
 
-        maybe_fld = self._cache.get(self.step.istep, name)
+        maybe_fld = self.cache.get(self.step.istep, name)
         if maybe_fld is not None:
             return maybe_fld
 
         if name in self.extravars:
             fld = self.extravars[name](self.step)
-            self._cache.insert(self.step.istep, name, fld)
+            self.cache.insert(self.step.istep, name, fld)
             return fld
 
-        # requested field is one of self._vars
+        # requested field is one of self.variables
         fld_names, parsed_data = self._get_raw_data(name)
         if parsed_data is None:
             raise error.MissingDataError(
@@ -332,7 +329,7 @@ class Fields:
         for fld_name, fld_vals in zip(fld_names, fields):
             meta = self.variables[fld_name]
             fld = Field(fld_vals, meta.description, meta.dim)
-            self._cache.insert(self.step.istep, fld_name, fld)
+            self.cache.insert(self.step.istep, fld_name, fld)
         return self[name]
 
     def __contains__(self, item: Any) -> bool:
@@ -605,6 +602,7 @@ class Step:
             phyvars.FIELD_EXTRA,
             phyvars.FIELD_FILES,
             phyvars.FIELD_FILES_H5,
+            self.sdat._field_cache,
         )
 
     @cached_property
@@ -616,6 +614,7 @@ class Step:
             {},
             phyvars.SFIELD_FILES,
             phyvars.SFIELD_FILES_H5,
+            self.sdat._sfield_cache,
         )
 
     @cached_property

@@ -792,6 +792,10 @@ class StagyyData:
         return FieldCache(maxsize=50)
 
     @cached_property
+    def _sfield_cache(self) -> FieldCache:
+        return FieldCache(maxsize=50)
+
+    @cached_property
     def _step_snap(self) -> StepSnap:
         timeh5 = self.par.h5_output("time_botT.h5")
         if timeh5.is_file():
