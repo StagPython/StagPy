@@ -346,7 +346,7 @@ class Fields:
             return list_fvar, parsed_data
 
         sdat = self.step.sdat
-        if filestem in phyvars.SFIELD_FILES_H5:
+        if filestem in phyvars.SFIELD.h5_files:
             xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
         else:
             xmff = sdat._dataxmf
@@ -354,7 +354,7 @@ class Fields:
             return list_fvar, parsed_data
 
         filestem, list_fvar = self.variables.h5_file_info(name)
-        if filestem in phyvars.SFIELD_FILES_H5:
+        if filestem in phyvars.SFIELD.h5_files:
             header = self.step.geom._maybe_header
             assert header is not None
         else:

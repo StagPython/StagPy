@@ -8,7 +8,7 @@ import h5py
 import numpy as np
 
 from ...error import ParsingError
-from ...phyvars import FIELD_FILES_H5, SFIELD_FILES_H5
+from ...phyvars import FIELD, SFIELD
 from ._helpers import count_subdomains, ifile_isnap, read_group, try_text
 from .xdmf import XmlStream
 
@@ -368,8 +368,8 @@ def field(
     if header is None:
         header = read_geom(xdmf, snapshot)
 
-    vector_field = len(FIELD_FILES_H5.get(fieldname, [])) == 3
-    surface_field = fieldname in SFIELD_FILES_H5
+    vector_field = len(FIELD.h5_files.get(fieldname, [])) == 3
+    surface_field = fieldname in SFIELD.h5_files
 
     npc = header["nts"] // header["ncs"]  # number of grid point per node
     flds = np.zeros(_flds_shape(vector_field, header))

@@ -783,7 +783,7 @@ class StagyyData:
             the set of output files available for this snapshot number.
         """
         possible_files = set(
-            self.par.legacy_output(fstem, isnap) for fstem in phyvars.FIELD_FILES
+            self.par.legacy_output(fstem, isnap) for fstem in phyvars.FIELD.legacy_files
         )
         return possible_files & self._files
 
