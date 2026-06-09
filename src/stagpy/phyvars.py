@@ -36,7 +36,7 @@ class FieldVars:
         return FieldVars(MappingProxyType(dct))
 
     @cached_property
-    def _legacy_files(self) -> Mapping[str, Sequence[str]]:
+    def legacy_files(self) -> Mapping[str, Sequence[str]]:
         """Mapping from file name to file content."""
         dct: dict[str, tuple[str, ...]] = {}
         for name, meta in self.variables.items():
@@ -45,7 +45,7 @@ class FieldVars:
         return MappingProxyType(dct)
 
     @cached_property
-    def _h5_files(self) -> Mapping[str, Sequence[str]]:
+    def h5_files(self) -> Mapping[str, Sequence[str]]:
         """Mapping from file name to file content."""
         dct: dict[str, tuple[str, ...]] = {}
         for name, meta in self.variables.items():
@@ -62,14 +62,14 @@ class FieldVars:
     def legacy_file_info(self, name: str) -> tuple[str, Sequence[str]]:
         try:
             fname = self.meta(name).file_legacy
-            return fname, self._legacy_files[fname]
+            return fname, self.legacy_files[fname]
         except KeyError:
             raise error.UnknownFieldVarError(name)
 
     def h5_file_info(self, name: str) -> tuple[str, Sequence[str]]:
         try:
             fname = self.meta(name).file_h5
-            return fname, self._h5_files[fname]
+            return fname, self.h5_files[fname]
         except KeyError:
             raise error.UnknownFieldVarError(name)
 

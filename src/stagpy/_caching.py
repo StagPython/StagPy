@@ -133,10 +133,9 @@ class StepSnapLegacy(StepSnap):
         imax = -1
         out_stem = re.escape(self.sdat.par.legacy_output("").name[:-1])
         rgx = re.compile(f"^{out_stem}_([a-zA-Z]+)([0-9]{{5}})$")
-        fstems = set(fstem for fstem in phyvars.FIELD_FILES)
         for fname in self.sdat._files:
             match = rgx.match(fname.name)
-            if match is not None and match.group(1) in fstems:
+            if match is not None and match.group(1) in phyvars.FIELD.legacy_files:
                 imax = max(int(match.group(2)), imax)
         return imax
 
