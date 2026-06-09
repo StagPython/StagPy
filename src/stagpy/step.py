@@ -358,8 +358,6 @@ class Fields:
             parsed_data = parsers.bin.field.field(fieldfile)
             return list_fvar, parsed_data
 
-        if not self.filesh5:
-            return list_fvar, parsed_data
         sdat = self.step.sdat
         if filestem in phyvars.SFIELD_FILES_H5:
             xmff = sdat._botxmf if name.endswith("bot") else sdat._topxmf
