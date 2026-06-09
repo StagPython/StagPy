@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import typing
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import cached_property
 
@@ -332,7 +333,7 @@ class Fields:
 
     def _get_raw_data(
         self, name: str
-    ) -> tuple[list[str], tuple[dict[str, Any], NDArray[np.float64]] | None]:
+    ) -> tuple[Sequence[str], tuple[dict[str, Any], NDArray[np.float64]] | None]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
         filestem, list_fvar = self.variables.legacy_file_info(name)
@@ -575,11 +576,7 @@ class Step:
         """Fields available at this time step."""
         return Fields(
             self,
-            FieldVars(
-                phyvars.FIELD,
-                phyvars.FIELD_FILES,
-                phyvars.FIELD_FILES_H5,
-            ),
+            FieldVars(phyvars.FIELD),
             phyvars.FIELD_EXTRA,
             self.sdat._field_cache,
         )
@@ -589,11 +586,7 @@ class Step:
         """Surface fields available at this time step."""
         return Fields(
             self,
-            FieldVars(
-                phyvars.SFIELD,
-                phyvars.SFIELD_FILES,
-                phyvars.SFIELD_FILES_H5,
-            ),
+            FieldVars(phyvars.SFIELD),
             {},
             self.sdat._sfield_cache,
         )
