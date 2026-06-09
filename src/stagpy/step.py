@@ -302,14 +302,7 @@ class Fields:
     filesh5: Mapping[str, list[str]]
     cache: FieldCache
 
-    @cached_property
-    def _all_vars(self) -> set[str]:
-        return set(self.variables.keys()).union(self.extravars.keys())
-
     def __getitem__(self, name: str) -> Field:
-        if name not in self._all_vars:
-            raise error.UnknownFieldVarError(name)
-
         maybe_fld = self.cache.get(self.step.istep, name)
         if maybe_fld is not None:
             return maybe_fld
