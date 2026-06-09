@@ -8,10 +8,11 @@ be computed from other variables.
 from __future__ import annotations
 
 import typing
+from dataclasses import dataclass
 from operator import attrgetter
 from types import MappingProxyType
 
-from . import processing
+from . import error, processing
 from .datatypes import Varf, Varr, Vart
 
 if typing.TYPE_CHECKING:
@@ -22,6 +23,28 @@ if typing.TYPE_CHECKING:
     from .dimensions import Scales
     from .stagyydata import StagyyData
     from .step import Step
+
+
+@dataclass(frozen=True)
+class FieldVars:
+    variables: Mapping[str, Varf]
+    files: Mapping[str, list[str]]
+    filesh5: Mapping[str, list[str]]
+
+    def meta(self, name: str) -> Varf:
+        return self.variables[name]
+
+    def legacy_file_info(self, name: str) -> tuple[str, list[str]]:
+        for filestem, list_fvar in self.files.items():
+            if name in list_fvar:
+                return filestem, list_fvar
+        raise error.UnknownFieldVarError(name)
+
+    def h5_file_info(self, name: str) -> tuple[str, list[str]]:
+        for stem, fvars in self.filesh5.items():
+            if name in fvars:
+                return stem, fvars
+        raise error.UnknownFieldVarError(name)
 
 
 FIELD: Mapping[str, Varf] = MappingProxyType(

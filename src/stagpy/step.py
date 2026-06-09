@@ -18,6 +18,7 @@ import numpy as np
 from . import error, parsers, phyvars
 from .datatypes import Field, Rprof, Varr
 from .dimensions import Scales
+from .phyvars import FieldVars
 
 if typing.TYPE_CHECKING:
     from collections.abc import Mapping
@@ -27,7 +28,6 @@ if typing.TYPE_CHECKING:
     from pandas import DataFrame, Series
 
     from ._caching import FieldCache
-    from .datatypes import Varf
     from .stagyydata import StagyyData
 
 
@@ -296,10 +296,8 @@ class Fields:
     """
 
     step: Step
-    variables: Mapping[str, Varf]
+    variables: FieldVars
     extravars: Mapping[str, Callable[[Step], Field]]
-    files: Mapping[str, list[str]]
-    filesh5: Mapping[str, list[str]]
     cache: FieldCache
 
     def __getitem__(self, name: str) -> Field:
@@ -320,7 +318,7 @@ class Fields:
             )
         _, fields = parsed_data
         for fld_name, fld_vals in zip(fld_names, fields):
-            meta = self.variables[fld_name]
+            meta = self.variables.meta(fld_name)
             fld = Field(fld_vals, meta.description, meta.dim)
             self.cache.insert(self.step.istep, fld_name, fld)
         return self[name]
@@ -332,24 +330,12 @@ class Fields:
             return False
         return True
 
-    def _legacy_file_info(self, name: str) -> tuple[str, list[str]]:
-        for filestem, list_fvar in self.files.items():
-            if name in list_fvar:
-                return filestem, list_fvar
-        raise error.UnknownFieldVarError(name)
-
-    def _h5_file_info(self, name: str) -> tuple[str, list[str]]:
-        for stem, fvars in self.filesh5.items():
-            if name in fvars:
-                return stem, fvars
-        raise error.UnknownFieldVarError(name)
-
     def _get_raw_data(
         self, name: str
     ) -> tuple[list[str], tuple[dict[str, Any], NDArray[np.float64]] | None]:
         """Find file holding data and return its content."""
         # try legacy first, then hdf5
-        filestem, list_fvar = self._legacy_file_info(name)
+        filestem, list_fvar = self.variables.legacy_file_info(name)
         parsed_data = None
         if self.step.isnap is None:
             return list_fvar, None
@@ -366,7 +352,7 @@ class Fields:
         if xmff is None:
             return list_fvar, parsed_data
 
-        filestem, list_fvar = self._h5_file_info(name)
+        filestem, list_fvar = self.variables.h5_file_info(name)
         if filestem in phyvars.SFIELD_FILES_H5:
             header = self.step.geom._maybe_header
             assert header is not None
@@ -589,10 +575,12 @@ class Step:
         """Fields available at this time step."""
         return Fields(
             self,
-            phyvars.FIELD,
+            FieldVars(
+                phyvars.FIELD,
+                phyvars.FIELD_FILES,
+                phyvars.FIELD_FILES_H5,
+            ),
             phyvars.FIELD_EXTRA,
-            phyvars.FIELD_FILES,
-            phyvars.FIELD_FILES_H5,
             self.sdat._field_cache,
         )
 
@@ -601,10 +589,12 @@ class Step:
         """Surface fields available at this time step."""
         return Fields(
             self,
-            phyvars.SFIELD,
+            FieldVars(
+                phyvars.SFIELD,
+                phyvars.SFIELD_FILES,
+                phyvars.SFIELD_FILES_H5,
+            ),
             {},
-            phyvars.SFIELD_FILES,
-            phyvars.SFIELD_FILES_H5,
             self.sdat._sfield_cache,
         )
 
