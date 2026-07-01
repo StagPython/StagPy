@@ -54,20 +54,23 @@ def _ncores(
             nnpb -= 1
     cpu = lambda icy: icy * nns[0]  # noqa: E731
     if twod is None or "Y" in twod:
-        while (
-            nnpb > 1
-            and meshes[cpu(nns[1])]["Y"][0, 0, 0]
-            == meshes[cpu(nns[1] - 1)]["Y"][0, -1, 0]
+        while nnpb > 1 and np.isclose(
+            meshes[cpu(nns[1])]["Y"][0, 0, 0],
+            meshes[cpu(nns[1] - 1)]["Y"][0, -1, 0],
+            rtol=1e-10,
         ):
             nns[1] += 1
             nnpb -= nns[0]
     cpu = lambda icz: icz * nns[0] * nns[1]  # noqa: E731
-    while (
-        nnpb > 1
-        and meshes[cpu(nns[2])]["Z"][0, 0, 0] == meshes[cpu(nns[2] - 1)]["Z"][0, 0, -1]
+    while nnpb > 1 and np.isclose(
+        meshes[cpu(nns[2])]["Z"][0, 0, 0],
+        meshes[cpu(nns[2] - 1)]["Z"][0, 0, -1],
+        rtol=1e-10,
     ):
         nns[2] += 1
         nnpb -= nns[0] * nns[1]
+    assert nnpb == 1
+    assert len(meshes) == np.prod(nns)
     return np.array(nns)
 
 
